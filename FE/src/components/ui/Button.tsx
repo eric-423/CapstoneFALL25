@@ -30,22 +30,22 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
                     "disabled:pointer-events-none disabled:opacity-50",
 
-                    // Variant styles
+                    // Variant styles - using theme variables
                     variant === 'primary' && [
-                        "bg-orange-500 text-white",
-                        "hover:bg-orange-600 focus-visible:ring-orange-500",
+                        "bg-primary text-white",
+                        "hover:bg-primary/90 focus-visible:ring-primary",
                     ],
                     variant === 'secondary' && [
-                        "bg-orange-50 text-orange-700",
-                        "hover:bg-orange-100 focus-visible:ring-orange-500",
+                        "bg-secondary text-white",
+                        "hover:bg-secondary/90 focus-visible:ring-secondary",
                     ],
                     variant === 'outline' && [
-                        "border border-gray-300 bg-white text-gray-700",
-                        "hover:bg-gray-50 focus-visible:ring-gray-500",
+                        "border border-border bg-background text-foreground",
+                        "hover:bg-muted focus-visible:ring-primary",
                     ],
                     variant === 'ghost' && [
-                        "text-gray-700 hover:bg-gray-100",
-                        "focus-visible:ring-gray-500",
+                        "text-foreground hover:bg-muted",
+                        "focus-visible:ring-primary",
                     ],
 
                     // Size styles

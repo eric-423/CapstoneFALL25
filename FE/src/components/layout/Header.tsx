@@ -15,7 +15,7 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
 
     return (
         <header className={cn(
-            "sticky top-0 z-50 w-full border-b border-gray-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60",
+            "sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60",
             className
         )}>
             <div className="container mx-auto px-4">
@@ -23,9 +23,9 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
                     {/* Logo */}
                     <Link href="/" className="flex items-center space-x-2">
                         <div className="h-8 w-8 rounded-full bg-orange-500 flex items-center justify-center">
-                            <span className="text-white font-bold text-sm">T</span>
+                            <span className="text-white font-bold text-sm">TẤM</span>
                         </div>
-                        <span className="font-bold text-xl text-gray-900">TamTech</span>
+                        <span className="font-bold text-xl text-foreground hidden md:block">TẤM TẮC</span>
                     </Link>
 
                     {/* Desktop Navigation */}
@@ -41,7 +41,7 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
                         {/* Cart */}
                         <Button variant="ghost" size="sm" className="relative">
                             <ShoppingCart className="h-4 w-4" />
-                            <span className="absolute -top-1 -right-1 h-4 w-4 bg-orange-500 text-white text-xs rounded-full flex items-center justify-center">
+                            <span className="absolute -top-1 -right-1 h-4 w-4 bg-primary text-white text-xs rounded-full flex items-center justify-center">
                                 0
                             </span>
                         </Button>
