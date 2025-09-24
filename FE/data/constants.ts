@@ -1,12 +1,12 @@
 // App constants và configuration
 export const APP_CONFIG = {
-  name: 'TẤM TẮC',
-  tagline: 'Cơm Tấm Tắc - Tắm ngon, Tắc nhỏ!',
-  description: 'Thưởng hiệu cơm tấm hàng đầu dành cho sinh viên',
-  version: '1.0.0',
-  author: 'TamTech Team',
-  keywords: ['cơm tấm', 'sinh viên', 'ngon', 'rẻ', 'delivery', 'franchise']
-};export const CONTACT_INFO = {
+    name: 'TẤM TẮC',
+    tagline: 'Cơm Tấm Tắc - Tắm ngon, Tắc nhỏ!',
+    description: 'Thưởng hiệu cơm tấm hàng đầu dành cho sinh viên',
+    version: '1.0.0',
+    author: 'TamTech Team',
+    keywords: ['cơm tấm', 'sinh viên', 'ngon', 'rẻ', 'delivery', 'franchise']
+}; export const CONTACT_INFO = {
     phone: '028 1234 5678',
     email: 'info@tamtechcomtam.com',
     address: '123 Đường Lê Lợi, Quận 1, TP.HCM',
@@ -176,116 +176,116 @@ export const MESSAGES = {
 
 // Hero Section Data từ Figma
 export const HERO_SECTION = {
-  title: 'Cơm Tấm Tắc',
-  subtitle: 'Tắm ngon, Tắc nhỏ!',
-  description: 'Thưởng hiệu cơm tấm hàng đầu dành cho sinh viên',
-  orderForm: {
-    placeholder: {
-      location: 'Chọn cửa hàng',
-      time: 'Thời gian nhận hàng',
-      guests: 'Số lượng khách'
-    },
-    submitText: 'Đặt bàn'
-  }
+    title: 'Cơm Tấm Tắc',
+    subtitle: 'Tắm ngon, Tắc nhỏ!',
+    description: 'Thưởng hiệu cơm tấm hàng đầu dành cho sinh viên',
+    orderForm: {
+        placeholder: {
+            location: 'Chọn cửa hàng',
+            time: 'Thời gian nhận hàng',
+            guests: 'Số lượng khách'
+        },
+        submitText: 'Đặt bàn'
+    }
 };
 
 // Why Choose Section từ Figma
 export const WHY_CHOOSE_FEATURES = [
-  {
-    id: 'nguyen-lieu-tuoi-ngon',
-    title: 'Nguyên Liệu Tươi Ngon',
-    subtitle: 'AN TOÀN',
-    description: 'Cam kết sử dụng nguyên liệu tươi ngon, an toàn vệ sinh thực phẩm',
-    image: '/images/features/nguyen-lieu-tuoi-ngon.jpg',
-    icon: '🥬'
-  },
-  {
-    id: 'cong-thuc-doc-quyen',
-    title: 'Công Thức Độc Quyền',
-    subtitle: 'NGON CHẤT XỊN',
-    description: 'Công thức độc quyền được nghiên cứu và phát triển riêng',
-    image: '/images/features/cong-thuc-doc-quyen.jpg',
-    icon: '👨‍🍳'
-  },
-  {
-    id: 'gia-ca-phai-chang',
-    title: 'Giá Cả Phải Chăng',
-    subtitle: 'SINH VIÊN YÊU THÍCH',
-    description: 'Chất lượng cao với mức giá hợp lý, đặc biệt dành cho sinh viên',
-    image: '/images/features/gia-ca-phai-chang.jpg',
-    icon: '💰'
-  }
+    {
+        id: 'nguyen-lieu-tuoi-ngon',
+        title: 'Nguyên Liệu Tươi Ngon',
+        subtitle: 'AN TOÀN',
+        description: 'Cam kết sử dụng nguyên liệu tươi ngon, an toàn vệ sinh thực phẩm',
+        image: '/images/features/nguyen-lieu-tuoi-ngon.jpg',
+        icon: '🥬'
+    },
+    {
+        id: 'cong-thuc-doc-quyen',
+        title: 'Công Thức Độc Quyền',
+        subtitle: 'NGON CHẤT XỊN',
+        description: 'Công thức độc quyền được nghiên cứu và phát triển riêng',
+        image: '/images/features/cong-thuc-doc-quyen.jpg',
+        icon: '👨‍🍳'
+    },
+    {
+        id: 'gia-ca-phai-chang',
+        title: 'Giá Cả Phải Chăng',
+        subtitle: 'SINH VIÊN YÊU THÍCH',
+        description: 'Chất lượng cao với mức giá hợp lý, đặc biệt dành cho sinh viên',
+        image: '/images/features/gia-ca-phai-chang.jpg',
+        icon: '💰'
+    }
 ];
 
 // Franchise Section từ Figma
 export const FRANCHISE_INFO = {
-  title: 'CHUYỂN CƠM TẤM',
-  description: 'HỘI XUÂN LÃNG CÚC 2025 - TY ĐỊNH TY XUA...',
-  ctaText: 'Đặc biệt',
-  benefits: [
-    'Hỗ trợn toàn diện từ A-Z',
-    'Đào tạo nhân viên chuyên nghiệp', 
-    'Marketing và quảng cáo hiệu quả',
-    'Hệ thống quản lý hiện đại'
-  ]
+    title: 'CHUYỂN CƠM TẤM',
+    description: 'HỘI XUÂN LÃNG CÚC 2025 - TY ĐỊNH TY XUA...',
+    ctaText: 'Đặc biệt',
+    benefits: [
+        'Hỗ trợn toàn diện từ A-Z',
+        'Đào tạo nhân viên chuyên nghiệp',
+        'Marketing và quảng cáo hiệu quả',
+        'Hệ thống quản lý hiện đại'
+    ]
 };
 
 // Newsletter Section từ Figma  
 export const NEWSLETTER_SECTION = {
-  title: 'HỆ THỐNG NHƯỢNG QUYỀN',
-  subtitle: 'ĐĂNG KÝ NHƯỢNG QUYỀN',
-  description: 'Hãy để lại thông tin để được tư vấn về cơ hội kinh doanh cùng TẤM TẮC',
-  form: {
-    fields: [
-      { name: 'fullName', placeholder: 'Họ và tên', required: true },
-      { name: 'email', placeholder: 'Email', required: true },
-      { name: 'phone', placeholder: 'Số điện thoại', required: true },
-      { name: 'city', placeholder: 'Tỉnh thành', required: true },
-      { name: 'message', placeholder: 'Lời nhắn', required: false, type: 'textarea' }
-    ],
-    submitText: 'Gửi thông tin'
-  }
+    title: 'HỆ THỐNG NHƯỢNG QUYỀN',
+    subtitle: 'ĐĂNG KÝ NHƯỢNG QUYỀN',
+    description: 'Hãy để lại thông tin để được tư vấn về cơ hội kinh doanh cùng TẤM TẮC',
+    form: {
+        fields: [
+            { name: 'fullName', placeholder: 'Họ và tên', required: true },
+            { name: 'email', placeholder: 'Email', required: true },
+            { name: 'phone', placeholder: 'Số điện thoại', required: true },
+            { name: 'city', placeholder: 'Tỉnh thành', required: true },
+            { name: 'message', placeholder: 'Lời nhắn', required: false, type: 'textarea' }
+        ],
+        submitText: 'Gửi thông tin'
+    }
 };
 // Navigation menu items từ Figma
 export const MENU_ITEMS = [
-  {
-    title: 'Về Tấm Tắc',
-    href: '/about',
-    icon: 'info'
-  },
-  {
-    title: 'Đặt Hàng',
-    href: '/menu',
-    icon: 'utensils'
-  },
-  {
-    title: 'Thực đơn hôm AI',
-    href: '/menu-ai',
-    icon: 'sparkles'
-  },
-  {
-    title: 'Chuyển Cơm Tấm',
-    href: '/franchise',
-    icon: 'store'
-  },
-  {
-    title: 'Nhượng Quyền',
-    href: '/franchise',
-    icon: 'handshake'
-  },
-  {
-    title: 'Cửa Hàng',
-    href: '/stores',
-    icon: 'map-pin'
-  }
+    {
+        title: 'Về Tấm Tắc',
+        href: '/about',
+        icon: 'info'
+    },
+    {
+        title: 'Đặt Hàng',
+        href: '/menu',
+        icon: 'utensils'
+    },
+    {
+        title: 'Thực đơn hôm AI',
+        href: '/menu-ai',
+        icon: 'sparkles'
+    },
+    {
+        title: 'Chuyển Cơm Tấm',
+        href: '/franchise',
+        icon: 'store'
+    },
+    {
+        title: 'Nhượng Quyền',
+        href: '/franchise',
+        icon: 'handshake'
+    },
+    {
+        title: 'Cửa Hàng',
+        href: '/stores',
+        icon: 'map-pin'
+    }
 ];// SEO and meta data
 export const SEO = {
-  defaultTitle: 'TẤM TẮC - Cơm Tấm Tắc, Tắm ngon Tắc nhỏ!',
-  defaultDescription: 'Thưởng hiệu cơm tấm hàng đầu dành cho sinh viên. Ngon, rẻ, nhanh, tiện lợi. Đặt hàng online ngay!',
-  defaultKeywords: 'cơm tấm, sinh viên, ngon rẻ, đặt hàng online, giao hàng nhanh, nhượng quyền',
-  ogImage: '/images/og-image.jpg',
-  twitterCard: 'summary_large_image',
-  favicon: '/favicon.ico'
+    defaultTitle: 'TẤM TẮC - Cơm Tấm Tắc, Tắm ngon Tắc nhỏ!',
+    defaultDescription: 'Thưởng hiệu cơm tấm hàng đầu dành cho sinh viên. Ngon, rẻ, nhanh, tiện lợi. Đặt hàng online ngay!',
+    defaultKeywords: 'cơm tấm, sinh viên, ngon rẻ, đặt hàng online, giao hàng nhanh, nhượng quyền',
+    ogImage: '/images/og-image.jpg',
+    twitterCard: 'summary_large_image',
+    favicon: '/favicon.ico'
 };// Theme configuration
 export const THEME = {
     colors: {

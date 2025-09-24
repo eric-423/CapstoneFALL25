@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -17,11 +19,12 @@ export interface NavigationProps {
 }
 
 const defaultNavigationItems: NavigationItem[] = [
-    { href: '/', label: 'Trang chủ' },
-    { href: '/menu', label: 'Menu' },
-    { href: '/blog', label: 'Blog' },
-    { href: '/promotions', label: 'Ưu đãi' },
-    { href: '/contact', label: 'Liên hệ' },
+    { href: '/about', label: 'Về Tâm Tắc' },
+    { href: '/partners', label: 'Đối Tác' },
+    { href: '/menu', label: 'Thực đơn hôm nay' },
+    { href: '/franchise', label: 'Chuyển Cơm Tâm' },
+    { href: '/promotions', label: 'Nhượng Quyền' },
+    { href: '/stores', label: 'Cửa Hàng' },
 ];
 
 const Navigation: React.FC<NavigationProps> = ({
@@ -60,20 +63,27 @@ const Navigation: React.FC<NavigationProps> = ({
                     rel={item.external ? 'noopener noreferrer' : undefined}
                     className={cn(
                         // Base link styles
-                        "transition-colors font-medium",
+                        "transition-colors hover:opacity-80",
 
                         // Default variant styles
                         variant === 'default' && [
-                            "text-gray-600 hover:text-orange-500",
-                            isActiveLink(item.href) && "text-orange-500"
+                            "flex items-center text-center",
+                            isActiveLink(item.href) ? "" : ""
                         ],
 
                         // Mobile variant styles
                         variant === 'mobile' && [
-                            "text-gray-700 hover:text-orange-500 py-2",
-                            isActiveLink(item.href) && "text-orange-500 font-semibold"
+                            "py-2",
+                            isActiveLink(item.href) ? "font-bold" : ""
                         ]
                     )}
+                    style={{
+                        color: '#DA7339',
+                        fontFamily: "'Playfair Display', serif",
+                        fontWeight: 700,
+                        fontSize: '20px',
+                        lineHeight: '27px'
+                    }}
                 >
                     {item.label}
                 </Link>
