@@ -1,11 +1,9 @@
 import type { MenuProps } from 'antd';
 import { Avatar, Button, Dropdown, Layout, Menu, message } from 'antd';
 import React, { useState } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { usePathname, useRouter } from 'next/navigation';
 
 import logo from '../../../assets/full-logo-white.svg';
-
-import './AdminSidebar.css';
 
 import {
   BellOutlined,
@@ -51,8 +49,8 @@ const AdminSidebarGreenStyles = () => (
 
 const AdminSidebar: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
+  const router = useRouter();
+  const pathname = usePathname();
   // const { user: authUser, logout } = useAuthStore();
 
   const siderWidth = 250;
@@ -114,7 +112,7 @@ const AdminSidebar: React.FC = () => {
       label: 'Thông tin cá nhân',
       icon: <UserOutlined />,
       onClick: () => {
-        navigate('/admin/profile');
+        router.push('/admin/profile');
       },
     },
     {
@@ -134,7 +132,7 @@ const AdminSidebar: React.FC = () => {
         removeAccessToken();
         removeRefreshToken();
         message.success('Đăng xuất thành công');
-        navigate('/login');
+        router.push('/login');
       },
     },
   ];
@@ -200,9 +198,9 @@ const AdminSidebar: React.FC = () => {
         <Menu
           className='admin-menu'
           mode='inline'
-          selectedKeys={[location.pathname]}
+          selectedKeys={pathname ? [pathname] : []}
           defaultOpenKeys={['stores']}
-          onClick={({ key }) => navigate(key)}
+          onClick={({ key }) => router.push(key)}
           items={menuItems}
           style={{
             borderRight: 0,
@@ -313,7 +311,7 @@ const AdminSidebar: React.FC = () => {
             minHeight: 280,
           }}
         >
-          <Outlet />
+          {/* Content will be rendered by Next.js pages */}
         </Content>
       </Layout>
     </Layout>

@@ -1,11 +1,9 @@
 import type { MenuProps } from 'antd';
 import { Avatar, Button, Dropdown, Layout, Menu, message } from 'antd';
 import React, { useState } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { usePathname, useRouter } from 'next/navigation';
 
 import logo from '../../../assets/full-logo-white.svg';
-
-import './ManagerSidebar.css';
 
 import {
   BarChartOutlined,
@@ -26,8 +24,8 @@ const { Header, Sider, Content } = Layout;
 
 const ManagerSidebar: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
+  const router = useRouter();
+  const pathname = usePathname();
 
   const siderWidth = 240;
   const siderCollapsedWidth = 80;
@@ -97,7 +95,7 @@ const ManagerSidebar: React.FC = () => {
         removeAccessToken();
         removeRefreshToken();
         message.success('Đăng xuất thành công');
-        navigate('/login');
+        router.push('/login');
       },
     },
   ];
@@ -162,9 +160,9 @@ const ManagerSidebar: React.FC = () => {
         <Menu
           className='manager-menu'
           mode='inline'
-          selectedKeys={[location.pathname]}
+          selectedKeys={pathname ? [pathname] : []}
           defaultOpenKeys={['orders', 'revenue']}
-          onClick={({ key }) => navigate(key)}
+          onClick={({ key }) => router.push(key)}
           items={menuItems}
           style={{
             borderRight: 0,
@@ -275,7 +273,7 @@ const ManagerSidebar: React.FC = () => {
             minHeight: 280,
           }}
         >
-          <Outlet />
+          {/* Content will be rendered by Next.js pages */}
         </Content>
       </Layout>
     </Layout>

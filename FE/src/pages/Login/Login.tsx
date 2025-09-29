@@ -1,5 +1,4 @@
 import { sendOTP, signIn, signUp, verifyOTP } from '@/apis/user.api';
-import bannerImage from '@/assets/images/Home - Banner.jpg';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
@@ -108,7 +107,7 @@ const Login = () => {
   const handlePasswordSubmit = async (pass: string) => {
     setIsCreatingPassword(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/customer/change-password`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/customer/change-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -176,7 +175,7 @@ const Login = () => {
         {/* Image Section */}
         <div className='hidden md:block md:w-2/3 relative overflow-hidden'>
           <img
-            src={bannerImage || '/placeholder.svg'}
+            src='/images/Home - Banner.jpg'
             alt='Cơm tấm banner'
             className='w-full h-full object-cover brightness-[0.8]'
           />

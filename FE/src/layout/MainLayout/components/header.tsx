@@ -1,6 +1,5 @@
 'use client';
 
-import logo from '@/assets/full-logo.svg';
 import { CartDrawer, CartPopover } from '@/components/common/cart';
 import { Button } from '@/components/ui/button';
 import configs from '@/configs';
@@ -10,7 +9,8 @@ import { removeAccessToken, removeRefreshToken } from '@/utils/cookies';
 
 import { LogIn, LogOut, Menu, User, X } from 'lucide-react';
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export default function Header() {
   const { isAuthenticated } = useAuth();
@@ -22,9 +22,9 @@ export default function Header() {
     <header className='sticky top-0 z-50 w-full bg-background shadow-sm'>
       <div className='container mx-auto px-5 md:px-16 py-0 flex items-center justify-between'>
         {/* Logo */}
-        <Link to='/' className='flex items-center space-x-2'>
+        <Link href='/' className='flex items-center space-x-2'>
           <div className='relative w-30'>
-            <img src={logo} alt='Tấm Tắc Logo' className='mx-auto w-30' />
+            <img src='/full-logo.svg' alt='Tấm Tắc Logo' className='mx-auto w-30' />
           </div>
         </Link>
 
@@ -82,7 +82,7 @@ function NavLinks({ mobile = false, onClick }: { mobile?: boolean; onClick?: () 
       {links.map((link) => (
         <Link
           key={link.href}
-          to={link.href}
+          href={link.href}
           onClick={onClick}
           className={`font-medium mx-24 text-primary group transition-all duration-300 ease-in-out ${mobile ? 'text-lg py-4' : ''}`}
         >
@@ -104,7 +104,7 @@ function ActionButtons({
   isAuthenticated?: boolean;
   onClick: () => void;
 }) {
-  const url = useLocation().pathname;
+  const url = usePathname();
   const handleLogout = () => {
     onClick();
     removeAccessToken();
@@ -116,7 +116,7 @@ function ActionButtons({
     <>
       {isAuthenticated ? (
         <>
-          <Link to={configs.routes.profile}>
+          <Link href={configs.routes.profile}>
             <Button
               variant='ghost'
               size={mobile ? 'default' : 'icon'}
@@ -139,7 +139,7 @@ function ActionButtons({
         </>
       ) : (
         <>
-          <Link to={configs.routes.login}>
+          <Link href={configs.routes.login}>
             <Button
               variant='ghost'
               size={mobile ? 'default' : 'icon'}

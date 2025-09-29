@@ -18,7 +18,7 @@ import { STORE_INFO } from '@/utils/mockupData';
 
 import { ChevronRight, Edit, MapPin, ShoppingCart, X } from 'lucide-react';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { toast } from 'react-toastify';
 
 import ControlledButton from '../controlled-button';
@@ -142,7 +142,7 @@ export function CartDrawer() {
           ) : (
             <div className='text-center py-8'>
               <p className='text-gray-500'>Giỏ hàng của bạn hiện đang trống</p>
-              <Link to='/menu'>
+              <Link href='/menu'>
                 <Button variant='outline' className='mt-4' onClick={() => setOpen(false)}>
                   Tiếp tục mua sắm
                 </Button>

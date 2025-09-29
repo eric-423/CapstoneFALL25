@@ -1,4 +1,4 @@
-import { Home, LucideIcon, MessageCircle, UserRound } from 'lucide-react';
+import { Home, LucideIcon, UserRound, ShieldCheck, Users } from 'lucide-react';
 
 type MenuItemType = {
   title: string;
@@ -11,18 +11,23 @@ type MenuType = MenuItemType[];
 
 export const mainMenu: MenuType = [
   {
-    title: 'Home',
+    title: 'Trang chủ',
     url: '/',
     icon: Home,
   },
   {
-    title: 'My Network',
-    url: '/my-network',
+    title: 'Hồ sơ',
+    url: '/profile',
     icon: UserRound,
   },
   {
-    title: 'Message',
-    url: '/chat',
-    icon: MessageCircle,
+    title: 'Admin',
+    url: '/admin',
+    icon: ShieldCheck,
+  },
+  {
+    title: 'Manager',
+    url: '/manager',
+    icon: Users,
   },
 ];

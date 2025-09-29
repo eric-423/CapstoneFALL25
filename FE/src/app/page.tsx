@@ -1,32 +1,26 @@
+'use client';
+
 import { GET_BRANCHES_QUERY_KEY, GET_BRANCHES_STALE_TIME, getBranches } from '@/apis/branch.api';
 import { GET_PRODUCTS_QUERY_KEY, getProducts } from '@/apis/product.api';
-import logo from '@/assets/favicon.svg';
-import foodCourt from '@/assets/images/food-court.jpg';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import StyledHeading from '@/components/common/styled-heading';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
 import configs from '@/configs';
-import useDocumentTitle from '@/hooks/useDocumentTitle';
-import useScrollTop from '@/hooks/useScrollTop';
 import { cn } from '@/lib/utils';
 
 import { motion } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
-import Image from 'next/image';
 import Link from 'next/link';
 
-import BestSellerList from './components/best-seller-list';
-import BranchList from './components/branch-list';
-import ContentList from './components/content-list';
-import FranchiseForm from './components/franchise-form';
+import BestSellerList from '@/pages/Home/components/best-seller-list';
+import BranchList from '@/pages/Home/components/branch-list';
+import ContentList from '@/pages/Home/components/content-list';
+import FranchiseForm from '@/pages/Home/components/franchise-form';
 
 import { useQuery } from '@tanstack/react-query';
 
 export default function Home() {
-  useDocumentTitle('Tấm Tắc');
-  useScrollTop();
-
   const { data: products, isLoading: isLoadingProducts } = useQuery({
     queryKey: [GET_PRODUCTS_QUERY_KEY],
     queryFn: () => getProducts(),
@@ -93,7 +87,7 @@ export default function Home() {
                   className='relative'
                 >
                   <div className='rounded-2xl overflow-hidden shadow-2xl'>
-                    <Image src={foodCourt} alt='Tấm Tắc Story' className='w-full h-[400px] object-cover' width={500} height={400} />
+                    <img src='/images/food-court.jpg' alt='Tấm Tắc Story' className='w-full h-[400px] object-cover' />
                   </div>
                 </motion.div>
               </div>
@@ -170,7 +164,7 @@ export default function Home() {
                   <div className='relative'>
                     <div className='flex items-center mb-4'>
                       <div className='w-12 h-12 rounded-full flex items-center justify-center mr-4'>
-                        <img src={logo} alt='Tấm Tắc Logo' />
+                        <img src='/favicon.svg' alt='Tấm Tắc Logo' />
                       </div>
                       <h3 className='text-2xl font-bold'>ĐĂNG KÝ NHƯỢNG QUYỀN</h3>
                     </div>

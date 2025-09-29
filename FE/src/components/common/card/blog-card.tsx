@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { Blog } from '@/types/blog.type';
 
 import { ChevronRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 
 type BlogCardProps = {
   item: Blog;
@@ -30,7 +30,7 @@ export const BlogCard = ({ item }: BlogCardProps) => {
               buttonVariants({ variant: 'link' }),
               'text-secondary p-0 mt-2 flex items-center justify-end hover:text-white',
             )}
-            to={config.routes.blogDetails.replace(':id', item.id)}
+            href={config.routes.blogDetails.replace(':id', item.id)}
           >
             Đọc tiếp
             <ChevronRight className='h-4 w-4 ml-1' />

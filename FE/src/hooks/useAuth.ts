@@ -3,7 +3,7 @@
 import { refetchToken } from '@/apis/user.api';
 import configs from '@/configs';
 import type { UserAuthData } from '@/types/user.type';
-import { getCookie, removeAccessToken, removeRefreshToken } from '@/utils/cookies';
+import { getCookie, removeAccessToken, removeRefreshToken, setUserRole, setAuthToken, removeUserRole, removeAuthToken } from '@/utils/cookies';
 import JwtDecode from '@/utils/jwtDecode';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -28,7 +28,7 @@ const useAuth = () => {
 
   // Use cookies but don't make the component re-render on every cookie change
   const [cookies] = useCookies([configs.cookies.accessToken, configs.cookies.refreshToken]);
-  const accessToken = localStorage.getItem('access_token') || cookies[configs.cookies.accessToken];
+  const accessToken = (typeof window !== 'undefined' ? localStorage.getItem('access_token') : null) || cookies[configs.cookies.accessToken];
   const refreshToken = cookies[configs.cookies.refreshToken];
 
   // Track if the component is mounted to prevent state updates after unmount
@@ -54,6 +54,10 @@ const useAuth = () => {
           user: userData,
           isAuthenticated: true,
         }));
+
+        // Set cookies for middleware
+        setAuthToken(data.data.access_token);
+        setUserRole(userData.role);
       }
     },
     onError: (error) => {
@@ -61,6 +65,8 @@ const useAuth = () => {
       console.error('Token refresh failed:', error);
       removeAccessToken();
       removeRefreshToken();
+      removeAuthToken();
+      removeUserRole();
 
       setAuthState((prev) => ({
         ...prev,
@@ -117,6 +123,12 @@ const useAuth = () => {
           isAuthenticated: true,
           isInitialized: true,
         }));
+
+        // Set cookies for middleware
+        if (token) {
+          setAuthToken(token);
+          setUserRole(userData.role);
+        }
       } catch (error) {
         console.error('Error processing token:', error);
         setAuthState((prev) => ({

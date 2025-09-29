@@ -10,7 +10,7 @@ import { STORE_INFO } from '@/utils/mockupData';
 
 import { ChevronRight, Edit, MapPin, ShoppingCart, X } from 'lucide-react';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { toast } from 'react-toastify';
 
 import ControlledButton from '../controlled-button';
@@ -29,7 +29,7 @@ export function CartPopover() {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger>
+      <PopoverTrigger asChild>
         <Button variant='ghost' size={'icon'} className='text-primary hover:text-[#B84A0E] hover:bg-[#FFE8D6]'>
           <div className='relative flex items-center justify-center h-10 w-10 rounded-full transition-colors'>
             <ShoppingCart className='h-5 w-5 text-primary' />
@@ -128,7 +128,7 @@ export function CartPopover() {
           ) : (
             <div className='text-center py-8'>
               <p className='text-gray-500'>Giỏ hàng của bạn hiện đang trống</p>
-              <Link to='/menu'>
+              <Link href='/menu'>
                 <Button variant='outline' className='mt-4' onClick={() => setOpen(false)}>
                   <ShoppingCart className='h-4 w-4 mr-2' />
                   Tiếp tục mua sắm
