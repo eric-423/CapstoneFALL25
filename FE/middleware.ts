@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { jwtDecode } from 'jwt-decode';
 
 // Define protected routes
 const protectedRoutes = [
@@ -7,7 +7,9 @@ const protectedRoutes = [
     '/admin',
     '/manager',
     '/checkout',
-    '/payment-result'
+    '/my-orders',
+    '/payment-success',
+    '/payment-failed'
 ];
 
 const adminRoutes = [
@@ -19,58 +21,94 @@ const managerRoutes = [
 ];
 
 const guestOnlyRoutes = [
-    '/login'
+    '/login',
+    '/register'
 ];
+
+interface JwtPayload {
+    sub: string;
+    role: string;
+    exp: number;
+    iat: number;
+}
+
+function getTokenFromRequest(request: NextRequest): string | null {
+    // Try to get token from cookie first
+    const tokenFromCookie = request.cookies.get('access_token')?.value ||
+        request.cookies.get('authToken')?.value;
+    if (tokenFromCookie) return tokenFromCookie;
+
+    // Try to get token from Authorization header
+    const authHeader = request.headers.get('authorization');
+    if (authHeader?.startsWith('Bearer ')) {
+        return authHeader.substring(7);
+    }
+
+    return null;
+}
+
+function isTokenValid(token: string): { isValid: boolean; payload: JwtPayload | null } {
+    try {
+        const payload = jwtDecode<JwtPayload>(token);
+        const currentTime = Date.now() / 1000;
+
+        if (payload.exp < currentTime) {
+            return { isValid: false, payload: null };
+        }
+
+        return { isValid: true, payload };
+    } catch {
+        return { isValid: false, payload: null };
+    }
+}
 
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
-    const cookieStore = await cookies();
 
-    // Get authentication token from cookies
-    const authToken = cookieStore.get('authToken')?.value;
-    const userRole = cookieStore.get('userRole')?.value;
+    // Skip middleware for static files and API routes
+    if (
+        pathname.startsWith('/_next') ||
+        pathname.startsWith('/api') ||
+        pathname.includes('.') && !pathname.endsWith('/')
+    ) {
+        return NextResponse.next();
+    }
 
-    // Check if user is authenticated
-    const isAuthenticated = !!authToken;
+    const token = getTokenFromRequest(request);
+    const userRole = request.cookies.get('userRole')?.value;
+
+    // Check authentication status
+    const { isValid, payload } = token ? isTokenValid(token) : { isValid: false, payload: null };
+    const isAuthenticated = isValid && payload;
 
     // Redirect authenticated users away from guest-only routes
     if (isAuthenticated && guestOnlyRoutes.some(route => pathname.startsWith(route))) {
-        return NextResponse.redirect(new URL('/', request.url));
+        const dashboardUrl = payload?.role === 'ADMIN' ? '/admin' :
+            payload?.role === 'MANAGER' ? '/manager' : '/';
+        return NextResponse.redirect(new URL(dashboardUrl, request.url));
     }
 
     // Check if route requires authentication
     const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
 
     if (isProtectedRoute && !isAuthenticated) {
-        // Redirect to login page
         const loginUrl = new URL('/login', request.url);
         loginUrl.searchParams.set('callbackUrl', pathname);
         return NextResponse.redirect(loginUrl);
     }
 
-    // Check admin routes
-    if (adminRoutes.some(route => pathname.startsWith(route))) {
-        if (!isAuthenticated) {
-            const loginUrl = new URL('/login', request.url);
-            loginUrl.searchParams.set('callbackUrl', pathname);
-            return NextResponse.redirect(loginUrl);
+    // Check role-based access
+    if (isAuthenticated && payload) {
+        // Admin routes - only admin can access
+        if (adminRoutes.some(route => pathname.startsWith(route)) &&
+            payload.role !== 'ADMIN' && userRole !== 'Admin') {
+            return NextResponse.redirect(new URL('/403', request.url));
         }
 
-        if (userRole !== 'Admin') {
-            return NextResponse.redirect(new URL('/', request.url));
-        }
-    }
-
-    // Check manager routes
-    if (managerRoutes.some(route => pathname.startsWith(route))) {
-        if (!isAuthenticated) {
-            const loginUrl = new URL('/login', request.url);
-            loginUrl.searchParams.set('callbackUrl', pathname);
-            return NextResponse.redirect(loginUrl);
-        }
-
-        if (!['Admin', 'Manager'].includes(userRole || '')) {
-            return NextResponse.redirect(new URL('/', request.url));
+        // Manager routes - admin and manager can access
+        if (managerRoutes.some(route => pathname.startsWith(route)) &&
+            !['ADMIN', 'MANAGER', 'Admin', 'Manager'].includes(payload.role || userRole || '')) {
+            return NextResponse.redirect(new URL('/403', request.url));
         }
     }
 
