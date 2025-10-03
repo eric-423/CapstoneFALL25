@@ -2,6 +2,7 @@ import configs from '@/configs';
 import { STORE_INFO } from '@/utils/mockupData';
 
 import { Mail, MapPin, Phone } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 
 const Footer = () => {
@@ -12,7 +13,14 @@ const Footer = () => {
           {/* Logo and Tagline */}
           <div className='flex flex-col items-start'>
             <div className='flex items-center space-x-3 mb-4'>
-              <img src='/full-logo-white.svg' alt='Tấm Tắc Logo' className='relative p-2' />
+              <div className='relative w-32 h-12'>
+                <Image
+                  src='/full-logo-white.svg'
+                  alt='Tấm Tắc Logo'
+                  fill
+                  className='object-contain p-2'
+                />
+              </div>
             </div>
             <div className='mt-6 flex mx-auto space-x-4'>
               <Link

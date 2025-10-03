@@ -41,12 +41,11 @@ const useAuth = () => {
 
       if (data?.data.access_token) {
         const decodedData = JwtDecode(data.data.access_token);
-        const userData = {
+        const userData: UserAuthData = {
           id: decodedData.id,
-          phoneNumber: decodedData.phone,
+          phoneNumber: decodedData.phoneNumber,
           role: decodedData.role,
-          exp: decodedData.exp,
-          isNewUser: getCookie(configs.cookies.isNew),
+          isNewUser: getCookie(configs.cookies.isNew) === 'true',
         };
 
         setAuthState((prev) => ({
@@ -109,12 +108,11 @@ const useAuth = () => {
           return;
         }
 
-        const userData = {
+        const userData: UserAuthData = {
           id: decodedToken.id,
-          phoneNumber: decodedToken.phone,
+          phoneNumber: decodedToken.phoneNumber,
           role: decodedToken.role,
-          exp: decodedToken.exp,
-          isNewUser: getCookie(configs.cookies.isNew),
+          isNewUser: getCookie(configs.cookies.isNew) === 'true',
         };
 
         setAuthState((prev) => ({

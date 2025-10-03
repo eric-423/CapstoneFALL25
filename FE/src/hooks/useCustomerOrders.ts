@@ -45,7 +45,12 @@ interface RawOrder {
   createdAt: string;
   orderItems: RawOrderItem[];
   pickupTime: string;
-  customerDTO: any | null; // Replace `any` with the actual customer interface if available
+  customerDTO: {
+    id: number;
+    fullName: string;
+    email: string;
+    phone: string;
+  } | null;
 }
 
 export const useCustomerOrders = () => {

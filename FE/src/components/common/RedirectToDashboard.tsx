@@ -1,7 +1,16 @@
-import { Navigate } from 'react-router-dom';
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 const RedirectToDashboard = () => {
-  return <Navigate to="/manager/dashboard" replace />;
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace('/manager/dashboard');
+  }, [router]);
+
+  return null; // No UI needed during redirect
 };
 
 export default RedirectToDashboard; 

@@ -4,11 +4,11 @@ import { GET_BRANCHES_QUERY_KEY, GET_BRANCHES_STALE_TIME, getBranches } from '@/
 import { GET_PRODUCTS_QUERY_KEY, getProducts } from '@/apis/product.api';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 
-import HeroSection from '@/pages/Home/components/hero-section';
-import WhyChooseUsSection from '@/pages/Home/components/why-choose-us-section';
-import BestSellersSection from '@/pages/Home/components/best-sellers-section';
-import ComTamSpecialtySection from '@/pages/Home/components/com-tam-specialty-section';
-import FranchiseSection from '@/pages/Home/components/franchise-section';
+import HeroSection from '@/app/components/home/hero-section';
+import WhyChooseUsSection from '@/app/components/home/why-choose-us-section';
+import BestSellersSection from '@/app/components/home/best-sellers-section';
+import ComTamSpecialtySection from '@/app/components/home/com-tam-specialty-section';
+import FranchiseSection from '@/app/components/home/franchise-section';
 
 import { useQuery } from '@tanstack/react-query';
 
@@ -28,6 +28,9 @@ export default function Home() {
     refetchOnMount: false,
     refetchOnWindowFocus: false,
   });
+
+  // Suppress unused variable warning - branches data reserved for future features
+  void branches;
 
   return (
     <>

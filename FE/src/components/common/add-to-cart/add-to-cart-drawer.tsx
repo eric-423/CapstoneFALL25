@@ -8,6 +8,7 @@ import { useCart } from '@/contexts/cart/CartContext';
 import { Product } from '@/types/product.type';
 
 import { ShoppingBag, X } from 'lucide-react';
+import Image from 'next/image';
 import { useState } from 'react';
 
 import { QuantitySelector } from '../quantity-selector';
@@ -63,8 +64,14 @@ export function AddToCartDrawer({ open, onOpenChange, product }: AddToCartDrawer
         <div className='px-6 max-h-[80vh] overflow-y-auto custom-scrollbar'>
           {/* Main Dish */}
           <div className='flex gap-4 mb-6'>
-            <div className='relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 object-cover'>
-              <img src={product.productImage} alt={product.productName} className='object-cover h-full w-full' />
+            <div className='relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0'>
+              <Image
+                src={product.productImage}
+                alt={product.productName}
+                fill
+                className='object-cover'
+                sizes="96px"
+              />
             </div>
             <div className='flex-grow'>
               <h3 className='font-bold text-lg'>{product.productName}</h3>

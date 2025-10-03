@@ -2,6 +2,7 @@ import type { MenuProps } from 'antd';
 import { Avatar, Button, Dropdown, Layout, Menu, message } from 'antd';
 import React, { useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 import logo from '../../../assets/full-logo-white.svg';
 
@@ -146,7 +147,7 @@ const ManagerSidebar: React.FC = () => {
               height: '60px',
             }}
           >
-            <img
+            <Image
               src={logo}
               alt='logo'
               style={{

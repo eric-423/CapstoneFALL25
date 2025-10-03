@@ -1,12 +1,12 @@
-import { Metadata } from 'next';
-import ProfileContent from './components/ProfileContent';
+'use client';
 
-export const metadata: Metadata = {
-    title: 'Hồ sơ cá nhân',
-    description: 'Quản lý thông tin cá nhân và cài đặt tài khoản',
-    robots: 'noindex, nofollow',
-};
+import { CustomerGuard } from '@/guards';
+import ProfileContent from '@/app/components/profile/profile-content';
 
 export default function ProfilePage() {
-    return <ProfileContent />;
+    return (
+        <CustomerGuard>
+            <ProfileContent />
+        </CustomerGuard>
+    );
 }

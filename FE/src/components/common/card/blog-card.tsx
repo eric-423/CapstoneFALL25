@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { Blog } from '@/types/blog.type';
 
 import { ChevronRight } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 
 type BlogCardProps = {
@@ -15,12 +16,12 @@ export const BlogCard = ({ item }: BlogCardProps) => {
   return (
     <Card className='group relative p-0 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1'>
       <div className='aspect-square relative overflow-hidden'>
-        <img
-          src={item.img}
+        <Image
+          src={item.img || '/images/placeholder.jpg'}
           alt={item.title}
-          width={300}
-          height={300}
-          className='w-full h-full object-cover transition-transform duration-500 group-hover:scale-110'
+          fill
+          sizes="300px"
+          className='object-cover transition-transform duration-500 group-hover:scale-110'
         />
         <div className='absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent flex flex-col justify-end p-4'>
           <h3 className='text-white font-bold text-lg'>{item.title}</h3>
@@ -30,7 +31,7 @@ export const BlogCard = ({ item }: BlogCardProps) => {
               buttonVariants({ variant: 'link' }),
               'text-secondary p-0 mt-2 flex items-center justify-end hover:text-white',
             )}
-            href={config.routes.blogDetails.replace(':id', item.id)}
+            href={config.routes.blogDetails(item.id)}
           >
             Đọc tiếp
             <ChevronRight className='h-4 w-4 ml-1' />

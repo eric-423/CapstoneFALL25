@@ -7,8 +7,9 @@ import { useAuth } from '@/hooks';
 import { useOutsideClicked } from '@/hooks/useOutsideClicked';
 import { removeAccessToken, removeRefreshToken } from '@/utils/cookies';
 
-import { LogIn, LogOut, Menu, User, X } from 'lucide-react';
+import { LogOut, Menu, User, X } from 'lucide-react';
 import { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -23,8 +24,14 @@ export default function Header() {
       <div className='container mx-auto px-4 md:px-6 lg:px-8 py-4 flex items-center justify-between'>
         {/* Logo */}
         <Link href='/' className='flex items-center space-x-2'>
-          <div className='relative w-32 md:w-36'>
-            <img src='/full-logo.svg' alt='Tấm Tắc Logo' className='w-full h-auto' />
+          <div className='relative w-32 md:w-36 h-8'>
+            <Image
+              src='/full-logo.svg'
+              alt='Tấm Tắc Logo'
+              fill
+              className='object-contain'
+              priority
+            />
           </div>
         </Link>
 
@@ -120,8 +127,8 @@ function ActionButtons({
         className='text-orange-500 hover:text-orange-600 hover:bg-orange-50'
       >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </Button>
 

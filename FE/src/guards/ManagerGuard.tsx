@@ -1,22 +1,33 @@
+'use client';
+
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { config } from '@/configs/app';
 import { useAuth } from '@/hooks';
 
-import { FC, PropsWithChildren } from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { FC, PropsWithChildren, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
-const ManagerGuard: FC<PropsWithChildren> = () => {
+const ManagerGuard: FC<PropsWithChildren> = ({ children }) => {
   const { isLoading, user, isAuthenticated } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (!isAuthenticated) {
+        router.replace(config.routes.login);
+      } else if (user && user.role !== 'Manager') {
+        router.replace(config.routes.home);
+      }
+    }
+  }, [isLoading, isAuthenticated, user, router]);
 
   if (isLoading) return <LoadingSpinner />;
 
-  if (!isAuthenticated) return <Navigate to={config.routes.login} replace />;
-
-  if (user && user.role !== 'Manager') {
-    return <Navigate to={config.routes.home} replace />;
+  if (!isAuthenticated || (user && user.role !== 'Manager')) {
+    return null; // Let useEffect handle navigation
   }
 
-  return <Outlet />;
+  return <>{children}</>;
 };
 
 export default ManagerGuard; 

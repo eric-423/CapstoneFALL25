@@ -1,19 +1,31 @@
+'use client';
+
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import configs from '@/configs';
 import { useAuth } from '@/hooks';
 import { getCookie } from '@/utils/cookies';
 
-import { FC, PropsWithChildren } from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { FC, PropsWithChildren, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
-const PaymentGuard: FC<PropsWithChildren> = () => {
+const PaymentGuard: FC<PropsWithChildren> = ({ children }) => {
   const isPaying = getCookie('is_paying') === true;
   const { isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && (!isAuthenticated || !isPaying)) {
+      router.replace(configs.routes.home);
+    }
+  }, [isLoading, isAuthenticated, isPaying, router]);
 
   if (isLoading) return <LoadingSpinner />;
 
-  if (!isAuthenticated || !isPaying) return <Navigate to={configs.routes.home} replace />;
+  if (!isAuthenticated || !isPaying) {
+    return null; // Let useEffect handle navigation
+  }
 
-  return <Outlet />;
+  return <>{children}</>;
 };
+
 export default PaymentGuard;

@@ -1,10 +1,34 @@
-import { getLatestOrders } from '@/apis/dashboard.api';
+import { getLatestOrders, DashboardOrderItem } from '@/apis/dashboard.api';
 
 import { Button, Card, Descriptions, Modal, Table } from 'antd';
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
 
 import { EyeOutlined } from '@ant-design/icons';
+
+interface MappedOrder {
+  orderId: number;
+  fullName: string;
+  orderItems: {
+    name: string;
+    quantity: number;
+    price: string;
+  }[];
+  amount: number;
+  createdAt: string;
+  status: string;
+  originalOrder: DashboardOrderItem;
+  order_amount: number;
+  order_create_at: string;
+  order_shipping_fee: number;
+  order_discount_value: number;
+  payment_method: string;
+  order_address: string | null;
+  phone_number: string;
+  note: string;
+}
+
+type TableRecord = MappedOrder;
 
 const statusMap: Record<string, { bg: string; color: string; text: string }> = {
   paid: { bg: '#F9E4B7', color: '#8D572A', text: 'Thành công' },
@@ -13,9 +37,9 @@ const statusMap: Record<string, { bg: string; color: string; text: string }> = {
   cancelled: { bg: '#FFE6B0', color: '#F6A700', text: 'Hủy' },
 };
 const LatestOrders = () => {
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<MappedOrder[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<MappedOrder | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   useEffect(() => {
@@ -23,17 +47,19 @@ const LatestOrders = () => {
     getLatestOrders()
       .then((res) => {
         if (res?.data) {
-          const mappedOrders = res.data.map((order: any) => ({
+          const mappedOrders = res.data.map((order: DashboardOrderItem): MappedOrder => ({
             orderId: order.id,
             fullName: order.customerDTO?.fullName || '',
-            orderItems: order.orderItems.map((item: any) => ({
+            orderItems: order.orderItems.map((item) => ({
               name: item.productName,
               quantity: item.quantity,
-              price: item.price,
-              productId: item.productId,
+              price: item.price.toString(),
             })),
-            order_amount: order.amount,
+            amount: order.amount,
+            createdAt: order.createdAt,
             status: order.orderStatus,
+            originalOrder: order,
+            order_amount: order.amount,
             order_create_at: order.createdAt,
             order_shipping_fee: order.shippingFee,
             order_discount_value: order.discountValue,
@@ -65,9 +91,9 @@ const LatestOrders = () => {
     {
       title: 'Sản phẩm',
       key: 'product',
-      render: (_: any, record: any) =>
+      render: (_: string, record: TableRecord) =>
         record.orderItems && record.orderItems.length > 0
-          ? record.orderItems.map((item: any) => item.name).join(', ')
+          ? record.orderItems.map((item) => item.name).join(', ')
           : '',
     },
     {
@@ -104,7 +130,7 @@ const LatestOrders = () => {
     {
       title: 'Xem chi tiết',
       key: 'action',
-      render: (_: any, record: any) => (
+      render: (_: string, record: TableRecord) => (
         <Button
           type='link'
           icon={<EyeOutlined />}
@@ -203,14 +229,14 @@ const LatestOrders = () => {
               </Descriptions.Item>
               <Descriptions.Item label='Tổng tiền' span={2}>
                 <span style={{ color: '#D97B41', fontWeight: 'bold', fontSize: '1.1em' }}>
-                  {parseFloat(selectedOrder.order_amount).toLocaleString()}đ
+                  {selectedOrder.order_amount.toLocaleString()}đ
                 </span>
               </Descriptions.Item>
               <Descriptions.Item label='Phí vận chuyển'>
-                <span>{parseFloat(selectedOrder.order_shipping_fee).toLocaleString()}đ</span>
+                <span>{selectedOrder.order_shipping_fee.toLocaleString()}đ</span>
               </Descriptions.Item>
               <Descriptions.Item label='Giảm giá'>
-                <span>{parseFloat(selectedOrder.order_discount_value).toLocaleString()}đ</span>
+                <span>{selectedOrder.order_discount_value.toLocaleString()}đ</span>
               </Descriptions.Item>
               <Descriptions.Item label='Phương thức thanh toán'>
                 <span>{selectedOrder.payment_method}</span>
@@ -244,7 +270,8 @@ const LatestOrders = () => {
                       title: 'Thành tiền',
                       key: 'subtotal',
                       align: 'right' as const,
-                      render: (_: any, item: any) => `${(item.quantity * parseFloat(item.price)).toLocaleString()}đ`,
+                      render: (_: string, item: { quantity: number; price: string }) =>
+                        `${(item.quantity * parseFloat(item.price)).toLocaleString()}đ`,
                     },
                   ]}
                   pagination={false}

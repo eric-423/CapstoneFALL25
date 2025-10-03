@@ -1,19 +1,31 @@
+'use client';
+
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import configs from '@/configs';
 import { useAuth } from '@/hooks';
 
-import { FC, PropsWithChildren } from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { FC, PropsWithChildren, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+
 // GuestGuard is a component that will be used to protect routes
 // that should only be accessed by unauthenticated users.
-const GuestGuard: FC<PropsWithChildren> = () => {
+const GuestGuard: FC<PropsWithChildren> = ({ children }) => {
   const { isLoading, isAuthenticated } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      router.replace(configs.routes.home);
+    }
+  }, [isLoading, isAuthenticated, router]);
 
   if (isLoading) return <LoadingSpinner />;
 
-  if (isAuthenticated) return <Navigate to={configs.routes.home} replace />;
+  if (isAuthenticated) {
+    return null; // Let useEffect handle navigation
+  }
 
-  return <Outlet />;
+  return <>{children}</>;
 };
 
 export default GuestGuard;
