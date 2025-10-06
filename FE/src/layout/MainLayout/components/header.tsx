@@ -1,6 +1,5 @@
 'use client';
 
-import logo from '@/assets/full-logo.svg';
 import { CartDrawer, CartPopover } from '@/components/common/cart';
 import { Button } from '@/components/ui/button';
 import configs from '@/configs';
@@ -8,9 +7,11 @@ import { useAuth } from '@/hooks';
 import { useOutsideClicked } from '@/hooks/useOutsideClicked';
 import { removeAccessToken, removeRefreshToken } from '@/utils/cookies';
 
-import { LogIn, LogOut, Menu, User, X } from 'lucide-react';
+import { LogOut, Menu, User, X } from 'lucide-react';
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import Image from 'next/image';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export default function Header() {
   const { isAuthenticated } = useAuth();
@@ -19,22 +20,28 @@ export default function Header() {
   useOutsideClicked(document.getElementById('mobile-menu') as HTMLDivElement, () => setIsMenuOpen(false), isMenuOpen);
 
   return (
-    <header className='sticky top-0 z-50 w-full bg-background shadow-sm'>
-      <div className='container mx-auto px-5 md:px-16 py-0 flex items-center justify-between'>
+    <header className='sticky top-0 z-50 w-full bg-white shadow-sm border-b border-gray-100'>
+      <div className='container mx-auto px-4 md:px-6 lg:px-8 py-4 flex items-center justify-between'>
         {/* Logo */}
-        <Link to='/' className='flex items-center space-x-2'>
-          <div className='relative w-30'>
-            <img src={logo} alt='Tấm Tắc Logo' className='mx-auto w-30' />
+        <Link href='/' className='flex items-center space-x-2'>
+          <div className='relative w-32 md:w-36 h-8'>
+            <Image
+              src='/full-logo.svg'
+              alt='Tấm Tắc Logo'
+              fill
+              className='object-contain'
+              priority
+            />
           </div>
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className='hidden md:flex items-center space-x-6'>
+        <nav className='hidden lg:flex items-center space-x-8'>
           <NavLinks />
         </nav>
 
         {/* Desktop Action Buttons */}
-        <div className='hidden md:flex items-center space-x-4'>
+        <div className='hidden lg:flex items-center space-x-3'>
           <ActionButtons isAuthenticated={isAuthenticated} onClick={() => setIsMenuOpen(!isMenuOpen)} />
         </div>
 
@@ -42,7 +49,7 @@ export default function Header() {
         <Button
           variant='ghost'
           size='icon'
-          className='md:hidden text-primary'
+          className='lg:hidden text-primary hover:bg-orange-50'
           onClick={() => setIsMenuOpen(true)}
           disabled={isMenuOpen}
         >
@@ -52,14 +59,14 @@ export default function Header() {
 
       {/* Mobile Menu */}
       <div
-        className={`md:hidden bg-background border-t py-4 px-4 transition-transform duration-300 ease-in-out ${isMenuOpen ? 'visible' : 'hidden'}`}
+        className={`lg:hidden bg-white border-t border-gray-100 py-4 transition-transform duration-300 ease-in-out ${isMenuOpen ? 'visible' : 'hidden'}`}
         id='mobile-menu'
       >
         <div className='container mx-auto px-4 flex flex-col space-y-4'>
           <nav className='flex flex-col space-y-3'>
             <NavLinks mobile onClick={() => setIsMenuOpen(!isMenuOpen)} />
           </nav>
-          <div className='flex justify-center space-x-6 pt-4 border-t'>
+          <div className='flex justify-center space-x-6 pt-4 border-t border-gray-100'>
             <ActionButtons mobile isAuthenticated={isAuthenticated} onClick={() => setIsMenuOpen(!isMenuOpen)} />
           </div>
         </div>
@@ -71,10 +78,11 @@ export default function Header() {
 function NavLinks({ mobile = false, onClick }: { mobile?: boolean; onClick?: () => void }) {
   const links = [
     { href: configs.routes.about, label: 'Về Tấm Tắc' },
-    { href: configs.routes.menu, label: 'Đặt Hàng Ngay!' },
-    // { href: '', label: 'Chuyện Cơm Tấm' },
-    // { href: '', label: 'Nhượng Quyền' },
-    // { href: '', label: 'Cửa Hàng' },
+    { href: configs.routes.menu, label: 'Đặt Hàng' },
+    { href: '/thuc-don-ai', label: 'Thực đơn từ AI' },
+    { href: '/chuyen-com-tam', label: 'Chuyện Cơm Tấm' },
+    { href: '/nhuong-quyen', label: 'Nhượng Quyền' },
+    { href: '/cua-hang', label: 'Cửa Hàng' },
   ];
 
   return (
@@ -82,13 +90,11 @@ function NavLinks({ mobile = false, onClick }: { mobile?: boolean; onClick?: () 
       {links.map((link) => (
         <Link
           key={link.href}
-          to={link.href}
+          href={link.href}
           onClick={onClick}
-          className={`font-medium mx-24 text-primary group transition-all duration-300 ease-in-out ${mobile ? 'text-lg py-4' : ''}`}
+          className={`font-medium text-primary hover:text-orange-600 transition-colors duration-300 ${mobile ? 'text-lg py-4' : 'text-base'}`}
         >
-          <span className='bg-left-bottom font-semibold bg-gradient-to-r from-primary to-primary bg-[length:0%_2px] bg-no-repeat group-hover:bg-[length:100%_2px] transition-all duration-500 ease-out'>
-            {link.label}
-          </span>
+          {link.label}
         </Link>
       ))}
     </>
@@ -104,7 +110,7 @@ function ActionButtons({
   isAuthenticated?: boolean;
   onClick: () => void;
 }) {
-  const url = useLocation().pathname;
+  const url = usePathname();
   const handleLogout = () => {
     onClick();
     removeAccessToken();
@@ -114,23 +120,35 @@ function ActionButtons({
 
   return (
     <>
+      {/* Notification Icon */}
+      <Button
+        variant='ghost'
+        size='icon'
+        className='text-orange-500 hover:text-orange-600 hover:bg-orange-50'
+      >
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </Button>
+
       {isAuthenticated ? (
         <>
-          <Link to={configs.routes.profile}>
+          <Link href={configs.routes.profile}>
             <Button
               variant='ghost'
-              size={mobile ? 'default' : 'icon'}
-              className='text-primary hover:text-[#B84A0E] hover:bg-[#FFE8D6]'
+              size='icon'
+              className='text-orange-500 hover:text-orange-600 hover:bg-orange-50'
               onClick={onClick}
             >
-              <User size={mobile ? 20 : 24} />
+              <User size={24} />
               {mobile && <span className='ml-2'>Tài khoản</span>}
             </Button>
           </Link>
           <Button
             variant='ghost'
             size={mobile ? 'default' : 'icon'}
-            className='text-primary hover:text-[#B84A0E] hover:bg-[#FFE8D6]'
+            className='text-orange-500 hover:text-orange-600 hover:bg-orange-50'
             onClick={handleLogout}
           >
             <LogOut size={mobile ? 20 : 24} />
@@ -139,20 +157,29 @@ function ActionButtons({
         </>
       ) : (
         <>
-          <Link to={configs.routes.login}>
+          <Link href={configs.routes.login}>
             <Button
               variant='ghost'
-              size={mobile ? 'default' : 'icon'}
-              className='text-primary hover:text-[#B84A0E] hover:bg-[#FFE8D6]'
+              size='icon'
+              className='text-orange-500 hover:text-orange-600 hover:bg-orange-50'
             >
-              <LogIn size={mobile ? 20 : 24} />
+              <User size={24} />
               {mobile && <span className='ml-2'>Đăng nhập</span>}
             </Button>
           </Link>
         </>
       )}
 
-      {url !== configs.routes.checkout && (mobile ? <CartDrawer /> : <CartPopover />)}
+      {/* Cart Icon */}
+      {url !== configs.routes.checkout && (
+        <div className="relative">
+          {mobile ? <CartDrawer /> : <CartPopover />}
+          {/* Cart badge - can be added based on cart count */}
+          <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+            0
+          </span>
+        </div>
+      )}
     </>
   );
 }

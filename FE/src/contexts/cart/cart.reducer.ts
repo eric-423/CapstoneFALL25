@@ -29,7 +29,9 @@ export function reducer(state: CartState, action: CartActionPayload): CartState 
       if (existingItemIndex > -1) {
         const updatedItems = [...state.items];
         updatedItems[existingItemIndex].quantity += item.quantity;
-        item?.note && item.note.length > 0 && (updatedItems[existingItemIndex].note = item.note);
+        if (item?.note && item.note.length > 0) {
+          updatedItems[existingItemIndex].note = item.note;
+        }
         return { ...state, items: updatedItems };
       }
 

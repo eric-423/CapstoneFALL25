@@ -41,3 +41,29 @@ export const setRefreshToken = (token: string) => {
 export const removeRefreshToken = () => {
   removeCookie(config.cookies.refreshToken);
 };
+
+// User role for middleware
+export const setUserRole = (role: string) => {
+  setCookie('userRole', role);
+};
+
+export const getUserRole = () => {
+  return getCookie('userRole');
+};
+
+export const removeUserRole = () => {
+  removeCookie('userRole');
+};
+
+// Auth token for middleware (separate from access token)
+export const setAuthToken = (token: string) => {
+  setCookie('authToken', token);
+};
+
+export const getAuthToken = () => {
+  return getCookie('authToken');
+};
+
+export const removeAuthToken = () => {
+  removeCookie('authToken');
+};

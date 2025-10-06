@@ -4,7 +4,7 @@ import { useCustomerOrders } from '@/hooks/useCustomerOrders';
 import { OrderStatus } from '@/utils/enum';
 
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 
 import { CANCEL_ORDER_MESSAGES } from './cancel-order-contents';
 
@@ -21,7 +21,7 @@ export const CancelOrderDialog = ({ onCloseDialog, onProceed, orderId, orderStat
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [state, setState] = useState<'confirmation' | 'success' | 'success_unpaid' | 'error'>('confirmation');
   const { cancelOrderMutation } = useCustomerOrders();
-  const navigate = useNavigate();
+  const router = useRouter();
   const contents = CANCEL_ORDER_MESSAGES[state];
 
   const handleCloseDialog = () => {
@@ -62,7 +62,7 @@ export const CancelOrderDialog = ({ onCloseDialog, onProceed, orderId, orderStat
           </Button>
           <Button
             variant='destructive'
-            onClick={state === 'confirmation' ? handleCancelOrder : () => navigate('/menu')}
+            onClick={state === 'confirmation' ? handleCancelOrder : () => router.push('/menu')}
           >
             {contents.yesButton}
           </Button>

@@ -1,3 +1,5 @@
+'use client';
+
 import { createContext, useContext, useEffect, useState } from 'react';
 
 type Theme = 'dark' | 'light' | 'system';
@@ -26,25 +28,39 @@ export function ThemeProvider({
   storageKey = 'ui-theme',
   ...props
 }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(() => (localStorage.getItem(storageKey) as Theme) || defaultTheme);
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem(storageKey) as Theme) || defaultTheme;
+    }
+    return defaultTheme;
+  });
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
     const root = window.document.documentElement;
     root.classList.remove('light', 'dark');
 
     if (theme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'light' : 'light';
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
       root.classList.add(systemTheme);
       return;
     }
 
     root.classList.add(theme);
-  }, [theme]);
+  }, [theme, mounted]);
 
   const value = {
     theme,
     setTheme: (theme: Theme) => {
-      localStorage.setItem(storageKey, theme);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(storageKey, theme);
+      }
       setTheme(theme);
     },
   };

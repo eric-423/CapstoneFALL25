@@ -1,5 +1,6 @@
 import { Card } from '@/components/ui/card';
 import { Content } from '@/types/content.type';
+import Image from 'next/image';
 
 type ContentCardProps = {
   item: Content;
@@ -9,13 +10,13 @@ type ContentCardProps = {
 export const ContentCard = ({ item }: ContentCardProps) => {
   return (
     <Card className='group relative bg-white rounded-2xl p-1 shadow-lg overflow-hidden transition-all duration-500 hover:shadow-xl hover:-translate-y-1 '>
-      <div className='absolute top-0 left-0 w-full h-48 overflow-hidde'>
-        <img
+      <div className='absolute top-0 left-0 w-full h-48 overflow-hidden'>
+        <Image
           src={item.img || '/placeholder.svg'}
           alt={item.title}
-          width={400}
-          height={300}
-          className='w-full h-full object-cover transition-transform duration-700 group-hover:scale-110'
+          fill
+          sizes="400px"
+          className='object-cover transition-transform duration-700 group-hover:scale-110'
         />
         <div className='absolute inset-0 bg-gradient-to-b from-black/30 to-transparent' />
       </div>

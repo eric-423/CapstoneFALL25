@@ -25,9 +25,18 @@ export const getTopProducts = async (): Promise<TopProductsResponse> => {
   return response.data;
 };
 
-export const getWeeklyRevenue = async (month: number, year: number): Promise<any> => {
+export interface WeeklyRevenueResponse {
+  status: number;
+  desc: string | null;
+  data: {
+    week: number;
+    revenue: number;
+  }[];
+}
+
+export const getWeeklyRevenue = async (month: number, year: number): Promise<WeeklyRevenueResponse> => {
   const token = localStorage.getItem('access_token');
-  const response = await axios.get(`https://tam-tac.com/api/dashboard/revenue/week?month=${month}&year=${year}`, {
+  const response = await axios.get<WeeklyRevenueResponse>(`https://tam-tac.com/api/dashboard/revenue/week?month=${month}&year=${year}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -35,9 +44,18 @@ export const getWeeklyRevenue = async (month: number, year: number): Promise<any
   return response.data;
 };
 
-export const getMonthlyRevenue = async (year: number): Promise<any> => {
+export interface MonthlyRevenueResponse {
+  status: number;
+  desc: string | null;
+  data: {
+    month: number;
+    revenue: number;
+  }[];
+}
+
+export const getMonthlyRevenue = async (year: number): Promise<MonthlyRevenueResponse> => {
   const token = localStorage.getItem('access_token');
-  const response = await axios.get(`https://tam-tac.com/api/dashboard/revenue/month?year=${year}`, {
+  const response = await axios.get<MonthlyRevenueResponse>(`https://tam-tac.com/api/dashboard/revenue/month?year=${year}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -45,9 +63,19 @@ export const getMonthlyRevenue = async (year: number): Promise<any> => {
   return response.data;
 };
 
-export const getBranchRevenue = async (): Promise<any> => {
+export interface BranchRevenueResponse {
+  status: number;
+  desc: string | null;
+  data: {
+    branchId: number;
+    branchName: string;
+    revenue: number;
+  }[];
+}
+
+export const getBranchRevenue = async (): Promise<BranchRevenueResponse> => {
   const token = localStorage.getItem('access_token');
-  const response = await axios.get('https://tam-tac.com/api/dashboard/revenue/branch', {
+  const response = await axios.get<BranchRevenueResponse>('https://tam-tac.com/api/dashboard/revenue/branch', {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -55,9 +83,20 @@ export const getBranchRevenue = async (): Promise<any> => {
   return response.data;
 };
 
-export const getManagerDashboard = async (): Promise<any> => {
+export interface ManagerDashboardResponse {
+  status: number;
+  desc: string | null;
+  data: {
+    totalRevenue: number;
+    totalOrders: number;
+    totalCustomers: number;
+    totalProducts: number;
+  };
+}
+
+export const getManagerDashboard = async (): Promise<ManagerDashboardResponse> => {
   const token = localStorage.getItem('access_token');
-  const response = await axios.get('https://tam-tac.com/api/dashboard/manager', {
+  const response = await axios.get<ManagerDashboardResponse>('https://tam-tac.com/api/dashboard/manager', {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -65,15 +104,34 @@ export const getManagerDashboard = async (): Promise<any> => {
   return response.data;
 };
 
-export const getLatestOrders = async (): Promise<any> => {
+export interface LatestOrdersResponse {
+  status: number;
+  desc: string | null;
+  data: DashboardOrderItem[];
+}
+
+export const getLatestOrders = async (): Promise<LatestOrdersResponse> => {
   const token = localStorage.getItem('access_token');
-  const response = await axios.get('https://tam-tac.com/api/dashboard/latest-orders', {
+  const response = await axios.get<LatestOrdersResponse>('https://tam-tac.com/api/dashboard/latest-orders', {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
   return response.data;
 };
+
+export interface PageableInfo {
+  sort: {
+    empty: boolean;
+    sorted: boolean;
+    unsorted: boolean;
+  };
+  offset: number;
+  pageNumber: number;
+  pageSize: number;
+  paged: boolean;
+  unpaged: boolean;
+}
 
 export interface DashboardOrderItem {
   id: number;
@@ -106,7 +164,12 @@ export interface DashboardOrderItem {
     productImg: string;
     feedBackYet: boolean;
   }[];
-  customerDTO: any;
+  customerDTO: {
+    id: number;
+    fullName: string;
+    email: string;
+    phone: string;
+  };
   pickupTime: string | null;
   customerName: string | null;
   status: string;
@@ -117,14 +180,18 @@ export interface DashboardOrderResponse {
   desc: string | null;
   data: {
     content: DashboardOrderItem[];
-    pageable: any;
+    pageable: PageableInfo;
     last: boolean;
     totalElements: number;
     totalPages: number;
     first: boolean;
     size: number;
     number: number;
-    sort: any;
+    sort: {
+      empty: boolean;
+      sorted: boolean;
+      unsorted: boolean;
+    };
     numberOfElements: number;
     empty: boolean;
   };
@@ -151,7 +218,11 @@ export interface DashboardProductItem {
   productPrice: number;
   productType: string;
   productQuantity: number;
-  recipe: any;
+  recipe: {
+    id: number;
+    name: string;
+    ingredients: string[];
+  } | null;
   status: boolean;
 }
 
@@ -160,14 +231,18 @@ export interface DashboardProductResponse {
   desc: string | null;
   data: {
     content: DashboardProductItem[];
-    pageable: any;
+    pageable: PageableInfo;
     last: boolean;
     totalElements: number;
     totalPages: number;
     first: boolean;
     size: number;
     number: number;
-    sort: any;
+    sort: {
+      empty: boolean;
+      sorted: boolean;
+      unsorted: boolean;
+    };
     numberOfElements: number;
     empty: boolean;
   };
@@ -186,9 +261,18 @@ export const getDashboardProducts = async (page = 0, size = 10): Promise<Dashboa
   return response.data;
 };
 
-export const deleteDashboardProduct = async (productId: number): Promise<any> => {
+export interface DeleteProductResponse {
+  status: number;
+  desc: string | null;
+  data: {
+    message: string;
+    success: boolean;
+  };
+}
+
+export const deleteDashboardProduct = async (productId: number): Promise<DeleteProductResponse> => {
   const token = localStorage.getItem('access_token');
-  const response = await axios.delete(`https://tam-tac.com/api/products/admin/delete/${productId}`, {
+  const response = await axios.delete<DeleteProductResponse>(`https://tam-tac.com/api/products/admin/delete/${productId}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -212,14 +296,18 @@ export interface DashboardUserResponse {
   desc: string | null;
   data: {
     content: DashboardUserItem[];
-    pageable: any;
+    pageable: PageableInfo;
     last: boolean;
     totalElements: number;
     totalPages: number;
     first: boolean;
     size: number;
     number: number;
-    sort: any;
+    sort: {
+      empty: boolean;
+      sorted: boolean;
+      unsorted: boolean;
+    };
     numberOfElements: number;
     empty: boolean;
   };

@@ -2,6 +2,40 @@ import http from '@/utils/http';
 import JwtDecode from '@/utils/jwtDecode';
 import axios from 'axios';
 
+export interface CreateUserData {
+  fullName: string;
+  email: string;
+  phone: string;
+  dateOfBirth: string;
+  branchId: number;
+  roleId: number;
+  password: string;
+}
+
+export interface UpdateUserData {
+  fullName?: string;
+  email?: string;
+  phone?: string;
+  dateOfBirth?: string;
+  branchId?: number;
+  roleId?: number;
+}
+
+export interface UserResponse {
+  status: number;
+  desc: string | null;
+  data: {
+    id: number;
+    fullName: string;
+    email: string;
+    phone: string;
+    dateOfBirth: string;
+    createdAt: string;
+    branchId: number;
+    role: string;
+  };
+}
+
 export const USER_SIGN_UP_KEY = 'USER_SIGN_UP_KEY';
 export const GET_ME_QUERY_KEY = 'GET_ME_QUERY_KEY';
 
@@ -56,17 +90,17 @@ export const getAllUsers = async (page = 0, size = 10000, isActive = true, roleI
   return response.data;
 };
 
-export const createUser = async (data: any) => {
+export const createUser = async (data: CreateUserData): Promise<UserResponse> => {
   const token = localStorage.getItem('access_token');
-  const response = await axios.post('https://tam-tac.com/api/users/admin/create', data, {
+  const response = await axios.post<UserResponse>('https://tam-tac.com/api/users/admin/create', data, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return response.data;
 };
 
-export const updateUser = async (userId: number, data: any) => {
+export const updateUser = async (userId: number, data: UpdateUserData): Promise<UserResponse> => {
   const token = localStorage.getItem('access_token');
-  const response = await axios.put(`https://tam-tac.com/api/users/admin/update/${userId}`, data, {
+  const response = await axios.put<UserResponse>(`https://tam-tac.com/api/users/admin/update/${userId}`, data, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return response.data;

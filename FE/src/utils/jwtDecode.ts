@@ -1,12 +1,24 @@
 import { jwtDecode } from 'jwt-decode';
 
-function JwtDecode(token: string): Record<string, any> {
+interface JWTPayload {
+  id: number;
+  phoneNumber: string;
+  fullName: string;
+  email: string;
+  role: string;
+  branchId: number;
+  exp: number;
+  iat: number;
+  [key: string]: unknown;
+}
+
+function JwtDecode(token: string): JWTPayload {
   try {
-    const decoded = jwtDecode(token);
+    const decoded = jwtDecode<JWTPayload>(token);
     return decoded;
   } catch (error) {
     console.error('Invalid JWT token:', error);
-    return {};
+    return {} as JWTPayload;
   }
 }
 
