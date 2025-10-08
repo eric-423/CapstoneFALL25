@@ -5,7 +5,7 @@ import { removeCookie } from '@/utils/cookies';
 
 import { useEffect } from 'react';
 
-import { PaymentResultContent } from '../components/payment/payment-result-content';
+import { PaymentResultContent } from '@/app/components/payment/payment-result-content';
 
 export default function PaymentFailedPage() {
     useScrollTop();

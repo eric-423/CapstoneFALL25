@@ -11,6 +11,7 @@ import {
   setAccessToken,
   setRefreshToken,
 } from './cookies';
+import { setupMockInterceptor } from '@/mocks/interceptor';
 
 class Http {
   private accessToken: string;
@@ -27,6 +28,10 @@ class Http {
         'Content-Type': 'application/json',
       },
     });
+    
+    if (process.env.NEXT_PUBLIC_USE_MOCK === 'true') {
+      setupMockInterceptor(this.instance);
+    }
     this.instance.interceptors.request.use(
       (config) => {
         if (this.accessToken && config.headers) {
