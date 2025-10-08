@@ -112,10 +112,12 @@ function ActionButtons({
 }) {
   const url = usePathname();
   const handleLogout = () => {
-    onClick();
     removeAccessToken();
     removeRefreshToken();
-    window.location.reload();
+    localStorage.removeItem('mock_user_id');
+    localStorage.removeItem('access_token');
+    if (onClick) onClick();
+    window.location.href = '/login';
   };
 
   return (
