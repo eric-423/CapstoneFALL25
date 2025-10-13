@@ -2,7 +2,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { useAuthContext } from '@/contexts/AuthContext';
+import { useAuthContext } from '@/utils/contexts/AuthContext';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -53,7 +53,9 @@ export default function AdminLayout({
                     <div className="p-6 border-b border-white/10 flex-shrink-0">
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="font-bold text-xl text-white drop-shadow-md">TamTech Admin</h2>
-                            <button className="text-white/80 hover:text-white transition-colors hover:scale-110 transform">
+                            <button
+                                className="text-white/80 hover:text-white transition-colors hover:scale-110 transform"
+                            >
                                 <Edit size={18} />
                             </button>
                         </div>

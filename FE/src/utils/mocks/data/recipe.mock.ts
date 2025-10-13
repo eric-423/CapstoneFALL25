@@ -1,4 +1,4 @@
-import { Recipe } from '@/types/recipe.type';
+import { Recipe } from '@/utils/types/recipe.type';
 
 export const MOCK_RECIPES: Recipe[] = [
     {

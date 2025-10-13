@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/lib/utils';
 import { getReceiveTime } from '@/utils/getReceiveTime';
 
 import { format } from 'date-fns';

@@ -1,7 +1,7 @@
 'use client';
 
 import { Progress } from '@/components/ui/progress';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/lib/utils';
 import { OrderStatus } from '@/utils/enum';
 
 import { CheckCircle2, ChefHat, CreditCard, Package, XCircle } from 'lucide-react';

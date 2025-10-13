@@ -3,10 +3,10 @@
 import { GET_ME_QUERY_KEY, getMe } from '@/apis/user.api';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth } from '@/hooks';
-import { useCustomerOrders } from '@/hooks/useCustomerOrders';
-import useDocumentTitle from '@/hooks/useDocumentTitle';
-import useScrollTop from '@/hooks/useScrollTop';
+import { useAuth } from '@/utils/hooks';
+import { useCustomerOrders } from '@/utils/hooks/useCustomerOrders';
+import useDocumentTitle from '@/utils/hooks/useDocumentTitle';
+import useScrollTop from '@/utils/hooks/useScrollTop';
 
 import { Lock, ShoppingBag, User } from 'lucide-react';
 import { useState } from 'react';

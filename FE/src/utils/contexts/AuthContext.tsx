@@ -1,8 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, ReactNode } from 'react';
-import useAuth from '@/hooks/useAuth.nextjs';
-import type { UserAuthData } from '@/types/user.type';
+import useAuth from '@/utils/hooks/useAuth.nextjs';
+import type { UserAuthData } from '@/utils/types/user.type';
 
 interface AuthContextType {
     user: UserAuthData | null;

@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/lib/utils';
 
 import { CheckIcon } from 'lucide-react';
 import * as React from 'react';

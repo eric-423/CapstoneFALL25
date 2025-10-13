@@ -7,7 +7,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui/drawer';
-import { useCustomerOrders } from '@/hooks/useCustomerOrders';
+import { useCustomerOrders } from '@/utils/hooks/useCustomerOrders';
 import { OrderStatus } from '@/utils/enum';
 
 import { useState } from 'react';

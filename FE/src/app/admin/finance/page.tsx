@@ -3,7 +3,7 @@
 import { AdminGuard } from '@/components/guards';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { MOCK_DASHBOARD_STATS } from '@/mocks/data/dashboard.mock';
+import { MOCK_DASHBOARD_STATS } from '@/utils/mocks/data/dashboard.mock';
 import { DollarSign, FileText, TrendingUp, TrendingDown, Building2, BarChart3 } from 'lucide-react';
 
 export default function FinancePage() {

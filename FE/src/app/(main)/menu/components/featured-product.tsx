@@ -3,7 +3,7 @@
 import { AddToCartDialog, AddToCartDrawer } from '@/components/common/add-to-cart';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/utils/hooks/use-mobile';
 import type { Product } from '@/types/product.type';
 
 import { ShoppingBag, Star } from 'lucide-react';

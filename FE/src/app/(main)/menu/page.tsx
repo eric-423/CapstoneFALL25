@@ -6,8 +6,8 @@ import image from '@/assets/images/Home - Banner.jpg';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import StyledHeading from '@/components/common/styled-heading';
 import InfiniteScroll from '@/components/ui/infinite-scroll';
-import useGetProducts from '@/hooks/useGetProducts';
-import useScrollTop from '@/hooks/useScrollTop';
+import useGetProducts from '@/utils/hooks/useGetProducts';
+import useScrollTop from '@/utils/hooks/useScrollTop';
 import { Branch } from '@/types/branch.type';
 import { ProductType } from '@/types/product.type';
 

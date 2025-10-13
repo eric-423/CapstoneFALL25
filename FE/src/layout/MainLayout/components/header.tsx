@@ -2,9 +2,9 @@
 
 import { CartDrawer, CartPopover } from '@/components/common/cart';
 import { Button } from '@/components/ui/button';
-import configs from '@/configs';
-import { useAuth } from '@/hooks';
-import { useOutsideClicked } from '@/hooks/useOutsideClicked';
+import configs from '@/utils/configs';
+import { useAuth } from '@/utils/hooks';
+import { useOutsideClicked } from '@/utils/hooks/useOutsideClicked';
 import { removeAccessToken, removeRefreshToken } from '@/utils/cookies';
 
 import { LogOut, Menu, User, X } from 'lucide-react';

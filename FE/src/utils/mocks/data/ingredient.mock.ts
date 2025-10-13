@@ -1,4 +1,4 @@
-import { Ingredient } from '@/types/ingredient.type';
+import { Ingredient } from '@/utils/types/ingredient.type';
 
 export const MOCK_INGREDIENTS: Ingredient[] = [
     {

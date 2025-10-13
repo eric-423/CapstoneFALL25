@@ -1,4 +1,4 @@
-import config from '@/configs';
+import config from '@/utils/configs';
 
 import { Cookies } from 'react-cookie';
 

@@ -1,4 +1,4 @@
-import { TrainingCourse } from '@/types/training.type';
+import { TrainingCourse } from '@/utils/types/training.type';
 
 export const MOCK_TRAINING_COURSES: TrainingCourse[] = [
     {

@@ -4,8 +4,8 @@ import { AdminGuard } from '@/components/guards';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { MOCK_TRAINING_COURSES } from '@/mocks/data/training.mock';
-import { TrainingCourse, StaffRole } from '@/types/training.type';
+import { MOCK_TRAINING_COURSES } from '@/utils/mocks/data/training.mock';
+import { TrainingCourse, StaffRole } from '@/utils/types/training.type';
 import {
     GraduationCap,
     Plus,

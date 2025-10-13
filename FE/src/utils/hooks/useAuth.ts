@@ -1,8 +1,8 @@
 'use client';
 
 import { refetchToken } from '@/apis/user.api';
-import configs from '@/configs';
-import type { UserAuthData } from '@/types/user.type';
+import configs from '@/utils/configs';
+import type { UserAuthData } from '@/utils/types/user.type';
 import { getCookie, removeAccessToken, removeRefreshToken, setUserRole, setAuthToken, removeUserRole, removeAuthToken } from '@/utils/cookies';
 import JwtDecode from '@/utils/jwtDecode';
 

@@ -3,7 +3,7 @@
 import { AdminGuard } from '@/components/guards';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { MOCK_USERS } from '@/mocks/data/users.mock';
+import { MOCK_USERS } from '@/utils/mocks/data/users.mock';
 import { useState } from 'react';
 import { UserPlus, Users, Edit, Trash2, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
