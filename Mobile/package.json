@@ -1,7 +1,7 @@
 {
   "name": "Tấm Tắc",
   "version": "1.0.0",
-  "main": "src/index.ts",
+  "main": "expo-router/entry",
   "author": {
     "name": "Minz"
   },
@@ -12,6 +12,7 @@
     "ios": "expo run:ios"
   },
   "dependencies": {
+    "@expo/vector-icons": "^15.0.2",
     "@faker-js/faker": "9.0.1",
     "@gorhom/bottom-sheet": "^5.1.5",
     "@react-native-async-storage/async-storage": "2.2.0",

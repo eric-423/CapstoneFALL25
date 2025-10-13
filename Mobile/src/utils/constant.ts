@@ -1,7 +1,7 @@
 export const APP_COLOR = {
   ORANGE: "#FF6B00",
   YELLOW: "#FFFACD",
-  GREY: "#808080",
+  GRAY: "#808080",
   BLACK: "#000000",
   WHITE: "#FFFFFF",
   WHEAT: "#EFE6DB",
@@ -24,5 +24,3 @@ export const APP_FONT = {
     BOLD: "Montserrat-Bold",
   },
 };
-export const BASE_URL = "https://tamtac-6548a8185ba9.herokuapp.com";
-export const API_URL = "https://wdp301-su25.space";

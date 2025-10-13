@@ -1,5 +1,5 @@
 import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
-import { ErrorBoundaryProps, Stack, Tabs } from "expo-router";
+import { ErrorBoundaryProps, Stack } from "expo-router";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { RootSiblingParent } from "react-native-root-siblings";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -7,8 +7,8 @@ import { Button, Text, View } from "react-native";
 import { useCallback } from "react";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts } from "expo-font";
-import AppProvider from "./context/app.context";
-import { APP_COLOR } from "./utils/constant";
+import { APP_COLOR } from "@/utils/constant";
+import AppProvider from "@/context/app.context";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -78,9 +78,6 @@ const RootLayout = () => {
               <Stack.Screen name="index" options={{ headerShown: false }} />
               <Stack.Screen name="(auth)" options={{ headerShown: false }} />
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="(user)" options={{ headerShown: false }} />
-              <Stack.Screen name="chat" options={{ headerShown: false }} />
-              <Stack.Screen name="like" options={{ headerShown: false }} />
             </Stack>
           </ThemeProvider>
         </AppProvider>
