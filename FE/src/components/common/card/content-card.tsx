@@ -1,6 +1,14 @@
 import { Card } from '@/components/ui/card';
-import { Content } from '@/types/content.type';
 import Image from 'next/image';
+
+export interface Content {
+  id: string;
+  title: string;
+  description: string;
+  img?: string;
+  subtitle?: string;
+  icon?: React.ReactNode;
+}
 
 type ContentCardProps = {
   item: Content;

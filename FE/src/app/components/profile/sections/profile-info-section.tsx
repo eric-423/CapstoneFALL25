@@ -2,7 +2,7 @@
 
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { Card, CardContent } from '@/components/ui/card';
-import { User } from '@/types/user.type';
+import { User } from '@/utils/types/user.type';
 
 import { Calendar, CircleUserRound, LucideUser, Mail, Phone, ShoppingBag } from 'lucide-react';
 

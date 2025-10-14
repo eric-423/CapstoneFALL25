@@ -1,7 +1,7 @@
 'use client';
 
-import { useAuthContext } from '@/contexts/AuthContext';
-import { useNavigation } from '@/hooks/useNavigation';
+import { useAuthContext } from '@/utils/contexts/AuthContext';
+import { useNavigation } from '@/utils/hooks/useNavigation';
 import { useEffect } from 'react';
 
 interface RoleGuardProps {

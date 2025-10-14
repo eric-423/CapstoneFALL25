@@ -5,7 +5,7 @@ import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { OrderDetailsDialog, OrderDetailsDrawer } from '@/components/common/order-details';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/utils/hooks/use-mobile';
 import { OrderResponse } from '@/types/order.type';
 import { OrderStatus } from '@/utils/enum';
 

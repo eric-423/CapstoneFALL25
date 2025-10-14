@@ -1,9 +1,9 @@
 'use client';
 
 import { LoadingSpinner } from '@/components/common/loading-spinner';
-import configs from '@/configs';
-import { useCart } from '@/contexts/cart/CartContext';
-import { useAuth } from '@/hooks';
+import configs from '@/utils/configs';
+import { useCart } from '@/utils/contexts/cart/CartContext';
+import { useAuth } from '@/utils/hooks';
 
 import { FC, PropsWithChildren, useEffect } from 'react';
 import { useRouter } from 'next/navigation';

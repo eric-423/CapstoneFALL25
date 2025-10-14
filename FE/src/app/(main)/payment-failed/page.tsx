@@ -1,6 +1,6 @@
 'use client';
 
-import useScrollTop from '@/hooks/useScrollTop';
+import useScrollTop from '@/utils/hooks/useScrollTop';
 import { removeCookie } from '@/utils/cookies';
 
 import { useEffect } from 'react';

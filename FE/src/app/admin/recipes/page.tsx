@@ -4,8 +4,8 @@ import { AdminGuard } from '@/components/guards';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { MOCK_RECIPES } from '@/mocks/data/recipe.mock';
-import { Recipe } from '@/types/recipe.type';
+import { MOCK_RECIPES } from '@/utils/mocks/data/recipe.mock';
+import { Recipe } from '@/utils/types/recipe.type';
 import {
     BookOpen,
     Plus,
@@ -168,8 +168,8 @@ export default function RecipesPage() {
                                     onClick={() => setSelectedCategory(cat.value)}
                                     variant={selectedCategory === cat.value ? 'default' : 'outline'}
                                     className={`rounded-xl font-semibold whitespace-nowrap transition-all ${selectedCategory === cat.value
-                                            ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-lg'
-                                            : 'border-2 border-gray-200 text-gray-600 hover:border-primary'
+                                        ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-lg'
+                                        : 'border-2 border-gray-200 text-gray-600 hover:border-primary'
                                         }`}
                                 >
                                     {cat.label}

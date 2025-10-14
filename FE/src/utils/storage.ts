@@ -1,4 +1,4 @@
-import { CartState } from '@/contexts/cart/cart.type';
+import { CartState } from '@/utils/contexts/cart/cart.type';
 
 // Helper function to generate unique IDs
 export function generateId(): string {

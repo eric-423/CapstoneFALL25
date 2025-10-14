@@ -3,7 +3,7 @@
 import { AdminGuard } from '@/components/guards';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { MOCK_FEEDBACK } from '@/mocks/data/feedback.mock';
+import { MOCK_FEEDBACK } from '@/utils/mocks/data/feedback.mock';
 import { MessageSquare, Star, Reply, CheckCircle, Clock, Filter } from 'lucide-react';
 import { useState } from 'react';
 

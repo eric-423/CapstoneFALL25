@@ -5,7 +5,7 @@ import InputPassword from '@/components/common/input-password';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useAuth } from '@/hooks';
+import { useAuth } from '@/utils/hooks';
 import { AUTH_FORM_FIELDS } from '@/utils/constants';
 import { setPasswordFormData, setPasswordSchema } from '@/utils/schema';
 

@@ -3,7 +3,7 @@
 import { AdminGuard } from '@/components/guards';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { MOCK_PRODUCTS } from '@/mocks/data/products.mock';
+import { MOCK_PRODUCTS } from '@/utils/mocks/data/products.mock';
 import { UtensilsCrossed, Plus, Edit, Trash2, CheckCircle, XCircle } from 'lucide-react';
 
 export default function ProductsPage() {

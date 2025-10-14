@@ -40,8 +40,8 @@ export const USER_SIGN_UP_KEY = 'USER_SIGN_UP_KEY';
 export const GET_ME_QUERY_KEY = 'GET_ME_QUERY_KEY';
 
 export const signUp = (phoneNumber: string) => http.post('/customer/sign-up', { phoneNumber });
-
 export const sendOTP = (phoneNumber: string) => http.post('/verify-code/send?mode=', { phoneNumber });
+export const refetchToken = (refresh: string) => http.post(`https://tam-tac.com/api/token/refresh?token=${refresh}`);
 
 export const verifyOTP = (phoneNumber: string, otp: string) =>
   http.post(`https://tam-tac.com/api/verify-code/verify?phoneNumber=${phoneNumber}&code=${otp}`);
@@ -54,7 +54,6 @@ export const signIn = async (data: { phoneNumber: string; password: string }) =>
 export const changePassword = (data: { phoneNumber: string; password: string }) =>
   http.post('/customer/change-password', data);
 
-export const refetchToken = (refresh: string) => http.post(`https://tam-tac.com/api/token/refresh?token=${refresh}`);
 
 export const refetchUserData = (token: string) => {
   const data = refetchToken(token);

@@ -2,7 +2,7 @@
 
 import { GuestLayout } from '@/components/layouts/GuestLayout';
 import { signIn } from '@/apis/user.api';
-import { useAuthContext } from '@/contexts/AuthContext';
+import { useAuthContext } from '@/utils/contexts/AuthContext';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
@@ -17,7 +17,6 @@ export default function LoginForm() {
     const { redirectAfterLogin } = useAuthContext();
 
     useEffect(() => {
-        // Load remembered credentials if available
         const savedPhone = localStorage.getItem('rememberedPhone');
         const savedRememberMe = localStorage.getItem('rememberMe') === 'true';
 

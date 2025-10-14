@@ -1,7 +1,7 @@
 'use client';
 
 import { LoadingSpinner } from '@/components/common/loading-spinner';
-import { useAuth } from '@/hooks';
+import { useAuth } from '@/utils/hooks';
 import { useRouter } from 'next/navigation';
 import { type FC, type PropsWithChildren, useEffect } from 'react';
 

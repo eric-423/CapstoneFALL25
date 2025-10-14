@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/utils/hooks/use-mobile';
 import { Product } from '@/types/product.type';
 import { contentOverflow } from '@/utils/contentOverflow';
 

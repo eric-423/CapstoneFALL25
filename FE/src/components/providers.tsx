@@ -4,9 +4,9 @@ import { CookiesProvider } from 'react-cookie';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-import { CartProvider } from '@/contexts/cart/CartContext';
-import { ThemeProvider } from '@/contexts/ThemeContext';
-import { AuthProvider } from '@/contexts/AuthContext';
+import { CartProvider } from '@/utils/contexts/cart/CartContext';
+import { ThemeProvider } from '@/utils/contexts/ThemeContext';
+import { AuthProvider } from '@/utils/contexts/AuthContext';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';

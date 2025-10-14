@@ -1,12 +1,18 @@
 import { buttonVariants } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { config } from '@/configs/app';
-import { cn } from '@/lib/utils';
-import { Blog } from '@/types/blog.type';
-
+import { config } from '@/utils/configs/app';
+import { cn } from '@/utils/lib/utils';
 import { ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+
+export interface Blog {
+  id: string;
+  title: string;
+  description: string;
+  img?: string;
+  subtitle?: string;
+}
 
 type BlogCardProps = {
   item: Blog;

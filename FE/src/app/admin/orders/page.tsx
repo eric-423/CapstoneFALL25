@@ -3,7 +3,7 @@
 import { AdminGuard } from '@/components/guards';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { MOCK_ORDERS } from '@/mocks/data/orders.mock';
+import { MOCK_ORDERS } from '@/utils/mocks/data/orders.mock';
 import { ShoppingBag, FileText, Eye, CheckCircle, Clock, XCircle, CreditCard, Banknote } from 'lucide-react';
 
 export default function OrdersPage() {

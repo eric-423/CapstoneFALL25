@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { useCart } from '@/contexts/cart/CartContext';
+import { useCart } from '@/utils/contexts/cart/CartContext';
 import { STORE_INFO } from '@/utils/mockupData';
 
 import { ChevronRight, Edit, MapPin, ShoppingCart, X } from 'lucide-react';
@@ -63,12 +63,12 @@ export function CartPopover() {
                     <div key={item.productId} className='group'>
                       <div className='flex gap-3'>
                         {/* Remove button (visible on hover) */}
-                        <button
+                        <Button
                           className='opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 flex-shrink-0 rounded-full bg-foreground/5 hover:bg-foreground/15 transition-colors flex items-center justify-center'
                           onClick={() => removeItem(item)}
                         >
                           <X className='h-3 w-3 text-foreground/50' />
-                        </button>
+                        </Button>
 
                         {/* Item content */}
                         <div className='flex-grow'>

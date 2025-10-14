@@ -1,4 +1,4 @@
-import configs from '@/configs';
+import configs from '@/utils/configs';
 import { STORE_INFO } from '@/utils/mockupData';
 
 import { Mail, MapPin, Phone } from 'lucide-react';

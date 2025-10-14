@@ -1,9 +1,9 @@
 'use client';
 
 import { ManagerGuard } from '@/components/guards';
-import { useAuthContext } from '@/contexts/AuthContext';
+import { useAuthContext } from '@/utils/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { useNavigation } from '@/hooks/useNavigation';
+import { useNavigation } from '@/utils/hooks/useNavigation';
 
 export default function ManagerDashboardContent() {
     const { user } = useAuthContext();

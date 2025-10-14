@@ -1,8 +1,8 @@
 'use client';
 
 import { LoadingSpinner } from '@/components/common/loading-spinner';
-import { config } from '@/configs/app';
-import { useAuth } from '@/hooks';
+import { config } from '@/utils/configs/app';
+import { useAuth } from '@/utils/hooks';
 import { Role } from '@/utils/enum';
 
 import { FC, PropsWithChildren, useEffect } from 'react';

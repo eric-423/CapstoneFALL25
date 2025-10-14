@@ -3,7 +3,7 @@
 import { AdminGuard } from '@/components/guards';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { MOCK_PROMOTIONS } from '@/mocks/data/promotions.mock';
+import { MOCK_PROMOTIONS } from '@/utils/mocks/data/promotions.mock';
 import { Gift, Plus, Edit, Trash2, CheckCircle, XCircle, Percent, Tag, Calendar, Users as UsersIcon } from 'lucide-react';
 
 export default function PromotionsPage() {

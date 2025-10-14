@@ -1,7 +1,7 @@
 'use client';
 
 import { ProtectedLayout } from '@/components/layouts/ProtectedLayout';
-import { useAuthContext } from '@/contexts/AuthContext';
+import { useAuthContext } from '@/utils/contexts/AuthContext';
 
 export default function ProfileContent() {
     const { user } = useAuthContext();

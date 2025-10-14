@@ -1,4 +1,4 @@
-import configs from '@/configs';
+import configs from '@/utils/configs';
 
 import axios, { AxiosError, AxiosInstance } from 'axios';
 
@@ -11,8 +11,11 @@ import {
   setAccessToken,
   setRefreshToken,
 } from './cookies';
-import { setupMockInterceptor } from '@/mocks/interceptor';
 
+import { setupMockInterceptor } from '@/utils/mocks/interceptor';
+
+
+// --------
 class Http {
   private accessToken: string;
   private refreshToken: string;
@@ -32,6 +35,7 @@ class Http {
     if (process.env.NEXT_PUBLIC_USE_MOCK === 'true') {
       setupMockInterceptor(this.instance);
     }
+
     this.instance.interceptors.request.use(
       (config) => {
         if (this.accessToken && config.headers) {

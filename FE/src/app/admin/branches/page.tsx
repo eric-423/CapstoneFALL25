@@ -3,7 +3,7 @@
 import { AdminGuard } from '@/components/guards';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { MOCK_BRANCHES } from '@/mocks/data/branches.mock';
+import { MOCK_BRANCHES } from '@/utils/mocks/data/branches.mock';
 import { Store, Plus, MapPin, Phone, User, Edit, Trash2, CheckCircle, XCircle } from 'lucide-react';
 
 export default function BranchesPage() {

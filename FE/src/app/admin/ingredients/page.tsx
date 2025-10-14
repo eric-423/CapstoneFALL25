@@ -4,8 +4,8 @@ import { AdminGuard } from '@/components/guards';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { MOCK_INGREDIENTS } from '@/mocks/data/ingredient.mock';
-import { Ingredient } from '@/types/ingredient.type';
+import { MOCK_INGREDIENTS } from '@/utils/mocks/data/ingredient.mock';
+// import { Ingredient } from '@/types/ingredient.type';
 import {
     Package,
     Plus,
@@ -22,6 +22,20 @@ import {
     Factory,
 } from 'lucide-react';
 import { useState } from 'react';
+
+export interface Ingredient {
+    id: number;
+    name: string;
+    quantity: number;
+    unit: 'kg' | 'g' | 'ml' | 'l' | 'piece' | 'pack';
+    supplier: string;
+    caloriePerUnit: number; // calories per 100g or 100ml
+    cost: number; // cost per unit
+    threshold: number; // minimum stock level
+    lastUpdated: string; // ISO date string
+    category: 'vegetable' | 'meat' | 'seafood' | 'spice' | 'grain' | 'dairy' | 'other';
+    image?: string;
+}
 
 export default function IngredientsPage() {
     const [searchQuery, setSearchQuery] = useState('');
@@ -187,8 +201,8 @@ export default function IngredientsPage() {
                                     onClick={() => setSelectedCategory(cat.value)}
                                     variant={selectedCategory === cat.value ? 'default' : 'outline'}
                                     className={`rounded-xl font-semibold whitespace-nowrap transition-all ${selectedCategory === cat.value
-                                            ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-lg'
-                                            : 'border-2 border-gray-200 text-gray-600 hover:border-primary'
+                                        ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-lg'
+                                        : 'border-2 border-gray-200 text-gray-600 hover:border-primary'
                                         }`}
                                 >
                                     {cat.label}
@@ -272,8 +286,8 @@ export default function IngredientsPage() {
                                             <div className="relative h-3 bg-gray-200 rounded-full overflow-hidden">
                                                 <div
                                                     className={`absolute top-0 left-0 h-full rounded-full transition-all duration-1000 ${isLowStock
-                                                            ? 'bg-gradient-to-r from-red-500 to-pink-500'
-                                                            : 'bg-gradient-to-r from-green-500 to-emerald-500'
+                                                        ? 'bg-gradient-to-r from-red-500 to-pink-500'
+                                                        : 'bg-gradient-to-r from-green-500 to-emerald-500'
                                                         }`}
                                                     style={{ width: `${Math.min(stockPercentage, 100)}%` }}
                                                 />
