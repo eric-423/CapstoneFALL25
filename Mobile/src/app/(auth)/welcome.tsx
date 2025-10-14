@@ -19,6 +19,7 @@ import { Formik } from "formik";
 import ShareInput from "@/components/input/share.input";
 import { CustomerSignInSchema } from "@/utils/validate.schema";
 import Toast from "react-native-root-toast";
+import { Link, router } from "expo-router";
 //   import {
 //     customerLoginAPI,
 //     forgotPasswordAPI,
@@ -148,8 +149,6 @@ const WelcomePage = () => {
                           </Text>
                         </Pressable>
                       )}
-                      <View style={{ height: 10 }}></View>
-
                       <ShareButton
                         title="Đăng nhập"
                         onPress={handleSubmit}
@@ -160,10 +159,18 @@ const WelcomePage = () => {
                     </View>
                   )}
                 </Formik>
+                <View
+                  style={{
+                    alignItems: "center",
+                    marginTop: 10,
+                  }}
+                >
+                  <Text style={styles.normalText}>Chưa có tài khoản?</Text>
+                  <Link href={"/signup"} style={styles.signUpText}>
+                    Đăng ký tài khoản.
+                  </Link>
+                </View>
               </View>
-            </View>
-            <View style={{ flexDirection: "row", gap: 10 }}>
-              <Text style={styles.normalText}>Chưa có tài khoản?</Text>
             </View>
           </View>
         </View>
@@ -186,8 +193,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 10,
-    marginTop: 30,
-    zIndex: 9999,
   },
   welcomeText: {
     flex: 0.4,
@@ -203,7 +208,7 @@ const styles = StyleSheet.create({
   imgLogo: {
     height: 230,
     width: 400,
-    marginTop: 70,
+    marginTop: 100,
   },
   welcomeBtn: {
     paddingHorizontal: 30,
@@ -223,9 +228,9 @@ const styles = StyleSheet.create({
     width: 200,
     justifyContent: "center",
     borderRadius: 30,
-    paddingVertical: 10,
     backgroundColor: "#EC6426",
     marginHorizontal: "auto",
+    marginTop: 20,
   },
   loginBtnFast: {
     width: 50,

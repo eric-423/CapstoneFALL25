@@ -36,7 +36,7 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
 }
 
 const RootLayout = () => {
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     "Montserrat-Regular": require("@/assets/font/Montserrat-Regular.ttf"),
     "Montserrat-Medium": require("@/assets/font/Montserrat-Medium.ttf"),
     "Montserrat-Bold": require("@/assets/font/Montserrat-Bold.ttf"),
@@ -44,12 +44,12 @@ const RootLayout = () => {
   });
 
   const onLayoutRootView = useCallback(async () => {
-    if (fontsLoaded) {
+    if (fontsLoaded || fontError) {
       await SplashScreen.hideAsync();
     }
-  }, [fontsLoaded]);
+  }, [fontsLoaded, fontError]);
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded && !fontError) {
     return null;
   }
 
