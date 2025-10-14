@@ -4,7 +4,8 @@ import { AdminGuard } from '@/components/guards';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { MOCK_PROMOTIONS } from '@/utils/mocks/data/promotions.mock';
-import { Gift, Plus, Edit, Trash2, CheckCircle, XCircle, Percent, Tag, Calendar, Users as UsersIcon } from 'lucide-react';
+import { Gift, Edit, Trash2, CheckCircle, XCircle, Percent, Tag, Calendar, Users as UsersIcon } from 'lucide-react';
+import { AddPromotionDialog } from './components/AddPromotionDialog';
 
 export default function PromotionsPage() {
     return (
@@ -20,10 +21,7 @@ export default function PromotionsPage() {
                             </h1>
                             <p className="text-gray-600 text-lg">Tạo và quản lý mã giảm giá</p>
                         </div>
-                        <Button className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-6 rounded-xl font-semibold hover:scale-105">
-                            <Plus size={22} className="mr-2" strokeWidth={2.5} />
-                            Tạo Khuyến Mãi
-                        </Button>
+                        <AddPromotionDialog />
                     </div>
 
                     {/* Stats */}

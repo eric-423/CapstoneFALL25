@@ -22,6 +22,7 @@ import {
     Factory,
 } from 'lucide-react';
 import { useState } from 'react';
+import { AddIngredientDialog } from './components/AddIngredientDialog';
 
 export interface Ingredient {
     id: number;
@@ -104,10 +105,7 @@ export default function IngredientsPage() {
                                     <Upload size={18} className="mr-2" strokeWidth={2.5} />
                                     Nhập Excel
                                 </Button>
-                                <Button className="bg-gradient-to-r from-primary to-secondary text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all">
-                                    <Plus size={18} className="mr-2" strokeWidth={2.5} />
-                                    Thêm nguyên liệu
-                                </Button>
+                                <AddIngredientDialog />
                             </div>
                         </div>
                     </div>

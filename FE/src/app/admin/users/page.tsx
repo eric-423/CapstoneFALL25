@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { MOCK_USERS } from '@/utils/mocks/data/users.mock';
 import { useState } from 'react';
-import { UserPlus, Users, Edit, Trash2, Search } from 'lucide-react';
+import { Users, Edit, Trash2, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { AddUserDialog } from './components/AddUserDialog';
 
 export default function UsersPage() {
     const [users] = useState(MOCK_USERS);
@@ -34,10 +35,7 @@ export default function UsersPage() {
                             </h1>
                             <p className="text-gray-600 text-lg">Quản lý tài khoản và phân quyền người dùng hệ thống</p>
                         </div>
-                        <Button className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg hover:shadow-xl transition-all px-6 py-6 text-base">
-                            <UserPlus size={20} className="mr-2" />
-                            Thêm người dùng
-                        </Button>
+                        <AddUserDialog />
                     </div>
 
                     {/* Filters and Search */}

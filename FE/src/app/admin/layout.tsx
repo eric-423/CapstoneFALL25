@@ -60,7 +60,7 @@ export default function AdminLayout({
                             </button>
                         </div>
 
-                        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 shadow-lg border border-white/20 hover:bg-white/15 transition-all duration-300">
+                        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 shadow-lg border border-white/20 hover:bg-white/15 transition-all">
                             <div className="flex items-center gap-3 mb-3">
                                 <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center text-primary shadow-lg ring-4 ring-white/20">
                                     <User size={26} />
@@ -90,7 +90,7 @@ export default function AdminLayout({
                                 return (
                                     <Link key={item.href} href={item.href}>
                                         <div className={`
-                                            flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 relative group
+                                            flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all relative group
                                             ${isActive
                                                 ? 'bg-white text-primary shadow-lg font-bold transform scale-[1.02]'
                                                 : 'text-white/90 hover:bg-white/10 hover:text-white hover:translate-x-1'
@@ -115,7 +115,7 @@ export default function AdminLayout({
                     <div className="p-4 flex-shrink-0 border-t border-white/10">
                         <Button
                             variant="outline"
-                            className="w-full justify-start gap-3 border-2 border-white/30 bg-white/10 hover:bg-white hover:text-primary text-white font-semibold transition-all duration-300 hover:scale-[1.02] shadow-lg"
+                            className="w-full justify-start gap-3 border-2 border-white/30 bg-white/10 hover:bg-white hover:text-primary text-white font-semibold transition-all hover:scale-[1.02] shadow-lg"
                             onClick={logout}
                         >
                             <LogOut size={20} />
