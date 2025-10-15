@@ -14,7 +14,6 @@ import Feather from "@expo/vector-icons/Feather";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
-import Zocial from "@expo/vector-icons/Zocial";
 const styles = StyleSheet.create({
   btnContainer: {
     borderRadius: 10,
@@ -96,7 +95,11 @@ const ShareButton = (props: IProps) => {
             case "Đăng Ký với Khách":
               return (
                 <>
-                  <Zocial name="guest" size={24} color={APP_COLOR.WHITE} />
+                  <AntDesign
+                    name="user-add"
+                    size={24}
+                    color={APP_COLOR.WHITE}
+                  />
                 </>
               );
             case "Tạo đơn hàng":

@@ -8,7 +8,7 @@ import { Formik } from "formik";
 import { Text, View, StyleSheet, Image } from "react-native";
 import footerFrame from "@/assets/frame_footer.png";
 import logo from "@/assets/logo.png";
-import { FONTS } from "@/theme/typography";
+import { FONTS, typography } from "@/theme/typography";
 const styles = StyleSheet.create({
   itemContainer: {
     marginHorizontal: 30,
@@ -89,7 +89,7 @@ const CustomerSignUpPage = () => {
                 style={{
                   height: 230,
                   width: 400,
-                  marginTop: 100,
+                  marginTop: 30,
                   marginHorizontal: "auto",
                 }}
                 source={logo}
@@ -100,6 +100,7 @@ const CustomerSignUpPage = () => {
                   fontFamily: FONTS.medium,
                   color: APP_COLOR.BROWN,
                   marginBottom: 10,
+                  alignSelf: "center",
                 }}
               >
                 Trở thành khách hàng của Tấm Tắc
@@ -170,13 +171,13 @@ const CustomerSignUpPage = () => {
                   flexDirection: "row",
                   gap: 10,
                   justifyContent: "center",
+                  alignItems: "center",
                 }}
               >
                 <Text
                   style={{
                     color: APP_COLOR.BROWN,
-                    fontFamily: FONTS.regular,
-                    fontSize: 17,
+                    ...typography.bodyMedium,
                   }}
                 >
                   Đã có tài khoản?
@@ -206,19 +207,14 @@ const CustomerSignUpPage = () => {
                   )
                 }
                 textStyle={{
-                  textTransform: "uppercase",
                   color: APP_COLOR.WHITE,
-                  paddingHorizontal: 35,
+                  paddingHorizontal: 15,
                   fontFamily: FONTS.medium,
                   fontSize: 15,
-                  position: "absolute",
-                  left: 20,
-                  top: 15,
                 }}
                 btnStyle={{
                   borderRadius: 30,
                   backgroundColor: APP_COLOR.ORANGE,
-                  width: 250,
                   marginHorizontal: "auto",
                   marginBottom: 230,
                 }}

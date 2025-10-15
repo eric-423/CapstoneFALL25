@@ -151,7 +151,8 @@ const WelcomePage = () => {
                       )}
                       <ShareButton
                         title="Đăng nhập"
-                        onPress={handleSubmit}
+                        // onPress={handleSubmit}
+                        onPress={() => router.replace("/(tabs)")}
                         textStyle={styles.loginBtnText}
                         btnStyle={styles.loginBtn}
                         pressStyle={{ alignSelf: "stretch" }}
