@@ -1,5 +1,4 @@
 import {
-  FlatList,
   Image,
   StyleSheet,
   Text,
@@ -10,7 +9,8 @@ import {
 import BannerHome from "@/components/home/banner.home";
 import { APP_COLOR } from "@/utils/constant";
 import { FONTS } from "@/theme/typography";
-import { useRouter } from "expo-router";
+import { router, useRouter } from "expo-router";
+import TodayOffersSection from "./today.offers.home";
 const icon = [
   {
     key: 1,
@@ -43,6 +43,36 @@ const icon = [
     targetScreen: "account",
   },
 ];
+const sampleOffers = [
+  {
+    id: "1",
+    imageSource: require("@/assets/icons/com-tam.png"),
+    discountText: "-50% canh",
+    descriptionText: "Dành cho bạn mới",
+    onPress: () => console.log("Offer 1 pressed"),
+  },
+  {
+    id: "2",
+    imageSource: require("@/assets/icons/cua-hang.png"),
+    discountText: "-10% đơn từ 99K",
+    descriptionText: "Đặt hàng online",
+    onPress: () => console.log("Offer 2 pressed"),
+  },
+  {
+    id: "3",
+    imageSource: require("@/assets/icons/qua-tang.png"),
+    discountText: "-30% combo",
+    descriptionText: "Ưu đãi đặc biệt",
+    onPress: () => console.log("Offer 3 pressed"),
+  },
+  {
+    id: "4",
+    imageSource: require("@/assets/icons/don-hang.png"),
+    discountText: "-20% giao hàng",
+    descriptionText: "Miễn phí ship",
+    onPress: () => console.log("Offer 4 pressed"),
+  },
+];
 const IconItem = ({ item }: any) => {
   const router = useRouter();
   const handlePress = () => {
@@ -68,39 +98,50 @@ const TopListHome = () => {
   return (
     <View>
       <BannerHome />
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.container}
-      >
-        <View>
-          <View style={styles.row}>
-            {topRowData.map((item) => (
-              <IconItem key={item.key} item={item} />
-            ))}
-          </View>
-          <View style={[styles.row, styles.staggeredRow]}>
-            {bottomRowData.map((item) => (
-              <IconItem key={item.key} item={item} />
-            ))}
-          </View>
+      <TodayOffersSection
+        offers={sampleOffers}
+        onPressSeeMore={() => {
+          console.log("Navigate to all offers");
+          router.push("/(tabs)/blog");
+        }}
+      />
+      <View style={{ paddingHorizontal: 10 }}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Danh mục</Text>
+          <TouchableOpacity onPress={() => console.log("Xem thêm")}>
+            <Text style={styles.seeMoreText}>Xem thêm &gt;</Text>
+          </TouchableOpacity>
         </View>
-      </ScrollView>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.container}
+        >
+          <View>
+            <View style={styles.row}>
+              {topRowData.map((item) => (
+                <IconItem key={item.key} item={item} />
+              ))}
+            </View>
+            <View style={styles.row}>
+              {bottomRowData.map((item) => (
+                <IconItem key={item.key} item={item} />
+              ))}
+            </View>
+          </View>
+        </ScrollView>
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 10,
     paddingLeft: 5,
   },
   row: {
     flexDirection: "row",
-  },
-  staggeredRow: {
-    marginTop: 10,
-    marginLeft: 20,
+    marginVertical: 2,
   },
   iconWrapper: {
     marginHorizontal: 8,
@@ -132,6 +173,22 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.semiBold,
     color: APP_COLOR.BROWN,
     maxWidth: 100,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  title: {
+    fontFamily: FONTS.bold,
+    fontSize: 18,
+    color: APP_COLOR.BROWN,
+  },
+  seeMoreText: {
+    fontFamily: FONTS.regular,
+    fontSize: 14,
+    color: APP_COLOR.BROWN,
   },
 });
 

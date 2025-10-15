@@ -14,7 +14,7 @@ import bn3 from "@/assets/banner/bn3.jpg";
 function BannerHome() {
   const ref = React.useRef<ICarouselInstance>(null);
   const progress = useSharedValue<number>(0);
-  const width = Dimensions.get("window").width;
+  const width = Dimensions.get("screen").width;
   React.useEffect(() => {
     const interval = setInterval(() => {
       if (ref.current) {
@@ -45,9 +45,11 @@ function BannerHome() {
   return (
     <View>
       <Carousel
-        style={{ marginTop: Platform.OS === "android" ? 10 : 0 }}
+        style={{
+          marginTop: Platform.OS === "android" ? 60 : 0,
+        }}
         ref={ref}
-        width={width}
+        width={width / 1}
         height={width / 2.5}
         data={sliders}
         onProgressChange={progress}

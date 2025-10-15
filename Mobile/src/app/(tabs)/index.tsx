@@ -3,6 +3,7 @@ import CollectionHome from "@/components/home/collection.home";
 import HeaderHome from "@/components/home/header.home";
 import SearchHome from "@/components/home/search.home";
 import TopListHome from "@/components/home/top.list.home";
+import TodayOffersSection from "@/components/home/today.offers.home";
 import { useCurrentApp } from "@/context/app.context";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
@@ -39,6 +40,7 @@ const HomePage = () => {
   const { branchId, setBranchId } = useCurrentApp();
   const { access_token } = useLocalSearchParams();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+
   useEffect(() => {
     const storeAccessToken = async () => {
       try {
