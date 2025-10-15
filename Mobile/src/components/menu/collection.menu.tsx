@@ -6,13 +6,10 @@ import {
   FlatList,
   Pressable,
   Dimensions,
-  ScrollView,
 } from "react-native";
 import { APP_COLOR } from "@/utils/constant";
 import { useEffect, useState, createContext, useContext } from "react";
-import { router } from "expo-router";
 import ContentLoader, { Rect } from "react-content-loader/native";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useCurrentApp } from "@/context/app.context";
 import {
@@ -20,10 +17,7 @@ import {
   currencyFormatter,
 } from "@/utils/cart";
 import React from "react";
-import Animated, { FadeIn, SlideInDown } from "react-native-reanimated";
 import { FONTS } from "@/theme/typography";
-import axios from "axios";
-
 const { width: sWidth } = Dimensions.get("window");
 
 interface IProps {
@@ -172,7 +166,7 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-const CollectionHome = (props: IProps) => {
+const CollectionMenu = (props: IProps) => {
   const { name, id, branchId } = props;
   const { cart, restaurant, setRestaurant } = useCurrentApp();
   const { showProductModal, handleQuantityChange } = useModal();
@@ -206,7 +200,6 @@ const CollectionHome = (props: IProps) => {
       setRestaurant(mockRestaurant);
     }
   }, [restaurant, setRestaurant]);
-
   const MOCK_BY_TYPE: Record<number, IPropsProduct[]> = {
     1: [
       {
@@ -242,7 +235,7 @@ const CollectionHome = (props: IProps) => {
         ProductType: { name: "Đồ uống", productTypeId: 2 },
         name: "Cà phê sữa đá",
         productId: "drink_1",
-        image: "https://picsum.photos/seed/caphesua/500/350",
+        image: require("@/assets/icons/com-tam.png"),
         description: "Cà phê sữa đá",
         price: 25000,
         averageRating: 4.5,
@@ -251,7 +244,7 @@ const CollectionHome = (props: IProps) => {
         ProductType: { name: "Đồ uống", productTypeId: 2 },
         name: "Trà sữa trân châu",
         productId: "drink_2",
-        image: "https://picsum.photos/seed/trasua/500/350",
+        image: require("@/assets/icons/com-tam.png"),
         description: "Trà sữa trân châu",
         price: 35000,
         averageRating: 4.1,
@@ -260,7 +253,7 @@ const CollectionHome = (props: IProps) => {
         ProductType: { name: "Đồ uống", productTypeId: 2 },
         name: "Nước cam",
         productId: "drink_3",
-        image: "https://picsum.photos/seed/nuoccam/500/350",
+        image: require("@/assets/icons/com-tam.png"),
         description: "Nước cam",
         price: 28000,
         averageRating: 4.2,
@@ -271,7 +264,7 @@ const CollectionHome = (props: IProps) => {
         ProductType: { name: "Món thêm", productTypeId: 3 },
         name: "Trứng ốp la",
         productId: "extra_1",
-        image: "https://picsum.photos/seed/trungop/500/350",
+        image: require("@/assets/icons/com-tam.png"),
         description: "Trứng ốp la",
         price: 10000,
         averageRating: 4.0,
@@ -280,7 +273,7 @@ const CollectionHome = (props: IProps) => {
         ProductType: { name: "Món thêm", productTypeId: 3 },
         name: "Chả lụa",
         productId: "extra_2",
-        image: "https://picsum.photos/seed/chalua/500/350",
+        image: require("@/assets/icons/com-tam.png"),
         description: "Chả lụa",
         price: 8000,
         averageRating: 4.1,
@@ -336,10 +329,10 @@ const CollectionHome = (props: IProps) => {
 
           <FlatList
             data={restaurants}
-            horizontal
             contentContainerStyle={styles.flatListContent}
             showsVerticalScrollIndicator={false}
             showsHorizontalScrollIndicator={false}
+            scrollEnabled={false}
             renderItem={({
               item,
               index,
@@ -378,14 +371,28 @@ const CollectionHome = (props: IProps) => {
                     <View style={styles.itemTextContainer}>
                       <View style={{ height: 50 }}>
                         <Text
-                          style={[styles.itemName, { maxWidth: 130 }]}
+                          style={[styles.itemName]}
                           numberOfLines={2}
                           ellipsizeMode="tail"
                         >
                           {item.description}
                         </Text>
+                        <Text
+                          style={{
+                            fontFamily: FONTS.regular,
+                            fontSize: 13,
+                            color: APP_COLOR.BROWN,
+                          }}
+                        >
+                          - Cơm Tấm Sườn Chả
+                        </Text>
                       </View>
-                      <View style={{ alignItems: "center" }}>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          gap: 10,
+                        }}
+                      >
                         <Text style={styles.itemPrice}>
                           {currencyFormatter(item.price)}
                         </Text>
@@ -394,14 +401,61 @@ const CollectionHome = (props: IProps) => {
                             styles.itemPrice,
                             {
                               textDecorationLine: "line-through",
+                              fontFamily: FONTS.regular,
                               fontSize: 13,
                               color: APP_COLOR.BROWN,
+                              position: "relative",
+                              bottom: -10,
                             },
                           ]}
                         >
                           {currencyFormatter(item.price - 3000)}
                         </Text>
                       </View>
+                    </View>
+                    <View
+                      style={[
+                        styles.quantityContainer,
+                        { marginHorizontal: 10, marginVertical: 10 },
+                      ]}
+                    >
+                      <Pressable
+                        onPress={() => handleQuantityChange(item, "MINUS")}
+                        style={({ pressed }) => ({
+                          opacity:
+                            getItemQuantity(item.productId) > 0
+                              ? pressed
+                                ? 0.5
+                                : 1
+                              : 0.3,
+                        })}
+                        disabled={getItemQuantity(item.productId) === 0}
+                      >
+                        <AntDesign
+                          name="minus-circle"
+                          size={24}
+                          color={
+                            getItemQuantity(item.productId) > 0
+                              ? APP_COLOR.BUTTON_YELLOW
+                              : APP_COLOR.BROWN
+                          }
+                        />
+                      </Pressable>
+                      <Text style={styles.quantityText}>
+                        {getItemQuantity(item.productId)}
+                      </Text>
+                      <Pressable
+                        onPress={() => handleQuantityChange(item, "PLUS")}
+                        style={({ pressed }) => ({
+                          opacity: pressed ? 0.5 : 1,
+                        })}
+                      >
+                        <AntDesign
+                          name="plus-circle"
+                          size={24}
+                          color={APP_COLOR.BUTTON_YELLOW}
+                        />
+                      </Pressable>
                     </View>
                   </View>
                 </Pressable>
@@ -451,11 +505,11 @@ const styles = StyleSheet.create({
   },
   itemContainer: {
     backgroundColor: APP_COLOR.WHITE,
-    width: 150,
-    height: 220,
-    alignItems: "center",
+    width: 370,
+    height: 100,
+    flexDirection: "row",
     borderRadius: 10,
-    marginTop: 10,
+    marginTop: 5,
     gap: 5,
     marginHorizontal: 5,
     shadowColor: "#000",
@@ -468,8 +522,8 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   itemImage: {
-    height: 120,
-    width: 140,
+    height: 100,
+    width: 100,
     borderRadius: 10,
     opacity: 0.85,
   },
@@ -503,10 +557,9 @@ const styles = StyleSheet.create({
     color: APP_COLOR.ORANGE,
     fontFamily: FONTS.bold,
     fontSize: 17,
-    position: "relative",
-    bottom: 10,
   },
   quantityContainer: {
+    height: 30,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -516,13 +569,16 @@ const styles = StyleSheet.create({
     marginBottom: 7,
     borderWidth: 0.5,
     borderColor: APP_COLOR.BROWN,
-    marginHorizontal: "auto",
+    position: "absolute",
+    bottom: 10,
+    right: 0,
   },
   quantityText: {
     minWidth: 25,
     textAlign: "center",
     fontFamily: FONTS.medium,
     color: APP_COLOR.BROWN,
+    justifyContent: "center",
   },
   modalOverlay: {
     position: "absolute",
@@ -580,4 +636,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CollectionHome;
+export default CollectionMenu;

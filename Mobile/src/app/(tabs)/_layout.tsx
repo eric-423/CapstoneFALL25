@@ -6,6 +6,7 @@ import { StyleSheet, View } from "react-native";
 import { FONTS } from "@/theme/typography";
 import Octicons from "@expo/vector-icons/Octicons";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import Ionicons from "@expo/vector-icons/Ionicons";
 const TabLayout = () => {
   const getIcons = (routeName: string, focused: boolean, size: number) => {
     const styles = StyleSheet.create({
@@ -38,9 +39,9 @@ const TabLayout = () => {
     }
     if (routeName === "order") {
       return (
-        <MaterialIcons
-          name="list-alt"
-          size={size}
+        <Ionicons
+          name="restaurant-outline"
+          size={24}
           color={focused ? APP_COLOR.ORANGE : APP_COLOR.BROWN}
         />
       );
@@ -102,7 +103,7 @@ const TabLayout = () => {
           route.name === "ai"
             ? "AI Chat"
             : route.name === "order"
-            ? "Đơn hàng"
+            ? "Thực đơn"
             : route.name === "index"
             ? "Trang chủ"
             : route.name === "blog"
@@ -119,7 +120,7 @@ const TabLayout = () => {
       <Tabs.Screen
         name="order"
         options={{
-          title: "Đơn hàng",
+          title: "Thực đơn",
         }}
       />
       <Tabs.Screen

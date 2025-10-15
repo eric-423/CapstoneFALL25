@@ -131,7 +131,7 @@ const HomePage = () => {
             />
           </ModalProvider>
         )}
-        HeaderComponent={<HeaderHome onBranchSelect={handleBranchSelect} />}
+        HeaderComponent={<HeaderHome pageName="homePage" />}
         StickyElementComponent={<SearchHome />}
         TopListElementComponent={<TopListHome />}
       />
