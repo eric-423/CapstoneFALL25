@@ -14,7 +14,15 @@ const nextConfig: NextConfig = {
         hostname: '**',
       },
     ],
+    minimumCacheTTL: 60,
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
+
+  // Performance optimizations
+  compress: true,
+  poweredByHeader: false,
 
   // Headers for security
   async headers() {
@@ -53,7 +61,10 @@ const nextConfig: NextConfig = {
 
   // Experimental features
   experimental: {
-    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
+    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons', 'framer-motion'],
+    serverComponentsExternalPackages: ['@ant-design/plots'],
+    optimizeCss: true,
+    webpackBuildWorker: true,
   },
 
   // Webpack configuration

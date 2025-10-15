@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { ProductType } from '@/types/product.type';
+import { ProductType } from '@/apis/product.api';
 
 import { Dispatch, SetStateAction } from 'react';
 

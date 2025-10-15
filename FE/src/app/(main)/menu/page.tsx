@@ -1,17 +1,13 @@
 'use client';
 
-import { GET_BRANCHES_QUERY_KEY, GET_BRANCHES_STALE_TIME, getBranches } from '@/apis/branch.api';
-import { GET_PRODUCT_TYPE_QUERY_KEY, GET_PRODUCT_TYPE_STALE_TIME, getProductType } from '@/apis/product.api';
 import image from '@/assets/images/Home - Banner.jpg';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import StyledHeading from '@/components/common/styled-heading';
 import InfiniteScroll from '@/components/ui/infinite-scroll';
-import useGetProducts from '@/utils/hooks/useGetProducts';
 import useScrollTop from '@/utils/hooks/useScrollTop';
-import { Branch } from '@/types/branch.type';
-import { ProductType } from '@/types/product.type';
+import { useSampleProducts, useSampleProductTypes, useSampleBranches } from '@/utils/hooks/useSampleData';
+import { ProductType } from '@/apis/product.api';
 
-import { useQuery } from '@tanstack/react-query';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
@@ -23,33 +19,22 @@ import ProductTypeList from './components/product-type-list';
 export default function MenuPage() {
     useScrollTop();
     const [productType, setProductType] = useState<ProductType>({ id: 0, name: 'Tất cả' });
-    const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
+    const [selectedBranch, setSelectedBranch] = useState<any>(null);
+    
+    // Use sample data hooks
     const {
-        productList,
+        products: productList,
         isLoading: isLoadingProducts,
         nextPage,
+        hasMore,
         totalElements,
-    } = useGetProducts({
-        size: 100,
+    } = useSampleProducts({
+        size: 12,
         productType: productType.id,
-        branchId: selectedBranch?.id,
     });
 
-    const { data: productTypes, isLoading: isLoadingProductTypes } = useQuery({
-        queryKey: [GET_PRODUCT_TYPE_QUERY_KEY],
-        queryFn: () => getProductType(),
-        staleTime: GET_PRODUCT_TYPE_STALE_TIME,
-        refetchOnMount: false,
-        refetchOnWindowFocus: false,
-    });
-
-    const { data: branches, isLoading: isLoadingBranches } = useQuery({
-        queryKey: [GET_BRANCHES_QUERY_KEY],
-        queryFn: () => getBranches(),
-        staleTime: GET_BRANCHES_STALE_TIME,
-        refetchOnMount: false,
-        refetchOnWindowFocus: false,
-    });
+    const { productTypes, isLoading: isLoadingProductTypes } = useSampleProductTypes();
+    const { branches, isLoading: isLoadingBranches } = useSampleBranches();
 
     useEffect(() => {
         if (branches && !selectedBranch) {
@@ -119,14 +104,14 @@ export default function MenuPage() {
 
                             <div className='lg:w-3/4' id='menu-content'>
                                 {/* Featured Product */}
-                                {productList?.length > 0 && productType.id === 0 && <FeaturedProduct product={productList[10]} />}
+                                {productList?.length > 0 && productType.id === 0 && <FeaturedProduct product={productList[0]} />}
                                 {/* Menu Grid */}
                                 <div>
                                     <div className='flex items-center justify-between mb-6'>
                                         <h2 className='text-xl font-bold'>
-                                            {selectedBranch?.name ? (
+                                            {selectedBranch?.branchName ? (
                                                 <>
-                                                    {selectedBranch.name} <span className='font-normal text-base'>- {productType.name}</span>
+                                                    {selectedBranch.branchName} <span className='font-normal text-base'>- {productType.name}</span>
                                                 </>
                                             ) : (
                                                 productType.name
@@ -142,7 +127,7 @@ export default function MenuPage() {
                                         <>
                                             <ProductList products={productList} />
                                             <div>
-                                                <InfiniteScroll hasMore={productList.length < totalElements} isLoading={true} next={nextPage}>
+                                                <InfiniteScroll hasMore={hasMore} isLoading={isLoadingProducts} next={nextPage}>
                                                     {isLoadingProducts && <LoadingSpinner className='my-10 h-8 w-8 animate-spin' />}
                                                 </InfiniteScroll>
                                             </div>
