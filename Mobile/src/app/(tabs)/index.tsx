@@ -1,5 +1,7 @@
 import CustomFlatList from "@/components/customFlatList/CustomFlatList";
-import CollectionHome from "@/components/home/collection.home";
+import CollectionHome, {
+  ModalProvider,
+} from "@/components/home/collection.home";
 import HeaderHome from "@/components/home/header.home";
 import SearchHome from "@/components/home/search.home";
 import TopListHome from "@/components/home/top.list.home";
@@ -25,11 +27,15 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Toast from "react-native-root-toast";
 import { FONTS } from "@/theme/typography";
 import ItemQuantity from "@/components/order/item.quantity";
+import { PopupSale } from "@/app/(auth)/popup.sale";
 
 interface ITem {
   name: string;
   productTypeId: number;
 }
+const MOCK_COLLECTIONS: ITem[] = [
+  { name: "Món ăn được yêu thích", productTypeId: 1 },
+];
 const HomePage = () => {
   const [mounted, setMounted] = useState(false);
   const [showCart, setShowCart] = useState(false);
@@ -40,6 +46,7 @@ const HomePage = () => {
   const { branchId, setBranchId } = useCurrentApp();
   const { access_token } = useLocalSearchParams();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
     const storeAccessToken = async () => {
@@ -76,14 +83,20 @@ const HomePage = () => {
   //   fetchData();
   // }, []);
   useEffect(() => {
+    const timer = setTimeout(
+      () => setCollectionData(MOCK_COLLECTIONS as never[]),
+      200
+    );
+    return () => clearTimeout(timer);
+  }, []);
+  useEffect(() => {
     setMounted(true);
   }, []);
 
   useEffect(() => {
     if (!mounted) return;
-    setTimeout(() => {
-      router.push("/(auth)/popup.sale");
-    }, 1000);
+    const t = setTimeout(() => setShowPopup(true), 600);
+    return () => clearTimeout(t);
   }, [mounted]);
 
   const handleQuantityChange = (amount: number) => {
@@ -110,11 +123,13 @@ const HomePage = () => {
         data={collectionData}
         style={styles.list}
         renderItem={({ item }: { item: ITem }) => (
-          <CollectionHome
-            name={item.name}
-            id={item.productTypeId}
-            branchId={branchId}
-          />
+          <ModalProvider>
+            <CollectionHome
+              name={item.name}
+              id={item.productTypeId}
+              branchId={branchId}
+            />
+          </ModalProvider>
         )}
         HeaderComponent={<HeaderHome onBranchSelect={handleBranchSelect} />}
         StickyElementComponent={<SearchHome />}
@@ -174,6 +189,8 @@ const HomePage = () => {
           </View>
         </Pressable>
       )}
+
+      {showPopup && <PopupSale onClose={() => setShowPopup(false)} />}
 
       {showCart && (
         <Animated.View entering={FadeIn} style={styles.modalOverlay}>

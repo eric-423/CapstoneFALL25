@@ -101,7 +101,6 @@ const TopListHome = () => {
       <TodayOffersSection
         offers={sampleOffers}
         onPressSeeMore={() => {
-          console.log("Navigate to all offers");
           router.push("/(tabs)/blog");
         }}
       />
@@ -109,7 +108,7 @@ const TopListHome = () => {
         <View style={styles.header}>
           <Text style={styles.title}>Danh mục</Text>
           <TouchableOpacity onPress={() => console.log("Xem thêm")}>
-            <Text style={styles.seeMoreText}>Xem thêm &gt;</Text>
+            <Text style={styles.seeMoreText}>Xem tất cả &gt;</Text>
           </TouchableOpacity>
         </View>
         <ScrollView
@@ -118,7 +117,7 @@ const TopListHome = () => {
           contentContainerStyle={styles.container}
         >
           <View>
-            <View style={styles.row}>
+            <View style={[styles.row, { marginBottom: 10 }]}>
               {topRowData.map((item) => (
                 <IconItem key={item.key} item={item} />
               ))}
@@ -141,15 +140,13 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: "row",
-    marginVertical: 2,
   },
   iconWrapper: {
     marginHorizontal: 8,
     alignItems: "center",
-    backgroundColor: APP_COLOR.YELLOW,
+    backgroundColor: APP_COLOR.WHITE,
     borderRadius: 50,
     flexDirection: "row",
-    alignSelf: "flex-start",
     height: 62,
   },
   iconCircle: {
@@ -186,9 +183,9 @@ const styles = StyleSheet.create({
     color: APP_COLOR.BROWN,
   },
   seeMoreText: {
-    fontFamily: FONTS.regular,
-    fontSize: 14,
     color: APP_COLOR.BROWN,
+    fontFamily: FONTS.medium,
+    fontSize: 17,
   },
 });
 

@@ -65,7 +65,7 @@ const TodayOffersSection: React.FC<TodayOffersSectionProps> = ({
       <View style={styles.header}>
         <Text style={styles.title}>{title}</Text>
         <TouchableOpacity onPress={handleSeeMore}>
-          <Text style={styles.seeMoreText}>Xem thêm &gt;</Text>
+          <Text style={styles.seeMoreText}>Xem tất cả &gt;</Text>
         </TouchableOpacity>
       </View>
       <ScrollView
@@ -98,9 +98,9 @@ const styles = StyleSheet.create({
     color: APP_COLOR.BROWN,
   },
   seeMoreText: {
-    fontFamily: FONTS.regular,
-    fontSize: 14,
     color: APP_COLOR.BROWN,
+    fontFamily: FONTS.medium,
+    fontSize: 17,
   },
   offersList: {
     paddingRight: 15,
@@ -138,12 +138,11 @@ const offerCardStyles = StyleSheet.create({
     fontFamily: FONTS.bold,
     fontSize: 16,
     color: APP_COLOR.ORANGE,
-    marginBottom: 5,
   },
   descriptionText: {
     fontFamily: FONTS.regular,
-    fontSize: 12,
-    color: APP_COLOR.GRAY,
+    fontSize: 13,
+    color: APP_COLOR.BROWN,
     textAlign: "center",
   },
 });

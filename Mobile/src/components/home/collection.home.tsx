@@ -39,7 +39,7 @@ interface IPropsProduct {
   };
   name: string;
   productId: string;
-  image: string;
+  image: any;
   description: string;
   price: number;
   averageRating: number;
@@ -168,169 +168,6 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
       value={{ showProductModal, hideProductModal, handleQuantityChange }}
     >
       {children}
-      {modalVisible && selectedItem && (
-        <Animated.View entering={FadeIn} style={styles.modalOverlay}>
-          <Pressable
-            style={styles.modalBackground}
-            onPress={hideProductModal}
-          />
-          <Animated.View entering={SlideInDown} style={styles.modalContent}>
-            <ScrollView
-              style={{ flexGrow: 0 }}
-              contentContainerStyle={{
-                paddingBottom: 20,
-              }}
-              showsVerticalScrollIndicator={false}
-            >
-              <AntDesign
-                name="close"
-                size={24}
-                color={APP_COLOR.WHITE}
-                onPress={hideProductModal}
-                style={styles.modalCloseIcon}
-              />
-              <Image
-                source={{ uri: selectedItem?.image }}
-                style={styles.modalImage}
-                resizeMode="cover"
-              />
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  marginBottom: 10,
-                  paddingBottom: 1,
-                }}
-              >
-                <Text style={styles.modalProductName}>
-                  {selectedItem?.description}{" "}
-                  <Text style={styles.modalProductPrice}>
-                    {" "}
-                    {currencyFormatter(selectedItem?.price || 0)}
-                  </Text>
-                </Text>
-
-                <View
-                  style={[
-                    styles.quantityContainer,
-                    { marginHorizontal: 10, marginVertical: 10 },
-                  ]}
-                >
-                  <Pressable
-                    onPress={() => handleQuantityChange(selectedItem!, "MINUS")}
-                    style={({ pressed }) => ({
-                      opacity:
-                        getItemQuantity(selectedItem!.productId) > 0
-                          ? pressed
-                            ? 0.5
-                            : 1
-                          : 0.3,
-                    })}
-                    disabled={getItemQuantity(selectedItem!.productId) === 0}
-                  >
-                    <AntDesign
-                      name="minus-circle"
-                      size={24}
-                      color={
-                        getItemQuantity(selectedItem!.productId) > 0
-                          ? APP_COLOR.BUTTON_YELLOW
-                          : APP_COLOR.BROWN
-                      }
-                    />
-                  </Pressable>
-                  <Text style={styles.quantityText}>
-                    {getItemQuantity(selectedItem!.productId)}
-                  </Text>
-                  <Pressable
-                    onPress={() => handleQuantityChange(selectedItem!, "PLUS")}
-                    style={({ pressed }) => ({
-                      opacity: pressed ? 0.5 : 1,
-                    })}
-                  >
-                    <AntDesign
-                      name="plus-circle"
-                      size={24}
-                      color={APP_COLOR.BUTTON_YELLOW}
-                    />
-                  </Pressable>
-                </View>
-              </View>
-              {typeProducts.map((item: IPropsProduct, index) => (
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    marginHorizontal: 10,
-                    justifyContent: "space-between",
-                    paddingBottom: 1,
-                    marginBottom: 10,
-                    borderBottomColor: APP_COLOR.GRAY,
-                    borderBottomWidth: 0.2,
-                  }}
-                  key={item.productId}
-                >
-                  <Text style={[styles.itemName]}>
-                    {item.name}{" "}
-                    <Text style={{ color: APP_COLOR.GRAY, fontSize: 12 }}>
-                      +{currencyFormatter(item.price)}
-                    </Text>
-                  </Text>
-                  <View
-                    style={[styles.quantityContainer, { marginHorizontal: 0 }]}
-                  >
-                    <Pressable
-                      onPress={() => handleQuantityChange(item, "MINUS")}
-                      style={({ pressed }) => ({
-                        opacity:
-                          getItemQuantity(item.productId) > 0
-                            ? pressed
-                              ? 0.5
-                              : 1
-                            : 0.3,
-                      })}
-                      disabled={getItemQuantity(item.productId) === 0}
-                    >
-                      <AntDesign
-                        name="minus-circle"
-                        size={24}
-                        color={
-                          getItemQuantity(item.productId) > 0
-                            ? APP_COLOR.BUTTON_YELLOW
-                            : APP_COLOR.BROWN
-                        }
-                      />
-                    </Pressable>
-                    <Text style={styles.quantityText}>
-                      {getItemQuantity(item.productId)}
-                    </Text>
-                    <Pressable
-                      onPress={() => handleQuantityChange(item, "PLUS")}
-                      style={({ pressed }) => ({
-                        opacity: pressed ? 0.5 : 1,
-                      })}
-                    >
-                      <AntDesign
-                        name="plus-circle"
-                        size={24}
-                        color={APP_COLOR.BUTTON_YELLOW}
-                      />
-                    </Pressable>
-                  </View>
-                </View>
-              ))}
-              <View>
-                <Text style={[styles.headerText, { alignSelf: "center" }]}>
-                  Tổng giá tiền:{" "}
-                  <Text style={{ fontFamily: FONTS.bold }}>
-                    {currencyFormatter(cart?.mock_restaurant_1?.sum) || 0}
-                  </Text>
-                </Text>
-              </View>
-            </ScrollView>
-          </Animated.View>
-        </Animated.View>
-      )}
     </ModalContext.Provider>
   );
 };
@@ -370,6 +207,96 @@ const CollectionHome = (props: IProps) => {
     }
   }, [restaurant, setRestaurant]);
 
+  const MOCK_BY_TYPE: Record<number, IPropsProduct[]> = {
+    1: [
+      {
+        ProductType: { name: "Đồ ăn", productTypeId: 1 },
+        name: "Cơm tấm sườn bì chả",
+        productId: "food_1",
+        image: require("@/assets/icons/com-tam.png"),
+        description: "Cơm tấm sườn bì chả",
+        price: 45000,
+        averageRating: 4.6,
+      },
+      {
+        ProductType: { name: "Đồ ăn", productTypeId: 1 },
+        name: "Bún bò Huế",
+        productId: "food_2",
+        image: require("@/assets/icons/com-tam.png"),
+        description: "Bún bò Huế",
+        price: 42000,
+        averageRating: 4.3,
+      },
+      {
+        ProductType: { name: "Đồ ăn", productTypeId: 1 },
+        name: "Phở bò tái",
+        productId: "food_3",
+        image: require("@/assets/icons/com-tam.png"),
+        description: "Phở bò tái",
+        price: 40000,
+        averageRating: 4.7,
+      },
+    ],
+    2: [
+      {
+        ProductType: { name: "Đồ uống", productTypeId: 2 },
+        name: "Cà phê sữa đá",
+        productId: "drink_1",
+        image: "https://picsum.photos/seed/caphesua/500/350",
+        description: "Cà phê sữa đá",
+        price: 25000,
+        averageRating: 4.5,
+      },
+      {
+        ProductType: { name: "Đồ uống", productTypeId: 2 },
+        name: "Trà sữa trân châu",
+        productId: "drink_2",
+        image: "https://picsum.photos/seed/trasua/500/350",
+        description: "Trà sữa trân châu",
+        price: 35000,
+        averageRating: 4.1,
+      },
+      {
+        ProductType: { name: "Đồ uống", productTypeId: 2 },
+        name: "Nước cam",
+        productId: "drink_3",
+        image: "https://picsum.photos/seed/nuoccam/500/350",
+        description: "Nước cam",
+        price: 28000,
+        averageRating: 4.2,
+      },
+    ],
+    3: [
+      {
+        ProductType: { name: "Món thêm", productTypeId: 3 },
+        name: "Trứng ốp la",
+        productId: "extra_1",
+        image: "https://picsum.photos/seed/trungop/500/350",
+        description: "Trứng ốp la",
+        price: 10000,
+        averageRating: 4.0,
+      },
+      {
+        ProductType: { name: "Món thêm", productTypeId: 3 },
+        name: "Chả lụa",
+        productId: "extra_2",
+        image: "https://picsum.photos/seed/chalua/500/350",
+        description: "Chả lụa",
+        price: 8000,
+        averageRating: 4.1,
+      },
+    ],
+  };
+
+  useEffect(() => {
+    setLoading(true);
+    const timer = setTimeout(() => {
+      const list = MOCK_BY_TYPE[id] || [];
+      setRestaurants(list as unknown as never[]);
+      setLoading(false);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [id]);
   const getItemQuantity = (itemId: string) =>
     getItemQuantityUtil(cart, restaurant?._id, itemId);
 
@@ -438,7 +365,11 @@ const CollectionHome = (props: IProps) => {
                   >
                     <Image
                       style={styles.itemImage}
-                      source={{ uri: item.image }}
+                      source={
+                        typeof item.image === "string"
+                          ? { uri: item.image }
+                          : (item.image as any)
+                      }
                     />
                     <View style={styles.ratingContainer}>
                       <Text style={styles.ratingText}>
@@ -451,51 +382,33 @@ const CollectionHome = (props: IProps) => {
                       />
                     </View>
                     <View style={styles.itemTextContainer}>
-                      <Text
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
-                        style={[styles.itemName, { maxWidth: 130 }]}
-                      >
-                        {item.description}
-                      </Text>
-                      <Text style={styles.itemPrice}>
-                        {currencyFormatter(item.price)}
-                      </Text>
-                    </View>
-                    {item.ProductType?.name === "Đồ ăn" && (
-                      <View style={styles.quantityContainer}>
-                        <Pressable
-                          onPress={() => handleQuantityChange(item, "MINUS")}
-                          style={({ pressed }) => ({
-                            opacity: quantity > 0 ? (pressed ? 0.5 : 1) : 0.3,
-                          })}
-                          disabled={quantity === 0}
+                      <View style={{ height: 50 }}>
+                        <Text
+                          style={[styles.itemName, { maxWidth: 130 }]}
+                          numberOfLines={2}
+                          ellipsizeMode="tail"
                         >
-                          <AntDesign
-                            name="minus-circle"
-                            size={24}
-                            color={
-                              quantity > 0
-                                ? APP_COLOR.BUTTON_YELLOW
-                                : APP_COLOR.BROWN
-                            }
-                          />
-                        </Pressable>
-                        <Text style={styles.quantityText}>{quantity}</Text>
-                        <Pressable
-                          onPress={() => handleQuantityChange(item, "PLUS")}
-                          style={({ pressed }) => ({
-                            opacity: pressed ? 0.5 : 1,
-                          })}
-                        >
-                          <AntDesign
-                            name="plus-circle"
-                            size={24}
-                            color={APP_COLOR.BUTTON_YELLOW}
-                          />
-                        </Pressable>
+                          {item.description}
+                        </Text>
                       </View>
-                    )}
+                      <View style={{ alignItems: "center" }}>
+                        <Text style={styles.itemPrice}>
+                          {currencyFormatter(item.price)}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.itemPrice,
+                            {
+                              textDecorationLine: "line-through",
+                              fontSize: 13,
+                              color: APP_COLOR.BROWN,
+                            },
+                          ]}
+                        >
+                          {currencyFormatter(item.price - 3000)}
+                        </Text>
+                      </View>
+                    </View>
                   </View>
                 </Pressable>
               );
@@ -510,7 +423,6 @@ const CollectionHome = (props: IProps) => {
 const styles = StyleSheet.create({
   container: {
     padding: 10,
-    backgroundColor: APP_COLOR.YELLOW,
   },
   spacer: {
     height: 10,
@@ -521,10 +433,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   headerText: {
-    color: APP_COLOR.ORANGE,
-    fontWeight: "600",
-    fontFamily: FONTS.medium,
-    fontSize: 17,
+    color: APP_COLOR.BROWN,
+    fontFamily: FONTS.bold,
+    fontSize: 18,
   },
   viewAllContainer: {
     position: "absolute",
@@ -545,7 +456,10 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   itemContainer: {
-    backgroundColor: APP_COLOR.DARK_YELLOW,
+    backgroundColor: APP_COLOR.WHITE,
+    width: 150,
+    height: 220,
+    alignItems: "center",
     borderRadius: 10,
     marginTop: 10,
     gap: 5,
@@ -557,9 +471,10 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+    elevation: 5,
   },
   itemImage: {
-    height: 130,
+    height: 120,
     width: 140,
     borderRadius: 10,
     opacity: 0.85,
@@ -584,17 +499,18 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   itemName: {
-    fontFamily: FONTS.medium,
+    fontFamily: FONTS.semiBold,
     fontSize: 15,
     color: APP_COLOR.BROWN,
     marginBottom: 5,
+    textAlign: "center",
   },
   itemPrice: {
-    color: APP_COLOR.BROWN,
+    color: APP_COLOR.ORANGE,
     fontFamily: FONTS.bold,
-    fontSize: 15,
+    fontSize: 17,
     position: "relative",
-    left: 50,
+    bottom: 10,
   },
   quantityContainer: {
     flexDirection: "row",
