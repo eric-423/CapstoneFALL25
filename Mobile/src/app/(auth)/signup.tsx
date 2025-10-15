@@ -198,13 +198,17 @@ const CustomerSignUpPage = () => {
               <ShareButton
                 title="Đăng Ký với Khách"
                 onPress={() =>
-                  handleSignUp(
-                    values.fullName,
-                    values.phone_number,
-                    values.email,
-                    values.password,
-                    values.date_of_birth
-                  )
+                  // handleSignUp(
+                  //   values.fullName,
+                  //   values.phone_number,
+                  //   values.email,
+                  //   values.password,
+                  //   values.date_of_birth
+                  // )
+                  router.replace({
+                    pathname: "/(auth)/verify",
+                    params: { email: values.email },
+                  })
                 }
                 textStyle={{
                   color: APP_COLOR.WHITE,

@@ -24,6 +24,18 @@ export default function AuthLayout() {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="verify"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="popup.sale"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }
