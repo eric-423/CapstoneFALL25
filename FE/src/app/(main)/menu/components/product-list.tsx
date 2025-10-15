@@ -1,5 +1,5 @@
 import { ProductCard } from '@/components/common/card';
-import { Product } from '@/types/product.type';
+import { Product } from '@/apis/product.api';
 
 type ProductListProps = {
     products: Product[];

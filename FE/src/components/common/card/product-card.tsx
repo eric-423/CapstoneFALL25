@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useIsMobile } from '@/utils/hooks/use-mobile';
-import { Product } from '@/types/product.type';
+import { Product } from '@/apis/product.api';
 import { contentOverflow } from '@/utils/contentOverflow';
 
 import { Plus, Star } from 'lucide-react';
@@ -31,7 +31,7 @@ export const ProductCard = ({ item, descriptionOverflow = 40 }: ProductCardProps
         />
         <div className='absolute top-4 right-4 bg-white rounded-full px-3 py-1 flex items-center shadow-md'>
           <Star className='h-4 w-4 text-yellow-500 mr-1' fill='#F59E0B' />
-          <span className='text-sm font-medium'>5</span>
+          <span className='text-sm font-medium'>{item.rating}</span>
         </div>
       </div>
       <div className='p-4 pt-0'>
