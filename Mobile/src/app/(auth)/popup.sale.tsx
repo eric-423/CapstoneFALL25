@@ -1,0 +1,175 @@
+import { router } from "expo-router";
+import { Dimensions, Image, Pressable, Text, View } from "react-native";
+import bannerImg from "@/assets/saleoff/banner.png";
+import AntDesign from "@expo/vector-icons/AntDesign";
+import Animated, { FadeIn, SlideInDown } from "react-native-reanimated";
+import { APP_COLOR } from "@/utils/constant";
+
+export const PopupSale = ({ onClose }: { onClose: () => void }) => {
+  const screenHeight = Dimensions.get("screen").height;
+  const screenWidth = Dimensions.get("screen").width;
+  return (
+    <Pressable
+      style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 10000,
+      }}
+    >
+      <Animated.View
+        entering={FadeIn}
+        style={{
+          flex: 1,
+          backgroundColor: "rgba(0,0,0,0.5)",
+        }}
+      >
+        <Animated.View
+          entering={SlideInDown}
+          style={{
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
+              height: 26,
+              width: 26,
+              borderRadius: 26 / 2,
+              justifyContent: "center",
+              alignItems: "center",
+              position: "relative",
+              right: -135,
+              top: 35,
+              zIndex: 9999,
+            }}
+          >
+            <AntDesign
+              onPress={onClose}
+              name="close"
+              size={28}
+              color={APP_COLOR.BROWN}
+            />
+          </View>
+
+          <Image
+            source={bannerImg}
+            style={{
+              height: screenHeight * 0.85,
+              width: screenWidth * 0.85,
+              borderRadius: 30,
+            }}
+          />
+          <Pressable
+            style={({ pressed }) => ({
+              backgroundColor:
+                pressed === false ? APP_COLOR.BROWN : APP_COLOR.ORANGE,
+              paddingVertical: 10,
+              paddingHorizontal: 50,
+              borderRadius: 15,
+              position: "relative",
+              top: -25,
+            })}
+            onPress={() => console.log("hihi")}
+          >
+            <Text
+              style={{
+                color: "white",
+                fontWeight: "600",
+              }}
+            >
+              ĐẶT NGAY
+            </Text>
+          </Pressable>
+        </Animated.View>
+      </Animated.View>
+    </Pressable>
+  );
+};
+
+const PopupSalePage = () => {
+  const screenHeight = Dimensions.get("screen").height;
+  const screenWidth = Dimensions.get("screen").width;
+  return (
+    <Pressable
+      style={{
+        flex: 1,
+      }}
+    >
+      <Animated.View
+        entering={FadeIn}
+        style={{
+          flex: 1,
+          backgroundColor: "rgba(0,0,0,0.5)",
+        }}
+      >
+        <Animated.View
+          entering={SlideInDown}
+          style={{
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
+              height: 26,
+              width: 26,
+              borderRadius: 26 / 2,
+              justifyContent: "center",
+              alignItems: "center",
+              position: "relative",
+              right: -135,
+              top: 35,
+              zIndex: 9999,
+            }}
+          >
+            <AntDesign
+              onPress={() => router.back()}
+              name="close"
+              size={28}
+              color={APP_COLOR.BROWN}
+            />
+          </View>
+
+          <Image
+            source={bannerImg}
+            style={{
+              height: screenHeight * 0.85,
+              width: screenWidth * 0.85,
+              borderRadius: 30,
+            }}
+          />
+          <Pressable
+            style={({ pressed }) => ({
+              backgroundColor:
+                pressed === false ? APP_COLOR.BROWN : APP_COLOR.ORANGE,
+              paddingVertical: 10,
+              paddingHorizontal: 50,
+              borderRadius: 15,
+              position: "relative",
+              top: -25,
+            })}
+            onPress={() => console.log("hihi")}
+          >
+            <Text
+              style={{
+                color: "white",
+                fontWeight: "600",
+              }}
+            >
+              ĐẶT NGAY
+            </Text>
+          </Pressable>
+        </Animated.View>
+      </Animated.View>
+    </Pressable>
+  );
+};
+
+export default PopupSalePage;

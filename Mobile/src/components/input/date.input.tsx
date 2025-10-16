@@ -162,7 +162,7 @@ const DateInput = ({
       textSectionTitleColor: APP_COLOR.BROWN,
       selectedDayTextColor: APP_COLOR.WHITE,
       dayTextColor: APP_COLOR.BROWN,
-      textDisabledColor: APP_COLOR.GREY,
+      textDisabledColor: APP_COLOR.GRAY,
       dotColor: APP_COLOR.ORANGE,
       selectedDotColor: APP_COLOR.WHITE,
       monthTextColor: APP_COLOR.BROWN,
@@ -273,7 +273,7 @@ const DateInput = ({
         <AntDesign
           name="calendar"
           size={24}
-          color={disabled ? APP_COLOR.GREY : APP_COLOR.BROWN}
+          color={disabled ? APP_COLOR.GRAY : APP_COLOR.BROWN}
         />
       </TouchableOpacity>
 
@@ -417,7 +417,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   inputDisabled: {
-    backgroundColor: APP_COLOR.GREY,
+    backgroundColor: APP_COLOR.GRAY,
     opacity: 0.6,
   },
   text: {
@@ -427,7 +427,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   textDisabled: {
-    color: APP_COLOR.GREY,
+    color: APP_COLOR.GRAY,
   },
   placeholder: {
     color: APP_COLOR.BROWN,
@@ -489,7 +489,7 @@ const styles = StyleSheet.create({
   calendarSubText: {
     fontSize: 14,
     fontFamily: FONTS.regular,
-    color: APP_COLOR.GREY,
+    color: APP_COLOR.GRAY,
     marginTop: 5,
   },
   calendar: {
@@ -504,7 +504,7 @@ const styles = StyleSheet.create({
   cancelButton: {
     flex: 1,
     padding: 12,
-    backgroundColor: APP_COLOR.GREY,
+    backgroundColor: APP_COLOR.GRAY,
     borderRadius: 8,
     alignItems: "center",
   },
