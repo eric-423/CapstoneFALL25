@@ -21,8 +21,7 @@ import logo from "@/assets/logo.png";
 import ShareButton from "@/components/button/share.button";
 import icon from "@/assets/icons/loi-chuc.png";
 import CusInfoText from "@/components/account/user.info.text";
-import { formatDateOnlyToDDMMYYYY } from "@/utils/cart";
-import axios from "axios";
+import AntDesign from "@expo/vector-icons/AntDesign";
 import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
 
 const getCurrentDateTime = (): string => {
@@ -60,7 +59,8 @@ const AccountPage = () => {
 
   useEffect(() => {
     setTime(getCurrentDateTime());
-  }, []);
+    setAppState(1);
+  }, [setAppState]);
 
   useEffect(() => {
     decodeAndSetToken();
@@ -117,7 +117,7 @@ const AccountPage = () => {
                 },
               ]}
             >
-              {decodeToken.fullName}
+              {decodeToken.fullName ? decodeToken.fullName : "Tấm Tắc"}
             </Text>
           )}
         </View>
@@ -165,7 +165,7 @@ const AccountPage = () => {
         <View
           style={{
             position: "relative",
-            bottom: -25,
+            bottom: -30,
             backgroundColor: APP_COLOR.ORANGE,
             marginHorizontal: 10,
             padding: 5,
@@ -209,23 +209,66 @@ const AccountPage = () => {
           <View
             style={{
               paddingHorizontal: 10,
-              paddingTop: 10,
+              paddingVertical: 5,
+              backgroundColor: APP_COLOR.BROWN,
+              borderRadius: 10,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-around",
             }}
           >
-            <Text
-              style={[styles.text, { fontFamily: FONTS.bold, marginBottom: 5 }]}
-            >
-              Thông tin tài khoản
-            </Text>
-            <View style={{ marginHorizontal: 5 }}>
-              <CusInfoText title="Họ và tên" info={decodeToken.fullName} />
+            <View style={{ width: "70%" }}>
               <CusInfoText
-                title="Ngày sinh"
-                info={formatDateOnlyToDDMMYYYY(decodeToken.date_of_birth)}
+                title="Họ và tên"
+                info={decodeToken.fullName ? decodeToken.fullName : "Tấm Tắc"}
               />
-              <CusInfoText title="SĐT" info={decodeToken.phone_number} />
-              <CusInfoText title="Email" info={decodeToken.email} />
+              <CusInfoText
+                title="SĐT"
+                info={
+                  decodeToken.phone_number
+                    ? decodeToken.phone_number
+                    : "SĐT không hợp lệ"
+                }
+              />
+              <CusInfoText
+                title="Email"
+                info={
+                  decodeToken.email ? decodeToken.email : "Email không hợp lệ"
+                }
+              />
             </View>
+            <Pressable
+              onPress={() => console.log("scan")}
+              style={{
+                padding: 10,
+                borderRadius: 10,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <AntDesign name="scan" size={45} color={APP_COLOR.WHITE} />
+              <View
+                style={{
+                  borderWidth: 0.5,
+                  borderColor: APP_COLOR.WHITE,
+                  borderRadius: 7,
+                  paddingHorizontal: 5,
+                  paddingVertical: 2,
+                  marginTop: 5,
+                }}
+              >
+                <Text
+                  style={{
+                    color: APP_COLOR.WHITE,
+                    fontFamily: FONTS.regular,
+                    fontSize: 13,
+                  }}
+                >
+                  {" "}
+                  Đổi 53 điểm
+                </Text>
+              </View>
+            </Pressable>
           </View>
         )}
         <Pressable
