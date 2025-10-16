@@ -1,11 +1,9 @@
-'use client';
-
 import { ProductCard } from '@/components/common/card';
 import { Button } from '@/components/ui/button';
-import { Product } from '@/types/product.type';
-import { motion } from 'framer-motion';
+import { Product } from '@/apis/product.api';
 import { Star } from 'lucide-react';
 import Image from 'next/image';
+import { AnimatedCard } from '@/components/common/animated-card';
 
 type BestSellersNewProps = {
     products: Product[];
@@ -56,23 +54,16 @@ const BestSellersSection = ({ products = [] }: BestSellersNewProps) => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-12">
                     {products && products.length > 0 ? (
                         products.map((product, index) => (
-                            <motion.div
-                                key={product.productId}
-                                initial={{ opacity: 0, y: 50 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.6, delay: index * 0.1 }}
-                            >
+                            <AnimatedCard key={product.productId} index={index}>
                                 <ProductCard item={product} descriptionOverflow={80} />
-                            </motion.div>
+                            </AnimatedCard>
                         ))
                     ) : (
                         // Fallback mock cards when no products
                         mockBestSellers.map((item, index) => (
-                            <motion.div
+                            <AnimatedCard
                                 key={item.id}
-                                initial={{ opacity: 0, y: 50 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.6, delay: index * 0.1 }}
+                                index={index}
                                 className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300"
                             >
                                 {/* Image */}
@@ -124,7 +115,7 @@ const BestSellersSection = ({ products = [] }: BestSellersNewProps) => {
                                         </Button>
                                     </div>
                                 </div>
-                            </motion.div>
+                            </AnimatedCard>
                         ))
                     )}
                 </div>
