@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
   iconWrapper: {
     marginHorizontal: 8,
     alignItems: "center",
-    backgroundColor: APP_COLOR.WHITE,
+    backgroundColor: APP_COLOR.YELLOW,
     borderRadius: 50,
     flexDirection: "row",
     height: 62,
