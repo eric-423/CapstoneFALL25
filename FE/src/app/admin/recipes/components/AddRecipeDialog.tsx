@@ -78,16 +78,31 @@ export function AddRecipeDialog() {
         instructions: [''],
     });
 
-    const [errors, setErrors] = useState<any>({});
+    const [errors, setErrors] = useState<Record<string, string>>({});
 
     const validateForm = () => {
-        const newErrors: any = {};
+        const newErrors: Record<string, string> = {};
 
         if (!formData.name.trim()) newErrors.name = 'Vui lòng nhập tên công thức';
         if (!formData.description.trim()) newErrors.description = 'Vui lòng nhập mô tả';
-        if (!formData.prepTime) newErrors.prepTime = 'Vui lòng nhập thời gian chuẩn bị';
-        if (!formData.cookTime) newErrors.cookTime = 'Vui lòng nhập thời gian nấu';
-        if (!formData.servings) newErrors.servings = 'Vui lòng nhập số người ăn';
+
+        if (!formData.prepTime) {
+            newErrors.prepTime = 'Vui lòng nhập thời gian chuẩn bị';
+        } else if (Number(formData.prepTime) < 0) {
+            newErrors.prepTime = 'Thời gian không được âm';
+        }
+
+        if (!formData.cookTime) {
+            newErrors.cookTime = 'Vui lòng nhập thời gian nấu';
+        } else if (Number(formData.cookTime) < 0) {
+            newErrors.cookTime = 'Thời gian không được âm';
+        }
+
+        if (!formData.servings) {
+            newErrors.servings = 'Vui lòng nhập số người ăn';
+        } else if (Number(formData.servings) <= 0) {
+            newErrors.servings = 'Số người ăn phải lớn hơn 0';
+        }
 
         if (!formData.caloriesAfterCooking.trim()) {
             newErrors.caloriesAfterCooking = 'Vui lòng nhập calo sau chế biến';
@@ -117,7 +132,7 @@ export function AddRecipeDialog() {
 
             toast.success(
                 <div>
-                    <div className="font-bold mb-2">✅ Thêm công thức "{recipeName}" thành công!</div>
+                    <div className="font-bold mb-2">✅ Thêm công thức &ldquo;{recipeName}&rdquo; thành công!</div>
                     <div className="text-sm text-gray-600 mb-3">
                         Bạn có muốn tạo khóa đào tạo cho món này không?
                     </div>
@@ -320,6 +335,7 @@ export function AddRecipeDialog() {
                             </label>
                             <Input
                                 type="number"
+                                min="0"
                                 placeholder="30"
                                 value={formData.prepTime}
                                 onChange={(e) => setFormData(prev => ({ ...prev, prepTime: e.target.value }))}
@@ -334,6 +350,7 @@ export function AddRecipeDialog() {
                             </label>
                             <Input
                                 type="number"
+                                min="0"
                                 placeholder="45"
                                 value={formData.cookTime}
                                 onChange={(e) => setFormData(prev => ({ ...prev, cookTime: e.target.value }))}
@@ -348,6 +365,7 @@ export function AddRecipeDialog() {
                             </label>
                             <Input
                                 type="number"
+                                min="1"
                                 placeholder="4"
                                 value={formData.servings}
                                 onChange={(e) => setFormData(prev => ({ ...prev, servings: e.target.value }))}
@@ -366,8 +384,8 @@ export function AddRecipeDialog() {
                                     type="button"
                                     onClick={() => setFormData(prev => ({ ...prev, difficulty: option.value }))}
                                     className={`p-3 rounded-xl border-2 transition-all ${formData.difficulty === option.value
-                                            ? `bg-gradient-to-br ${option.color} text-white border-transparent shadow-lg`
-                                            : 'bg-white border-gray-200 hover:border-orange-300'
+                                        ? `bg-gradient-to-br ${option.color} text-white border-transparent shadow-lg`
+                                        : 'bg-white border-gray-200 hover:border-orange-300'
                                         }`}
                                 >
                                     <div className="text-2xl mb-1">{option.icon}</div>
@@ -405,6 +423,8 @@ export function AddRecipeDialog() {
                                         </select>
                                         <Input
                                             type="number"
+                                            min="0"
+                                            step="0.01"
                                             placeholder="Số lượng"
                                             value={ingredient.quantity}
                                             onChange={(e) => updateIngredient(index, 'quantity', e.target.value)}
@@ -481,6 +501,8 @@ export function AddRecipeDialog() {
                             </label>
                             <Input
                                 type="number"
+                                min="0"
+                                step="0.1"
                                 placeholder="Nhập calo sau chế biến..."
                                 value={formData.caloriesAfterCooking}
                                 onChange={(e) => setFormData(prev => ({ ...prev, caloriesAfterCooking: e.target.value }))}
@@ -497,6 +519,8 @@ export function AddRecipeDialog() {
                             </label>
                             <Input
                                 type="number"
+                                min="0"
+                                step="1000"
                                 placeholder="Nhập giá bán..."
                                 value={formData.price}
                                 onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}

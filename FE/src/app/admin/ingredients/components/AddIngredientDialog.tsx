@@ -10,7 +10,7 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Package, Hash, DollarSign, Plus } from 'lucide-react';
+import { Package, Hash, Plus } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 interface IngredientFormData {
@@ -172,6 +172,8 @@ export function AddIngredientDialog() {
                             </label>
                             <Input
                                 type="number"
+                                min="0"
+                                step="0.01"
                                 placeholder="100"
                                 value={formData.quantity}
                                 onChange={(e) => handleInputChange('quantity', e.target.value)}
@@ -189,6 +191,8 @@ export function AddIngredientDialog() {
                         </label>
                         <Input
                             type="number"
+                            min="0"
+                            step="0.1"
                             placeholder="120"
                             value={formData.caloriesPer100g}
                             onChange={(e) => handleInputChange('caloriesPer100g', e.target.value)}
@@ -206,6 +210,8 @@ export function AddIngredientDialog() {
                         </label>
                         <Input
                             type="number"
+                            min="0"
+                            step="0.01"
                             placeholder="10"
                             value={formData.minStock}
                             onChange={(e) => handleInputChange('minStock', e.target.value)}

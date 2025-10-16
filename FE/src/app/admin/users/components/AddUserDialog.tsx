@@ -10,7 +10,7 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { UserPlus, Mail, Phone, Calendar, Lock, Building2, Shield } from 'lucide-react';
+import { UserPlus, Mail, Phone, Calendar, Lock, Building2, Shield, Briefcase, ChefHat, Users as UsersIcon } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 interface UserFormData {
@@ -24,9 +24,10 @@ interface UserFormData {
 }
 
 const ROLE_OPTIONS = [
-    { value: 'ADMIN', label: 'Admin', icon: '👑', color: 'from-red-500 to-red-600' },
-    { value: 'MANAGER', label: 'Manager', icon: '👔', color: 'from-blue-500 to-blue-600' },
-    { value: 'CUSTOMER', label: 'Khách hàng', icon: '👥', color: 'from-green-500 to-green-600' },
+    { value: 'MANAGER', label: 'Manager', icon: Briefcase, color: 'from-blue-500 to-blue-600' },
+    { value: 'STAFF', label: 'Staff', icon: UsersIcon, color: 'from-purple-500 to-purple-600' },
+    { value: 'CHEF', label: 'Chef', icon: ChefHat, color: 'from-orange-500 to-orange-600' },
+    { value: 'CUSTOMER', label: 'Khách hàng', icon: UsersIcon, color: 'from-green-500 to-green-600' },
 ];
 
 const MOCK_BRANCHES = [
@@ -65,7 +66,26 @@ export function AddUserDialog() {
         } else if (!/^[0-9]{10}$/.test(formData.phone)) {
             newErrors.phone = 'Số điện thoại phải có 10 chữ số';
         }
-        if (!formData.dateOfBirth) newErrors.dateOfBirth = 'Vui lòng chọn ngày sinh';
+
+        // Validate age based on role
+        if (!formData.dateOfBirth) {
+            newErrors.dateOfBirth = 'Vui lòng chọn ngày sinh';
+        } else {
+            const birthDate = new Date(formData.dateOfBirth);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+
+            if ((formData.role === 'MANAGER' || formData.role === 'CHEF') && age < 18) {
+                newErrors.dateOfBirth = 'Manager và Chef phải từ 18 tuổi trở lên';
+            } else if (formData.role === 'STAFF' && age < 16) {
+                newErrors.dateOfBirth = 'Staff phải từ 16 tuổi trở lên';
+            }
+        }
+
         if (!formData.password.trim()) {
             newErrors.password = 'Vui lòng nhập mật khẩu';
         } else if (formData.password.length < 6) {
@@ -86,7 +106,7 @@ export function AddUserDialog() {
 
         // Simulate API call
         setTimeout(() => {
-            toast.success('✅ Thêm người dùng thành công!');
+            toast.success('Thêm người dùng thành công!');
             setOpen(false);
             setFormData({
                 fullName: '',
@@ -217,22 +237,27 @@ export function AddUserDialog() {
                             Vai trò <span className="text-red-500">*</span>
                         </label>
                         <div className="grid grid-cols-3 gap-3">
-                            {ROLE_OPTIONS.map((role) => (
-                                <button
-                                    key={role.value}
-                                    type="button"
-                                    onClick={() => handleInputChange('role', role.value)}
-                                    className={`p-4 rounded-xl border-2 transition-all ${formData.role === role.value
+                            {ROLE_OPTIONS.map((role) => {
+                                const IconComponent = role.icon;
+                                return (
+                                    <button
+                                        key={role.value}
+                                        type="button"
+                                        onClick={() => handleInputChange('role', role.value)}
+                                        className={`p-4 rounded-xl border-2 transition-all ${formData.role === role.value
                                             ? `bg-gradient-to-br ${role.color} text-white border-transparent shadow-lg scale-105`
                                             : 'bg-white border-gray-200 hover:border-orange-300 hover:shadow-md'
-                                        }`}
-                                >
-                                    <div className="text-3xl mb-2">{role.icon}</div>
-                                    <div className={`text-sm font-bold ${formData.role === role.value ? 'text-white' : 'text-gray-700'}`}>
-                                        {role.label}
-                                    </div>
-                                </button>
-                            ))}
+                                            }`}
+                                    >
+                                        <div className="flex justify-center mb-2">
+                                            <IconComponent size={40} className={formData.role === role.value ? 'text-white' : 'text-gray-600'} />
+                                        </div>
+                                        <div className={`text-sm font-bold ${formData.role === role.value ? 'text-white' : 'text-gray-700'}`}>
+                                            {role.label}
+                                        </div>
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
 

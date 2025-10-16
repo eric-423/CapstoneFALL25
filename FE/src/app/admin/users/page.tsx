@@ -5,14 +5,17 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { MOCK_USERS } from '@/utils/mocks/data/users.mock';
 import { useState } from 'react';
-import { Users, Edit, Trash2, Search } from 'lucide-react';
+import { Users, Edit, Trash2, Search, Lock } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { AddUserDialog } from './components/AddUserDialog';
+import { EditUserDialog } from './components/EditUserDialog';
 
 export default function UsersPage() {
     const [users] = useState(MOCK_USERS);
     const [filter, setFilter] = useState('ALL');
     const [searchTerm, setSearchTerm] = useState('');
+    const [editingUser, setEditingUser] = useState<typeof MOCK_USERS[0] | null>(null);
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
 
     const filteredUsers = users
         .filter(u => filter === 'ALL' || u.role === filter)
@@ -162,20 +165,44 @@ export default function UsersPage() {
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-center">
                                                     <div className="flex gap-2 justify-center">
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            className="border-orange-500 text-orange-600 hover:bg-gradient-to-r hover:from-orange-500 hover:to-orange-600 hover:text-white transition-all shadow-sm hover:shadow-md"
-                                                        >
-                                                            <Edit size={16} />
-                                                        </Button>
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            className="border-red-500 text-red-600 hover:bg-gradient-to-r hover:from-red-500 hover:to-red-600 hover:text-white transition-all shadow-sm hover:shadow-md"
-                                                        >
-                                                            <Trash2 size={16} />
-                                                        </Button>
+                                                        {user.role === 'ADMIN' ? (
+                                                            // Admin: Only show change password button
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() => {
+                                                                    setEditingUser(user);
+                                                                    setEditDialogOpen(true);
+                                                                }}
+                                                                className="border-blue-500 text-blue-600 hover:bg-gradient-to-r hover:from-blue-500 hover:to-blue-600 hover:text-white transition-all shadow-sm hover:shadow-md"
+                                                                title="Đổi mật khẩu"
+                                                            >
+                                                                <Lock size={16} className="mr-1" />
+                                                                Đổi mật khẩu
+                                                            </Button>
+                                                        ) : (
+                                                            // Other roles: Show edit and delete buttons
+                                                            <>
+                                                                <Button
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    onClick={() => {
+                                                                        setEditingUser(user);
+                                                                        setEditDialogOpen(true);
+                                                                    }}
+                                                                    className="border-orange-500 text-orange-600 hover:bg-gradient-to-r hover:from-orange-500 hover:to-orange-600 hover:text-white transition-all shadow-sm hover:shadow-md"
+                                                                >
+                                                                    <Edit size={16} />
+                                                                </Button>
+                                                                <Button
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    className="border-red-500 text-red-600 hover:bg-gradient-to-r hover:from-red-500 hover:to-red-600 hover:text-white transition-all shadow-sm hover:shadow-md"
+                                                                >
+                                                                    <Trash2 size={16} />
+                                                                </Button>
+                                                            </>
+                                                        )}
                                                     </div>
                                                 </td>
                                             </tr>
@@ -198,6 +225,15 @@ export default function UsersPage() {
                             <Button variant="outline" size="sm" className="bg-white border-gray-300 text-gray-700 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all">Sau</Button>
                         </div>
                     </div>
+
+                    {/* Edit User Dialog */}
+                    {editingUser && (
+                        <EditUserDialog
+                            user={editingUser}
+                            open={editDialogOpen}
+                            onOpenChange={setEditDialogOpen}
+                        />
+                    )}
                 </div>
             </div>
         </AdminGuard>

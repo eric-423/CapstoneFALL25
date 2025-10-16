@@ -148,30 +148,38 @@ export function AddBranchDialog() {
 
                     {/* Options */}
                     <div className="space-y-3 pt-2">
-                        <div className="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-orange-300 transition-all">
-                            <input
-                                type="checkbox"
-                                id="isParent"
-                                checked={formData.isParent}
-                                onChange={(e) => handleInputChange('isParent', e.target.checked)}
-                                className="w-5 h-5 text-orange-500 border-gray-300 rounded focus:ring-orange-500 focus:ring-2"
-                            />
-                            <label htmlFor="isParent" className="text-sm font-medium text-gray-700 cursor-pointer flex-1">
+                        <div className="flex items-center justify-between p-4 rounded-lg border-2 border-gray-200 hover:border-orange-300 transition-all bg-gray-50">
+                            <label htmlFor="isParent" className="text-sm font-semibold text-gray-700 cursor-pointer">
                                 Chi nhánh trung tâm
                             </label>
+                            <button
+                                type="button"
+                                onClick={() => handleInputChange('isParent', !formData.isParent)}
+                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 ${formData.isParent ? 'bg-gradient-to-r from-orange-500 to-orange-600' : 'bg-gray-300'
+                                    }`}
+                            >
+                                <span
+                                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-lg transition-transform ${formData.isParent ? 'translate-x-6' : 'translate-x-1'
+                                        }`}
+                                />
+                            </button>
                         </div>
 
-                        <div className="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-orange-300 transition-all">
-                            <input
-                                type="checkbox"
-                                id="active"
-                                checked={formData.active}
-                                onChange={(e) => handleInputChange('active', e.target.checked)}
-                                className="w-5 h-5 text-orange-500 border-gray-300 rounded focus:ring-orange-500 focus:ring-2"
-                            />
-                            <label htmlFor="active" className="text-sm font-medium text-gray-700 cursor-pointer flex-1">
+                        <div className="flex items-center justify-between p-4 rounded-lg border-2 border-gray-200 hover:border-orange-300 transition-all bg-gray-50">
+                            <label htmlFor="active" className="text-sm font-semibold text-gray-700 cursor-pointer">
                                 Kích hoạt ngay
                             </label>
+                            <button
+                                type="button"
+                                onClick={() => handleInputChange('active', !formData.active)}
+                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 ${formData.active ? 'bg-gradient-to-r from-green-500 to-green-600' : 'bg-gray-300'
+                                    }`}
+                            >
+                                <span
+                                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-lg transition-transform ${formData.active ? 'translate-x-6' : 'translate-x-1'
+                                        }`}
+                                />
+                            </button>
                         </div>
                     </div>
 

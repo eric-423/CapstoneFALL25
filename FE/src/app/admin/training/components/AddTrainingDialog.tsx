@@ -49,10 +49,10 @@ export function AddTrainingDialog() {
         documents: [{ title: '', url: '' }],
     });
 
-    const [errors, setErrors] = useState<any>({});
+    const [errors, setErrors] = useState<Record<string, string>>({});
 
     const validateForm = () => {
-        const newErrors: any = {};
+        const newErrors: Record<string, string> = {};
 
         if (!formData.title.trim()) newErrors.title = 'Vui lòng nhập tên khóa đào tạo';
         if (!formData.description.trim()) newErrors.description = 'Vui lòng nhập mô tả';

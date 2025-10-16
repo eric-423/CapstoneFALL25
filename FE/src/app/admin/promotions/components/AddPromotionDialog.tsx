@@ -61,7 +61,21 @@ export function AddPromotionDialog() {
             newErrors.discountValue = 'Vui lòng nhập giá trị giảm giá';
         } else if (formData.discountType === 'PERCENTAGE' && (Number(formData.discountValue) <= 0 || Number(formData.discountValue) > 100)) {
             newErrors.discountValue = 'Giá trị phải từ 1-100%';
+        } else if (formData.discountType === 'FIXED_AMOUNT' && Number(formData.discountValue) <= 0) {
+            newErrors.discountValue = 'Giá trị giảm phải lớn hơn 0';
         }
+
+        // Validate optional number fields
+        if (formData.minOrderValue && Number(formData.minOrderValue) < 0) {
+            newErrors.minOrderValue = 'Giá trị không được âm';
+        }
+        if (formData.maxDiscount && Number(formData.maxDiscount) < 0) {
+            newErrors.maxDiscount = 'Giá trị không được âm';
+        }
+        if (formData.usageLimit && Number(formData.usageLimit) <= 0) {
+            newErrors.usageLimit = 'Giới hạn phải lớn hơn 0';
+        }
+
         if (!formData.startDate) newErrors.startDate = 'Vui lòng chọn ngày bắt đầu';
         if (!formData.endDate) newErrors.endDate = 'Vui lòng chọn ngày kết thúc';
 
@@ -180,7 +194,7 @@ export function AddPromotionDialog() {
                             value={formData.description}
                             onChange={(e) => handleInputChange('description', e.target.value)}
                             rows={3}
-                            className={`w-full px-3 py-2 rounded-md border-2 ${errors.description ? 'border-red-400' : 'border-gray-200'} focus:border-orange-500 focus:ring-orange-500/20 focus:ring-4 outline-none transition-all`}
+                            className={`w-full px-3 py-2 rounded-md border-2 ${errors.description ? 'border-red-400' : 'border-gray-200'} focus:border-orange-500 focus:ring-orange-500/20 focus:ring-4 outline-none transition-all text-gray-900 placeholder:text-gray-400`}
                         />
                         {errors.description && <p className="text-xs text-red-600 font-medium">{errors.description}</p>}
                     </div>
@@ -195,8 +209,8 @@ export function AddPromotionDialog() {
                                     type="button"
                                     onClick={() => handleInputChange('discountType', type.value)}
                                     className={`p-4 rounded-xl border-2 transition-all ${formData.discountType === type.value
-                                            ? `bg-gradient-to-br ${type.color} text-white border-transparent shadow-lg`
-                                            : 'bg-white border-gray-200 hover:border-orange-300'
+                                        ? `bg-gradient-to-br ${type.color} text-white border-transparent shadow-lg`
+                                        : 'bg-white border-gray-200 hover:border-orange-300'
                                         }`}
                                 >
                                     <div className="text-3xl mb-2">{type.icon}</div>
@@ -217,6 +231,9 @@ export function AddPromotionDialog() {
                             </label>
                             <Input
                                 type="number"
+                                min="0"
+                                max={formData.discountType === 'PERCENTAGE' ? '100' : undefined}
+                                step={formData.discountType === 'PERCENTAGE' ? '1' : '1000'}
                                 placeholder={formData.discountType === 'PERCENTAGE' ? '10' : '50000'}
                                 value={formData.discountValue}
                                 onChange={(e) => handleInputChange('discountValue', e.target.value)}
@@ -231,6 +248,8 @@ export function AddPromotionDialog() {
                             </label>
                             <Input
                                 type="number"
+                                min="0"
+                                step="1000"
                                 placeholder="100000"
                                 value={formData.minOrderValue}
                                 onChange={(e) => handleInputChange('minOrderValue', e.target.value)}
@@ -247,6 +266,8 @@ export function AddPromotionDialog() {
                             </label>
                             <Input
                                 type="number"
+                                min="0"
+                                step="1000"
                                 placeholder="200000"
                                 value={formData.maxDiscount}
                                 onChange={(e) => handleInputChange('maxDiscount', e.target.value)}
@@ -261,6 +282,7 @@ export function AddPromotionDialog() {
                             </label>
                             <Input
                                 type="number"
+                                min="1"
                                 placeholder="100"
                                 value={formData.usageLimit}
                                 onChange={(e) => handleInputChange('usageLimit', e.target.value)}
@@ -302,17 +324,21 @@ export function AddPromotionDialog() {
 
                     {/* Active Status */}
                     <div className="space-y-3 pt-2">
-                        <div className="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-orange-300 transition-all">
-                            <input
-                                type="checkbox"
-                                id="active"
-                                checked={formData.active}
-                                onChange={(e) => handleInputChange('active', e.target.checked)}
-                                className="w-5 h-5 text-orange-500 border-gray-300 rounded focus:ring-orange-500 focus:ring-2"
-                            />
-                            <label htmlFor="active" className="text-sm font-medium text-gray-700 cursor-pointer flex-1">
+                        <div className="flex items-center justify-between p-4 rounded-lg border-2 border-gray-200 hover:border-orange-300 transition-all bg-gray-50">
+                            <label htmlFor="active" className="text-sm font-semibold text-gray-700 cursor-pointer">
                                 Kích hoạt ngay
                             </label>
+                            <button
+                                type="button"
+                                onClick={() => handleInputChange('active', !formData.active)}
+                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 ${formData.active ? 'bg-gradient-to-r from-green-500 to-green-600' : 'bg-gray-300'
+                                    }`}
+                            >
+                                <span
+                                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-lg transition-transform ${formData.active ? 'translate-x-6' : 'translate-x-1'
+                                        }`}
+                                />
+                            </button>
                         </div>
                     </div>
 
