@@ -4,7 +4,8 @@ import { AdminGuard } from '@/components/guards';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { MOCK_BRANCHES } from '@/utils/mocks/data/branches.mock';
-import { Store, Plus, MapPin, Phone, User, Edit, Trash2, CheckCircle, XCircle } from 'lucide-react';
+import { Store, MapPin, Phone, User, Edit, Trash2, CheckCircle, XCircle } from 'lucide-react';
+import { AddBranchDialog } from './components/AddBranchDialog';
 
 export default function BranchesPage() {
     return (
@@ -20,10 +21,7 @@ export default function BranchesPage() {
                             </h1>
                             <p className="text-gray-600 text-lg">Quản lý thông tin các chi nhánh cửa hàng</p>
                         </div>
-                        <Button className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-6 rounded-xl font-semibold hover:scale-105">
-                            <Plus size={22} className="mr-2" strokeWidth={2.5} />
-                            Thêm Chi Nhánh
-                        </Button>
+                        <AddBranchDialog />
                     </div>
 
                     {/* Stats */}

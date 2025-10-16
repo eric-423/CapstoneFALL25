@@ -8,7 +8,6 @@ import { MOCK_INGREDIENTS } from '@/utils/mocks/data/ingredient.mock';
 // import { Ingredient } from '@/types/ingredient.type';
 import {
     Package,
-    Plus,
     Search,
     Edit,
     Trash2,
@@ -22,6 +21,7 @@ import {
     Factory,
 } from 'lucide-react';
 import { useState } from 'react';
+import { AddIngredientDialog } from './components/AddIngredientDialog';
 
 export interface Ingredient {
     id: number;
@@ -104,10 +104,7 @@ export default function IngredientsPage() {
                                     <Upload size={18} className="mr-2" strokeWidth={2.5} />
                                     Nhập Excel
                                 </Button>
-                                <Button className="bg-gradient-to-r from-primary to-secondary text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all">
-                                    <Plus size={18} className="mr-2" strokeWidth={2.5} />
-                                    Thêm nguyên liệu
-                                </Button>
+                                <AddIngredientDialog />
                             </div>
                         </div>
                     </div>
@@ -180,7 +177,7 @@ export default function IngredientsPage() {
                     </div>
 
                     {/* Search and Filter */}
-                    <div className="mb-8 flex flex-col lg:flex-row gap-4">
+                    <div className="mb-8 flex flex-col lg:flex-row lg:items-center gap-4">
                         <div className="flex-1 relative">
                             <Search
                                 className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
@@ -194,7 +191,7 @@ export default function IngredientsPage() {
                                 className="pl-12 py-6 border-2 border-gray-200 rounded-xl focus:border-primary text-base"
                             />
                         </div>
-                        <div className="flex gap-2 overflow-x-auto pb-2">
+                        <div className="flex gap-2 overflow-x-auto pb-2 lg:pb-0">
                             {categories.map((cat) => (
                                 <Button
                                     key={cat.value}
@@ -249,25 +246,25 @@ export default function IngredientsPage() {
                             return (
                                 <Card
                                     key={ingredient.id}
-                                    className="bg-white border-0 shadow-sm hover:shadow-2xl transition-all duration-500 rounded-2xl overflow-hidden group"
+                                    className="bg-white border-0 shadow-sm hover:shadow-2xl transition-all duration-500 rounded-2xl overflow-hidden group flex flex-col h-full"
                                 >
                                     {/* Category Badge */}
                                     <div className={`h-2 bg-gradient-to-r ${getCategoryColor(ingredient.category)}`}></div>
 
-                                    <div className="p-6">
+                                    <div className="p-6 flex flex-col flex-1">
                                         {/* Header */}
-                                        <div className="flex items-start justify-between mb-4">
-                                            <div className="flex-1">
-                                                <h3 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-primary transition-colors">
+                                        <div className="flex items-start justify-between mb-4 min-h-[60px]">
+                                            <div className="flex-1 pr-2">
+                                                <h3 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-primary transition-colors line-clamp-1" title={ingredient.name}>
                                                     {ingredient.name}
                                                 </h3>
-                                                <p className="text-sm text-gray-500 font-medium flex items-center gap-1">
-                                                    <Factory size={14} strokeWidth={2.5} />
-                                                    {ingredient.supplier}
+                                                <p className="text-sm text-gray-500 font-medium flex items-center gap-1 line-clamp-1" title={ingredient.supplier}>
+                                                    <Factory size={14} strokeWidth={2.5} className="flex-shrink-0" />
+                                                    <span className="truncate">{ingredient.supplier}</span>
                                                 </p>
                                             </div>
                                             {isLowStock && (
-                                                <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-pink-500 rounded-xl flex items-center justify-center animate-pulse">
+                                                <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-pink-500 rounded-xl flex items-center justify-center animate-pulse flex-shrink-0">
                                                     <TrendingDown className="text-white" size={20} strokeWidth={2.5} />
                                                 </div>
                                             )}
@@ -292,42 +289,42 @@ export default function IngredientsPage() {
                                                     style={{ width: `${Math.min(stockPercentage, 100)}%` }}
                                                 />
                                             </div>
-                                            <p className="text-xs text-gray-500 mt-1.5">
+                                            <p className="text-xs text-gray-500 mt-1.5 truncate">
                                                 Ngưỡng tối thiểu: {ingredient.threshold} {ingredient.unit}
                                             </p>
                                         </div>
 
                                         {/* Details */}
-                                        <div className="space-y-2 mb-4">
+                                        <div className="space-y-2 mb-4 flex-1">
                                             <div className="flex items-center justify-between text-sm">
-                                                <span className="text-gray-600 font-medium flex items-center gap-1">
+                                                <span className="text-gray-600 font-medium flex items-center gap-1 flex-shrink-0">
                                                     <Weight size={14} strokeWidth={2.5} />
                                                     Calo/100g:
                                                 </span>
-                                                <span className="font-bold text-gray-900">{ingredient.caloriePerUnit} kcal</span>
+                                                <span className="font-bold text-gray-900 text-right">{ingredient.caloriePerUnit} kcal</span>
                                             </div>
                                             <div className="flex items-center justify-between text-sm">
-                                                <span className="text-gray-600 font-medium flex items-center gap-1">
+                                                <span className="text-gray-600 font-medium flex items-center gap-1 flex-shrink-0">
                                                     <DollarSign size={14} strokeWidth={2.5} />
                                                     Giá/{ingredient.unit}:
                                                 </span>
-                                                <span className="font-bold text-green-600">
+                                                <span className="font-bold text-green-600 text-right">
                                                     {ingredient.cost.toLocaleString()}đ
                                                 </span>
                                             </div>
                                             <div className="flex items-center justify-between text-sm">
-                                                <span className="text-gray-600 font-medium flex items-center gap-1">
+                                                <span className="text-gray-600 font-medium flex items-center gap-1 flex-shrink-0">
                                                     <Calendar size={14} strokeWidth={2.5} />
                                                     Cập nhật:
                                                 </span>
-                                                <span className="font-medium text-gray-700">
+                                                <span className="font-medium text-gray-700 text-right">
                                                     {new Date(ingredient.lastUpdated).toLocaleDateString('vi-VN')}
                                                 </span>
                                             </div>
                                         </div>
 
                                         {/* Actions */}
-                                        <div className="flex gap-2 pt-4 border-t-2 border-gray-100">
+                                        <div className="flex gap-2 pt-4 border-t-2 border-gray-100 mt-auto">
                                             <Button
                                                 variant="outline"
                                                 size="sm"

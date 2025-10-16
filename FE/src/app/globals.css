@@ -269,4 +269,17 @@
   ::-webkit-scrollbar-thumb:hover {
     background: oklch(0.6 0.2 41.83);
   }
+
+  /* Fix textarea and input colors */
+  input,
+  textarea,
+  select {
+    color: oklch(0.15 0.015 286) !important;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: oklch(0.6 0.01 286) !important;
+    opacity: 0.6;
+  }
 }

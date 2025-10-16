@@ -23,6 +23,7 @@ import {
 import { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { AddRecipeDialog } from './components/AddRecipeDialog';
 
 export default function RecipesPage() {
     const router = useRouter();
@@ -88,10 +89,7 @@ export default function RecipesPage() {
                                 </h1>
                                 <p className="text-gray-600 text-lg">Tạo và quản lý công thức món ăn</p>
                             </div>
-                            <Button className="bg-gradient-to-r from-primary to-secondary text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all">
-                                <Plus size={18} className="mr-2" strokeWidth={2.5} />
-                                Tạo công thức mới
-                            </Button>
+                            <AddRecipeDialog />
                         </div>
                     </div>
 

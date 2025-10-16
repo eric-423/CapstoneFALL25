@@ -22,6 +22,7 @@ import {
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { AddTrainingDialog } from '@/app/admin/training/components/AddTrainingDialog';
 
 export default function TrainingPage() {
     const router = useRouter();
@@ -91,13 +92,7 @@ export default function TrainingPage() {
                                 </h1>
                                 <p className="text-gray-600 text-lg">Tạo và quản lý khóa học cho nhân viên</p>
                             </div>
-                            <Button
-                                onClick={() => router.push('/admin/training/create')}
-                                className="bg-gradient-to-r from-primary to-secondary text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all"
-                            >
-                                <Plus size={18} className="mr-2" strokeWidth={2.5} />
-                                Tạo khóa học mới
-                            </Button>
+                            <AddTrainingDialog />
                         </div>
                     </div>
 
@@ -190,8 +185,8 @@ export default function TrainingPage() {
                                     onClick={() => setSelectedStatus(status.value)}
                                     variant={selectedStatus === status.value ? 'default' : 'outline'}
                                     className={`rounded-xl font-semibold whitespace-nowrap transition-all ${selectedStatus === status.value
-                                            ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-lg'
-                                            : 'border-2 border-gray-200 text-gray-600 hover:border-primary'
+                                        ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-lg'
+                                        : 'border-2 border-gray-200 text-gray-600 hover:border-primary'
                                         }`}
                                 >
                                     {status.label}
