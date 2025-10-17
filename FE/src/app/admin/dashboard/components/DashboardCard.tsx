@@ -16,7 +16,7 @@ export function DashboardCard({ title, value, icon: Icon, trend, subtitle }: Das
     return (
         <Card className="relative overflow-hidden bg-white border-0 shadow-sm hover:shadow-xl transition-all duration-300 group rounded-2xl h-full">
             {/* Gradient Border Effect */}
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-secondary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-[#EC6426]/20 via-transparent to-[#F8A91F]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 
             {/* Content */}
             <div className="relative p-6 flex flex-col h-full min-h-[200px]">
@@ -26,7 +26,7 @@ export function DashboardCard({ title, value, icon: Icon, trend, subtitle }: Das
                         <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider line-clamp-2">{title}</p>
 
                         {/* Value */}
-                        <h3 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2 group-hover:text-primary transition-colors duration-300 leading-tight break-words">
+                        <h3 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2 group-hover:text-[#EC6426] transition-colors duration-300 leading-tight break-words">
                             {value}
                         </h3>
 
@@ -59,16 +59,16 @@ export function DashboardCard({ title, value, icon: Icon, trend, subtitle }: Das
 
                     {/* Icon with gradient background */}
                     <div className="relative flex-shrink-0">
-                        <div className="w-14 h-14 lg:w-16 lg:h-16 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                        <div className="w-14 h-14 lg:w-16 lg:h-16 bg-gradient-to-br from-[#EC6426] to-[#F8A91F] rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
                             <Icon className="text-white" size={26} strokeWidth={2.5} />
                         </div>
                         {/* Glow effect */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-primary to-secondary rounded-2xl blur-xl opacity-0 group-hover:opacity-30 transition-opacity duration-300 -z-10"></div>
+                        <div className="absolute inset-0 bg-gradient-to-br from-[#EC6426] to-[#F8A91F] rounded-2xl blur-xl opacity-0 group-hover:opacity-30 transition-opacity duration-300 -z-10"></div>
                     </div>
                 </div>
 
                 {/* Decorative line */}
-                <div className="h-1 w-full bg-gradient-to-r from-primary via-secondary to-transparent rounded-full opacity-20 group-hover:opacity-100 transition-opacity duration-300 mt-4"></div>
+                <div className="h-1 w-full bg-gradient-to-r from-[#EC6426] via-[#F8A91F] to-transparent rounded-full opacity-20 group-hover:opacity-100 transition-opacity duration-300 mt-4"></div>
             </div>
         </Card>
     );

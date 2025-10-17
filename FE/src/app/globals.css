@@ -18,14 +18,18 @@
   --popover: oklch(1 0 0);
   /* Very dark text on popover */
   --popover-foreground: oklch(0.15 0.015 286);
-  /* Primary - #EC6426 */
+  /* Primary - #EC6426 (Orange) */
   --primary: oklch(0.67 0.1827 41.83);
   /* White text on primary */
   --primary-foreground: oklch(1 0 0);
-  /* Secondary - #F8A91F */
+  /* Secondary - #F8A91F (Golden Yellow) */
   --secondary: oklch(0.8 0.15 80);
   /* Dark text on secondary */
   --secondary-foreground: oklch(0.2 0.05 30);
+  /* Tertiary Brown - #632713 (Dark Brown) */
+  --brown-dark: oklch(0.25 0.08 35);
+  /* Tertiary Green - #1A3F22 (Dark Green) */
+  --green-dark: oklch(0.28 0.06 145);
   /* Light muted background */
   --muted: oklch(0.96 0.002 247);
   /* Darker muted text */

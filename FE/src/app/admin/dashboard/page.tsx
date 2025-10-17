@@ -33,7 +33,7 @@ export default function DashboardPage() {
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent mb-2">
+                        <h1 className="text-4xl font-bold bg-gradient-to-r from-[#EC6426] to-[#F8A91F] bg-clip-text text-transparent mb-2">
                             Tổng quan hệ thống
                         </h1>
                         <p className="text-gray-600 text-lg">Dashboard quản trị & phân tích dữ liệu</p>
@@ -46,7 +46,7 @@ export default function DashboardPage() {
                 {/* ROW 1: KPI Overview (6 cards - 2 rows of 3) */}
                 <div>
                     <div className="flex items-center gap-2 mb-4">
-                        <TrendingUp className="w-5 h-5 text-orange-600" />
+                        <TrendingUp className="w-5 h-5 text-[#EC6426]" />
                         <h2 className="text-xl font-semibold text-gray-800">Chỉ số hoạt động</h2>
                     </div>
                     {/* First row - 3 cards */}
@@ -80,33 +80,25 @@ export default function DashboardPage() {
                             trend={kpiData.newCustomers.trend}
                             subtitle={kpiData.newCustomers.subtitle}
                         />
-                        <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg shadow-md p-4 border-2 border-red-200 hover:shadow-lg transition-shadow">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm text-red-600 font-medium">Nguyên liệu sắp hết</p>
-                                    <p className="text-3xl font-bold text-red-700 mt-1">{lowStockCount}</p>
-                                    <p className="text-xs text-red-500 mt-1">Cần nhập hàng</p>
-                                </div>
-                                <AlertTriangle className="w-10 h-10 text-red-500 opacity-70" />
-                            </div>
-                        </div>
-                        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg shadow-md p-4 border-2 border-green-200 hover:shadow-lg transition-shadow">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm text-green-600 font-medium">Tỷ lệ hoàn thành</p>
-                                    <p className="text-3xl font-bold text-green-700 mt-1">{trainingStatsData.completionRate}%</p>
-                                    <p className="text-xs text-green-500 mt-1">Đào tạo nhân viên</p>
-                                </div>
-                                <GraduationCap className="w-10 h-10 text-green-500 opacity-70" />
-                            </div>
-                        </div>
+                        <DashboardCard
+                            title="Nguyên liệu sắp hết"
+                            value={lowStockCount}
+                            icon={AlertTriangle}
+                            subtitle="Cần nhập hàng"
+                        />
+                        <DashboardCard
+                            title="Tỷ lệ hoàn thành"
+                            value={`${trainingStatsData.completionRate}%`}
+                            icon={GraduationCap}
+                            subtitle="Đào tạo nhân viên"
+                        />
                     </div>
                 </div>
 
                 {/* ROW 2: Analytics Charts */}
                 <div>
                     <div className="flex items-center gap-2 mb-4">
-                        <Package className="w-5 h-5 text-orange-600" />
+                        <Package className="w-5 h-5 text-[#EC6426]" />
                         <h2 className="text-xl font-semibold text-gray-800">Phân tích bếp & Doanh thu</h2>
                     </div>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
@@ -122,7 +114,7 @@ export default function DashboardPage() {
                 {/* ROW 3: Recipe & Training Overview */}
                 <div>
                     <div className="flex items-center gap-2 mb-4">
-                        <BookOpen className="w-5 h-5 text-orange-600" />
+                        <BookOpen className="w-5 h-5 text-[#EC6426]" />
                         <h2 className="text-xl font-semibold text-gray-800">Công thức & Đào tạo</h2>
                     </div>
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -138,7 +130,7 @@ export default function DashboardPage() {
                 {/* ROW 4: Alerts + Recent Activities */}
                 <div>
                     <div className="flex items-center gap-2 mb-4">
-                        <Activity className="w-5 h-5 text-orange-600" />
+                        <Activity className="w-5 h-5 text-[#EC6426]" />
                         <h2 className="text-xl font-semibold text-gray-800">Cảnh báo & Hoạt động</h2>
                     </div>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -48,7 +48,7 @@ export default function AdminLayout({
         <div className="min-h-screen bg-[#f9fafb]">
             <div className="flex">
                 {/* Sidebar */}
-                <aside className="w-72 bg-gradient-to-b from-[#ec6426] via-[#d85520] to-[#b33f00] shadow-xl fixed h-screen flex flex-col">
+                <aside className="w-72 bg-gradient-to-b from-[#632713] via-[#1A3F22] to-[#0d1f11] shadow-xl fixed h-screen flex flex-col">
                     {/* User Profile Section - Fixed */}
                     <div className="p-6 border-b border-white/10 flex-shrink-0">
                         <div className="flex items-center justify-between mb-4">
@@ -62,7 +62,7 @@ export default function AdminLayout({
 
                         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 shadow-lg border border-white/20 hover:bg-white/15 transition-all">
                             <div className="flex items-center gap-3 mb-3">
-                                <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center text-primary shadow-lg ring-4 ring-white/20">
+                                <div className="w-14 h-14 bg-gradient-to-br from-[#EC6426] to-[#F8A91F] rounded-full flex items-center justify-center text-white shadow-lg ring-4 ring-[#F8A91F]/30">
                                     <User size={26} />
                                 </div>
                                 <div className="flex-1">
@@ -73,7 +73,7 @@ export default function AdminLayout({
                                 </div>
                             </div>
                             <div className="flex items-center gap-2 mt-3 pt-3 border-t border-white/10">
-                                <span className="px-3 py-1.5 bg-white/20 backdrop-blur rounded-full text-xs font-bold text-white shadow-sm">
+                                <span className="px-3 py-1.5 bg-gradient-to-r from-[#EC6426] to-[#F8A91F] backdrop-blur rounded-full text-xs font-bold text-white shadow-sm">
                                     {user?.role || 'ADMIN'}
                                 </span>
                             </div>
@@ -92,17 +92,17 @@ export default function AdminLayout({
                                         <div className={`
                                             flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all relative group
                                             ${isActive
-                                                ? 'bg-white text-primary shadow-lg font-bold transform scale-[1.02]'
-                                                : 'text-white/90 hover:bg-white/10 hover:text-white hover:translate-x-1'
+                                                ? 'bg-[#EC6426] text-white shadow-lg font-bold transform scale-[1.02]'
+                                                : 'text-white/90 hover:bg-[#F8A91F]/20 hover:text-white hover:translate-x-1'
                                             }
                                         `}>
                                             {isActive && (
-                                                <div className="absolute left-0 top-0 bottom-0 w-1 bg-white rounded-r-full shadow-lg"></div>
+                                                <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#F8A91F] rounded-r-full shadow-lg"></div>
                                             )}
-                                            <Icon size={22} className={isActive ? 'text-primary' : 'text-white/90 group-hover:text-white'} />
+                                            <Icon size={22} className={isActive ? 'text-white' : 'text-white/90 group-hover:text-[#F8A91F]'} />
                                             <span className={`text-sm ${isActive ? 'font-bold' : 'font-medium'}`}>{item.label}</span>
                                             {isActive && (
-                                                <div className="ml-auto w-2 h-2 bg-primary rounded-full animate-pulse shadow-lg"></div>
+                                                <div className="ml-auto w-2 h-2 bg-[#F8A91F] rounded-full animate-pulse shadow-lg"></div>
                                             )}
                                         </div>
                                     </Link>
@@ -115,7 +115,7 @@ export default function AdminLayout({
                     <div className="p-4 flex-shrink-0 border-t border-white/10">
                         <Button
                             variant="outline"
-                            className="w-full justify-start gap-3 border-2 border-white/30 bg-white/10 hover:bg-white hover:text-primary text-white font-semibold transition-all hover:scale-[1.02] shadow-lg"
+                            className="w-full justify-start gap-3 border-2 border-[#F8A91F]/50 bg-white/10 hover:bg-[#EC6426] hover:text-white hover:border-[#EC6426] text-white font-semibold transition-all hover:scale-[1.02] shadow-lg"
                             onClick={logout}
                         >
                             <LogOut size={20} />
