@@ -207,8 +207,8 @@ export function AddTrainingDialog() {
                                     type="button"
                                     onClick={() => toggleRole(option.value)}
                                     className={`p-3 rounded-xl border-2 transition-all ${formData.assignedRoles.includes(option.value)
-                                            ? `bg-gradient-to-br ${option.color} text-white border-transparent shadow-lg`
-                                            : 'bg-white border-gray-200 hover:border-orange-300'
+                                        ? `bg-gradient-to-br ${option.color} text-white border-transparent shadow-lg`
+                                        : 'bg-white border-gray-200 hover:border-orange-300'
                                         }`}
                                 >
                                     <div className="text-2xl mb-1">{option.icon}</div>

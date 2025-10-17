@@ -9,6 +9,7 @@ import { Users, Edit, Trash2, Search, Lock } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { AddUserDialog } from './components/AddUserDialog';
 import { EditUserDialog } from './components/EditUserDialog';
+import { DeleteUserDialog } from './components/DeleteUserDialog';
 
 export default function UsersPage() {
     const [users] = useState(MOCK_USERS);
@@ -16,6 +17,8 @@ export default function UsersPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [editingUser, setEditingUser] = useState<typeof MOCK_USERS[0] | null>(null);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [deletingUser, setDeletingUser] = useState<typeof MOCK_USERS[0] | null>(null);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
     const filteredUsers = users
         .filter(u => filter === 'ALL' || u.role === filter)
@@ -197,6 +200,10 @@ export default function UsersPage() {
                                                                 <Button
                                                                     variant="outline"
                                                                     size="sm"
+                                                                    onClick={() => {
+                                                                        setDeletingUser(user);
+                                                                        setDeleteDialogOpen(true);
+                                                                    }}
                                                                     className="border-red-500 text-red-600 hover:bg-gradient-to-r hover:from-red-500 hover:to-red-600 hover:text-white transition-all shadow-sm hover:shadow-md"
                                                                 >
                                                                     <Trash2 size={16} />
@@ -232,6 +239,15 @@ export default function UsersPage() {
                             user={editingUser}
                             open={editDialogOpen}
                             onOpenChange={setEditDialogOpen}
+                        />
+                    )}
+
+                    {/* Delete User Dialog */}
+                    {deletingUser && (
+                        <DeleteUserDialog
+                            user={deletingUser}
+                            open={deleteDialogOpen}
+                            onOpenChange={setDeleteDialogOpen}
                         />
                     )}
                 </div>
