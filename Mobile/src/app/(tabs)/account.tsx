@@ -23,6 +23,7 @@ import icon from "@/assets/icons/loi-chuc.png";
 import CusInfoText from "@/components/account/user.info.text";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
+import CustomerPoint from "@/components/account/user.point";
 
 const getCurrentDateTime = (): string => {
   const now = new Date();
@@ -206,70 +207,11 @@ const AccountPage = () => {
       )}
       <View style={styles.buttonContainer}>
         {appState && (
-          <View
-            style={{
-              paddingHorizontal: 10,
-              paddingVertical: 5,
-              backgroundColor: APP_COLOR.BROWN,
-              borderRadius: 10,
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-around",
-            }}
-          >
-            <View style={{ width: "70%" }}>
-              <CusInfoText
-                title="Họ và tên"
-                info={decodeToken.fullName ? decodeToken.fullName : "Tấm Tắc"}
-              />
-              <CusInfoText
-                title="SĐT"
-                info={
-                  decodeToken.phone_number
-                    ? decodeToken.phone_number
-                    : "SĐT không hợp lệ"
-                }
-              />
-              <CusInfoText
-                title="Email"
-                info={
-                  decodeToken.email ? decodeToken.email : "Email không hợp lệ"
-                }
-              />
-            </View>
-            <Pressable
-              onPress={() => console.log("scan")}
-              style={{
-                padding: 10,
-                borderRadius: 10,
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <AntDesign name="scan" size={45} color={APP_COLOR.WHITE} />
-              <View
-                style={{
-                  borderWidth: 0.5,
-                  borderColor: APP_COLOR.WHITE,
-                  borderRadius: 7,
-                  paddingHorizontal: 5,
-                  paddingVertical: 2,
-                  marginTop: 5,
-                }}
-              >
-                <Text
-                  style={{
-                    color: APP_COLOR.WHITE,
-                    fontFamily: FONTS.regular,
-                    fontSize: 13,
-                  }}
-                >
-                  {" "}
-                  Đổi 53 điểm
-                </Text>
-              </View>
-            </Pressable>
-          </View>
+          <CustomerPoint
+            fullName={decodeToken.fullName}
+            phoneNumber={decodeToken.phoneNumber}
+            email={decodeToken.email}
+          />
         )}
         <Pressable
           onPress={() => router.navigate("/(user)/account/info")}
@@ -313,7 +255,7 @@ const AccountPage = () => {
           />
         </Pressable>
         <Pressable
-          onPress={() => router.navigate("/(auth)/voucher")}
+          onPress={() => router.navigate("/(user)/account/voucher")}
           style={styles.btnStyle}
         >
           <View
@@ -332,32 +274,7 @@ const AccountPage = () => {
             color={APP_COLOR.BROWN}
           />
         </Pressable>
-        <Pressable
-          onPress={() =>
-            Alert.alert("App Tấm Tắc", "Ứng dụng Cơm Tấm Tắc ver 1.0.6")
-          }
-          style={styles.btnStyle}
-        >
-          <View
-            style={{
-              flexDirection: "row",
-              gap: 10,
-              alignItems: "center",
-            }}
-          >
-            <MaterialIcons
-              name="info-outline"
-              size={25}
-              color={APP_COLOR.BROWN}
-            />
-            <Text style={styles.btnText}>Về ứng dụng</Text>
-          </View>
-          <MaterialIcons
-            name="navigate-next"
-            size={24}
-            color={APP_COLOR.BROWN}
-          />
-        </Pressable>
+
         <Pressable onPress={() => handleLogout()} style={styles.btnStyle}>
           <View
             style={{
@@ -375,10 +292,7 @@ const AccountPage = () => {
             color={APP_COLOR.BROWN}
           />
         </Pressable>
-        <Pressable
-          onPress={() => handleLogout()}
-          style={[styles.btnStyle, { marginBottom: 10 }]}
-        >
+        <Pressable onPress={() => handleLogout()} style={[styles.btnStyle]}>
           <View
             style={{
               flexDirection: "row",
@@ -388,6 +302,32 @@ const AccountPage = () => {
           >
             <MaterialIcons name="logout" size={25} color={APP_COLOR.BROWN} />
             <Text style={styles.btnText}>Đăng xuất</Text>
+          </View>
+          <MaterialIcons
+            name="navigate-next"
+            size={24}
+            color={APP_COLOR.BROWN}
+          />
+        </Pressable>
+        <Pressable
+          onPress={() =>
+            Alert.alert("App Tấm Tắc", "Ứng dụng Cơm Tấm Tắc ver 1.0.6")
+          }
+          style={[styles.btnStyle, , { marginBottom: 10 }]}
+        >
+          <View
+            style={{
+              flexDirection: "row",
+              gap: 10,
+              alignItems: "center",
+            }}
+          >
+            <MaterialIcons
+              name="info-outline"
+              size={25}
+              color={APP_COLOR.BROWN}
+            />
+            <Text style={styles.btnText}>Về ứng dụng</Text>
           </View>
           <MaterialIcons
             name="navigate-next"

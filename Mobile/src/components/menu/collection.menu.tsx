@@ -138,7 +138,6 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
         quantity: currentQuantity,
       };
     }
-
     setCart(newCart);
   };
 
@@ -167,9 +166,9 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 const CollectionMenu = (props: IProps) => {
-  const { name, id, branchId } = props;
+  const { name, id } = props;
   const { cart, restaurant, setRestaurant } = useCurrentApp();
-  const { showProductModal, handleQuantityChange } = useModal();
+  const { handleQuantityChange } = useModal();
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState<boolean>(true);
   const mockRestaurant = {

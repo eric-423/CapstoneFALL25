@@ -11,7 +11,7 @@ import {
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import { FONTS } from "@/theme/typography";
 import DatePicker from "react-native-date-picker";
-
+import AntDesign from "@expo/vector-icons/AntDesign";
 const styles = StyleSheet.create({
   inputGroup: {
     gap: 5,
@@ -126,6 +126,12 @@ const ShareInput = (props: IProps) => {
                 ]}
                 placeholder={placeholder}
                 placeholderTextColor={placeholderTextColor || APP_COLOR.BROWN}
+              />
+              <AntDesign
+                name="calendar"
+                size={24}
+                color={APP_COLOR.BROWN}
+                style={{ position: "absolute", right: 15, top: 11 }}
               />
             </View>
           </TouchableWithoutFeedback>
