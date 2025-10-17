@@ -20,6 +20,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 20,
     marginLeft: 10,
+    justifyContent: "space-around",
   },
   notificationWrapper: {
     backgroundColor: APP_COLOR.BROWN,
@@ -82,120 +83,176 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
     setIsModalVisible(!isModalVisible);
   };
 
-  return (
-    <View>
-      {pageName === "homePage" ? (
-        <View style={styles.container}>
-          <Entypo name="location-pin" size={50} color={APP_COLOR.BROWN} />
-          <View style={{ width: "55%" }}>
-            <Text
-              style={{
-                fontFamily: FONTS.bold,
-                color: APP_COLOR.BROWN,
-              }}
-            >
-              Giao đến:
-            </Text>
-            <Text
-              style={{
-                fontFamily: FONTS.medium,
-                width: "90%",
-                color: APP_COLOR.BROWN,
-              }}
-            >
-              {locationReal
-                ? locationReal
-                : location
-                ? location
-                : "Đang lấy vị trí..."}
-            </Text>
-          </View>
-          <View
-            style={{ alignItems: "flex-end", flexDirection: "row", gap: 10 }}
-          >
-            <View style={styles.notificationWrapper}>
-              <Feather name="shopping-cart" size={24} color={APP_COLOR.WHITE} />
-            </View>
-            <View
-              style={{
-                backgroundColor: APP_COLOR.ORANGE,
-                width: 25,
-                height: 25,
-                borderRadius: "100%",
-                alignItems: "center",
-                justifyContent: "center",
-                position: "absolute",
-                left: 30,
-                top: -5,
-              }}
-            >
-              <Text style={{ color: APP_COLOR.WHITE, fontFamily: FONTS.bold }}>
-                1
+  const renderHeaderContent = () => {
+    switch (pageName) {
+      case "homePage":
+        return (
+          <View style={styles.container}>
+            <Entypo name="location-pin" size={50} color={APP_COLOR.BROWN} />
+            <View style={{ width: "55%" }}>
+              <Text
+                style={{
+                  fontFamily: FONTS.bold,
+                  color: APP_COLOR.BROWN,
+                }}
+              >
+                Giao đến:
+              </Text>
+              <Text
+                style={{
+                  fontFamily: FONTS.medium,
+                  width: "90%",
+                  color: APP_COLOR.BROWN,
+                }}
+              >
+                {locationReal
+                  ? locationReal
+                  : location
+                  ? location
+                  : "Đang lấy vị trí..."}
               </Text>
             </View>
-            <View style={styles.notificationWrapper}>
-              <Ionicons
-                name="notifications-outline"
-                size={30}
-                color={APP_COLOR.WHITE}
-              />
-            </View>
-          </View>
-        </View>
-      ) : (
-        <View style={styles.container}>
-          <MaterialCommunityIcons
-            name="view-grid-plus"
-            size={50}
-            color={APP_COLOR.BROWN}
-          />
-          <View style={{ width: "55%" }}>
-            <Text
-              style={{
-                fontFamily: FONTS.bold,
-                fontSize: 20,
-                color: APP_COLOR.BROWN,
-                marginLeft: 10,
-              }}
+
+            <View
+              style={{ alignItems: "flex-end", flexDirection: "row", gap: 10 }}
             >
-              Thực đơn
-            </Text>
-          </View>
-          <View
-            style={{ alignItems: "flex-end", flexDirection: "row", gap: 10 }}
-          >
-            <View style={styles.notificationWrapper}>
-              <Ionicons name="search" size={24} color={APP_COLOR.WHITE} />
+              <View style={styles.notificationWrapper}>
+                <Feather
+                  name="shopping-cart"
+                  size={24}
+                  color={APP_COLOR.WHITE}
+                />
+              </View>
+              <View
+                style={{
+                  backgroundColor: APP_COLOR.ORANGE,
+                  width: 25,
+                  height: 25,
+                  borderRadius: "100%",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  position: "absolute",
+                  left: 30,
+                  top: -5,
+                }}
+              >
+                <Text
+                  style={{ color: APP_COLOR.WHITE, fontFamily: FONTS.bold }}
+                >
+                  1
+                </Text>
+              </View>
+              <View style={styles.notificationWrapper}>
+                <Ionicons
+                  name="notifications-outline"
+                  size={30}
+                  color={APP_COLOR.WHITE}
+                />
+              </View>
             </View>
+          </View>
+        );
+
+      case "orderHistory":
+        return (
+          <View style={styles.container}>
             <View
               style={{
-                backgroundColor: APP_COLOR.ORANGE,
-                width: 25,
-                height: 25,
-                borderRadius: "100%",
+                width: "89%",
+                flexDirection: "row",
                 alignItems: "center",
-                justifyContent: "center",
-                position: "absolute",
-                left: 30,
-                top: -5,
               }}
             >
-              <Text style={{ color: APP_COLOR.WHITE, fontFamily: FONTS.bold }}>
-                1
+              <MaterialCommunityIcons
+                name="history"
+                size={50}
+                color={APP_COLOR.BROWN}
+              />
+
+              <Text
+                style={{
+                  fontFamily: FONTS.bold,
+                  fontSize: 20,
+                  color: APP_COLOR.BROWN,
+                  marginLeft: 10,
+                }}
+              >
+                Lịch sử đơn hàng
               </Text>
             </View>
-            <View style={styles.notificationWrapper}>
-              <SimpleLineIcons
-                name="handbag"
-                size={24}
-                color={APP_COLOR.WHITE}
-              />
+            <View style={{ alignItems: "flex-end" }}>
+              <View style={styles.notificationWrapper}>
+                <Ionicons
+                  name="notifications-outline"
+                  size={30}
+                  color={APP_COLOR.WHITE}
+                />
+              </View>
             </View>
           </View>
-        </View>
-      )}
-    </View>
-  );
+        );
+      case "orderPage":
+        return (
+          <View style={styles.container}>
+            <MaterialCommunityIcons
+              name="view-grid-plus"
+              size={50}
+              color={APP_COLOR.BROWN}
+            />
+            <View style={{ width: "55%" }}>
+              <Text
+                style={{
+                  fontFamily: FONTS.bold,
+                  fontSize: 20,
+                  color: APP_COLOR.BROWN,
+                  marginLeft: 10,
+                }}
+              >
+                Thực đơn
+              </Text>
+            </View>
+            <View
+              style={{ alignItems: "flex-end", flexDirection: "row", gap: 10 }}
+            >
+              <View style={styles.notificationWrapper}>
+                <Ionicons name="search" size={24} color={APP_COLOR.WHITE} />
+              </View>
+              <View
+                style={{
+                  backgroundColor: APP_COLOR.ORANGE,
+                  width: 25,
+                  height: 25,
+                  borderRadius: "100%",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  position: "absolute",
+                  left: 30,
+                  top: -5,
+                }}
+              >
+                <Text
+                  style={{ color: APP_COLOR.WHITE, fontFamily: FONTS.bold }}
+                >
+                  1
+                </Text>
+              </View>
+              <View style={styles.notificationWrapper}>
+                <SimpleLineIcons
+                  name="handbag"
+                  size={24}
+                  color={APP_COLOR.WHITE}
+                />
+              </View>
+            </View>
+          </View>
+        );
+
+      default:
+        return <></>;
+    }
+  };
+
+  return <View>{renderHeaderContent()}</View>;
 };
 
 export default HeaderHome;
