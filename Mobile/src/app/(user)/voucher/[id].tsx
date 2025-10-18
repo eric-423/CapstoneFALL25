@@ -6,48 +6,26 @@ import {
   StyleSheet,
   Text,
   View,
-  ActivityIndicator,
   ScrollView,
   Dimensions,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from "axios";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const VoucherDetailsPage = () => {
   const { id } = useLocalSearchParams();
-  const [voucher, setVoucher] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const screenWidth = Dimensions.get("window").width;
-  useEffect(() => {
-    const fetchVoucher = async () => {
-      try {
-        const token = await AsyncStorage.getItem("access_token");
-      } catch (e) {
-        setVoucher(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (id) fetchVoucher();
-  }, [id]);
-
-  if (loading)
-    return (
-      <ActivityIndicator
-        style={{ flex: 1 }}
-        size="large"
-        color={APP_COLOR.ORANGE}
-      />
-    );
-  if (!voucher)
-    return (
-      <Text
-        style={{ color: APP_COLOR.CANCEL, textAlign: "center", marginTop: 40 }}
-      >
-        Không tìm thấy thông tin voucher
-      </Text>
-    );
+  const [voucher, setVoucher] = useState<any>({
+    code: "VOUCHER2024",
+    name: "Giảm giá 20% cho đơn hàng đầu tiên",
+    description: "Áp dụng cho tất cả sản phẩm trong menu",
+    discountAmount: 50000,
+    endDate: "2024-12-31T23:59:59Z",
+    minOrderAmount: 100000,
+    NumberCurrentUses: 0,
+    maxNumberOfUses: 1,
+    isActive: true,
+    barcode: "https://via.placeholder.com/300x200/FF6B35/FFFFFF?text=BARCODE",
+  });
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: APP_COLOR.WHITE }}>
