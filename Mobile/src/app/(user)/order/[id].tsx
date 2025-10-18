@@ -14,6 +14,8 @@ import { currencyFormatter } from "@/utils/cart";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Entypo from "@expo/vector-icons/Entypo";
 import { formatDateToDDMMYYYY } from "@/utils/cart";
+import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 interface StatusInfo {
   text: string;
   color: string;
@@ -202,7 +204,7 @@ const OrderDetailsPage = () => {
                 marginBottom: 5,
                 borderBottomColor: APP_COLOR.BROWN,
                 borderBottomWidth: 0.5,
-                width: "50%",
+                width: "45%",
               }}
             >
               <View style={{ alignItems: "center", marginRight: 8 }}>
@@ -276,20 +278,48 @@ const OrderDetailsPage = () => {
                 borderBottomWidth: 0.5,
                 paddingBottom: 10,
                 marginBottom: 10,
-                width: "50%",
+                width: "54%",
+                gap: 5,
               }}
             >
-              <View style={{ marginTop: 8 }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  gap: 5,
+                  marginTop: 8,
+                }}
+              >
+                <MaterialIcons
+                  name="account-circle"
+                  size={20}
+                  color={APP_COLOR.ORANGE}
+                />
                 <Text style={styles.customerValue}>
                   {orderDetails.fullName}
                 </Text>
+              </View>
+              <View
+                style={{
+                  flexDirection: "row",
+                  gap: 5,
+                }}
+              >
+                <FontAwesome5
+                  name="phone-alt"
+                  size={16}
+                  color={APP_COLOR.ORANGE}
+                />
                 <Text
-                  style={[styles.customerValue, { color: APP_COLOR.ORANGE }]}
+                  style={[
+                    styles.customerValue,
+                    { color: APP_COLOR.ORANGE, fontFamily: FONTS.regular },
+                  ]}
                 >{`(${orderDetails.phone_number})`}</Text>
               </View>
               <View
                 style={{
                   flexDirection: "row",
+                  gap: 5,
                 }}
               >
                 <Entypo
@@ -302,7 +332,7 @@ const OrderDetailsPage = () => {
                 />
                 <Text
                   style={{
-                    fontFamily: FONTS.medium,
+                    fontFamily: FONTS.regular,
                     fontSize: 14,
                     color: APP_COLOR.BROWN,
                   }}
@@ -472,7 +502,7 @@ const styles = StyleSheet.create({
   },
   customerValue: {
     fontSize: 15,
-    fontFamily: FONTS.regular,
+    fontFamily: FONTS.semiBold,
     color: APP_COLOR.BROWN,
     marginHorizontal: 2,
   },
