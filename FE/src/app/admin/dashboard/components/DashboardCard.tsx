@@ -10,9 +10,10 @@ interface DashboardCardProps {
         isPositive: boolean;
     };
     subtitle?: string;
+    isLoading?: boolean;
 }
 
-export function DashboardCard({ title, value, icon: Icon, trend, subtitle }: DashboardCardProps) {
+export function DashboardCard({ title, value, icon: Icon, trend, subtitle, isLoading = false }: DashboardCardProps) {
     return (
         <Card className="relative overflow-hidden bg-white border-0 shadow-sm hover:shadow-xl transition-all duration-300 group rounded-2xl h-full">
             {/* Gradient Border Effect */}
@@ -26,9 +27,13 @@ export function DashboardCard({ title, value, icon: Icon, trend, subtitle }: Das
                         <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider line-clamp-2">{title}</p>
 
                         {/* Value */}
-                        <h3 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2 group-hover:text-[#EC6426] transition-colors duration-300 leading-tight break-words">
-                            {value}
-                        </h3>
+                        {isLoading ? (
+                            <div className="h-10 lg:h-12 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 rounded-lg mb-2 animate-pulse"></div>
+                        ) : (
+                            <h3 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2 group-hover:text-[#EC6426] transition-colors duration-300 leading-tight break-words">
+                                {value}
+                            </h3>
+                        )}
 
                         {/* Trend area - always reserve space */}
                         <div className="min-h-[36px] flex items-end">

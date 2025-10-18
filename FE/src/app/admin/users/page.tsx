@@ -1,257 +1,452 @@
 'use client';
 
-import { AdminGuard } from '@/components/guards';
+import React, { useState, useMemo } from 'react';
+import { Users, UserPlus, Shield, Lock, FileText, Award, Clock, CheckCircle } from 'lucide-react';
+import { FilterBar, FilterChip, SavedFilter } from '@/components/common/FilterBar';
+import { DataTable, Column } from '@/components/common/DataTable';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import { User, UserStatus, UserRole } from '@/utils/types/user.types';
 import { MOCK_USERS } from '@/utils/mocks/data/users.mock';
-import { useState } from 'react';
-import { Users, Edit, Trash2, Search, Lock } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { AddUserDialog } from './components/AddUserDialog';
-import { EditUserDialog } from './components/EditUserDialog';
-import { DeleteUserDialog } from './components/DeleteUserDialog';
 
-export default function UsersPage() {
-    const [users] = useState(MOCK_USERS);
-    const [filter, setFilter] = useState('ALL');
-    const [searchTerm, setSearchTerm] = useState('');
-    const [editingUser, setEditingUser] = useState<typeof MOCK_USERS[0] | null>(null);
-    const [editDialogOpen, setEditDialogOpen] = useState(false);
-    const [deletingUser, setDeletingUser] = useState<typeof MOCK_USERS[0] | null>(null);
-    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+// Mock enhanced users data
+const mockEnhancedUsers: User[] = MOCK_USERS.map((u, idx) => ({
+    id: String(u.id),
+    fullName: u.fullName,
+    email: u.email || `user${u.id}@tamtac.com`,
+    phone: u.phone,
+    primaryRole: u.role as UserRole,
+    status: (['active', 'active', 'invited', 'locked', 'active'][idx % 5]) as UserStatus,
+    twoFactorEnabled: idx % 3 === 0,
+    lastLogin: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
+    createdAt: new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000).toISOString(),
+    trainingCompletionRate: Math.floor(Math.random() * 100),
+    certificatesEarned: Math.floor(Math.random() * 5),
+    branchRoles: idx % 2 === 0 ? [
+        {
+            branchId: '1',
+            branchName: 'Chi nhánh Quận 1',
+            role: u.role as UserRole,
+            assignedAt: new Date().toISOString(),
+        },
+    ] : undefined,
+}));
 
-    const filteredUsers = users
-        .filter(u => filter === 'ALL' || u.role === filter)
-        .filter(u =>
-            u.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            u.phone.includes(searchTerm) ||
-            u.email?.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+export default function UsersManagementPage() {
+    const [users] = useState<User[]>(mockEnhancedUsers);
+    const [searchValue, setSearchValue] = useState('');
+    const [filters, setFilters] = useState<FilterChip[]>([]);
+    const [showAdvanced, setShowAdvanced] = useState(false);
+    const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
 
-    return (
-        <AdminGuard>
-            <div className="min-h-screen bg-[#f9fafb] py-8">
-                <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-                    {/* Header */}
-                    <div className="flex justify-between items-center mb-10">
-                        <div>
-                            <h1 className="text-4xl font-bold text-gray-900 mb-3 tracking-tight flex items-center gap-3">
-                                <Users className="text-primary" size={36} />
-                                Quản lý người dùng
-                            </h1>
-                            <p className="text-gray-600 text-lg">Quản lý tài khoản và phân quyền người dùng hệ thống</p>
-                        </div>
-                        <AddUserDialog />
+    // Saved filters
+    const savedFilters: SavedFilter[] = [
+        {
+            id: '1',
+            name: 'Active Admins',
+            filters: [
+                { id: 'role', label: 'Vai trò', value: 'ADMIN' },
+                { id: 'status', label: 'Trạng thái', value: 'active' },
+            ],
+        },
+        {
+            id: '2',
+            name: 'Locked Users',
+            filters: [{ id: 'status', label: 'Trạng thái', value: 'locked' }],
+        },
+    ];
+
+    // Filter data
+    const filteredUsers = useMemo(() => {
+        return users.filter((user) => {
+            const matchesSearch = searchValue === '' ||
+                user.fullName.toLowerCase().includes(searchValue.toLowerCase()) ||
+                user.email.toLowerCase().includes(searchValue.toLowerCase()) ||
+                user.phone.includes(searchValue);
+
+            const matchesFilters = filters.every((filter) => {
+                if (filter.id === 'role') return user.primaryRole === filter.value;
+                if (filter.id === 'status') return user.status === filter.value;
+                if (filter.id === '2fa') return filter.value === 'enabled' ? user.twoFactorEnabled : !user.twoFactorEnabled;
+                if (filter.id === 'branch' && user.branchRoles) {
+                    return user.branchRoles.some(br => br.branchId === filter.value);
+                }
+                return true;
+            });
+
+            return matchesSearch && matchesFilters;
+        });
+    }, [users, searchValue, filters]);
+
+    // Stats
+    const stats = useMemo(() => ({
+        total: users.length,
+        active: users.filter(u => u.status === 'active').length,
+        admins: users.filter(u => u.primaryRole === 'ADMIN').length,
+        managers: users.filter(u => u.primaryRole === 'MANAGER').length,
+        with2FA: users.filter(u => u.twoFactorEnabled).length,
+        locked: users.filter(u => u.status === 'locked').length,
+    }), [users]);
+
+    // Define columns
+    const columns: Column<User>[] = [
+        {
+            id: 'fullName',
+            header: 'Người dùng',
+            accessor: (row) => (
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white font-bold">
+                        {row.fullName.charAt(0)}
                     </div>
-
-                    {/* Filters and Search */}
-                    <Card className="p-6 mb-6 bg-white border-0 shadow-md hover:shadow-lg transition-all rounded-xl">
-                        <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-                            <div className="flex gap-2 flex-wrap">
-                                {['ALL', 'ADMIN', 'MANAGER', 'CUSTOMER'].map(role => (
-                                    <Button
-                                        key={role}
-                                        variant={filter === role ? 'default' : 'outline'}
-                                        onClick={() => setFilter(role)}
-                                        className={filter === role
-                                            ? 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white border-0 shadow-md'
-                                            : 'bg-white text-gray-700 border-gray-300 hover:bg-orange-50 hover:border-orange-400'}
-                                    >
-                                        {role === 'ALL' ? 'Tất cả' : role}
-                                    </Button>
-                                ))}
-                            </div>
-                            <div className="relative w-full md:w-80">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                                <Input
-                                    placeholder="Tìm kiếm theo tên, SĐT, email..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="pl-10 border-gray-300 focus:border-orange-500 focus:ring-orange-500"
-                                />
-                            </div>
-                        </div>
-                    </Card>
-
-                    {/* Stats */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                        <Card className="p-6 bg-gradient-to-br from-orange-50 to-white border-0 shadow-md hover:shadow-lg transition-all rounded-xl">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm text-gray-600 font-medium mb-1">Tổng người dùng</p>
-                                    <p className="text-3xl font-bold text-gray-900">{users.length}</p>
-                                </div>
-                                <Users className="w-12 h-12 text-orange-500 opacity-80" />
-                            </div>
-                        </Card>
-                        <Card className="p-6 bg-gradient-to-br from-red-50 to-white border-0 shadow-md hover:shadow-lg transition-all rounded-xl">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm text-gray-600 font-medium mb-1">Admin</p>
-                                    <p className="text-3xl font-bold text-red-600">{users.filter(u => u.role === 'ADMIN').length}</p>
-                                </div>
-                                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                                    <span className="text-2xl">👑</span>
-                                </div>
-                            </div>
-                        </Card>
-                        <Card className="p-6 bg-gradient-to-br from-blue-50 to-white border-0 shadow-md hover:shadow-lg transition-all rounded-xl">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm text-gray-600 font-medium mb-1">Manager</p>
-                                    <p className="text-3xl font-bold text-blue-600">{users.filter(u => u.role === 'MANAGER').length}</p>
-                                </div>
-                                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                                    <span className="text-2xl">👔</span>
-                                </div>
-                            </div>
-                        </Card>
-                        <Card className="p-6 bg-gradient-to-br from-green-50 to-white border-0 shadow-md hover:shadow-lg transition-all rounded-xl">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm text-gray-600 font-medium mb-1">Khách hàng</p>
-                                    <p className="text-3xl font-bold text-green-600">{users.filter(u => u.role === 'CUSTOMER').length}</p>
-                                </div>
-                                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                                    <span className="text-2xl">👥</span>
-                                </div>
-                            </div>
-                        </Card>
+                    <div>
+                        <div className="font-semibold text-gray-900">{row.fullName}</div>
+                        <div className="text-xs text-gray-500">{row.email}</div>
                     </div>
-
-                    {/* Users Table */}
-                    <Card className="overflow-hidden border-0 shadow-md hover:shadow-lg transition-all rounded-xl bg-white">
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
-                                    <tr>
-                                        <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">ID</th>
-                                        <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Họ Tên</th>
-                                        <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">SĐT</th>
-                                        <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Email</th>
-                                        <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Vai Trò</th>
-                                        <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Trạng Thái</th>
-                                        <th className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider">Thao Tác</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {filteredUsers.length === 0 ? (
-                                        <tr>
-                                            <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
-                                                Không tìm thấy người dùng nào
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        filteredUsers.map((user) => (
-                                            <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">#{user.id}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="flex items-center">
-                                                        <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white font-bold mr-3 shadow-md">
-                                                            {user.fullName.charAt(0)}
-                                                        </div>
-                                                        <span className="text-sm font-semibold text-gray-900">{user.fullName}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.phone}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.email || 'N/A'}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`px-3 py-1.5 text-xs font-bold rounded-full ${user.role === 'ADMIN' ? 'bg-gradient-to-r from-red-100 to-red-200 text-red-700 border border-red-300' :
-                                                        user.role === 'MANAGER' ? 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-700 border border-blue-300' :
-                                                            'bg-gradient-to-r from-green-100 to-green-200 text-green-700 border border-green-300'
-                                                        }`}>{user.role}</span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className="px-3 py-1.5 text-xs font-bold rounded-full bg-gradient-to-r from-green-100 to-green-200 text-green-700 border border-green-300">
-                                                        ✓ Hoạt động
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-center">
-                                                    <div className="flex gap-2 justify-center">
-                                                        {user.role === 'ADMIN' ? (
-                                                            // Admin: Only show change password button
-                                                            <Button
-                                                                variant="outline"
-                                                                size="sm"
-                                                                onClick={() => {
-                                                                    setEditingUser(user);
-                                                                    setEditDialogOpen(true);
-                                                                }}
-                                                                className="border-blue-500 text-blue-600 hover:bg-gradient-to-r hover:from-blue-500 hover:to-blue-600 hover:text-white transition-all shadow-sm hover:shadow-md"
-                                                                title="Đổi mật khẩu"
-                                                            >
-                                                                <Lock size={16} className="mr-1" />
-                                                                Đổi mật khẩu
-                                                            </Button>
-                                                        ) : (
-                                                            // Other roles: Show edit and delete buttons
-                                                            <>
-                                                                <Button
-                                                                    variant="outline"
-                                                                    size="sm"
-                                                                    onClick={() => {
-                                                                        setEditingUser(user);
-                                                                        setEditDialogOpen(true);
-                                                                    }}
-                                                                    className="border-orange-500 text-orange-600 hover:bg-gradient-to-r hover:from-orange-500 hover:to-orange-600 hover:text-white transition-all shadow-sm hover:shadow-md"
-                                                                >
-                                                                    <Edit size={16} />
-                                                                </Button>
-                                                                <Button
-                                                                    variant="outline"
-                                                                    size="sm"
-                                                                    onClick={() => {
-                                                                        setDeletingUser(user);
-                                                                        setDeleteDialogOpen(true);
-                                                                    }}
-                                                                    className="border-red-500 text-red-600 hover:bg-gradient-to-r hover:from-red-500 hover:to-red-600 hover:text-white transition-all shadow-sm hover:shadow-md"
-                                                                >
-                                                                    <Trash2 size={16} />
-                                                                </Button>
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </Card>
-
-                    {/* Pagination */}
-                    <div className="mt-8 flex justify-between items-center">
-                        <p className="text-sm text-gray-600">
-                            Hiển thị <span className="font-bold text-gray-900">{filteredUsers.length}</span> trên <span className="font-bold text-gray-900">{users.length}</span> người dùng
-                        </p>
-                        <div className="flex gap-2">
-                            <Button variant="outline" size="sm" className="bg-white border-gray-300 text-gray-700 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all">Trước</Button>
-                            <Button variant="outline" size="sm" className="bg-gradient-to-r from-orange-500 to-orange-600 text-white border-0 shadow-md hover:shadow-lg">1</Button>
-                            <Button variant="outline" size="sm" className="bg-white border-gray-300 text-gray-700 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all">2</Button>
-                            <Button variant="outline" size="sm" className="bg-white border-gray-300 text-gray-700 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all">Sau</Button>
-                        </div>
-                    </div>
-
-                    {/* Edit User Dialog */}
-                    {editingUser && (
-                        <EditUserDialog
-                            user={editingUser}
-                            open={editDialogOpen}
-                            onOpenChange={setEditDialogOpen}
-                        />
-                    )}
-
-                    {/* Delete User Dialog */}
-                    {deletingUser && (
-                        <DeleteUserDialog
-                            user={deletingUser}
-                            open={deleteDialogOpen}
-                            onOpenChange={setDeleteDialogOpen}
-                        />
+                </div>
+            ),
+            sortable: true,
+            minWidth: 250,
+        },
+        {
+            id: 'phone',
+            header: 'Số điện thoại',
+            accessor: 'phone',
+            sortable: true,
+        },
+        {
+            id: 'primaryRole',
+            header: 'Vai trò',
+            accessor: (row) => {
+                const roleConfig: Record<UserRole, { label: string; className: string }> = {
+                    ADMIN: { label: 'Admin', className: 'bg-red-100 text-red-800 border-red-300' },
+                    MANAGER: { label: 'Manager', className: 'bg-blue-100 text-blue-800 border-blue-300' },
+                    STAFF: { label: 'Staff', className: 'bg-purple-100 text-purple-800 border-purple-300' },
+                    CUSTOMER: { label: 'Customer', className: 'bg-green-100 text-green-800 border-green-300' },
+                };
+                const config = roleConfig[row.primaryRole];
+                return (
+                    <Badge className={`${config.className} border font-semibold`}>
+                        {config.label}
+                    </Badge>
+                );
+            },
+            sortable: true,
+        },
+        {
+            id: 'status',
+            header: 'Trạng thái',
+            accessor: (row) => {
+                const statusConfig: Record<UserStatus, { label: string; className: string; icon: string }> = {
+                    active: { label: 'Hoạt động', className: 'bg-green-100 text-green-800', icon: '✓' },
+                    inactive: { label: 'Không hoạt động', className: 'bg-gray-100 text-gray-800', icon: '○' },
+                    locked: { label: 'Đã khóa', className: 'bg-red-100 text-red-800', icon: '🔒' },
+                    invited: { label: 'Chờ mời', className: 'bg-yellow-100 text-yellow-800', icon: '📧' },
+                    pending: { label: 'Chờ duyệt', className: 'bg-blue-100 text-blue-800', icon: '⏳' },
+                };
+                const config = statusConfig[row.status];
+                return (
+                    <Badge className={config.className}>
+                        <span className="mr-1">{config.icon}</span>
+                        {config.label}
+                    </Badge>
+                );
+            },
+            sortable: true,
+        },
+        {
+            id: 'branchRoles',
+            header: 'Chi nhánh',
+            accessor: (row) => (
+                <div className="text-sm">
+                    {row.branchRoles && row.branchRoles.length > 0 ? (
+                        <span className="text-gray-700">{row.branchRoles[0].branchName}</span>
+                    ) : (
+                        <span className="text-gray-400 italic">Chưa gán</span>
                     )}
                 </div>
+            ),
+        },
+        {
+            id: 'security',
+            header: 'Bảo mật',
+            accessor: (row) => (
+                <div className="flex items-center gap-2">
+                    {row.twoFactorEnabled ? (
+                        <Badge className="bg-green-100 text-green-800">
+                            <Shield className="w-3 h-3 mr-1" />
+                            2FA
+                        </Badge>
+                    ) : (
+                        <Badge variant="outline" className="text-gray-500">
+                            <Shield className="w-3 h-3 mr-1" />
+                            No 2FA
+                        </Badge>
+                    )}
+                </div>
+            ),
+        },
+        {
+            id: 'training',
+            header: 'Đào tạo',
+            accessor: (row) => (
+                <div className="flex items-center gap-2">
+                    <div className="text-sm">
+                        <span className="font-semibold text-gray-900">{row.trainingCompletionRate}%</span>
+                    </div>
+                    {row.certificatesEarned && row.certificatesEarned > 0 && (
+                        <Badge variant="outline" className="text-orange-700">
+                            <Award className="w-3 h-3 mr-1" />
+                            {row.certificatesEarned}
+                        </Badge>
+                    )}
+                </div>
+            ),
+        },
+        {
+            id: 'lastLogin',
+            header: 'Truy cập',
+            accessor: (row) => (
+                <div className="text-sm text-gray-600">
+                    {row.lastLogin ? new Date(row.lastLogin).toLocaleDateString('vi-VN') : 'Chưa đăng nhập'}
+                </div>
+            ),
+            sortable: true,
+        },
+    ];
+
+    const handleRemoveFilter = (filterId: string) => {
+        setFilters(filters.filter((f) => f.id !== filterId));
+    };
+
+    const handleClearAll = () => {
+        setSearchValue('');
+        setFilters([]);
+    };
+
+    const handleApplySavedFilter = (filter: SavedFilter) => {
+        setFilters(filter.filters);
+    };
+
+    const handleSaveFilter = (name: string) => {
+        console.log('Save filter:', name, filters);
+        // TODO: Save to API/localStorage
+    };
+
+    const handleExport = () => {
+        console.log('Export users:', filteredUsers);
+        // TODO: Export to Excel
+    };
+
+    const handleBulkDelete = (ids: string[]) => {
+        console.log('Delete users:', ids);
+        // TODO: Call delete API
+    };
+
+    return (
+        <div className="space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                        <Users className="text-orange-600" size={32} />
+                        Quản lý người dùng
+                    </h1>
+                    <p className="text-gray-600 mt-2">
+                        Quản lý tài khoản, phân quyền và theo dõi tiến độ đào tạo
+                    </p>
+                </div>
+                <Button className="bg-gradient-to-r from-orange-500 to-orange-600">
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Thêm người dùng
+                </Button>
             </div>
-        </AdminGuard>
+
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Card className="p-4 bg-gradient-to-br from-orange-50 to-white border-orange-200">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm text-gray-600 font-medium">Tổng người dùng</p>
+                            <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+                        </div>
+                        <Users className="w-10 h-10 text-orange-500 opacity-80" />
+                    </div>
+                </Card>
+                <Card className="p-4 bg-gradient-to-br from-green-50 to-white border-green-200">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm text-gray-600 font-medium">Đang hoạt động</p>
+                            <p className="text-2xl font-bold text-green-600">{stats.active}</p>
+                        </div>
+                        <CheckCircle className="w-10 h-10 text-green-500 opacity-80" />
+                    </div>
+                </Card>
+                <Card className="p-4 bg-gradient-to-br from-blue-50 to-white border-blue-200">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm text-gray-600 font-medium">Bật 2FA</p>
+                            <p className="text-2xl font-bold text-blue-600">{stats.with2FA}</p>
+                        </div>
+                        <Shield className="w-10 h-10 text-blue-500 opacity-80" />
+                    </div>
+                </Card>
+                <Card className="p-4 bg-gradient-to-br from-red-50 to-white border-red-200">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm text-gray-600 font-medium">Đã khóa</p>
+                            <p className="text-2xl font-bold text-red-600">{stats.locked}</p>
+                        </div>
+                        <Lock className="w-10 h-10 text-red-500 opacity-80" />
+                    </div>
+                </Card>
+            </div>
+
+            {/* FilterBar */}
+            <FilterBar
+                searchPlaceholder="Tìm kiếm theo tên, email, số điện thoại..."
+                searchValue={searchValue}
+                onSearchChange={setSearchValue}
+                filters={filters}
+                onRemoveFilter={handleRemoveFilter}
+                onClearAll={handleClearAll}
+                savedFilters={savedFilters}
+                onApplySavedFilter={handleApplySavedFilter}
+                onSaveCurrentFilter={handleSaveFilter}
+                showAdvancedFilters={showAdvanced}
+                onToggleAdvancedFilters={() => setShowAdvanced(!showAdvanced)}
+                customActions={
+                    <Button variant="outline" size="sm" style={{ color: '#000000', fontWeight: '600' }}>
+                        <FileText className="h-4 w-4 mr-2" />
+                        Báo cáo
+                    </Button>
+                }
+            />
+
+            {/* Advanced Filters */}
+            {showAdvanced && (
+                <Card className="p-4 bg-white">
+                    <h3 className="font-bold mb-4 text-gray-950">Bộ lọc nâng cao</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label className="text-sm font-bold mb-2 block text-gray-950">Vai trò</label>
+                            <select
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-950 font-semibold bg-white"
+                                onChange={(e) => {
+                                    if (e.target.value) {
+                                        setFilters([
+                                            ...filters.filter((f) => f.id !== 'role'),
+                                            { id: 'role', label: 'Vai trò', value: e.target.value },
+                                        ]);
+                                    }
+                                }}
+                            >
+                                <option value="">Tất cả</option>
+                                <option value="ADMIN">Admin</option>
+                                <option value="MANAGER">Manager</option>
+                                <option value="STAFF">Staff</option>
+                                <option value="CUSTOMER">Customer</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="text-sm font-bold mb-2 block text-gray-950">Trạng thái</label>
+                            <select
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-950 font-semibold bg-white"
+                                onChange={(e) => {
+                                    if (e.target.value) {
+                                        setFilters([
+                                            ...filters.filter((f) => f.id !== 'status'),
+                                            { id: 'status', label: 'Trạng thái', value: e.target.value },
+                                        ]);
+                                    }
+                                }}
+                            >
+                                <option value="">Tất cả</option>
+                                <option value="active">Hoạt động</option>
+                                <option value="inactive">Không hoạt động</option>
+                                <option value="locked">Đã khóa</option>
+                                <option value="invited">Chờ mời</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="text-sm font-bold mb-2 block text-gray-950">Bảo mật 2FA</label>
+                            <select
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-950 font-semibold bg-white"
+                                onChange={(e) => {
+                                    if (e.target.value) {
+                                        setFilters([
+                                            ...filters.filter((f) => f.id !== '2fa'),
+                                            { id: '2fa', label: '2FA', value: e.target.value },
+                                        ]);
+                                    }
+                                }}
+                            >
+                                <option value="">Tất cả</option>
+                                <option value="enabled">Đã bật</option>
+                                <option value="disabled">Chưa bật</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="text-sm font-bold mb-2 block text-gray-950">Chi nhánh</label>
+                            <select
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-950 font-semibold bg-white"
+                                onChange={(e) => {
+                                    if (e.target.value) {
+                                        setFilters([
+                                            ...filters.filter((f) => f.id !== 'branch'),
+                                            { id: 'branch', label: 'Chi nhánh', value: e.target.value },
+                                        ]);
+                                    }
+                                }}
+                            >
+                                <option value="">Tất cả</option>
+                                <option value="1">Quận 1</option>
+                                <option value="2">Quận 3</option>
+                                <option value="3">Thủ Đức</option>
+                            </select>
+                        </div>
+                    </div>
+                </Card>
+            )}
+
+            {/* DataTable */}
+            <DataTable
+                data={filteredUsers}
+                columns={columns}
+                selectable
+                onSelectionChange={setSelectedUsers}
+                getRowId={(row) => row.id}
+                defaultSort={{ columnId: 'fullName', direction: 'asc' }}
+                pagination={{
+                    pageSize: 10,
+                    pageSizeOptions: [10, 25, 50, 100],
+                }}
+                actions={{
+                    onExport: handleExport,
+                    onDelete: handleBulkDelete,
+                    customActions: (
+                        <>
+                            <Button variant="outline" size="sm" style={{ color: '#000000', fontWeight: '600' }}>
+                                <Lock className="h-4 w-4 mr-2" />
+                                Khóa tài khoản
+                            </Button>
+                        </>
+                    ),
+                }}
+                emptyState={{
+                    title: 'Không tìm thấy người dùng',
+                    description: 'Thử thay đổi bộ lọc hoặc tìm kiếm với từ khóa khác',
+                    icon: <Users className="h-16 w-16 text-gray-400" />,
+                    action: (
+                        <Button className="bg-gradient-to-r from-orange-500 to-orange-600">
+                            <UserPlus className="h-4 w-4 mr-2" />
+                            Thêm người dùng mới
+                        </Button>
+                    ),
+                }}
+                stickyHeader
+                rowClassName={(row) => (row.status === 'locked' ? 'opacity-60' : '')}
+            />
+        </div>
     );
 }

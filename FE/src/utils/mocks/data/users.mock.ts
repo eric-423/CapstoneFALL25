@@ -22,7 +22,7 @@ export const MOCK_USERS = [
   },
   {
     id: 3,
-    email: "customer@tamtac.com",
+    email: null, // Customer không có email, chỉ dùng số điện thoại
     password: "customer123",
     fullName: "Customer User",
     phone: "0903234567",

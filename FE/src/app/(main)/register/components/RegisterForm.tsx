@@ -1,0 +1,642 @@
+'use client';
+
+import { GuestLayout } from '@/components/layouts/GuestLayout';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
+import Link from 'next/link';
+import { useState } from 'react';
+import { toast } from 'react-toastify';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { provinces } from '@/utils/locations';
+import { sendRegistrationOTP, registerWithOTP } from '@/apis/user.api';
+
+// Validation schema
+const registerSchema = z.object({
+    fullName: z.string().min(2, 'Họ tên phải có ít nhất 2 ký tự'),
+    phone: z.string().regex(/^[0-9]{10}$/, 'Số điện thoại không hợp lệ (cần 10 số)'),
+    email: z.string().email('Email không hợp lệ'),
+    password: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
+    confirmPassword: z.string(),
+    gender: z.enum(['male', 'female', 'other']),
+    address: z.string().min(5, 'Địa chỉ phải có ít nhất 5 ký tự'),
+    province: z.string().min(1, 'Vui lòng chọn tỉnh/thành phố'),
+    district: z.string().min(1, 'Vui lòng chọn quận/huyện'),
+    ward: z.string().min(1, 'Vui lòng chọn phường/xã'),
+}).refine((data) => data.password === data.confirmPassword, {
+    message: 'Mật khẩu không khớp',
+    path: ['confirmPassword'],
+});
+
+type RegisterFormData = z.infer<typeof registerSchema>;
+
+type RegisterStep = 'info' | 'otp';
+
+export default function RegisterForm() {
+    const router = useRouter();
+    const [step, setStep] = useState<RegisterStep>('info');
+    const [otp, setOtp] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [otpSent, setOtpSent] = useState(false);
+    const [countdown, setCountdown] = useState(0);
+
+    // Location states
+    const [selectedProvince, setSelectedProvince] = useState('');
+    const [selectedDistrict, setSelectedDistrict] = useState('');
+    const [districts, setDistricts] = useState<Array<{ value: string; label: string }>>([]);
+    const [wards, setWards] = useState<Array<{ value: string; label: string }>>([]);
+
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+        setValue,
+        watch,
+    } = useForm<RegisterFormData>({
+        resolver: zodResolver(registerSchema),
+        defaultValues: {
+            gender: 'male',
+        },
+    });
+
+    const watchGender = watch('gender');
+
+    // Handle province change
+    const handleProvinceChange = (provinceValue: string) => {
+        setSelectedProvince(provinceValue);
+        setValue('province', provinceValue);
+        setValue('district', '');
+        setValue('ward', '');
+        setSelectedDistrict('');
+        setWards([]);
+
+        const province = provinces.find((p) => p.value === provinceValue);
+        if (province) {
+            setDistricts(province.districts);
+        }
+    };
+
+    // Handle district change
+    const handleDistrictChange = (districtValue: string) => {
+        setSelectedDistrict(districtValue);
+        setValue('district', districtValue);
+        setValue('ward', '');
+
+        const province = provinces.find((p) => p.value === selectedProvince);
+        const district = province?.districts.find((d) => d.value === districtValue);
+        if (district) {
+            setWards(district.wards);
+        }
+    };
+
+    // Send OTP
+    const handleSendOtp = async (data: RegisterFormData) => {
+        setLoading(true);
+        try {
+            await sendRegistrationOTP(data.phone);
+
+            toast.success('Mã OTP đã được gửi vào số điện thoại của bạn!');
+            setStep('otp');
+            setOtpSent(true);
+            setCountdown(60);
+
+            // Start countdown
+            const timer = setInterval(() => {
+                setCountdown((prev) => {
+                    if (prev <= 1) {
+                        clearInterval(timer);
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+        } catch (error) {
+            const errorMessage =
+                (error as { response?: { data?: { desc?: string } } })?.response?.data?.desc ||
+                'Không thể gửi mã OTP. Vui lòng thử lại!';
+            toast.error(errorMessage);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Verify OTP and register
+    const handleVerifyOtp = async () => {
+        if (otp.length !== 6) {
+            toast.error('Vui lòng nhập đầy đủ mã OTP');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const formData = watch();
+            await registerWithOTP(
+                {
+                    fullName: formData.fullName,
+                    phone: formData.phone,
+                    email: formData.email,
+                    password: formData.password,
+                    gender: formData.gender,
+                    address: formData.address,
+                    province: formData.province,
+                    district: formData.district,
+                    ward: formData.ward,
+                },
+                otp
+            );
+
+            toast.success('Đăng ký thành công!');
+            router.push('/login');
+        } catch (error) {
+            const errorMessage =
+                (error as { response?: { data?: { desc?: string } } })?.response?.data?.desc ||
+                'Mã OTP không đúng hoặc đã hết hạn!';
+            toast.error(errorMessage);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Resend OTP
+    const handleResendOtp = async () => {
+        if (countdown > 0) return;
+
+        setLoading(true);
+        try {
+            const phone = watch('phone');
+            await sendRegistrationOTP(phone);
+
+            toast.success('Mã OTP mới đã được gửi!');
+            setCountdown(60);
+
+            const timer = setInterval(() => {
+                setCountdown((prev) => {
+                    if (prev <= 1) {
+                        clearInterval(timer);
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+        } catch (error) {
+            toast.error('Không thể gửi lại mã OTP. Vui lòng thử lại!');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <GuestLayout>
+            <div className="min-h-screen bg-[#FFF5E6] flex">
+                {/* Left side - Image */}
+                <div className="hidden lg:flex lg:w-1/2 relative">
+                    <Image
+                        src="/images/Home - Banner.jpg"
+                        alt="Tấm Tắc Food"
+                        fill
+                        className="object-cover"
+                        priority
+                    />
+                </div>
+
+                {/* Right side - Register Form */}
+                <div className="w-full lg:w-1/2 flex items-center justify-center px-6 py-12">
+                    <div className="w-full max-w-md">
+                        {step === 'info' ? (
+                            <>
+                                {/* Logo/Title */}
+                                <div className="text-center mb-6">
+                                    <h1 className="text-4xl font-bold mb-3">
+                                        <span className="text-[#FF6B35]">Tấm</span>{' '}
+                                        <span className="text-gray-800">ngon, </span>
+                                        <span className="text-[#8BC34A]">Tắc</span>{' '}
+                                        <span className="text-gray-800">nhớ!</span>
+                                    </h1>
+                                    <p className="text-gray-600 text-sm">
+                                        Thương hiệu cơm tấm hàng đầu dành cho sinh viên.
+                                    </p>
+                                </div>
+
+                                {/* Registration Form */}
+                                <form
+                                    className="space-y-4"
+                                    onSubmit={handleSubmit(handleSendOtp)}
+                                >
+                                    {/* Full Name */}
+                                    <div>
+                                        <Input
+                                            {...register('fullName')}
+                                            placeholder="Họ và tên"
+                                            className={`rounded-lg border ${errors.fullName
+                                                ? 'border-red-500'
+                                                : 'border-gray-300'
+                                                } focus:border-[#FF6B35] focus:ring-[#FF6B35]`}
+                                        />
+                                        {errors.fullName && (
+                                            <p className="mt-1 text-sm text-red-600">
+                                                {errors.fullName.message}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    {/* Phone */}
+                                    <div>
+                                        <Input
+                                            {...register('phone')}
+                                            type="tel"
+                                            placeholder="Số điện thoại"
+                                            className={`rounded-lg border ${errors.phone ? 'border-red-500' : 'border-gray-300'
+                                                } focus:border-[#FF6B35] focus:ring-[#FF6B35]`}
+                                        />
+                                        {errors.phone && (
+                                            <p className="mt-1 text-sm text-red-600">
+                                                {errors.phone.message}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    {/* Email */}
+                                    <div>
+                                        <Input
+                                            {...register('email')}
+                                            type="email"
+                                            placeholder="Email"
+                                            className={`rounded-lg border ${errors.email ? 'border-red-500' : 'border-gray-300'
+                                                } focus:border-[#FF6B35] focus:ring-[#FF6B35]`}
+                                        />
+                                        {errors.email && (
+                                            <p className="mt-1 text-sm text-red-600">
+                                                {errors.email.message}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    {/* Gender */}
+                                    <div>
+                                        <Label className="text-gray-700 text-sm font-medium mb-2 block">
+                                            Giới tính
+                                        </Label>
+                                        <RadioGroup
+                                            value={watchGender}
+                                            onValueChange={(value) =>
+                                                setValue('gender', value as 'male' | 'female' | 'other')
+                                            }
+                                            className="flex space-x-4"
+                                        >
+                                            <div className="flex items-center space-x-2">
+                                                <RadioGroupItem
+                                                    value="male"
+                                                    id="male"
+                                                    className="border-gray-300 text-[#FF6B35] focus-visible:ring-[#FF6B35]/50"
+                                                />
+                                                <Label htmlFor="male" className="cursor-pointer text-gray-700 font-normal">
+                                                    Nam
+                                                </Label>
+                                            </div>
+                                            <div className="flex items-center space-x-2">
+                                                <RadioGroupItem
+                                                    value="female"
+                                                    id="female"
+                                                    className="border-gray-300 text-[#FF6B35] focus-visible:ring-[#FF6B35]/50"
+                                                />
+                                                <Label htmlFor="female" className="cursor-pointer text-gray-700 font-normal">
+                                                    Nữ
+                                                </Label>
+                                            </div>
+                                            <div className="flex items-center space-x-2">
+                                                <RadioGroupItem
+                                                    value="other"
+                                                    id="other"
+                                                    className="border-gray-300 text-[#FF6B35] focus-visible:ring-[#FF6B35]/50"
+                                                />
+                                                <Label htmlFor="other" className="cursor-pointer text-gray-700 font-normal">
+                                                    Khác
+                                                </Label>
+                                            </div>
+                                        </RadioGroup>
+                                    </div>
+
+                                    {/* Address */}
+                                    <div>
+                                        <Input
+                                            {...register('address')}
+                                            placeholder="Địa chỉ (số nhà, tên đường)"
+                                            className={`rounded-lg border ${errors.address
+                                                ? 'border-red-500'
+                                                : 'border-gray-300'
+                                                } focus:border-[#FF6B35] focus:ring-[#FF6B35]`}
+                                        />
+                                        {errors.address && (
+                                            <p className="mt-1 text-sm text-red-600">
+                                                {errors.address.message}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    {/* Location Selects */}
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {/* Province */}
+                                        <div>
+                                            <Select
+                                                value={selectedProvince}
+                                                onValueChange={handleProvinceChange}
+                                            >
+                                                <SelectTrigger
+                                                    className={`rounded-lg ${errors.province
+                                                        ? 'border-red-500'
+                                                        : 'border-gray-300'
+                                                        }`}
+                                                >
+                                                    <SelectValue placeholder="Tỉnh/TP" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {provinces.map((province) => (
+                                                        <SelectItem
+                                                            key={province.value}
+                                                            value={province.value}
+                                                        >
+                                                            {province.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            {errors.province && (
+                                                <p className="mt-1 text-xs text-red-600">
+                                                    {errors.province.message}
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        {/* District */}
+                                        <div>
+                                            <Select
+                                                value={selectedDistrict}
+                                                onValueChange={handleDistrictChange}
+                                                disabled={!selectedProvince}
+                                            >
+                                                <SelectTrigger
+                                                    className={`rounded-lg ${errors.district
+                                                        ? 'border-red-500'
+                                                        : 'border-gray-300'
+                                                        }`}
+                                                >
+                                                    <SelectValue placeholder="Quận/Huyện" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {districts.map((district) => (
+                                                        <SelectItem
+                                                            key={district.value}
+                                                            value={district.value}
+                                                        >
+                                                            {district.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            {errors.district && (
+                                                <p className="mt-1 text-xs text-red-600">
+                                                    {errors.district.message}
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        {/* Ward */}
+                                        <div>
+                                            <Select
+                                                value={watch('ward')}
+                                                onValueChange={(value) => setValue('ward', value)}
+                                                disabled={!selectedDistrict}
+                                            >
+                                                <SelectTrigger
+                                                    className={`rounded-lg ${errors.ward
+                                                        ? 'border-red-500'
+                                                        : 'border-gray-300'
+                                                        }`}
+                                                >
+                                                    <SelectValue placeholder="Phường/Xã" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {wards.map((ward) => (
+                                                        <SelectItem
+                                                            key={ward.value}
+                                                            value={ward.value}
+                                                        >
+                                                            {ward.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            {errors.ward && (
+                                                <p className="mt-1 text-xs text-red-600">
+                                                    {errors.ward.message}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Password */}
+                                    <div>
+                                        <div className="relative">
+                                            <Input
+                                                {...register('password')}
+                                                type={showPassword ? 'text' : 'password'}
+                                                placeholder="Mật khẩu"
+                                                className={`rounded-lg border ${errors.password
+                                                    ? 'border-red-500'
+                                                    : 'border-gray-300'
+                                                    } focus:border-[#FF6B35] focus:ring-[#FF6B35]`}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowPassword(!showPassword)}
+                                                className="absolute inset-y-0 right-0 pr-4 flex items-center"
+                                            >
+                                                <span className="text-sm text-gray-500">
+                                                    {showPassword ? 'Ẩn' : 'Hiện'}
+                                                </span>
+                                            </button>
+                                        </div>
+                                        {errors.password && (
+                                            <p className="mt-1 text-sm text-red-600">
+                                                {errors.password.message}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    {/* Confirm Password */}
+                                    <div>
+                                        <div className="relative">
+                                            <Input
+                                                {...register('confirmPassword')}
+                                                type={showConfirmPassword ? 'text' : 'password'}
+                                                placeholder="Xác nhận mật khẩu"
+                                                className={`rounded-lg border ${errors.confirmPassword
+                                                    ? 'border-red-500'
+                                                    : 'border-gray-300'
+                                                    } focus:border-[#FF6B35] focus:ring-[#FF6B35]`}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setShowConfirmPassword(!showConfirmPassword)
+                                                }
+                                                className="absolute inset-y-0 right-0 pr-4 flex items-center"
+                                            >
+                                                <span className="text-sm text-gray-500">
+                                                    {showConfirmPassword ? 'Ẩn' : 'Hiện'}
+                                                </span>
+                                            </button>
+                                        </div>
+                                        {errors.confirmPassword && (
+                                            <p className="mt-1 text-sm text-red-600">
+                                                {errors.confirmPassword.message}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    {/* Submit Button */}
+                                    <div className="pt-2">
+                                        <Button
+                                            type="submit"
+                                            disabled={loading}
+                                            className="w-full bg-[#FF6B35] hover:bg-[#FF5722] text-white rounded-lg py-3 font-semibold transition-colors"
+                                        >
+                                            {loading ? 'Đang xử lý...' : 'Gửi'}
+                                        </Button>
+                                    </div>
+                                </form>
+
+                                {/* Divider */}
+                                <div className="mt-6">
+                                    <div className="relative">
+                                        <div className="absolute inset-0 flex items-center">
+                                            <div className="w-full border-t border-gray-300" />
+                                        </div>
+                                        <div className="relative flex justify-center text-sm">
+                                            <span className="bg-[#FFF5E6] px-4 text-[#8BC34A] font-medium cursor-pointer hover:text-[#7CB342]">
+                                                <Link href="/login">
+                                                    Bạn là người nhà của Tấm Tắc?
+                                                </Link>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                {/* OTP Verification */}
+                                <div className="text-center mb-6">
+                                    <p className="text-gray-600 text-sm mb-6">
+                                        Mã OTP vừa được gửi vào số điện thoại của bạn.
+                                    </p>
+
+                                    <h1 className="text-4xl font-bold mb-6">
+                                        <span className="text-[#FF6B35]">Tấm</span>{' '}
+                                        <span className="text-gray-800">ngon, </span>
+                                        <span className="text-[#8BC34A]">Tắc</span>{' '}
+                                        <span className="text-gray-800">nhớ!</span>
+                                    </h1>
+
+                                    <p className="text-gray-700 text-sm mb-8">
+                                        Nhập mật khẩu đã đăng nhập lần sau.
+                                    </p>
+
+                                    {/* OTP Input */}
+                                    <div className="flex justify-center mb-6">
+                                        <InputOTP
+                                            maxLength={6}
+                                            value={otp}
+                                            onChange={(value) => setOtp(value)}
+                                        >
+                                            <InputOTPGroup className="gap-2">
+                                                <InputOTPSlot
+                                                    index={0}
+                                                    className="w-12 h-14 text-xl border-2 border-gray-300 rounded-lg focus:border-[#FF6B35]"
+                                                />
+                                                <InputOTPSlot
+                                                    index={1}
+                                                    className="w-12 h-14 text-xl border-2 border-gray-300 rounded-lg focus:border-[#FF6B35]"
+                                                />
+                                                <InputOTPSlot
+                                                    index={2}
+                                                    className="w-12 h-14 text-xl border-2 border-gray-300 rounded-lg focus:border-[#FF6B35]"
+                                                />
+                                                <InputOTPSlot
+                                                    index={3}
+                                                    className="w-12 h-14 text-xl border-2 border-gray-300 rounded-lg focus:border-[#FF6B35]"
+                                                />
+                                                <InputOTPSlot
+                                                    index={4}
+                                                    className="w-12 h-14 text-xl border-2 border-gray-300 rounded-lg focus:border-[#FF6B35]"
+                                                />
+                                                <InputOTPSlot
+                                                    index={5}
+                                                    className="w-12 h-14 text-xl border-2 border-gray-300 rounded-lg focus:border-[#FF6B35]"
+                                                />
+                                            </InputOTPGroup>
+                                        </InputOTP>
+                                    </div>
+
+                                    {/* Resend OTP */}
+                                    {countdown > 0 ? (
+                                        <p className="text-gray-500 text-sm mb-6">
+                                            Gửi lại mã sau {countdown}s
+                                        </p>
+                                    ) : (
+                                        <button
+                                            onClick={handleResendOtp}
+                                            disabled={loading}
+                                            className="text-[#8BC34A] text-sm font-medium hover:text-[#7CB342] mb-6 underline"
+                                        >
+                                            Gửi lại mã OTP
+                                        </button>
+                                    )}
+
+                                    {/* Submit Button */}
+                                    <Button
+                                        onClick={handleVerifyOtp}
+                                        disabled={loading || otp.length !== 6}
+                                        className="w-full bg-[#FF6B35] hover:bg-[#FF5722] text-white rounded-lg py-3 font-semibold transition-colors"
+                                    >
+                                        {loading ? 'Đang xác thực...' : 'Đăng ký'}
+                                    </Button>
+                                </div>
+
+                                {/* Divider */}
+                                <div className="mt-6">
+                                    <div className="relative">
+                                        <div className="absolute inset-0 flex items-center">
+                                            <div className="w-full border-t border-gray-300" />
+                                        </div>
+                                        <div className="relative flex justify-center text-sm">
+                                            <span className="bg-[#FFF5E6] px-4 text-[#8BC34A] font-medium cursor-pointer hover:text-[#7CB342]">
+                                                <Link href="/login">
+                                                    Bạn là người nhà của Tấm Tắc?
+                                                </Link>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </GuestLayout>
+    );
+}

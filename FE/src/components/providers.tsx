@@ -23,7 +23,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     }));
 
     return (
-        <ThemeProvider defaultTheme='system' storageKey='theme'>
+        <ThemeProvider defaultTheme='light' storageKey='theme'>
             <QueryClientProvider client={queryClient}>
                 <CookiesProvider defaultSetOptions={{ path: '/' }}>
                     <AuthProvider>

@@ -1,354 +1,435 @@
 'use client';
 
-import { AdminGuard } from '@/components/guards';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { MOCK_INGREDIENTS } from '@/utils/mocks/data/ingredient.mock';
-// import { Ingredient } from '@/types/ingredient.type';
+import React, { useState, useMemo } from 'react';
 import {
     Package,
-    Search,
-    Edit,
-    Trash2,
+    Plus,
     AlertTriangle,
-    TrendingDown,
-    Download,
-    Upload,
-    Calendar,
     DollarSign,
-    Weight,
+    TrendingDown,
     Factory,
+    Barcode,
+    FileText,
 } from 'lucide-react';
-import { useState } from 'react';
-import { AddIngredientDialog } from './components/AddIngredientDialog';
-
-export interface Ingredient {
-    id: number;
-    name: string;
-    quantity: number;
-    unit: 'kg' | 'g' | 'ml' | 'l' | 'piece' | 'pack';
-    supplier: string;
-    caloriePerUnit: number; // calories per 100g or 100ml
-    cost: number; // cost per unit
-    threshold: number; // minimum stock level
-    lastUpdated: string; // ISO date string
-    category: 'vegetable' | 'meat' | 'seafood' | 'spice' | 'grain' | 'dairy' | 'other';
-    image?: string;
-}
+import { FilterBar, FilterChip, SavedFilter } from '@/components/common/FilterBar';
+import { DataTable, Column } from '@/components/common/DataTable';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
+import { Ingredient } from '@/utils/types/ingredient.types';
+import { MOCK_INGREDIENTS_ENHANCED } from '@/utils/mocks/data/ingredients-enhanced.mock';
+import { IngredientDetailDialog } from './components/IngredientDetailDialog';
 
 export default function IngredientsPage() {
-    const [searchQuery, setSearchQuery] = useState('');
-    const [selectedCategory, setSelectedCategory] = useState<string>('all');
+    const [searchValue, setSearchValue] = useState('');
+    const [filters, setFilters] = useState<FilterChip[]>([]);
+    const [showAdvanced, setShowAdvanced] = useState(false);
+    const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
+    const [selectedIngredient, setSelectedIngredient] = useState<Ingredient | null>(null);
+    const [detailDialogOpen, setDetailDialogOpen] = useState(false);
 
-    const filteredIngredients = MOCK_INGREDIENTS.filter((ing) => {
-        const matchesSearch = ing.name.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesCategory = selectedCategory === 'all' || ing.category === selectedCategory;
-        return matchesSearch && matchesCategory;
-    });
-
-    const lowStockIngredients = MOCK_INGREDIENTS.filter((ing) => ing.quantity <= ing.threshold);
-    const totalValue = MOCK_INGREDIENTS.reduce((sum, ing) => sum + ing.quantity * ing.cost, 0);
-
-    const categories = [
-        { value: 'all', label: 'Tất cả', count: MOCK_INGREDIENTS.length },
-        { value: 'meat', label: 'Thịt', count: MOCK_INGREDIENTS.filter((i) => i.category === 'meat').length },
-        { value: 'seafood', label: 'Hải sản', count: MOCK_INGREDIENTS.filter((i) => i.category === 'seafood').length },
-        { value: 'vegetable', label: 'Rau củ', count: MOCK_INGREDIENTS.filter((i) => i.category === 'vegetable').length },
-        { value: 'grain', label: 'Ngũ cốc', count: MOCK_INGREDIENTS.filter((i) => i.category === 'grain').length },
-        { value: 'dairy', label: 'Sữa', count: MOCK_INGREDIENTS.filter((i) => i.category === 'dairy').length },
-        { value: 'spice', label: 'Gia vị', count: MOCK_INGREDIENTS.filter((i) => i.category === 'spice').length },
+    // Saved filters
+    const savedFilters: SavedFilter[] = [
+        {
+            id: '1',
+            name: 'Low Stock Items',
+            filters: [{ id: 'status', label: 'Trạng thái', value: 'low_stock' }],
+        },
+        {
+            id: '2',
+            name: 'Frozen Items',
+            filters: [{ id: 'storage', label: 'Bảo quản', value: 'frozen' }],
+        },
     ];
 
-    const getCategoryColor = (category: Ingredient['category']) => {
-        const colors = {
-            meat: 'from-red-500 to-pink-500',
-            seafood: 'from-blue-500 to-cyan-500',
-            vegetable: 'from-green-500 to-emerald-500',
-            grain: 'from-yellow-500 to-orange-500',
-            dairy: 'from-purple-500 to-indigo-500',
-            spice: 'from-orange-500 to-red-500',
-            other: 'from-gray-500 to-slate-500',
-        };
-        return colors[category];
+    // Filter data
+    const filteredIngredients = useMemo(() => {
+        return MOCK_INGREDIENTS_ENHANCED.filter((ingredient) => {
+            const matchesSearch =
+                searchValue === '' ||
+                ingredient.name.toLowerCase().includes(searchValue.toLowerCase()) ||
+                ingredient.sku?.toLowerCase().includes(searchValue.toLowerCase()) ||
+                ingredient.barcode?.includes(searchValue);
+
+            const matchesFilters = filters.every((filter) => {
+                if (filter.id === 'category') return ingredient.category === filter.value;
+                if (filter.id === 'status') return ingredient.status === filter.value;
+                if (filter.id === 'storage') return ingredient.storageCondition === filter.value;
+                return true;
+            });
+
+            return matchesSearch && matchesFilters;
+        });
+    }, [searchValue, filters]);
+
+    // Stats
+    const stats = useMemo(() => ({
+        total: MOCK_INGREDIENTS_ENHANCED.length,
+        active: MOCK_INGREDIENTS_ENHANCED.filter((i) => i.status === 'active').length,
+        lowStock: MOCK_INGREDIENTS_ENHANCED.filter((i) => i.status === 'low_stock').length,
+        totalValue: MOCK_INGREDIENTS_ENHANCED.reduce((sum, i) => sum + i.costPerUnit, 0),
+    }), []);
+
+    // Define columns
+    const columns: Column<Ingredient>[] = [
+        {
+            id: 'name',
+            header: 'Nguyên liệu',
+            accessor: (row) => (
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white font-bold">
+                        {row.name.charAt(0)}
+                    </div>
+                    <div>
+                        <div className="font-semibold text-gray-900">{row.name}</div>
+                        {row.sku && <div className="text-xs text-gray-500">SKU: {row.sku}</div>}
+                    </div>
+                </div>
+            ),
+            sortable: true,
+            minWidth: 250,
+        },
+        {
+            id: 'category',
+            header: 'Danh mục',
+            accessor: (row) => {
+                const categoryConfig: Record<string, { label: string; className: string }> = {
+                    meat: { label: 'Thịt', className: 'bg-red-100 text-red-800 border-red-300' },
+                    seafood: { label: 'Hải sản', className: 'bg-blue-100 text-blue-800 border-blue-300' },
+                    vegetable: { label: 'Rau củ', className: 'bg-green-100 text-green-800 border-green-300' },
+                    dairy: { label: 'Sữa', className: 'bg-purple-100 text-purple-800 border-purple-300' },
+                    grain: { label: 'Ngũ cốc', className: 'bg-yellow-100 text-yellow-800 border-yellow-300' },
+                    spice: { label: 'Gia vị', className: 'bg-orange-100 text-orange-800 border-orange-300' },
+                    sauce: { label: 'Nước sốt', className: 'bg-pink-100 text-pink-800 border-pink-300' },
+                };
+                const config = categoryConfig[row.category] || {
+                    label: row.category,
+                    className: 'bg-gray-100 text-gray-800',
+                };
+                return (
+                    <Badge className={`${config.className} border font-semibold`}>{config.label}</Badge>
+                );
+            },
+            sortable: true,
+        },
+        {
+            id: 'baseUnit',
+            header: 'Đơn vị',
+            accessor: 'baseUnit',
+            sortable: true,
+        },
+        {
+            id: 'storageCondition',
+            header: 'Bảo quản',
+            accessor: (row) => {
+                const storageIcons: Record<string, string> = {
+                    frozen: '❄️ Đông lạnh',
+                    refrigerated: '🧊 Làm lạnh',
+                    cool: '🌡️ Mát',
+                    room_temp: '📦 Nhiệt độ phòng',
+                    dry: '🌾 Khô ráo',
+                };
+                return (
+                    <span className="text-sm text-gray-700">
+                        {storageIcons[row.storageCondition] || row.storageCondition}
+                    </span>
+                );
+            },
+        },
+        {
+            id: 'costPerUnit',
+            header: 'Giá/Đơn vị',
+            accessor: (row) => (
+                <div className="text-right">
+                    <span className="font-semibold text-green-600">
+                        {row.costPerUnit.toLocaleString()}đ
+                    </span>
+                    <div className="text-xs text-gray-500">/{row.baseUnit}</div>
+                </div>
+            ),
+            sortable: true,
+        },
+        {
+            id: 'supplier',
+            header: 'Nhà cung cấp',
+            accessor: (row) => (
+                <div className="text-sm">
+                    {row.primarySupplier ? (
+                        <span className="text-gray-700 flex items-center gap-1">
+                            <Factory className="w-3 h-3" />
+                            {row.primarySupplier.name.split(' ').slice(0, 3).join(' ')}
+                        </span>
+                    ) : (
+                        <span className="text-gray-400 italic">Chưa có</span>
+                    )}
+                </div>
+            ),
+        },
+        {
+            id: 'status',
+            header: 'Trạng thái',
+            accessor: (row) => {
+                const statusConfig: Record<string, { label: string; className: string; icon: string }> = {
+                    active: { label: 'Hoạt động', className: 'bg-green-100 text-green-800', icon: '✓' },
+                    low_stock: { label: 'Sắp hết', className: 'bg-yellow-100 text-yellow-800', icon: '⚠️' },
+                    out_of_stock: { label: 'Hết hàng', className: 'bg-red-100 text-red-800', icon: '✕' },
+                    discontinued: { label: 'Ngừng', className: 'bg-gray-100 text-gray-800', icon: '○' },
+                };
+                const config = statusConfig[row.status];
+                return (
+                    <Badge className={config.className}>
+                        <span className="mr-1">{config.icon}</span>
+                        {config.label}
+                    </Badge>
+                );
+            },
+            sortable: true,
+        },
+        {
+            id: 'actions',
+            header: 'Thao tác',
+            accessor: (row) => (
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                        setSelectedIngredient(row);
+                        setDetailDialogOpen(true);
+                    }}
+                    className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                    style={{ color: '#ea580c', fontWeight: '600' }}
+                >
+                    <FileText className="h-4 w-4 mr-1" />
+                    Chi tiết
+                </Button>
+            ),
+        },
+    ];
+
+    const handleRemoveFilter = (filterId: string) => {
+        setFilters(filters.filter((f) => f.id !== filterId));
+    };
+
+    const handleClearAll = () => {
+        setSearchValue('');
+        setFilters([]);
+    };
+
+    const handleApplySavedFilter = (filter: SavedFilter) => {
+        setFilters(filter.filters);
+    };
+
+    const handleSaveFilter = (name: string) => {
+        console.log('Save filter:', name, filters);
+    };
+
+    const handleExport = () => {
+        console.log('Export ingredients:', filteredIngredients);
+    };
+
+    const handleBulkDelete = (ids: string[]) => {
+        console.log('Delete ingredients:', ids);
     };
 
     return (
-        <AdminGuard>
-            <div className="min-h-screen bg-[#f9fafb] py-8">
-                <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-                    {/* Header */}
-                    <div className="mb-8">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3 mb-2">
-                                    <div className="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center shadow-lg">
-                                        <Package className="text-white" size={28} strokeWidth={2.5} />
-                                    </div>
-                                    Quản Lý Nguyên Liệu
-                                </h1>
-                                <p className="text-gray-600 text-lg">Theo dõi và quản lý kho nguyên liệu</p>
-                            </div>
-                            <div className="flex gap-3">
-                                <Button
-                                    variant="outline"
-                                    className="border-2 border-green-500 text-green-500 hover:bg-green-500 hover:text-white font-semibold rounded-xl transition-all"
-                                >
-                                    <Download size={18} className="mr-2" strokeWidth={2.5} />
-                                    Xuất Excel
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    className="border-2 border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white font-semibold rounded-xl transition-all"
-                                >
-                                    <Upload size={18} className="mr-2" strokeWidth={2.5} />
-                                    Nhập Excel
-                                </Button>
-                                <AddIngredientDialog />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Stats Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                        <Card className="p-6 bg-white border-0 shadow-sm hover:shadow-xl transition-all duration-300 rounded-2xl group">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">
-                                        Tổng nguyên liệu
-                                    </p>
-                                    <p className="text-4xl font-bold text-gray-900 group-hover:text-primary transition-colors">
-                                        {MOCK_INGREDIENTS.length}
-                                    </p>
-                                </div>
-                                <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-all">
-                                    <Package className="text-white" size={26} strokeWidth={2.5} />
-                                </div>
-                            </div>
-                        </Card>
-
-                        <Card className="p-6 bg-white border-0 shadow-sm hover:shadow-xl transition-all duration-300 rounded-2xl group">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">
-                                        Cảnh báo hết hàng
-                                    </p>
-                                    <p className="text-4xl font-bold text-red-600 group-hover:scale-105 transition-transform">
-                                        {lowStockIngredients.length}
-                                    </p>
-                                </div>
-                                <div className="w-14 h-14 bg-gradient-to-br from-red-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-all">
-                                    <AlertTriangle className="text-white" size={26} strokeWidth={2.5} />
-                                </div>
-                            </div>
-                        </Card>
-
-                        <Card className="p-6 bg-white border-0 shadow-sm hover:shadow-xl transition-all duration-300 rounded-2xl group">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">
-                                        Tổng giá trị
-                                    </p>
-                                    <p className="text-3xl font-bold text-green-600 group-hover:scale-105 transition-transform">
-                                        {(totalValue / 1000000).toFixed(1)}M
-                                    </p>
-                                </div>
-                                <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-all">
-                                    <DollarSign className="text-white" size={26} strokeWidth={2.5} />
-                                </div>
-                            </div>
-                        </Card>
-
-                        <Card className="p-6 bg-white border-0 shadow-sm hover:shadow-xl transition-all duration-300 rounded-2xl group">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">
-                                        Danh mục
-                                    </p>
-                                    <p className="text-4xl font-bold text-purple-600 group-hover:scale-105 transition-transform">
-                                        {categories.length - 1}
-                                    </p>
-                                </div>
-                                <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-all">
-                                    <Package className="text-white" size={26} strokeWidth={2.5} />
-                                </div>
-                            </div>
-                        </Card>
-                    </div>
-
-                    {/* Search and Filter */}
-                    <div className="mb-8 flex flex-col lg:flex-row lg:items-center gap-4">
-                        <div className="flex-1 relative">
-                            <Search
-                                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
-                                size={20}
-                                strokeWidth={2.5}
-                            />
-                            <Input
-                                placeholder="Tìm kiếm nguyên liệu..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-12 py-6 border-2 border-gray-200 rounded-xl focus:border-primary text-base"
-                            />
-                        </div>
-                        <div className="flex gap-2 overflow-x-auto pb-2 lg:pb-0">
-                            {categories.map((cat) => (
-                                <Button
-                                    key={cat.value}
-                                    onClick={() => setSelectedCategory(cat.value)}
-                                    variant={selectedCategory === cat.value ? 'default' : 'outline'}
-                                    className={`rounded-xl font-semibold whitespace-nowrap transition-all ${selectedCategory === cat.value
-                                        ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-lg'
-                                        : 'border-2 border-gray-200 text-gray-600 hover:border-primary'
-                                        }`}
-                                >
-                                    {cat.label}
-                                    <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-white/20">
-                                        {cat.count}
-                                    </span>
-                                </Button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Low Stock Alert */}
-                    {lowStockIngredients.length > 0 && (
-                        <Card className="p-6 mb-8 bg-gradient-to-r from-red-50 to-transparent border-2 border-red-200 rounded-2xl">
-                            <div className="flex items-start gap-4">
-                                <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-pink-500 rounded-2xl flex items-center justify-center flex-shrink-0">
-                                    <AlertTriangle className="text-white" size={24} strokeWidth={2.5} />
-                                </div>
-                                <div className="flex-1">
-                                    <h3 className="text-lg font-bold text-red-900 mb-2">
-                                        Cảnh báo: {lowStockIngredients.length} nguyên liệu sắp hết hàng
-                                    </h3>
-                                    <div className="flex flex-wrap gap-2">
-                                        {lowStockIngredients.map((ing) => (
-                                            <span
-                                                key={ing.id}
-                                                className="px-3 py-1.5 bg-white rounded-lg text-sm font-semibold text-red-700 border border-red-200"
-                                            >
-                                                {ing.name}: {ing.quantity} {ing.unit}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        </Card>
-                    )}
-
-                    {/* Ingredients Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {filteredIngredients.map((ingredient) => {
-                            const isLowStock = ingredient.quantity <= ingredient.threshold;
-                            const stockPercentage = (ingredient.quantity / (ingredient.threshold * 2)) * 100;
-
-                            return (
-                                <Card
-                                    key={ingredient.id}
-                                    className="bg-white border-0 shadow-sm hover:shadow-2xl transition-all duration-500 rounded-2xl overflow-hidden group flex flex-col h-full"
-                                >
-                                    {/* Category Badge */}
-                                    <div className={`h-2 bg-gradient-to-r ${getCategoryColor(ingredient.category)}`}></div>
-
-                                    <div className="p-6 flex flex-col flex-1">
-                                        {/* Header */}
-                                        <div className="flex items-start justify-between mb-4 min-h-[60px]">
-                                            <div className="flex-1 pr-2">
-                                                <h3 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-primary transition-colors line-clamp-1" title={ingredient.name}>
-                                                    {ingredient.name}
-                                                </h3>
-                                                <p className="text-sm text-gray-500 font-medium flex items-center gap-1 line-clamp-1" title={ingredient.supplier}>
-                                                    <Factory size={14} strokeWidth={2.5} className="flex-shrink-0" />
-                                                    <span className="truncate">{ingredient.supplier}</span>
-                                                </p>
-                                            </div>
-                                            {isLowStock && (
-                                                <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-pink-500 rounded-xl flex items-center justify-center animate-pulse flex-shrink-0">
-                                                    <TrendingDown className="text-white" size={20} strokeWidth={2.5} />
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* Stock Info */}
-                                        <div className="mb-4 p-4 bg-gradient-to-br from-gray-50 to-transparent rounded-xl border border-gray-100">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-                                                    Tồn kho
-                                                </span>
-                                                <span className={`text-2xl font-bold ${isLowStock ? 'text-red-600' : 'text-gray-900'}`}>
-                                                    {ingredient.quantity} {ingredient.unit}
-                                                </span>
-                                            </div>
-                                            <div className="relative h-3 bg-gray-200 rounded-full overflow-hidden">
-                                                <div
-                                                    className={`absolute top-0 left-0 h-full rounded-full transition-all duration-1000 ${isLowStock
-                                                        ? 'bg-gradient-to-r from-red-500 to-pink-500'
-                                                        : 'bg-gradient-to-r from-green-500 to-emerald-500'
-                                                        }`}
-                                                    style={{ width: `${Math.min(stockPercentage, 100)}%` }}
-                                                />
-                                            </div>
-                                            <p className="text-xs text-gray-500 mt-1.5 truncate">
-                                                Ngưỡng tối thiểu: {ingredient.threshold} {ingredient.unit}
-                                            </p>
-                                        </div>
-
-                                        {/* Details */}
-                                        <div className="space-y-2 mb-4 flex-1">
-                                            <div className="flex items-center justify-between text-sm">
-                                                <span className="text-gray-600 font-medium flex items-center gap-1 flex-shrink-0">
-                                                    <Weight size={14} strokeWidth={2.5} />
-                                                    Calo/100g:
-                                                </span>
-                                                <span className="font-bold text-gray-900 text-right">{ingredient.caloriePerUnit} kcal</span>
-                                            </div>
-                                            <div className="flex items-center justify-between text-sm">
-                                                <span className="text-gray-600 font-medium flex items-center gap-1 flex-shrink-0">
-                                                    <DollarSign size={14} strokeWidth={2.5} />
-                                                    Giá/{ingredient.unit}:
-                                                </span>
-                                                <span className="font-bold text-green-600 text-right">
-                                                    {ingredient.cost.toLocaleString()}đ
-                                                </span>
-                                            </div>
-                                            <div className="flex items-center justify-between text-sm">
-                                                <span className="text-gray-600 font-medium flex items-center gap-1 flex-shrink-0">
-                                                    <Calendar size={14} strokeWidth={2.5} />
-                                                    Cập nhật:
-                                                </span>
-                                                <span className="font-medium text-gray-700 text-right">
-                                                    {new Date(ingredient.lastUpdated).toLocaleDateString('vi-VN')}
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        {/* Actions */}
-                                        <div className="flex gap-2 pt-4 border-t-2 border-gray-100 mt-auto">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                className="flex-1 border-2 border-primary text-primary hover:bg-primary hover:text-white font-semibold rounded-xl transition-all"
-                                            >
-                                                <Edit size={16} className="mr-1" strokeWidth={2.5} />
-                                                Sửa
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                className="flex-1 border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-semibold rounded-xl transition-all"
-                                            >
-                                                <Trash2 size={16} className="mr-1" strokeWidth={2.5} />
-                                                Xóa
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </Card>
-                            );
-                        })}
-                    </div>
+        <div className="space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                        <Package className="text-orange-600" size={32} />
+                        Quản lý nguyên liệu
+                    </h1>
+                    <p className="text-gray-600 mt-2">
+                        Theo dõi tồn kho, nhà cung cấp và lô hàng nguyên liệu
+                    </p>
                 </div>
+                <Button className="bg-gradient-to-r from-orange-500 to-orange-600">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Thêm nguyên liệu
+                </Button>
             </div>
-        </AdminGuard>
+
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <Card className="p-4 bg-gradient-to-br from-orange-50 to-white border-orange-200">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm text-gray-600 font-medium">Tổng nguyên liệu</p>
+                            <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+                        </div>
+                        <Package className="w-10 h-10 text-orange-500 opacity-80" />
+                    </div>
+                </Card>
+                <Card className="p-4 bg-gradient-to-br from-green-50 to-white border-green-200">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm text-gray-600 font-medium">Đang hoạt động</p>
+                            <p className="text-2xl font-bold text-green-600">{stats.active}</p>
+                        </div>
+                        <TrendingDown className="w-10 h-10 text-green-500 opacity-80" />
+                    </div>
+                </Card>
+                <Card className="p-4 bg-gradient-to-br from-yellow-50 to-white border-yellow-200">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm text-gray-600 font-medium">Cảnh báo sắp hết</p>
+                            <p className="text-2xl font-bold text-yellow-600">{stats.lowStock}</p>
+                        </div>
+                        <AlertTriangle className="w-10 h-10 text-yellow-500 opacity-80" />
+                    </div>
+                </Card>
+                <Card className="p-4 bg-gradient-to-br from-blue-50 to-white border-blue-200">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm text-gray-600 font-medium">Tổng giá trị</p>
+                            <p className="text-2xl font-bold text-blue-600">
+                                {(stats.totalValue / 1000000).toFixed(1)}M
+                            </p>
+                        </div>
+                        <DollarSign className="w-10 h-10 text-blue-500 opacity-80" />
+                    </div>
+                </Card>
+            </div>
+
+            {/* FilterBar */}
+            <FilterBar
+                searchPlaceholder="Tìm kiếm theo tên, SKU, barcode..."
+                searchValue={searchValue}
+                onSearchChange={setSearchValue}
+                filters={filters}
+                onRemoveFilter={handleRemoveFilter}
+                onClearAll={handleClearAll}
+                savedFilters={savedFilters}
+                onApplySavedFilter={handleApplySavedFilter}
+                onSaveCurrentFilter={handleSaveFilter}
+                showAdvancedFilters={showAdvanced}
+                onToggleAdvancedFilters={() => setShowAdvanced(!showAdvanced)}
+                customActions={
+                    <>
+                        <Button variant="outline" size="sm" style={{ color: '#000000', fontWeight: '600' }}>
+                            <Barcode className="h-4 w-4 mr-2" />
+                            Quét mã
+                        </Button>
+                        <Button variant="outline" size="sm" style={{ color: '#000000', fontWeight: '600' }}>
+                            <FileText className="h-4 w-4 mr-2" />
+                            Báo cáo
+                        </Button>
+                    </>
+                }
+            />
+
+            {/* Advanced Filters */}
+            {showAdvanced && (
+                <Card className="p-4 bg-white">
+                    <h3 className="font-semibold mb-4 text-gray-900">Bộ lọc nâng cao</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label className="text-sm font-bold mb-2 block text-gray-950">Danh mục</label>
+                            <select
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-950 font-semibold bg-white"
+                                onChange={(e) => {
+                                    if (e.target.value) {
+                                        setFilters([
+                                            ...filters.filter((f) => f.id !== 'category'),
+                                            { id: 'category', label: 'Danh mục', value: e.target.value },
+                                        ]);
+                                    }
+                                }}
+                            >
+                                <option value="">Tất cả</option>
+                                <option value="meat">Thịt</option>
+                                <option value="seafood">Hải sản</option>
+                                <option value="vegetable">Rau củ</option>
+                                <option value="dairy">Sữa</option>
+                                <option value="grain">Ngũ cốc</option>
+                                <option value="spice">Gia vị</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="text-sm font-bold mb-2 block text-gray-950">Trạng thái</label>
+                            <select
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-950 font-semibold bg-white"
+                                onChange={(e) => {
+                                    if (e.target.value) {
+                                        setFilters([
+                                            ...filters.filter((f) => f.id !== 'status'),
+                                            { id: 'status', label: 'Trạng thái', value: e.target.value },
+                                        ]);
+                                    }
+                                }}
+                            >
+                                <option value="">Tất cả</option>
+                                <option value="active">Hoạt động</option>
+                                <option value="low_stock">Sắp hết</option>
+                                <option value="out_of_stock">Hết hàng</option>
+                                <option value="discontinued">Ngừng</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="text-sm font-bold mb-2 block text-gray-950">Bảo quản</label>
+                            <select
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-950 font-semibold bg-white"
+                                onChange={(e) => {
+                                    if (e.target.value) {
+                                        setFilters([
+                                            ...filters.filter((f) => f.id !== 'storage'),
+                                            { id: 'storage', label: 'Bảo quản', value: e.target.value },
+                                        ]);
+                                    }
+                                }}
+                            >
+                                <option value="">Tất cả</option>
+                                <option value="frozen">Đông lạnh</option>
+                                <option value="refrigerated">Làm lạnh</option>
+                                <option value="cool">Mát</option>
+                                <option value="room_temp">Nhiệt độ phòng</option>
+                                <option value="dry">Khô ráo</option>
+                            </select>
+                        </div>
+                    </div>
+                </Card>
+            )}
+
+            {/* DataTable */}
+            <DataTable
+                data={filteredIngredients}
+                columns={columns}
+                selectable
+                onSelectionChange={setSelectedIngredients}
+                getRowId={(row) => row.id}
+                defaultSort={{ columnId: 'name', direction: 'asc' }}
+                pagination={{
+                    pageSize: 10,
+                    pageSizeOptions: [10, 25, 50, 100],
+                }}
+                actions={{
+                    onExport: handleExport,
+                    onDelete: handleBulkDelete,
+                }}
+                emptyState={{
+                    title: 'Không tìm thấy nguyên liệu',
+                    description: 'Thử thay đổi bộ lọc hoặc tìm kiếm với từ khóa khác',
+                    icon: <Package className="h-16 w-16 text-gray-400" />,
+                    action: (
+                        <Button className="bg-gradient-to-r from-orange-500 to-orange-600">
+                            <Plus className="h-4 w-4 mr-2" />
+                            Thêm nguyên liệu mới
+                        </Button>
+                    ),
+                }}
+                stickyHeader
+            />
+
+            {/* Detail Dialog */}
+            <IngredientDetailDialog
+                ingredient={selectedIngredient}
+                open={detailDialogOpen}
+                onClose={() => {
+                    setDetailDialogOpen(false);
+                    setSelectedIngredient(null);
+                }}
+            />
+        </div>
     );
 }

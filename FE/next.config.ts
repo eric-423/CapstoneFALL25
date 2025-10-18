@@ -59,10 +59,11 @@ const nextConfig: NextConfig = {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
   },
 
+  serverExternalPackages: ['@ant-design/plots'],
+
   // Experimental features
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons', 'framer-motion'],
-    serverComponentsExternalPackages: ['@ant-design/plots'],
     optimizeCss: true,
     webpackBuildWorker: true,
   },

@@ -110,3 +110,5 @@ export {
   DialogTitle,
   DialogTrigger,
 };
+
+export { VisuallyHidden } from './visually-hidden';
