@@ -1,12 +1,11 @@
 import { Tabs } from "expo-router";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { APP_COLOR } from "@/utils/constant";
 import { StyleSheet, View } from "react-native";
 import { FONTS } from "@/theme/typography";
 import Octicons from "@expo/vector-icons/Octicons";
-import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import AntDesign from "@expo/vector-icons/AntDesign";
 const TabLayout = () => {
   const getIcons = (routeName: string, focused: boolean, size: number) => {
     const styles = StyleSheet.create({
@@ -58,11 +57,11 @@ const TabLayout = () => {
       );
     }
 
-    if (routeName === "blog") {
+    if (routeName === "order.history") {
       return focused ? (
-        <FontAwesome5 name="blogger-b" size={24} color={APP_COLOR.ORANGE} />
+        <AntDesign name="shopping-cart" size={24} color={APP_COLOR.ORANGE} />
       ) : (
-        <FontAwesome5 name="blogger-b" size={24} color={APP_COLOR.BROWN} />
+        <AntDesign name="shopping-cart" size={24} color={APP_COLOR.BROWN} />
       );
     }
     if (routeName === "account") {
@@ -106,8 +105,8 @@ const TabLayout = () => {
             ? "Thực đơn"
             : route.name === "index"
             ? "Trang chủ"
-            : route.name === "blog"
-            ? "Bài viết"
+            : route.name === "order.history"
+            ? "Đơn hàng"
             : "Tôi",
       })}
     >
@@ -130,9 +129,9 @@ const TabLayout = () => {
         }}
       />
       <Tabs.Screen
-        name="blog"
+        name="order.history"
         options={{
-          title: "Bài viết",
+          title: "Đơn hàng",
         }}
       />
       <Tabs.Screen

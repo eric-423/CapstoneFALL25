@@ -275,7 +275,10 @@ const AccountPage = () => {
           />
         </Pressable>
 
-        <Pressable onPress={() => handleLogout()} style={styles.btnStyle}>
+        <Pressable
+          onPress={() => router.navigate("/(tabs)/order.history")}
+          style={styles.btnStyle}
+        >
           <View
             style={{
               flexDirection: "row",
