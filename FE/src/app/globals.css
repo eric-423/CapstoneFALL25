@@ -1,9 +1,5 @@
 @import 'tailwindcss';
 
-@plugin "tailwindcss-animate";
-
-@custom-variant dark (&:is(.dark *));
-
 :root {
   --radius: 0.75rem;
   /* Modern neutral background - #f9fafb */
@@ -214,6 +210,15 @@
     scrollbar-color: var(--primary) transparent;
   }
 
+  /* Ensure light mode is default */
+  html:not(.dark) {
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', 'Poppins', 'Montserrat', system-ui, sans-serif;
@@ -274,16 +279,31 @@
     background: oklch(0.6 0.2 41.83);
   }
 
-  /* Fix textarea and input colors */
-  input,
-  textarea,
-  select {
-    color: oklch(0.15 0.015 286) !important;
+  /* Fix textarea and input colors - only apply in light mode */
+  :root input,
+  :root textarea,
+  :root select {
+    color: oklch(0.15 0.015 286);
+    background-color: oklch(1 0 0);
   }
 
-  input::placeholder,
-  textarea::placeholder {
-    color: oklch(0.6 0.01 286) !important;
+  :root input::placeholder,
+  :root textarea::placeholder {
+    color: oklch(0.6 0.01 286);
+    opacity: 0.6;
+  }
+
+  /* Dark mode input colors */
+  .dark input,
+  .dark textarea,
+  .dark select {
+    color: oklch(0.95 0.05 80);
+    background-color: oklch(0.3 0.06 30);
+  }
+
+  .dark input::placeholder,
+  .dark textarea::placeholder {
+    color: oklch(0.75 0.03 80);
     opacity: 0.6;
   }
 }

@@ -24,13 +24,15 @@ const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
 export function ThemeProvider({
   children,
-  defaultTheme = 'system',
+  defaultTheme = 'light',
   storageKey = 'ui-theme',
   ...props
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window !== 'undefined') {
-      return (localStorage.getItem(storageKey) as Theme) || defaultTheme;
+      const storedTheme = localStorage.getItem(storageKey) as Theme;
+      // If stored theme is 'system' or undefined, use 'light' as default
+      return storedTheme && storedTheme !== 'system' ? storedTheme : defaultTheme;
     }
     return defaultTheme;
   });
@@ -38,7 +40,15 @@ export function ThemeProvider({
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    // Clean up any 'system' theme from localStorage
+    if (typeof window !== 'undefined') {
+      const storedTheme = localStorage.getItem(storageKey);
+      if (storedTheme === 'system') {
+        localStorage.setItem(storageKey, 'light');
+        setTheme('light');
+      }
+    }
+  }, [storageKey]);
 
   useEffect(() => {
     if (!mounted) return;

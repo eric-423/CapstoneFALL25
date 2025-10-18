@@ -36,6 +36,18 @@ export interface UserResponse {
   };
 }
 
+export interface RegisterData {
+  fullName: string;
+  phone: string;
+  email: string;
+  password: string;
+  gender: string;
+  address: string;
+  province: string;
+  district: string;
+  ward: string;
+}
+
 export const USER_SIGN_UP_KEY = 'USER_SIGN_UP_KEY';
 export const GET_ME_QUERY_KEY = 'GET_ME_QUERY_KEY';
 
@@ -46,9 +58,29 @@ export const refetchToken = (refresh: string) => http.post(`https://tam-tac.com/
 export const verifyOTP = (phoneNumber: string, otp: string) =>
   http.post(`https://tam-tac.com/api/verify-code/verify?phoneNumber=${phoneNumber}&code=${otp}`);
 
+// Register với thông tin đầy đủ
+export const registerWithOTP = async (data: RegisterData, otp: string) => {
+  const response = await http.post('/customer/register', {
+    ...data,
+    otp,
+  });
+  return response;
+};
+
+// Send OTP cho registration
+export const sendRegistrationOTP = async (phoneNumber: string) => {
+  const response = await http.post('/verify-code/send', { phoneNumber, mode: 'REGISTRATION' });
+  return response;
+};
+
 export const signIn = async (data: { phoneNumber: string; password: string }) => {
   const response = await http.post('/customer/sign-in', data);
-  return response.data;
+  return response;
+};
+
+export const signInStaff = async (data: { phoneNumber: string; password: string }) => {
+  const response = await http.post('/auth/sign-in', data);
+  return response;
 };
 
 export const changePassword = (data: { phoneNumber: string; password: string }) =>
