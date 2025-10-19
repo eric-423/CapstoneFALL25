@@ -20,7 +20,7 @@ export const ProductCard = ({ item, descriptionOverflow = 40 }: ProductCardProps
   const [dialogOpen, setDialogOpen] = useState(false);
   const isMobile = useIsMobile();
   return (
-    <Card className='group p-0 overflow-hidden gap-4 bg-white/80 backdrop-blur-sm border-none shadow-lg hover:shadow-xl transition-all duration-300'>
+    <Card className='group p-0 overflow-hidden gap-4 bg-background/80 backdrop-blur-sm border-none shadow-lg hover:shadow-xl transition-all duration-300'>
       <div className='relative h-50 overflow-hidden'>
         <Image
           src={item.productImage || '/placeholder.svg'}
@@ -29,7 +29,7 @@ export const ProductCard = ({ item, descriptionOverflow = 40 }: ProductCardProps
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           className='object-cover transition-transform duration-500 group-hover:scale-105'
         />
-        <div className='absolute top-4 right-4 bg-white rounded-full px-3 py-1 flex items-center shadow-md'>
+        <div className='absolute top-4 right-4 bg-card rounded-full px-3 py-1 flex items-center shadow-md'>
           <Star className='h-4 w-4 text-yellow-500 mr-1' fill='#F59E0B' />
           <span className='text-sm font-medium'>{item.rating}</span>
         </div>
