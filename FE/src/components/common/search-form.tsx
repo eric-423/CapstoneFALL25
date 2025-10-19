@@ -26,7 +26,7 @@ export function SearchForm({ className }: SearchFormProps) {
   };
 
   return (
-    <div className={`bg-white rounded-2xl shadow-2xl p-6 max-w-4xl mx-auto ${className}`}>
+    <div className={`bg-card rounded-2xl shadow-2xl p-6 max-w-4xl mx-auto ${className}`}>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
         {/* Branch Selection */}
         <div className="space-y-2">

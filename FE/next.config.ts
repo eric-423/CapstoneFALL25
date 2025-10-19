@@ -68,8 +68,20 @@ const nextConfig: NextConfig = {
     webpackBuildWorker: true,
   },
 
-  // Webpack configuration
-  webpack: (config) => {
+  // Turbopack configuration (when using --turbopack flag)
+  turbopack: {
+    // Turbopack specific configuration
+    rules: {
+      // Add any custom rules here if needed
+    },
+  },
+
+  // Webpack configuration (fallback when not using --turbopack)
+  webpack: (config, { dev, isServer }) => {
+    // Only apply webpack config when not using turbopack
+    if (dev && process.env.TURBOPACK) {
+      return config;
+    }
     // Add any custom webpack config here
     return config;
   },

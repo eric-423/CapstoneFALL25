@@ -91,7 +91,7 @@ export default function OrderProgressTracker({ currentStatus, className }: Order
               <div
                 key={status.key}
                 className={cn(
-                  'flex items-center justify-center w-8 h-8 rounded-full border-2 bg-white transition-all duration-300 mx-5',
+                  'flex items-center justify-center w-8 h-8 rounded-full border-2 bg-card transition-all duration-300 mx-5',
                   isCompleted ? `${status.borderColor} ${status.bgColor}` : 'border-gray-300 bg-gray-100',
                   isCurrent && 'ring-2 ring-offset-2 ring-primary/50',
                 )}
