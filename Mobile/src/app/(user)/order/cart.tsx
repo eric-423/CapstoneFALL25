@@ -6,6 +6,7 @@ import { View, ScrollView, Text } from "react-native";
 import { FONTS } from "@/theme/typography";
 import { currencyFormatter } from "@/utils/cart";
 import ShareButton from "@/components/button/share.button";
+import { router } from "expo-router";
 
 const sampleCartItems = [
   {
@@ -143,7 +144,7 @@ const CartPage = () => {
         >
           <ShareButton
             title="Tiến hành đặt hàng"
-            onPress={() => {}}
+            onPress={() => router.navigate("/order/place.order")}
             btnStyle={{
               width: 300,
               justifyContent: "center",

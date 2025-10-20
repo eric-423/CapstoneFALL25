@@ -31,6 +31,12 @@ export default function UserLayout() {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="order/place.order"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }

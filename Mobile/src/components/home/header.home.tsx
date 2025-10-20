@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
     backgroundColor: APP_COLOR.BROWN,
     width: 50,
     height: 50,
-    borderRadius: "100%",
+    borderRadius: 50,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -54,9 +54,16 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
   }, []);
   useEffect(() => {
     const getLocation = async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status === "granted") {
-        const locationData = await Location.getCurrentPositionAsync({});
+      try {
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") {
+          setLocation("Không có quyền truy cập vị trí");
+          return;
+        }
+
+        const locationData = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
         const { latitude, longitude } = locationData.coords;
 
         const address = await Location.reverseGeocodeAsync({
@@ -75,6 +82,9 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
         } else {
           setLocation("Không tìm thấy địa chỉ");
         }
+      } catch (error) {
+        console.warn("Location error:", error);
+        setLocation("Lỗi khi lấy vị trí");
       }
     };
 
@@ -130,7 +140,7 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
                   backgroundColor: APP_COLOR.ORANGE,
                   width: 25,
                   height: 25,
-                  borderRadius: "100%",
+                  borderRadius: 50,
                   alignItems: "center",
                   justifyContent: "center",
                   position: "absolute",
@@ -237,7 +247,7 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
                     backgroundColor: APP_COLOR.ORANGE,
                     width: 25,
                     height: 25,
-                    borderRadius: "100%",
+                    borderRadius: 50,
                     alignItems: "center",
                     justifyContent: "center",
                     position: "absolute",
@@ -290,6 +300,36 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
                   size={30}
                   color={APP_COLOR.WHITE}
                 />
+              </View>
+            </View>
+          </View>
+        );
+      case "placeOrderPage":
+        return (
+          <View style={[styles.container, { marginLeft: 0, height: 70 }]}>
+            <View
+              style={{
+                width: "87%",
+                flexDirection: "row",
+                alignItems: "center",
+              }}
+            >
+              <SimpleLineIcons
+                name="handbag"
+                size={40}
+                color={APP_COLOR.BROWN}
+              />
+              <View style={{ width: "55%" }}>
+                <Text
+                  style={{
+                    fontFamily: FONTS.bold,
+                    fontSize: 20,
+                    color: APP_COLOR.BROWN,
+                    marginLeft: 10,
+                  }}
+                >
+                  Đặt hàng
+                </Text>
               </View>
             </View>
           </View>
