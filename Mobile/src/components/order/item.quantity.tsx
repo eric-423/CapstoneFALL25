@@ -32,14 +32,12 @@ const ItemQuantity = (props: IProps) => {
             items: {},
           };
         }
-
-        // Update cart for the specific restaurant
         cart[restaurant._id].sum = cart[restaurant._id].sum + priceChange;
         cart[restaurant._id].quantity = cart[restaurant._id].quantity + total;
 
         if (!cart[restaurant._id].items[item._id]) {
           cart[restaurant._id].items[item._id] = {
-            data: menuItem,
+            data: menuItem as any,
             quantity: 0,
           };
         }
@@ -47,20 +45,17 @@ const ItemQuantity = (props: IProps) => {
         const currentQuantity =
           cart[restaurant._id].items[item._id].quantity + total;
         cart[restaurant._id].items[item._id] = {
-          data: menuItem,
+          data: menuItem as any,
           quantity: currentQuantity,
         };
 
         if (currentQuantity <= 0) {
           delete cart[restaurant._id].items[item._id];
         }
-
-        // Update the cart and trigger re-render
         setCart((prevState: any) => ({ ...prevState, ...cart }));
 
-        // Trigger the onQuantityChange callback
         if (onQuantityChange) {
-          onQuantityChange(priceChange); // This will show the price update popup
+          onQuantityChange(priceChange);
         }
       }
     }

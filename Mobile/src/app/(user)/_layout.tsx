@@ -25,6 +25,12 @@ export default function UserLayout() {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="order/cart"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }
