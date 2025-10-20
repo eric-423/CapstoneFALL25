@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import Entypo from "@expo/vector-icons/Entypo";
 import * as Location from "expo-location";
 import { APP_COLOR } from "@/utils/constant";
@@ -9,6 +9,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import Feather from "@expo/vector-icons/Feather";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
+import { router } from "expo-router";
 interface HeaderHomeProps {
   pageName: string;
 }
@@ -26,7 +27,7 @@ const styles = StyleSheet.create({
     backgroundColor: APP_COLOR.BROWN,
     width: 50,
     height: 50,
-    borderRadius: "100%",
+    borderRadius: 50,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -35,6 +36,7 @@ const styles = StyleSheet.create({
 const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
   const [location, setLocation] = useState<string | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const { cart } = useCurrentApp();
   const { locationReal } = useCurrentApp();
   useEffect(() => {
     const fetchData = async () => {
@@ -52,9 +54,16 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
   }, []);
   useEffect(() => {
     const getLocation = async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status === "granted") {
-        const locationData = await Location.getCurrentPositionAsync({});
+      try {
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") {
+          setLocation("Không có quyền truy cập vị trí");
+          return;
+        }
+
+        const locationData = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
         const { latitude, longitude } = locationData.coords;
 
         const address = await Location.reverseGeocodeAsync({
@@ -73,6 +82,9 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
         } else {
           setLocation("Không tìm thấy địa chỉ");
         }
+      } catch (error) {
+        console.warn("Location error:", error);
+        setLocation("Lỗi khi lấy vị trí");
       }
     };
 
@@ -128,7 +140,7 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
                   backgroundColor: APP_COLOR.ORANGE,
                   width: 25,
                   height: 25,
-                  borderRadius: "100%",
+                  borderRadius: 50,
                   alignItems: "center",
                   justifyContent: "center",
                   position: "absolute",
@@ -139,7 +151,7 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
                 <Text
                   style={{ color: APP_COLOR.WHITE, fontFamily: FONTS.bold }}
                 >
-                  1
+                  {cart?.mock_restaurant_1?.quantity || 0}
                 </Text>
               </View>
               <View style={styles.notificationWrapper}>
@@ -214,39 +226,114 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
             <View
               style={{ alignItems: "flex-end", flexDirection: "row", gap: 10 }}
             >
-              <View style={styles.notificationWrapper}>
-                <Ionicons name="search" size={24} color={APP_COLOR.WHITE} />
-              </View>
-              <View
-                style={{
-                  backgroundColor: APP_COLOR.ORANGE,
-                  width: 25,
-                  height: 25,
-                  borderRadius: "100%",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  position: "absolute",
-                  left: 30,
-                  top: -5,
-                }}
+              <Pressable
+                onPress={() => router.navigate("/(auth)/search")}
+                style={styles.notificationWrapper}
               >
-                <Text
-                  style={{ color: APP_COLOR.WHITE, fontFamily: FONTS.bold }}
-                >
-                  1
-                </Text>
-              </View>
-              <View style={styles.notificationWrapper}>
+                <Ionicons name="search" size={24} color={APP_COLOR.WHITE} />
+              </Pressable>
+
+              <Pressable
+                onPress={() => router.navigate("/(user)/order/cart")}
+                style={styles.notificationWrapper}
+              >
                 <SimpleLineIcons
                   name="handbag"
                   size={24}
+                  color={APP_COLOR.WHITE}
+                />
+                <View
+                  style={{
+                    backgroundColor: APP_COLOR.ORANGE,
+                    width: 25,
+                    height: 25,
+                    borderRadius: 50,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    position: "absolute",
+                    left: 30,
+                    top: -5,
+                  }}
+                >
+                  <Text
+                    style={{ color: APP_COLOR.WHITE, fontFamily: FONTS.bold }}
+                  >
+                    {cart?.mock_restaurant_1?.quantity || 0}
+                  </Text>
+                </View>
+              </Pressable>
+            </View>
+          </View>
+        );
+      case "cartPage":
+        return (
+          <View style={styles.container}>
+            <View
+              style={{
+                width: "87%",
+                flexDirection: "row",
+                alignItems: "center",
+              }}
+            >
+              <SimpleLineIcons
+                name="handbag"
+                size={45}
+                color={APP_COLOR.BROWN}
+              />
+              <View style={{ width: "55%" }}>
+                <Text
+                  style={{
+                    fontFamily: FONTS.bold,
+                    fontSize: 20,
+                    color: APP_COLOR.BROWN,
+                    marginLeft: 10,
+                  }}
+                >
+                  Giỏ hàng
+                </Text>
+              </View>
+            </View>
+            <View style={{ alignItems: "flex-end" }}>
+              <View style={styles.notificationWrapper}>
+                <Ionicons
+                  name="notifications-outline"
+                  size={30}
                   color={APP_COLOR.WHITE}
                 />
               </View>
             </View>
           </View>
         );
-
+      case "placeOrderPage":
+        return (
+          <View style={[styles.container, { marginLeft: 0, height: 70 }]}>
+            <View
+              style={{
+                width: "87%",
+                flexDirection: "row",
+                alignItems: "center",
+              }}
+            >
+              <SimpleLineIcons
+                name="handbag"
+                size={40}
+                color={APP_COLOR.BROWN}
+              />
+              <View style={{ width: "55%" }}>
+                <Text
+                  style={{
+                    fontFamily: FONTS.bold,
+                    fontSize: 20,
+                    color: APP_COLOR.BROWN,
+                    marginLeft: 10,
+                  }}
+                >
+                  Đặt hàng
+                </Text>
+              </View>
+            </View>
+          </View>
+        );
       default:
         return <></>;
     }

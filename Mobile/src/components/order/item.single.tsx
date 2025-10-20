@@ -53,7 +53,7 @@ const ItemSingle = (props: IProps) => {
                 <Pressable
                   style={({ pressed }) => ({
                     opacity: pressed === true ? 0.5 : 1,
-                    alignSelf: "flex-start", //fit-content
+                    alignSelf: "flex-start",
                   })}
                   onPress={() => handlePressItem(menuItem, "MINUS")}
                 >

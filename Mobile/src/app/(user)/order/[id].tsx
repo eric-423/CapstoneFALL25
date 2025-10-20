@@ -11,7 +11,6 @@ import { router, useLocalSearchParams } from "expo-router";
 import { APP_COLOR } from "@/utils/constant";
 import { FONTS } from "@/theme/typography";
 import { currencyFormatter } from "@/utils/cart";
-import { SafeAreaView } from "react-native-safe-area-context";
 import Entypo from "@expo/vector-icons/Entypo";
 import { formatDateToDDMMYYYY } from "@/utils/cart";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
@@ -147,9 +146,7 @@ const OrderDetailsPage = () => {
   };
 
   return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: APP_COLOR.BACKGROUND_ORANGE }}
-    >
+    <View style={{ flex: 1, backgroundColor: APP_COLOR.BACKGROUND_ORANGE }}>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.container}>
           <View style={styles.headerTitle}>
@@ -451,7 +448,7 @@ const OrderDetailsPage = () => {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 

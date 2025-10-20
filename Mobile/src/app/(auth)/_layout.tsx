@@ -42,6 +42,7 @@ export default function AuthLayout() {
           headerShown: false,
         }}
       />
+      <Stack.Screen name="order.success" options={{ headerShown: false }} />
     </Stack>
   );
 }
