@@ -24,6 +24,7 @@ import ShareButton from "@/components/button/share.button";
 import HeaderHome from "@/components/home/header.home";
 import { AntDesign } from "@expo/vector-icons";
 import DropDown from "@/components/order/item.dropdown";
+import { router } from "expo-router";
 
 interface IOrderItem {
   title: string;
@@ -657,7 +658,7 @@ const PlaceOrderPage = () => {
                 <ShareButton
                   loading={loading}
                   title="Tạo đơn hàng"
-                  onPress={() => {}}
+                  onPress={() => router.navigate("/(auth)/order.success")}
                   textStyle={{
                     textTransform: "uppercase",
                     color: APP_COLOR.WHITE,
