@@ -23,6 +23,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
             priority: 0.9,
         },
         {
+            url: `${baseUrl}/order-table`,
+            lastModified: new Date(),
+            changeFrequency: 'daily',
+            priority: 0.9,
+        },
+        {
             url: `${baseUrl}/login`,
             lastModified: new Date(),
             changeFrequency: 'monthly',
@@ -33,6 +39,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
             lastModified: new Date(),
             changeFrequency: 'weekly',
             priority: 0.6,
+        },
+        {
+            url: `${baseUrl}/chef`,
+            lastModified: new Date(),
+            changeFrequency: 'daily',
+            priority: 0.7,
         },
     ];
 }
