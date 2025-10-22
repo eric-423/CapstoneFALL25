@@ -20,7 +20,7 @@ export default function Header() {
   useOutsideClicked(document.getElementById('mobile-menu') as HTMLDivElement, () => setIsMenuOpen(false), isMenuOpen);
 
   return (
-    <header className='sticky top-0 z-50 w-full bg-white shadow-sm border-b border-gray-100'>
+    <header className='sticky top-0 z-50 w-full bg-background shadow-sm border-b border-gray-100'>
       <div className='container mx-auto px-4 md:px-6 lg:px-8 py-4 flex items-center justify-between'>
         {/* Logo */}
         <Link href='/' className='flex items-center space-x-2'>
@@ -59,7 +59,7 @@ export default function Header() {
 
       {/* Mobile Menu */}
       <div
-        className={`lg:hidden bg-white border-t border-gray-100 py-4 transition-transform duration-300 ease-in-out ${isMenuOpen ? 'visible' : 'hidden'}`}
+        className={`lg:hidden bg-background border-t border-gray-100 py-4 transition-transform duration-300 ease-in-out ${isMenuOpen ? 'visible' : 'hidden'}`}
         id='mobile-menu'
       >
         <div className='container mx-auto px-4 flex flex-col space-y-4'>

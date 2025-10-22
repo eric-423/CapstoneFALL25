@@ -2,18 +2,18 @@
 
 :root {
   --radius: 0.75rem;
-  /* Modern neutral background - #f9fafb */
-  --background: oklch(0.985 0.002 247);
-  /* Very dark text for better contrast */
-  --foreground: oklch(0.15 0.015 286);
+  /* Custom background - #FDE3CF */
+  --background: oklch(0.93 0.03 60);
+  /* Very dark text for better contrast with #FDE3CF background */
+  --foreground: oklch(0.2 0.02 30);
   /* White cards */
   --card: oklch(1 0 0);
   /* Very dark text on cards */
-  --card-foreground: oklch(0.15 0.015 286);
+  --card-foreground: oklch(0.2 0.02 30);
   /* White popover */
   --popover: oklch(1 0 0);
   /* Very dark text on popover */
-  --popover-foreground: oklch(0.15 0.015 286);
+  --popover-foreground: oklch(0.2 0.02 30);
   /* Primary - #EC6426 (Orange) */
   --primary: oklch(0.67 0.1827 41.83);
   /* White text on primary */
@@ -21,19 +21,19 @@
   /* Secondary - #F8A91F (Golden Yellow) */
   --secondary: oklch(0.8 0.15 80);
   /* Dark text on secondary */
-  --secondary-foreground: oklch(0.2 0.05 30);
+  --secondary-foreground: oklch(0.25 0.03 30);
   /* Tertiary Brown - #632713 (Dark Brown) */
   --brown-dark: oklch(0.25 0.08 35);
   /* Tertiary Green - #1A3F22 (Dark Green) */
   --green-dark: oklch(0.28 0.06 145);
-  /* Light muted background */
-  --muted: oklch(0.96 0.002 247);
+  /* Light muted background - slightly lighter than main background */
+  --muted: oklch(0.95 0.025 60);
   /* Darker muted text */
-  --muted-foreground: oklch(0.45 0.015 286);
+  --muted-foreground: oklch(0.4 0.02 30);
   /* Accent - warm orange */
   --accent: oklch(0.75 0.12 50);
   /* Dark text on accent */
-  --accent-foreground: oklch(0.2 0.05 30);
+  --accent-foreground: oklch(0.25 0.03 30);
   /* Red for destructive actions */
   --destructive: oklch(0.58 0.25 29);
   /* Light border color */
@@ -75,8 +75,8 @@
   --sidebar-primary: oklch(0.67 0.1827 41.83);
   /* White text on sidebar primary */
   --sidebar-primary-foreground: oklch(1 0 0);
-  /* Light accent for sidebar */
-  --sidebar-accent: oklch(0.97 0.005 247);
+  /* Light accent for sidebar - slightly lighter than main background */
+  --sidebar-accent: oklch(0.95 0.025 60);
   /* Dark text on sidebar accent */
   --sidebar-accent-foreground: oklch(0.15 0.015 286);
   /* Sidebar border */
@@ -89,34 +89,34 @@
 }
 
 .dark {
-  --background: oklch(0.35 0.08 30);
-  /* Dark - #632713 */
-  --foreground: oklch(0.95 0.05 80);
-  /* Light text - #FDE3CF */
+  --background: oklch(0.93 0.03 60);
+  /* Custom background - #FDE3CF */
+  --foreground: oklch(0.2 0.02 30);
+  /* Dark text for contrast with #FDE3CF background */
   --card: oklch(0.3 0.06 30);
   /* Slightly lighter than background */
-  --card-foreground: oklch(0.95 0.05 80);
-  /* Light text - #FDE3CF */
+  --card-foreground: oklch(0.2 0.02 30);
+  /* Dark text for contrast */
   --popover: oklch(0.3 0.06 30);
   /* Slightly lighter than background */
-  --popover-foreground: oklch(0.95 0.05 80);
-  /* Light text - #FDE3CF */
+  --popover-foreground: oklch(0.2 0.02 30);
+  /* Dark text for contrast */
   --primary: oklch(0.65 0.2 30);
   /* Primary - #EC6426 (consistent) */
   --primary-foreground: oklch(1 0 0);
   /* White text on primary */
   --secondary: oklch(0.8 0.15 80);
   /* Secondary - #F8A91F (consistent) */
-  --secondary-foreground: oklch(0.95 0.05 80);
-  /* Light text - #FDE3CF */
-  --muted: oklch(0.4 0.06 30);
-  /* Slightly lighter than background */
-  --muted-foreground: oklch(0.75 0.03 80);
-  /* Muted light text */
+  --secondary-foreground: oklch(0.25 0.03 30);
+  /* Dark text for contrast */
+  --muted: oklch(0.95 0.025 60);
+  /* Slightly lighter than main background */
+  --muted-foreground: oklch(0.4 0.02 30);
+  /* Muted dark text */
   --accent: oklch(0.4 0.06 30);
   /* Slightly lighter than background */
-  --accent-foreground: oklch(0.95 0.05 80);
-  /* Light text - #FDE3CF */
+  --accent-foreground: oklch(0.25 0.03 30);
+  /* Dark text for contrast */
   --destructive: oklch(0.7 0.2 25);
   /* Brighter red for dark mode */
   --border: oklch(1 0 0 / 10%);
@@ -141,18 +141,18 @@
   /* Red-orange */
 
   /* Sidebar specific variables for dark mode */
-  --sidebar: oklch(0.3 0.06 30);
-  /* Slightly lighter than background */
-  --sidebar-foreground: oklch(0.95 0.05 80);
-  /* Light text - #FDE3CF */
+  --sidebar: oklch(0.93 0.03 60);
+  /* Same as main background */
+  --sidebar-foreground: oklch(0.2 0.02 30);
+  /* Dark text for contrast */
   --sidebar-primary: oklch(0.65 0.2 30);
   /* Primary - #EC6426 */
   --sidebar-primary-foreground: oklch(1 0 0);
   /* White text on primary */
-  --sidebar-accent: oklch(0.4 0.06 30);
-  /* Slightly lighter than background */
-  --sidebar-accent-foreground: oklch(0.95 0.05 80);
-  /* Light text - #FDE3CF */
+  --sidebar-accent: oklch(0.95 0.025 60);
+  /* Slightly lighter than main background */
+  --sidebar-accent-foreground: oklch(0.2 0.02 30);
+  /* Dark text for contrast */
   --sidebar-border: oklch(1 0 0 / 10%);
   /* Subtle white border */
   --sidebar-ring: oklch(0.65 0.2 30);
@@ -283,13 +283,13 @@
   :root input,
   :root textarea,
   :root select {
-    color: oklch(0.15 0.015 286);
+    color: oklch(0.2 0.02 30);
     background-color: oklch(1 0 0);
   }
 
   :root input::placeholder,
   :root textarea::placeholder {
-    color: oklch(0.6 0.01 286);
+    color: oklch(0.5 0.015 30);
     opacity: 0.6;
   }
 
@@ -297,13 +297,13 @@
   .dark input,
   .dark textarea,
   .dark select {
-    color: oklch(0.95 0.05 80);
-    background-color: oklch(0.3 0.06 30);
+    color: oklch(0.2 0.02 30);
+    background-color: oklch(0.95 0.025 60);
   }
 
   .dark input::placeholder,
   .dark textarea::placeholder {
-    color: oklch(0.75 0.03 80);
+    color: oklch(0.5 0.015 30);
     opacity: 0.6;
   }
 }

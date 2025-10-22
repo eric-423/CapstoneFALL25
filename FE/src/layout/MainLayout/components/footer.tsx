@@ -29,7 +29,7 @@ const Footer = () => {
                 rel='noopener noreferrer'
                 className='hover:opacity-80 transition-opacity'
               >
-                <div className='bg-white/20 rounded-full p-2'>
+                <div className='bg-card/20 rounded-full p-2'>
                   <svg
                     xmlns='http://www.w3.org/2000/svg'
                     width='24'

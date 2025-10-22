@@ -20,7 +20,7 @@ export default function MenuPage() {
     useScrollTop();
     const [productType, setProductType] = useState<ProductType>({ id: 0, name: 'Tất cả' });
     const [selectedBranch, setSelectedBranch] = useState<any>(null);
-    
+
     // Use sample data hooks
     const {
         products: productList,

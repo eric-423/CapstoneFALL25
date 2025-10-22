@@ -66,4 +66,16 @@ declare global {
     basePrice?: number;
     title?: string;
   }
+  interface IUserLogin {
+    user: {
+      email: string;
+      _id: string;
+      name: string;
+      role: string;
+      address: any;
+      avatar: string;
+      phone: string;
+    };
+    token: string;
+  }
 }
