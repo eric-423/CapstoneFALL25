@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Xác thực Tấm Tắc</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #fff8f3;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 520px;
+            margin: 40px auto;
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            overflow: hidden;
+            border-top: 6px solid #e85c29;
+        }
+        .header {
+            text-align: center;
+            background-color: #fef4ef;
+            padding: 24px 20px 12px;
+        }
+        .header img {
+            width: 90px;
+            margin-bottom: 8px;
+        }
+        .title {
+            color: #e85c29;
+            font-size: 22px;
+            font-weight: 700;
+            margin: 0;
+        }
+        .content {
+            padding: 28px 30px;
+            color: #333;
+        }
+        .content p {
+            margin: 10px 0;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+        .otp-box {
+            text-align: center;
+            background: #fef6f1;
+            border: 1px dashed #e85c29;
+            border-radius: 10px;
+            margin: 22px 0;
+            padding: 14px 0;
+        }
+        .otp-code {
+            font-size: 28px;
+            font-weight: bold;
+            color: #e85c29;
+            letter-spacing: 4px;
+        }
+        .footer {
+            background-color: #e85c29;
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+            font-size: 13px;
+        }
+        .footer a {
+            color: #fff;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <img src="https://i.ibb.co/ZjTBhRp/full-logo.png" alt="Tấm Tắc Logo" />
+        <h1 class="title">Tấm ngon, Tắc nhớ!</h1>
+    </div>
+    <div class="content">
+        <p>Xin chào bạn,</p>
+        <p>Cảm ơn bạn đã đăng ký tại <b>Tấm Tắc</b> – thương hiệu cơm tấm dành riêng cho sinh viên.</p>
+        <p>Để xác minh tài khoản, vui lòng nhập mã OTP bên dưới:</p>
+
+        <div class="otp-box">
+            <div class="otp-code">[[${OTP_CODE}]]</div>
+        </div>
+
+        <p>Mã này có hiệu lực trong vòng <b>5 phút</b>.
+            Nếu bạn không yêu cầu xác thực, vui lòng bỏ qua email này.</p>
+
+        <p>Thân mến,<br/>
+            <b>Đội ngũ Tấm Tắc</b></p>
+    </div>
+    <div class="footer">
+        <p>Tấm Tắc – Thương hiệu cơm tấm hàng đầu cho sinh viên</p>
+        <p>
+            📍 Lô E2a-7, Đường D1, Long Thạnh Mỹ, TP. Thủ Đức, TP.HCM<br/>
+            📞 0902-123-456 | ✉️ <a href="mailto:cskh@tamtac.com">cskh@tamtac.com</a>
+        </p>
+    </div>
+</div>
+</body>
+</html>
