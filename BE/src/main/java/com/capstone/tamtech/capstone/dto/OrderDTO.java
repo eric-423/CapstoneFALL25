@@ -27,6 +27,8 @@ public class OrderDTO implements Serializable {
 
     private Boolean isPickUp;
 
+    private Boolean isTable;
+
     private Date delivery_at;
 
     private String orderStatus;

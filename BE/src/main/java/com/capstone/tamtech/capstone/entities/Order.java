@@ -25,7 +25,7 @@ public class Order {
     private String promotionCode;
 
     @Column(name = "order_discount_value")
-    private double discountValue;
+    private double discountValue = 0;
 
     @Column(name = "order_discount_percent")
     private int discountPercent;
@@ -77,6 +77,9 @@ public class Order {
 
     @Column(name = "pickup_time")
     private Date pickupTime;
+
+    @Column(name = "is_table")
+    private Boolean isTable;
 
     @Column(name = "customer_name")
     private String customerName;
