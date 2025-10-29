@@ -1,6 +1,5 @@
 import http from '@/utils/http';
 import JwtDecode from '@/utils/jwtDecode';
-import axios from 'axios';
 
 export interface CreateUserData {
   fullName: string;
@@ -53,10 +52,10 @@ export const GET_ME_QUERY_KEY = 'GET_ME_QUERY_KEY';
 
 export const signUp = (phoneNumber: string) => http.post('/customer/sign-up', { phoneNumber });
 export const sendOTP = (phoneNumber: string) => http.post('/verify-code/send?mode=', { phoneNumber });
-export const refetchToken = (refresh: string) => http.post(`https://tam-tac.com/api/token/refresh?token=${refresh}`);
+export const refetchToken = (refresh: string) => http.post(`/token/refresh?token=${refresh}`);
 
 export const verifyOTP = (phoneNumber: string, otp: string) =>
-  http.post(`https://tam-tac.com/api/verify-code/verify?phoneNumber=${phoneNumber}&code=${otp}`);
+  http.post(`/verify-code/verify?phoneNumber=${phoneNumber}&code=${otp}`);
 
 // Register với thông tin đầy đủ
 export const registerWithOTP = async (data: RegisterData, otp: string) => {
@@ -83,8 +82,11 @@ export const signInStaff = async (data: { phoneNumber: string; password: string 
   return response;
 };
 
+
 export const changePassword = (data: { phoneNumber: string; password: string }) =>
   http.post('/customer/change-password', data);
+
+// New: Customer register and OTP send
 
 
 export const refetchUserData = (token: string) => {
@@ -113,9 +115,9 @@ export const getMe = (userId: number) => http.get(`/customer/profile/${userId}`)
 // ADMIN USER CRUD
 export const getAllUsers = async (page = 0, size = 10000, isActive = true, roleId?: number) => {
   const token = localStorage.getItem('access_token');
-  let url = `https://tam-tac.com/api/users/admin/get-all-user?page=${page}&size=${size}&isActive=${isActive}`;
+  let url = `/users/admin/get-all-user?page=${page}&size=${size}&isActive=${isActive}`;
   if (roleId) url += `&roleId=${roleId}`;
-  const response = await axios.get(url, {
+  const response = await http.get(url, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return response.data;
@@ -123,7 +125,7 @@ export const getAllUsers = async (page = 0, size = 10000, isActive = true, roleI
 
 export const createUser = async (data: CreateUserData): Promise<UserResponse> => {
   const token = localStorage.getItem('access_token');
-  const response = await axios.post<UserResponse>('https://tam-tac.com/api/users/admin/create', data, {
+  const response = await http.post<UserResponse>('/users/admin/create', data, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return response.data;
@@ -131,7 +133,7 @@ export const createUser = async (data: CreateUserData): Promise<UserResponse> =>
 
 export const updateUser = async (userId: number, data: UpdateUserData): Promise<UserResponse> => {
   const token = localStorage.getItem('access_token');
-  const response = await axios.put<UserResponse>(`https://tam-tac.com/api/users/admin/update/${userId}`, data, {
+  const response = await http.put<UserResponse>(`/users/admin/update/${userId}`, data, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return response.data;
@@ -139,7 +141,7 @@ export const updateUser = async (userId: number, data: UpdateUserData): Promise<
 
 export const deleteUser = async (userId: number) => {
   const token = localStorage.getItem('access_token');
-  const response = await axios.delete(`https://tam-tac.com/api/users/admin/delete/${userId}`, {
+  const response = await http.delete(`/users/admin/delete/${userId}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return response.data;
@@ -147,7 +149,7 @@ export const deleteUser = async (userId: number) => {
 
 export const getUserDetail = async (userId: number) => {
   const token = localStorage.getItem('access_token');
-  const response = await axios.get(`https://tam-tac.com/api/users/admin/detail/${userId}`, {
+  const response = await http.get(`/users/admin/detail/${userId}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return response.data;
@@ -155,7 +157,7 @@ export const getUserDetail = async (userId: number) => {
 
 export const unbanUser = async (userId: number) => {
   const token = localStorage.getItem('access_token');
-  const response = await axios.put(
+  const response = await http.put(
     `/users/admin/unban/${userId}`,
     {},
     {
@@ -164,3 +166,23 @@ export const unbanUser = async (userId: number) => {
   );
   return response.data;
 };
+
+
+
+// ========================================================
+
+// login 
+export const loginCustomer = (data: { phoneNumber: string; password: string }) =>
+  http.post('/api/auth/customer/login', data);
+
+export const registerCustomer = (data: { fullName: string; phoneNumber: string; password: string; dateOfBirth: string }) =>
+  http.post('api/auth/customer/regiser', data);
+
+export const sendOtp = (channel: 'email' | 'zalo', identifier: string) =>
+  http.post('api/auth/otp/send', { channel, identifier });
+
+
+// =====================================  employee ================================
+
+export const loginEmployee = (data: { email: string; password: string }) =>
+  http.post('/api/auth/employee/login', data);

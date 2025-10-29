@@ -1,4 +1,4 @@
-import axios from 'axios';
+import http from '@/utils/http';
 
 export interface Product {
   productId: number;
@@ -232,7 +232,7 @@ export interface DashboardUserResponse {
 export const GET_TOP_PRODUCTS_QUERY_KEY = 'GET_TOP_PRODUCTS';
 export const getTopProducts = async (): Promise<TopProductsResponse> => {
   const token = localStorage.getItem('access_token');
-  const response = await axios.get<TopProductsResponse>('https://tam-tac.com/api/dashboard/top-products', {
+  const response = await http.get<TopProductsResponse>('/dashboard/top-products', {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -242,7 +242,8 @@ export const getTopProducts = async (): Promise<TopProductsResponse> => {
 
 export const getWeeklyRevenue = async (month: number, year: number): Promise<WeeklyRevenueResponse> => {
   const token = localStorage.getItem('access_token');
-  const response = await axios.get<WeeklyRevenueResponse>(`https://tam-tac.com/api/dashboard/revenue/week?month=${month}&year=${year}`, {
+  const response = await http.get<WeeklyRevenueResponse>(`/dashboard/revenue/week`, {
+    params: { month, year },
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -252,7 +253,8 @@ export const getWeeklyRevenue = async (month: number, year: number): Promise<Wee
 
 export const getMonthlyRevenue = async (year: number): Promise<MonthlyRevenueResponse> => {
   const token = localStorage.getItem('access_token');
-  const response = await axios.get<MonthlyRevenueResponse>(`https://tam-tac.com/api/dashboard/revenue/month?year=${year}`, {
+  const response = await http.get<MonthlyRevenueResponse>(`/dashboard/revenue/month`, {
+    params: { year },
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -263,7 +265,7 @@ export const getMonthlyRevenue = async (year: number): Promise<MonthlyRevenueRes
 
 export const getBranchRevenue = async (): Promise<BranchRevenueResponse> => {
   const token = localStorage.getItem('access_token');
-  const response = await axios.get<BranchRevenueResponse>('https://tam-tac.com/api/dashboard/revenue/branch', {
+  const response = await http.get<BranchRevenueResponse>('/dashboard/revenue/branch', {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -273,7 +275,7 @@ export const getBranchRevenue = async (): Promise<BranchRevenueResponse> => {
 
 export const getManagerDashboard = async (): Promise<ManagerDashboardResponse> => {
   const token = localStorage.getItem('access_token');
-  const response = await axios.get<ManagerDashboardResponse>('https://tam-tac.com/api/dashboard/manager', {
+  const response = await http.get<ManagerDashboardResponse>('/dashboard/manager', {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -283,7 +285,7 @@ export const getManagerDashboard = async (): Promise<ManagerDashboardResponse> =
 
 export const getLatestOrders = async (): Promise<LatestOrdersResponse> => {
   const token = localStorage.getItem('access_token');
-  const response = await axios.get<LatestOrdersResponse>('https://tam-tac.com/api/dashboard/latest-orders', {
+  const response = await http.get<LatestOrdersResponse>('/dashboard/latest-orders', {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -293,27 +295,23 @@ export const getLatestOrders = async (): Promise<LatestOrdersResponse> => {
 
 export const getDashboardOrders = async (page = 0, size = 10): Promise<DashboardOrderResponse> => {
   const token = localStorage.getItem('access_token');
-  const response = await axios.get<DashboardOrderResponse>(
-    `https://tam-tac.com/api/dashboard/order?page=${page}&size=${size}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+  const response = await http.get<DashboardOrderResponse>(`/dashboard/order`, {
+    params: { page, size },
+    headers: {
+      Authorization: `Bearer ${token}`,
     },
-  );
+  });
   return response.data;
 };
 
 export const getDashboardProducts = async (page = 0, size = 10): Promise<DashboardProductResponse> => {
   const token = localStorage.getItem('access_token');
-  const response = await axios.get<DashboardProductResponse>(
-    `https://tam-tac.com/api/dashboard/product?page=${page}&size=${size}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+  const response = await http.get<DashboardProductResponse>(`/dashboard/product`, {
+    params: { page, size },
+    headers: {
+      Authorization: `Bearer ${token}`,
     },
-  );
+  });
   return response.data;
 };
 
@@ -328,7 +326,7 @@ export interface DeleteProductResponse {
 
 export const deleteDashboardProduct = async (productId: number): Promise<DeleteProductResponse> => {
   const token = localStorage.getItem('access_token');
-  const response = await axios.delete<DeleteProductResponse>(`https://tam-tac.com/api/products/admin/delete/${productId}`, {
+  const response = await http.delete<DeleteProductResponse>(`/products/admin/delete/${productId}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -339,9 +337,9 @@ export const deleteDashboardProduct = async (productId: number): Promise<DeleteP
 
 export const getDashboardUsers = async (page = 0, size = 10): Promise<DashboardUserResponse> => {
   const token = localStorage.getItem('access_token');
-  const url = `https://tam-tac.com/api/users/admin/get-all-user?page=${page}&size=${size}&isActive=true&roleId=6`;
+  const url = `/users/admin/get-all-user?page=${page}&size=${size}&isActive=true&roleId=6`;
 
-  const response = await axios.get<DashboardUserResponse>(url, {
+  const response = await http.get<DashboardUserResponse>(url, {
     headers: {
       Authorization: `Bearer ${token}`,
     },

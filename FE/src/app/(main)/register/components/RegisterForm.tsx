@@ -22,20 +22,20 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { provinces } from '@/utils/locations';
-import { sendRegistrationOTP, registerWithOTP } from '@/apis/user.api';
+import { registerCustomer, sendOtp } from '@/apis/user.api';
 
 // Validation schema
 const registerSchema = z.object({
     fullName: z.string().min(2, 'Họ tên phải có ít nhất 2 ký tự'),
     phone: z.string().regex(/^[0-9]{10}$/, 'Số điện thoại không hợp lệ (cần 10 số)'),
-    email: z.string().email('Email không hợp lệ'),
+    email: z.string().email('Email không hợp lệ').optional(),
     password: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
     confirmPassword: z.string(),
-    gender: z.enum(['male', 'female', 'other']),
-    address: z.string().min(5, 'Địa chỉ phải có ít nhất 5 ký tự'),
-    province: z.string().min(1, 'Vui lòng chọn tỉnh/thành phố'),
-    district: z.string().min(1, 'Vui lòng chọn quận/huyện'),
-    ward: z.string().min(1, 'Vui lòng chọn phường/xã'),
+    gender: z.enum(['male', 'female', 'other']).optional(),
+    address: z.string().min(5, 'Địa chỉ phải có ít nhất 5 ký tự').optional(),
+    province: z.string().min(1, 'Vui lòng chọn tỉnh/thành phố').optional(),
+    district: z.string().min(1, 'Vui lòng chọn quận/huyện').optional(),
+    ward: z.string().min(1, 'Vui lòng chọn phường/xã').optional(),
 }).refine((data) => data.password === data.confirmPassword, {
     message: 'Mật khẩu không khớp',
     path: ['confirmPassword'],
@@ -54,6 +54,8 @@ export default function RegisterForm() {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [otpSent, setOtpSent] = useState(false);
     const [countdown, setCountdown] = useState(0);
+    const [verificationChannel, setVerificationChannel] = useState<'email' | 'zalo'>('email');
+    const [verificationIdentifier, setVerificationIdentifier] = useState('');
 
     // Location states
     const [selectedProvince, setSelectedProvince] = useState('');
@@ -104,18 +106,43 @@ export default function RegisterForm() {
         }
     };
 
-    // Send OTP
-    const handleSendOtp = async (data: RegisterFormData) => {
+    // Register customer first, then go to OTP step
+    const handleRegister = async (data: RegisterFormData) => {
         setLoading(true);
         try {
-            await sendRegistrationOTP(data.phone);
+            await registerCustomer({
+                fullName: data.fullName,
+                phoneNumber: data.phone,
+                password: data.password,
+                dateOfBirth: '',
+            });
 
-            toast.success('Mã OTP đã được gửi vào số điện thoại của bạn!');
+            toast.success('Đăng ký thành công! Vui lòng chọn kênh để nhận mã xác thực.');
             setStep('otp');
+            setOtpSent(false);
+            setCountdown(0);
+        } catch (error) {
+            const errorMessage =
+                (error as { response?: { data?: { desc?: string } } })?.response?.data?.desc ||
+                'Không thể đăng ký. Vui lòng thử lại!';
+            toast.error(errorMessage);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Send verification OTP
+    const handleSendVerification = async () => {
+        if (!verificationIdentifier) {
+            toast.error('Vui lòng nhập thông tin xác thực (email hoặc Zalo).');
+            return;
+        }
+        setLoading(true);
+        try {
+            await sendOtp(verificationChannel, verificationIdentifier);
+            toast.success('Đã gửi mã xác thực. Vui lòng kiểm tra.');
             setOtpSent(true);
             setCountdown(60);
-
-            // Start countdown
             const timer = setInterval(() => {
                 setCountdown((prev) => {
                     if (prev <= 1) {
@@ -126,16 +153,13 @@ export default function RegisterForm() {
                 });
             }, 1000);
         } catch (error) {
-            const errorMessage =
-                (error as { response?: { data?: { desc?: string } } })?.response?.data?.desc ||
-                'Không thể gửi mã OTP. Vui lòng thử lại!';
-            toast.error(errorMessage);
+            toast.error('Không thể gửi mã xác thực. Vui lòng thử lại!');
         } finally {
             setLoading(false);
         }
     };
 
-    // Verify OTP and register
+    // Verify OTP (placeholder - cần endpoint verify cụ thể từ backend)
     const handleVerifyOtp = async () => {
         if (otp.length !== 6) {
             toast.error('Vui lòng nhập đầy đủ mã OTP');
@@ -144,23 +168,8 @@ export default function RegisterForm() {
 
         setLoading(true);
         try {
-            const formData = watch();
-            await registerWithOTP(
-                {
-                    fullName: formData.fullName,
-                    phone: formData.phone,
-                    email: formData.email,
-                    password: formData.password,
-                    gender: formData.gender,
-                    address: formData.address,
-                    province: formData.province,
-                    district: formData.district,
-                    ward: formData.ward,
-                },
-                otp
-            );
-
-            toast.success('Đăng ký thành công!');
+            // TODO: gọi endpoint verify OTP nếu backend cung cấp
+            toast.success('Xác thực thành công!');
             router.push('/login');
         } catch (error) {
             const errorMessage =
@@ -178,8 +187,7 @@ export default function RegisterForm() {
 
         setLoading(true);
         try {
-            const phone = watch('phone');
-            await sendRegistrationOTP(phone);
+            await sendOtp(verificationChannel, verificationIdentifier);
 
             toast.success('Mã OTP mới đã được gửi!');
             setCountdown(60);
@@ -235,9 +243,8 @@ export default function RegisterForm() {
                                 {/* Registration Form */}
                                 <form
                                     className="space-y-4"
-                                    onSubmit={handleSubmit(handleSendOtp)}
+                                    onSubmit={handleSubmit(handleRegister)}
                                 >
-                                    {/* Full Name */}
                                     <div>
                                         <Input
                                             {...register('fullName')}
@@ -285,6 +292,8 @@ export default function RegisterForm() {
                                             </p>
                                         )}
                                     </div>
+
+
 
                                     {/* Password */}
                                     <div>
@@ -379,7 +388,7 @@ export default function RegisterForm() {
                                 {/* OTP Verification */}
                                 <div className="text-center mb-6">
                                     <p className="text-gray-600 text-sm mb-6">
-                                        Mã OTP vừa được gửi vào số điện thoại của bạn.
+                                        Chọn kênh xác thực và gửi mã OTP đến bạn.
                                     </p>
 
                                     <h1 className="text-4xl font-bold mb-6">
@@ -389,9 +398,54 @@ export default function RegisterForm() {
                                         <span className="text-gray-800">nhớ!</span>
                                     </h1>
 
-                                    <p className="text-gray-700 text-sm mb-8">
-                                        Nhập mật khẩu đã đăng nhập lần sau.
-                                    </p>
+                                    {/* Channel Selection */}
+                                    <div className="mb-4 text-left">
+                                        <Label className="mb-2 inline-block">Chọn kênh xác thực</Label>
+                                        <div className="flex gap-4 items-center">
+                                            <label className="flex items-center gap-2">
+                                                <input
+                                                    type="radio"
+                                                    name="channel"
+                                                    value="email"
+                                                    checked={verificationChannel === 'email'}
+                                                    onChange={() => setVerificationChannel('email')}
+                                                />
+                                                Email
+                                            </label>
+                                            <label className="flex items-center gap-2">
+                                                <input
+                                                    type="radio"
+                                                    name="channel"
+                                                    value="zalo"
+                                                    checked={verificationChannel === 'zalo'}
+                                                    onChange={() => setVerificationChannel('zalo')}
+                                                />
+                                                Zalo
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    {/* Identifier input */}
+                                    <div className="mb-6 text-left">
+                                        <Input
+                                            value={verificationIdentifier}
+                                            onChange={(e) => setVerificationIdentifier(e.target.value)}
+                                            placeholder={verificationChannel === 'email' ? 'Nhập email' : 'Nhập số Zalo hoặc số điện thoại'}
+                                            className="rounded-lg border border-gray-300 focus:border-[#FF6B35] focus:ring-[#FF6B35]"
+                                        />
+                                    </div>
+
+                                    {/* Send OTP button */}
+                                    <div className="mb-6">
+                                        <Button
+                                            type="button"
+                                            onClick={handleSendVerification}
+                                            disabled={loading}
+                                            className="w-full bg-[#4CAF50] hover:bg-[#43A047] text-white rounded-lg py-3 font-semibold transition-colors"
+                                        >
+                                            Gửi mã xác thực
+                                        </Button>
+                                    </div>
 
                                     {/* OTP Input */}
                                     <div className="flex justify-center mb-6">

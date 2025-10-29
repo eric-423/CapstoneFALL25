@@ -1,7 +1,7 @@
 'use client';
 
 import { GuestLayout } from '@/components/layouts/GuestLayout';
-import { signIn } from '@/apis/user.api';
+import { loginCustomer } from '@/apis/user.api';
 import { useAuthContext } from '@/utils/contexts/AuthContext';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -36,7 +36,6 @@ export default function LoginForm() {
         e.preventDefault();
         setErrors({});
 
-        // Validate phone
         if (!validatePhone(phone)) {
             setErrors(prev => ({ ...prev, phone: 'Số điện thoại không hợp lệ (cần 10 số)' }));
             return;
@@ -45,9 +44,8 @@ export default function LoginForm() {
         setLoading(true);
 
         try {
-            const response = await signIn({ phoneNumber: phone, password });
+            const response = await loginCustomer({ phoneNumber: phone, password });
             if (response.status === 200) {
-                // Handle remember me
                 if (rememberMe) {
                     localStorage.setItem('rememberedPhone', phone);
                     localStorage.setItem('rememberMe', 'true');
@@ -62,10 +60,10 @@ export default function LoginForm() {
                 redirectAfterLogin(decoded.role);
             }
         } catch (error: unknown) {
-            const errorMessage = (error as { response?: { data?: { desc?: string } } })?.response?.data?.desc || 'Số điện thoại hoặc mật khẩu không đúng';
 
-            // Set field-specific errors if available
-            if (errorMessage.toLowerCase().includes('phone') || errorMessage.toLowerCase().includes('số điện thoại')) {
+            const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Số điện thoại hoặc mật khẩu không đúng';
+
+            if (errorMessage.toLowerCase().includes('phone number') || errorMessage.toLowerCase().includes('số điện thoại')) {
                 setErrors(prev => ({ ...prev, phone: errorMessage }));
             } else if (errorMessage.toLowerCase().includes('password') || errorMessage.toLowerCase().includes('mật khẩu')) {
                 setErrors(prev => ({ ...prev, password: errorMessage }));
