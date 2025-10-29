@@ -44,8 +44,12 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private PromotionRepository promotionRepository;
 
+    @Autowired
+    private com.capstone.tamtech.capstone.services.impl.InventoryService inventoryService;
+
     @Override
     public OrderDTO createOrderForShipping(OrderRequest orderRequest){
+        inventoryService.assertSufficientMaterialsForOrder(orderRequest.getOrderItemList());
         Order order = new Order();
 
         order.setAddress(orderRequest.getShippingAddress());
@@ -166,8 +170,7 @@ public class OrderServiceImpl implements OrderService {
                 }
 
                 if (isCombo) {
-                    // Chưa lưu item combo do cấu trúc khóa kép (order_id, product_id)
-                    // Nếu cần lưu combo như một order item riêng, hãy xác nhận schema mong muốn
+                    
                 }
             }
         }
