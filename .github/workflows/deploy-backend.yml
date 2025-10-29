@@ -1,0 +1,92 @@
+name: Deploy Spring Boot to VPS
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'BE/**'    
+      - '.github/workflows/deploy-backend.yml'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout source code
+      uses: actions/checkout@v3
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Build with Maven
+      working-directory: ./BE
+      run: mvn clean package -DskipTests
+
+    - name: Copy JAR file to VPS
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USER }}
+        key: ${{ secrets.VPS_SSH_KEY }}
+        source: BE/target/*.jar
+        target: /home/${{ secrets.VPS_USER }}/spring-app/upload/
+
+
+    - name: Deploy and Restart Spring Boot Service on VPS
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USER }}
+        key: ${{ secrets.VPS_SSH_KEY }}
+        script: |
+          set -e  # Dừng script nếu có lỗi
+
+          echo "📁 Tạo thư mục nếu chưa tồn tại..."
+          sudo mkdir -p /opt/spring-app
+          sudo mkdir -p /home/${USER}/spring-app/BE/target
+
+          echo "🛠️ Tạo systemd service nếu chưa có..."
+          SERVICE_FILE="/etc/systemd/system/spring-app.service"
+          if [ ! -f "$SERVICE_FILE" ]; then
+            echo "⚙️ Tạo mới spring-app.service"
+            echo "[Unit]
+          Description=Spring Boot App
+          After=network.target
+          
+          [Service]
+          User=${USER}
+          ExecStart=/usr/bin/java -jar /opt/spring-app/app.jar
+          Restart=always
+          SuccessExitStatus=143
+          TimeoutStopSec=10
+          SyslogIdentifier=spring-app
+          
+          [Install]
+          WantedBy=multi-user.target" | sudo tee $SERVICE_FILE > /dev/null
+
+            sudo systemctl daemon-reload
+            sudo systemctl enable spring-app
+          fi
+
+          echo "🔍 Kiểm tra file jar..."
+          latest_jar=$(ls /home/${USER}/spring-app/upload/BE/target/*.jar 2>/dev/null || true)
+          if [ -z "$latest_jar" ]; then
+            echo "❌ Không tìm thấy file JAR!"
+            exit 1
+          fi
+
+          echo "🛑 Dừng dịch vụ (nếu đang chạy)..."
+          sudo systemctl stop spring-app || true
+
+          echo "📦 Copy file JAR đến /opt/spring-app/"
+          sudo cp "$latest_jar" /opt/spring-app/app.jar
+
+          echo "🚀 Khởi động lại dịch vụ"
+          sudo systemctl start spring-app
+          sudo systemctl status spring-app --no-pager
+
+          echo "✅ Deploy thành công!"
