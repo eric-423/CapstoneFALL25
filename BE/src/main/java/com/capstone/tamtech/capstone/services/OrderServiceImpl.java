@@ -197,7 +197,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public void markOrderPaidSuccess(int orderId) {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
-        order.setStatus(orderStatusRepository.findByName("IN_PROCESS").orElseThrow(() -> new RuntimeException("OrderStatus IN_PROCESS not found")));
+        order.setStatus(orderStatusRepository.findByName("IN PROCESS").orElseThrow(() -> new RuntimeException("OrderStatus IN_PROCESS not found")));
         orderRepository.save(order);
     }
 
