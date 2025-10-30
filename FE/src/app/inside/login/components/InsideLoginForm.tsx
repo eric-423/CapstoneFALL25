@@ -1,12 +1,13 @@
 'use client';
 
 import { GuestLayout } from '@/components/layouts/GuestLayout';
-import { signInStaff } from '@/apis/user.api';
+import { loginEmployee } from '@/apis/user.api';
 import { useAuthContext } from '@/utils/contexts/AuthContext';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
 import Image from 'next/image';
+import { message } from 'antd';
 
 export default function InsideLoginForm() {
     const [email, setEmail] = useState('');
@@ -44,8 +45,7 @@ export default function InsideLoginForm() {
         setLoading(true);
 
         try {
-            // Send email as phoneNumber field for staff login API
-            const response = await signInStaff({ phoneNumber: email, password });
+            const response = await loginEmployee({ email, password });
             if (response.status === 200) {
                 if (rememberMe) {
                     localStorage.setItem('insideRememberedEmail', email);
@@ -61,7 +61,7 @@ export default function InsideLoginForm() {
                 redirectAfterLogin(decoded.role);
             }
         } catch (error: unknown) {
-            const errorMessage = (error as { response?: { data?: { desc?: string } } })?.response?.data?.desc || 'Email hoặc mật khẩu không đúng';
+            const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Email hoặc mật khẩu không đúng';
 
             if (errorMessage.toLowerCase().includes('email')) {
                 setErrors(prev => ({ ...prev, email: errorMessage }));

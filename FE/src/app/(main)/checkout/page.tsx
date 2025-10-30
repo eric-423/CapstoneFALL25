@@ -16,7 +16,7 @@ import { useCart } from '@/utils/contexts/cart/CartContext';
 import { useAuth } from '@/utils/hooks';
 import useScrollTop from '@/utils/hooks/useScrollTop';
 import { cn } from '@/utils/lib/utils';
-import { initialOrder, Order } from '@/types/order.type';
+import { initialOrder, Order } from '@/apis/order.api';
 import { setCookie } from '@/utils/cookies';
 import { getReceiveTime } from '@/utils/getReceiveTime';
 import { STORE_INFO } from '@/utils/mockupData';

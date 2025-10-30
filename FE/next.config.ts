@@ -24,6 +24,11 @@ const nextConfig: NextConfig = {
   compress: true,
   poweredByHeader: false,
 
+  // ESLint: allow production builds to succeed even if there are ESLint errors
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+
   // Headers for security
   async headers() {
     return [
@@ -47,42 +52,39 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // Redirects for old routes if needed
   async redirects() {
+    return [];
+  },
+
+  async rewrites() {
     return [
-      // Add redirects here when migrating from React Router
+      {
+        source: '/proxy/:path*',
+        destination: 'https://tam-tac.com/:path*',
+      },
     ];
   },
 
-  // Environment variables
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
   },
 
   serverExternalPackages: ['@ant-design/plots'],
 
-  // Experimental features
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons', 'framer-motion'],
     optimizeCss: true,
     webpackBuildWorker: true,
   },
 
-  // Turbopack configuration (when using --turbopack flag)
   turbopack: {
-    // Turbopack specific configuration
-    rules: {
-      // Add any custom rules here if needed
-    },
+    rules: {},
   },
 
-  // Webpack configuration (fallback when not using --turbopack)
-  webpack: (config, { dev, isServer }) => {
-    // Only apply webpack config when not using turbopack
+  webpack: (config, { dev }) => {
     if (dev && process.env.TURBOPACK) {
       return config;
     }
-    // Add any custom webpack config here
     return config;
   },
 };

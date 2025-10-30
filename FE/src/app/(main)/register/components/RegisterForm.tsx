@@ -4,38 +4,26 @@ import { GuestLayout } from '@/components/layouts/GuestLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { provinces } from '@/utils/locations';
-import { sendRegistrationOTP, registerWithOTP } from '@/apis/user.api';
+import { registerCustomer, sendOtp } from '@/apis/user.api';
 
-// Validation schema
 const registerSchema = z.object({
     fullName: z.string().min(2, 'Họ tên phải có ít nhất 2 ký tự'),
     phone: z.string().regex(/^[0-9]{10}$/, 'Số điện thoại không hợp lệ (cần 10 số)'),
-    email: z.string().email('Email không hợp lệ'),
+    email: z.string().email('Email không hợp lệ').optional(),
+    dateOfBirth: z
+        .string()
+        .regex(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/u, 'Ngày sinh phải theo định dạng MM/DD/YYYY'),
     password: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
     confirmPassword: z.string(),
-    gender: z.enum(['male', 'female', 'other']),
-    address: z.string().min(5, 'Địa chỉ phải có ít nhất 5 ký tự'),
-    province: z.string().min(1, 'Vui lòng chọn tỉnh/thành phố'),
-    district: z.string().min(1, 'Vui lòng chọn quận/huyện'),
-    ward: z.string().min(1, 'Vui lòng chọn phường/xã'),
 }).refine((data) => data.password === data.confirmPassword, {
     message: 'Mật khẩu không khớp',
     path: ['confirmPassword'],
@@ -54,68 +42,68 @@ export default function RegisterForm() {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [otpSent, setOtpSent] = useState(false);
     const [countdown, setCountdown] = useState(0);
+    const [verificationChannel, setVerificationChannel] = useState<'email' | 'sms'>('email');
+    const [verificationIdentifier, setVerificationIdentifier] = useState('');
 
-    // Location states
-    const [selectedProvince, setSelectedProvince] = useState('');
-    const [selectedDistrict, setSelectedDistrict] = useState('');
-    const [districts, setDistricts] = useState<Array<{ value: string; label: string }>>([]);
-    const [wards, setWards] = useState<Array<{ value: string; label: string }>>([]);
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const params = new URLSearchParams(window.location.search);
+            const phoneFromQuery = params.get('phone');
+            if (phoneFromQuery && phoneFromQuery.match(/^[0-9]{10}$/)) {
+                setStep('otp');
+                setVerificationChannel('sms');
+                setVerificationIdentifier(phoneFromQuery);
+            }
+        }
+    }, []);
 
     const {
         register,
         handleSubmit,
         formState: { errors },
-        setValue,
-        watch,
     } = useForm<RegisterFormData>({
         resolver: zodResolver(registerSchema),
         defaultValues: {
-            gender: 'male',
+            dateOfBirth: new Date().toISOString().slice(0, 10),
         },
     });
 
-    const watchGender = watch('gender');
 
-    // Handle province change
-    const handleProvinceChange = (provinceValue: string) => {
-        setSelectedProvince(provinceValue);
-        setValue('province', provinceValue);
-        setValue('district', '');
-        setValue('ward', '');
-        setSelectedDistrict('');
-        setWards([]);
-
-        const province = provinces.find((p) => p.value === provinceValue);
-        if (province) {
-            setDistricts(province.districts);
-        }
-    };
-
-    // Handle district change
-    const handleDistrictChange = (districtValue: string) => {
-        setSelectedDistrict(districtValue);
-        setValue('district', districtValue);
-        setValue('ward', '');
-
-        const province = provinces.find((p) => p.value === selectedProvince);
-        const district = province?.districts.find((d) => d.value === districtValue);
-        if (district) {
-            setWards(district.wards);
-        }
-    };
-
-    // Send OTP
-    const handleSendOtp = async (data: RegisterFormData) => {
+    const handleRegister = async (data: RegisterFormData) => {
         setLoading(true);
         try {
-            await sendRegistrationOTP(data.phone);
+            await registerCustomer({
+                fullName: data.fullName,
+                phoneNumber: data.phone,
+                password: data.password,
+                dateOfBirth: data.dateOfBirth,
+            });
 
-            toast.success('Mã OTP đã được gửi vào số điện thoại của bạn!');
+            toast.success('Đăng ký thành công! Vui lòng chọn hình thức xác thực.');
             setStep('otp');
+            setOtpSent(false);
+            setCountdown(0);
+        } catch (error) {
+            const errorMessage =
+                (error as { response?: { data?: { desc?: string } } })?.response?.data?.desc ||
+                'Không thể đăng ký. Vui lòng thử lại!';
+            toast.error(errorMessage);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSendVerification = async () => {
+        if (!verificationIdentifier) {
+            toast.error('Vui lòng nhập thông tin xác thực (email hoặc SMS).');
+            return;
+        }
+        setLoading(true);
+        try {
+            await sendOtp(verificationChannel, verificationIdentifier);
+            toast.success('Đã gửi mã xác thực. Vui lòng kiểm tra.');
             setOtpSent(true);
             setCountdown(60);
-
-            // Start countdown
             const timer = setInterval(() => {
                 setCountdown((prev) => {
                     if (prev <= 1) {
@@ -128,14 +116,13 @@ export default function RegisterForm() {
         } catch (error) {
             const errorMessage =
                 (error as { response?: { data?: { desc?: string } } })?.response?.data?.desc ||
-                'Không thể gửi mã OTP. Vui lòng thử lại!';
+                'Không thể gửi mã xác thực. Vui lòng thử lại!';
             toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
     };
 
-    // Verify OTP and register
     const handleVerifyOtp = async () => {
         if (otp.length !== 6) {
             toast.error('Vui lòng nhập đầy đủ mã OTP');
@@ -144,23 +131,7 @@ export default function RegisterForm() {
 
         setLoading(true);
         try {
-            const formData = watch();
-            await registerWithOTP(
-                {
-                    fullName: formData.fullName,
-                    phone: formData.phone,
-                    email: formData.email,
-                    password: formData.password,
-                    gender: formData.gender,
-                    address: formData.address,
-                    province: formData.province,
-                    district: formData.district,
-                    ward: formData.ward,
-                },
-                otp
-            );
-
-            toast.success('Đăng ký thành công!');
+            toast.success('Xác thực thành công!');
             router.push('/login');
         } catch (error) {
             const errorMessage =
@@ -172,14 +143,12 @@ export default function RegisterForm() {
         }
     };
 
-    // Resend OTP
     const handleResendOtp = async () => {
         if (countdown > 0) return;
 
         setLoading(true);
         try {
-            const phone = watch('phone');
-            await sendRegistrationOTP(phone);
+            await sendOtp(verificationChannel, verificationIdentifier);
 
             toast.success('Mã OTP mới đã được gửi!');
             setCountdown(60);
@@ -214,12 +183,10 @@ export default function RegisterForm() {
                     />
                 </div>
 
-                {/* Right side - Register Form */}
                 <div className="w-full lg:w-1/2 flex items-center justify-center px-6 py-12">
                     <div className="w-full max-w-md">
                         {step === 'info' ? (
                             <>
-                                {/* Logo/Title */}
                                 <div className="text-center mb-6">
                                     <h1 className="text-4xl font-bold mb-3">
                                         <span className="text-[#FF6B35]">Tấm</span>{' '}
@@ -232,12 +199,10 @@ export default function RegisterForm() {
                                     </p>
                                 </div>
 
-                                {/* Registration Form */}
                                 <form
                                     className="space-y-4"
-                                    onSubmit={handleSubmit(handleSendOtp)}
+                                    onSubmit={handleSubmit(handleRegister)}
                                 >
-                                    {/* Full Name */}
                                     <div>
                                         <Input
                                             {...register('fullName')}
@@ -254,23 +219,39 @@ export default function RegisterForm() {
                                         )}
                                     </div>
 
-                                    {/* Phone */}
-                                    <div>
-                                        <Input
-                                            {...register('phone')}
-                                            type="tel"
-                                            placeholder="Số điện thoại"
-                                            className={`rounded-lg border ${errors.phone ? 'border-red-500' : 'border-gray-300'
-                                                } focus:border-[#FF6B35] focus:ring-[#FF6B35]`}
-                                        />
-                                        {errors.phone && (
-                                            <p className="mt-1 text-sm text-red-600">
-                                                {errors.phone.message}
-                                            </p>
-                                        )}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <Input
+                                                {...register('phone')}
+                                                type="tel"
+                                                placeholder="Số điện thoại"
+                                                className={`rounded-lg border ${errors.phone ? 'border-red-500' : 'border-gray-300'
+                                                    } focus:border-[#FF6B35] focus:ring-[#FF6B35]`}
+                                            />
+                                            {errors.phone && (
+                                                <p className="mt-1 text-sm text-red-600">
+                                                    {errors.phone.message}
+                                                </p>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <Input
+                                                {...register('dateOfBirth')}
+                                                type="date"
+                                                placeholder="Ngày sinh"
+                                                max={new Date().toISOString().slice(0, 10)}
+                                                lang="vi"
+                                                className={` rounded-lg border ${errors.dateOfBirth ? 'border-red-500' : 'border-gray-300'
+                                                    } focus:border-[#FF6B35] focus:ring-[#FF6B35] text-center text-gray-500`}
+                                            />
+                                            {errors.dateOfBirth && (
+                                                <p className="mt-1 text-sm text-red-600">
+                                                    {errors.dateOfBirth.message}
+                                                </p>
+                                            )}
+                                        </div>
                                     </div>
 
-                                    {/* Email */}
                                     <div>
                                         <Input
                                             {...register('email')}
@@ -286,7 +267,8 @@ export default function RegisterForm() {
                                         )}
                                     </div>
 
-                                    {/* Password */}
+
+
                                     <div>
                                         <div className="relative">
                                             <Input
@@ -315,7 +297,6 @@ export default function RegisterForm() {
                                         )}
                                     </div>
 
-                                    {/* Confirm Password */}
                                     <div>
                                         <div className="relative">
                                             <Input
@@ -346,7 +327,6 @@ export default function RegisterForm() {
                                         )}
                                     </div>
 
-                                    {/* Submit Button */}
                                     <div className="pt-2">
                                         <Button
                                             type="submit"
@@ -358,7 +338,6 @@ export default function RegisterForm() {
                                     </div>
                                 </form>
 
-                                {/* Divider */}
                                 <div className="mt-6">
                                     <div className="relative">
                                         <div className="absolute inset-0 flex items-center">
@@ -376,10 +355,9 @@ export default function RegisterForm() {
                             </>
                         ) : (
                             <>
-                                {/* OTP Verification */}
                                 <div className="text-center mb-6">
                                     <p className="text-gray-600 text-sm mb-6">
-                                        Mã OTP vừa được gửi vào số điện thoại của bạn.
+                                        Chọn kênh xác thực và gửi mã OTP đến bạn.
                                     </p>
 
                                     <h1 className="text-4xl font-bold mb-6">
@@ -389,11 +367,52 @@ export default function RegisterForm() {
                                         <span className="text-gray-800">nhớ!</span>
                                     </h1>
 
-                                    <p className="text-gray-700 text-sm mb-8">
-                                        Nhập mật khẩu đã đăng nhập lần sau.
-                                    </p>
+                                    <div className="mb-4 text-left">
+                                        <Label className="mb-2 inline-block">Chọn kênh xác thực</Label>
+                                        <div className="flex gap-4 items-center">
+                                            <label className="flex items-center gap-2">
+                                                <input
+                                                    type="radio"
+                                                    name="channel"
+                                                    value="email"
+                                                    checked={verificationChannel === 'email'}
+                                                    onChange={() => setVerificationChannel('email')}
+                                                />
+                                                Email
+                                            </label>
+                                            <label className="flex items-center gap-2">
+                                                <input
+                                                    type="radio"
+                                                    name="channel"
+                                                    value="sms"
+                                                    checked={verificationChannel === 'sms'}
+                                                    onChange={() => setVerificationChannel('sms')}
+                                                />
+                                                Zalo
+                                            </label>
+                                        </div>
+                                    </div>
 
-                                    {/* OTP Input */}
+                                    <div className="mb-6 text-left">
+                                        <Input
+                                            value={verificationIdentifier}
+                                            onChange={(e) => setVerificationIdentifier(e.target.value)}
+                                            placeholder={verificationChannel === 'email' ? 'Nhập email' : 'Nhập số điện thoại'}
+                                            className="rounded-lg border border-gray-300 focus:border-[#FF6B35] focus:ring-[#FF6B35]"
+                                        />
+                                    </div>
+
+                                    <div className="mb-6">
+                                        <Button
+                                            type="button"
+                                            onClick={handleSendVerification}
+                                            disabled={loading}
+                                            className="w-full bg-[#4CAF50] hover:bg-[#43A047] text-white rounded-lg py-3 font-semibold transition-colors"
+                                        >
+                                            Gửi mã xác thực
+                                        </Button>
+                                    </div>
+
                                     <div className="flex justify-center mb-6">
                                         <InputOTP
                                             maxLength={6}
@@ -429,7 +448,6 @@ export default function RegisterForm() {
                                         </InputOTP>
                                     </div>
 
-                                    {/* Resend OTP */}
                                     {countdown > 0 ? (
                                         <p className="text-gray-500 text-sm mb-6">
                                             Gửi lại mã sau {countdown}s
@@ -444,7 +462,6 @@ export default function RegisterForm() {
                                         </button>
                                     )}
 
-                                    {/* Submit Button */}
                                     <Button
                                         onClick={handleVerifyOtp}
                                         disabled={loading || otp.length !== 6}
@@ -454,7 +471,6 @@ export default function RegisterForm() {
                                     </Button>
                                 </div>
 
-                                {/* Divider */}
                                 <div className="mt-6">
                                     <div className="relative">
                                         <div className="absolute inset-0 flex items-center">

@@ -16,7 +16,7 @@ import Image from 'next/image';
 interface CartItem {
     productId: number;
     productName: string;
-    price: number;
+  price: number;
     quantity: number;
     productImage?: string;
 }
@@ -49,7 +49,7 @@ export default function OrderTablePage() {
                 {
                     productId: product.productId,
                     productName: product.productName,
-                    price: product.price || 0,
+                    price: product.productPrice,
                     quantity: 1,
                     productImage: product.productImage,
                 },

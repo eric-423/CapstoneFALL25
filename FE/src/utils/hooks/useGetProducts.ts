@@ -1,5 +1,4 @@
-import { GET_PRODUCTS_BY_BRANCH_QUERY_KEY, getProducts } from '@/apis/product.api';
-import { Product } from '@/types/product.type';
+import { GET_PRODUCTS_BY_BRANCH_QUERY_KEY, getProducts, Product } from '@/apis/product.api';
 
 import { useEffect, useState } from 'react';
 

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Drawer, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { useCustomerOrders } from '@/utils/hooks/useCustomerOrders';
-import { OrderResponse } from '@/types/order.type';
+import { OrderResponse } from '@/apis/order.api';
 import { OrderStatus } from '@/utils/enum';
 import { STORE_INFO } from '@/utils/mockupData';
 
