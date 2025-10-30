@@ -1,11 +1,17 @@
 package com.capstone.tamtech.capstone.dto;
 
+import com.capstone.tamtech.capstone.entities.Combo;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class OrderIemDTO implements Serializable {
     private int productId;
     private String productName;
@@ -18,6 +24,7 @@ public class OrderIemDTO implements Serializable {
     private int feedbackPoint;
     private Date expiredFeedbackTime;
     private String productImg;
+    private ComboDTO comboDTO;
 
     @Override
     public String toString() {

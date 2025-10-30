@@ -1,0 +1,40 @@
+package com.capstone.tamtech.capstone.controllers;
+
+import com.capstone.tamtech.capstone.entities.Information;
+import com.capstone.tamtech.capstone.payload.request.InformationRequest;
+import com.capstone.tamtech.capstone.services.impl.InformationService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/customers")
+public class CustomerController {
+
+    @Autowired
+    private InformationService informationService;
+
+    @PostMapping("/{customerId}/informations")
+    public ResponseEntity<Information> addInformation(@PathVariable int customerId,
+                                                      @RequestBody InformationRequest request) {
+        Information created = informationService.addInformation(customerId, request);
+        return ResponseEntity.ok(created);
+    }
+
+    @PutMapping("/{customerId}/informations/{informationId}")
+    public ResponseEntity<Information> updateInformation(@PathVariable int customerId,
+                                                         @PathVariable int informationId,
+                                                         @RequestBody InformationRequest request) {
+        Information updated = informationService.updateInformation(customerId, informationId, request);
+        return ResponseEntity.ok(updated);
+    }
+
+    @DeleteMapping("/{customerId}/informations/{informationId}")
+    public ResponseEntity<Void> deleteInformation(@PathVariable int customerId,
+                                                  @PathVariable int informationId) {
+        informationService.deleteInformation(customerId, informationId);
+        return ResponseEntity.noContent().build();
+    }
+}
+
+
