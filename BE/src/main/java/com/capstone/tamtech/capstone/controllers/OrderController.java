@@ -28,5 +28,10 @@ public class OrderController {
         return new ResponseEntity<>(responseData, HttpStatus.CREATED);
     }
 
+    @PostMapping("/payment/webhook")
+    public ResponseEntity<String> paymentWebhook(@RequestBody String payload) {
+        System.out.println("Received PayOS webhook: " + payload);
+        return ResponseEntity.ok("{" + "\"code\":200,\"desc\":\"Acknowledged\"}");
+    }
     
 }
