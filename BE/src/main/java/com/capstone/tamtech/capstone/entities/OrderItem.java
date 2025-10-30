@@ -25,6 +25,10 @@ public class OrderItem {
     @JoinColumn(name = "order_id", insertable = false, updatable = false)
     private Order order;
 
+    @OneToOne
+    @JoinColumn(name = "combo_id")
+    private Combo combo;
+
     @Column(name = "quantity")
     private int quantity;
 

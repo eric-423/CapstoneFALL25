@@ -25,7 +25,7 @@ public class Order {
     private String promotionCode;
 
     @Column(name = "order_discount_value")
-    private double discountValue;
+    private double discountValue = 0;
 
     @Column(name = "order_discount_percent")
     private int discountPercent;
@@ -78,6 +78,9 @@ public class Order {
     @Column(name = "pickup_time")
     private Date pickupTime;
 
+    @Column(name = "is_table")
+    private Boolean isTable;
+
     @Column(name = "customer_name")
     private String customerName;
 
@@ -110,7 +113,7 @@ public class Order {
     private Branch branch;
 
     @OneToMany(mappedBy = "order", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH})
-    private List<OrderItem> orderItems;
+    private List<OrderItem> orderItems = new java.util.ArrayList<>();
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH})
     @JoinColumn(name = "dining_table_id")

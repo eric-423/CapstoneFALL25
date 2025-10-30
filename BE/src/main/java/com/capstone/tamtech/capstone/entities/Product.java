@@ -22,7 +22,7 @@ public class Product {
     private String description;
 
     @Column(name = "product_price")
-    private double price;
+    private Double price;
 
     @Column(name = "product_image")
     private String image;
