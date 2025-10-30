@@ -178,7 +178,7 @@ export const loginCustomer = (data: { phoneNumber: string; password: string }) =
 export const registerCustomer = (data: { fullName: string; phoneNumber: string; password: string; dateOfBirth: string }) =>
   http.post('api/auth/customer/regiser', data);
 
-export const sendOtp = (channel: 'email' | 'zalo', identifier: string) =>
+export const sendOtp = (channel: 'email' | 'sms', identifier: string) =>
   http.post('api/auth/otp/send', { channel, identifier });
 
 

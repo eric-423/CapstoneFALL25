@@ -1,7 +1,7 @@
 'use client';
 
 import { GuestLayout } from '@/components/layouts/GuestLayout';
-import { loginCustomer } from '@/apis/user.api';
+import { loginCustomer, sendOtp } from '@/apis/user.api';
 import { useAuthContext } from '@/utils/contexts/AuthContext';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -105,7 +105,6 @@ export default function LoginForm() {
                             </p>
                         </div>
 
-                        {/* Form */}
                         <form className="space-y-5" onSubmit={handleSubmit}>
                             <div>
                                 <input
@@ -120,7 +119,20 @@ export default function LoginForm() {
                                     placeholder="Số điện thoại"
                                 />
                                 {errors.phone && (
-                                    <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
+                                    <>
+                                        <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
+                                        {errors.phone === 'Số điện thoại chưa được xác thực. Vui lòng xác thực số điện thoại trước khi đăng nhập.' && (
+                                            <button
+                                                type="button"
+                                                className="mt-2 text-[#FF6B35] underline text-sm ml-2"
+                                                onClick={() => {
+                                                    window.location.href = `/register?phone=${encodeURIComponent(phone)}`;
+                                                }}
+                                            >
+                                                Gửi lại mã xác thực
+                                            </button>
+                                        )}
+                                    </>
                                 )}
                             </div>
 
