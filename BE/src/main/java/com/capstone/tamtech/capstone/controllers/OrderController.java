@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/orders")
 @CrossOrigin(origins = "*")
-@Tag(name = "Product Management", description = "API quản lý order")
+@Tag(name = "Order Management", description = "API quản lý order")
 public class OrderController {
 
     @Autowired
