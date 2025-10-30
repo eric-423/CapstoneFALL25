@@ -77,6 +77,12 @@ public class PaymentServiceImpl implements PaymentService {
                     .build();
 
             CreatePaymentLinkResponse data = payOS.paymentRequests().create(paymentData);
+            try {
+                String url = data.getCheckoutUrl();
+                if (url != null && !url.isEmpty()) {
+                    return url;
+                }
+            } catch(Exception ignore) {}
             return data.getPaymentLinkId();
         } catch (Exception e) {
             e.printStackTrace();

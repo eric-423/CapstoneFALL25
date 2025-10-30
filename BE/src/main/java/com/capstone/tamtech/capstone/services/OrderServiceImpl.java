@@ -5,13 +5,9 @@ import com.capstone.tamtech.capstone.entities.*;
 import com.capstone.tamtech.capstone.entities.keys.KeyOrderItem;
 import com.capstone.tamtech.capstone.payload.request.OrderItemRequest;
 import com.capstone.tamtech.capstone.payload.request.OrderRequest;
-import com.capstone.tamtech.capstone.repositories.OrderRepository;
-import com.capstone.tamtech.capstone.repositories.UsersRepository;
-import com.capstone.tamtech.capstone.repositories.ProductRepository;
-import com.capstone.tamtech.capstone.repositories.ComboRepository;
-import com.capstone.tamtech.capstone.repositories.OrderItemRepository;
-import com.capstone.tamtech.capstone.repositories.PromotionRepository;
+import com.capstone.tamtech.capstone.repositories.*;
 import com.capstone.tamtech.capstone.services.impl.OrderService;
+import com.capstone.tamtech.capstone.services.impl.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -45,12 +41,20 @@ public class OrderServiceImpl implements OrderService {
     private PromotionRepository promotionRepository;
 
     @Autowired
+    private PaymentService paymentService;
+
+    @Autowired
+    private OrderStatusRepository orderStatusRepository;
+
+    @Autowired
     private com.capstone.tamtech.capstone.services.impl.InventoryService inventoryService;
 
     @Override
     public OrderDTO createOrderForShipping(OrderRequest orderRequest){
         inventoryService.assertSufficientMaterialsForOrder(orderRequest.getOrderItemList());
         Order order = new Order();
+
+        order.setStatus(orderStatusRepository.findByName("CREATED").get());
 
         order.setAddress(orderRequest.getShippingAddress());
         order.setPhone(orderRequest.getShippingPhoneNumber());
@@ -170,11 +174,31 @@ public class OrderServiceImpl implements OrderService {
                 }
 
                 if (isCombo) {
-                    
+
                 }
             }
         }
-        return toDTO(saved);
+        saved.setPaymentUrl(paymentService.createPaymentLink(saved.getId()));
+        orderRepository.save(saved);
+        OrderDTO result = toDTO(saved);
+        result.setPaymentUrl(saved.getPaymentUrl());
+        return result;
+    }
+
+    @Override
+    public void cancelOrder(int orderId) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
+        order.setStatus(orderStatusRepository.findByName("CANCEL").orElseThrow(() -> new RuntimeException("OrderStatus CANCEL not found")));
+        order.setPaymentUrl(null);
+        order.setPaymentCode(null);
+        orderRepository.save(order);
+    }
+
+    @Override
+    public void markOrderPaidSuccess(int orderId) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
+        order.setStatus(orderStatusRepository.findByName("IN_PROCESS").orElseThrow(() -> new RuntimeException("OrderStatus IN_PROCESS not found")));
+        orderRepository.save(order);
     }
 
     private double calculateShippingFee(String customerAddress, String branchAddress) {

@@ -6,4 +6,8 @@ import com.capstone.tamtech.capstone.payload.request.OrderRequest;
 public interface OrderService {
 
     public OrderDTO createOrderForShipping(OrderRequest orderRequest);
+
+    public void cancelOrder(int orderId);
+
+    public void markOrderPaidSuccess(int orderId);
 }
