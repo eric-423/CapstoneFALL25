@@ -234,7 +234,7 @@ INSERT INTO product (product_name, product_description, product_price, product_i
 -- Insert Product Recipes (Ingredients for each product)
 -- Cơm tấm sườn nướng
 INSERT INTO product_recipes (product_id, material_id, quantity) VALUES
-(1, 3, 0.2), -- Gạo tấm
+(1, 12, 0.2), -- Gạo tấm
 (1, 13, 1.0), -- Nước mắm
 (1, 14, 0.1), -- Ớt
 (1, 15, 0.05), -- Hành lá
@@ -243,7 +243,7 @@ INSERT INTO product_recipes (product_id, material_id, quantity) VALUES
 
 -- Cơm tấm bì chả trứng cà
 INSERT INTO product_recipes (product_id, material_id, quantity) VALUES
-(2, 3, 0.2),
+(2, 12, 0.2),
 (2, 13, 1.0),
 (2, 4, 0.05), -- Chả trứng
 (2, 5, 0.05), -- Bì bún
@@ -251,28 +251,28 @@ INSERT INTO product_recipes (product_id, material_id, quantity) VALUES
 
 -- Cơm tấm gà nướng
 INSERT INTO product_recipes (product_id, material_id, quantity) VALUES
-(3, 3, 0.2),
+(3, 12, 0.2),
 (3, 13, 1.0),
 (3, 3, 0.15), -- Gà
 (3, 7, 0.05);
 
 -- Cơm tấm thịt nướng
 INSERT INTO product_recipes (product_id, material_id, quantity) VALUES
-(4, 3, 0.2),
+(4, 12, 0.2),
 (4, 13, 1.0),
 (4, 2, 0.15), -- Thịt nướng
 (4, 7, 0.05);
 
 -- Cơm tấm sườn cây
 INSERT INTO product_recipes (product_id, material_id, quantity) VALUES
-(5, 3, 0.2),
+(5, 12, 0.2),
 (5, 13, 1.0),
 (5, 1, 0.2), -- Sườn nướng
 (5, 7, 0.05);
 
 -- Cơm tấm đặc biệt
 INSERT INTO product_recipes (product_id, material_id, quantity) VALUES
-(6, 3, 0.2),
+(6, 12, 0.2),
 (6, 13, 1.0),
 (6, 1, 0.15),
 (6, 4, 0.05),
@@ -282,7 +282,7 @@ INSERT INTO product_recipes (product_id, material_id, quantity) VALUES
 
 -- Cơm tấm bì chả chạo tôm
 INSERT INTO product_recipes (product_id, material_id, quantity) VALUES
-(7, 3, 0.2),
+(7, 12, 0.2),
 (7, 13, 1.0),
 (7, 4, 0.05),
 (7, 5, 0.05),
@@ -290,7 +290,7 @@ INSERT INTO product_recipes (product_id, material_id, quantity) VALUES
 
 -- Cơm tấm nem nướng
 INSERT INTO product_recipes (product_id, material_id, quantity) VALUES
-(8, 3, 0.2),
+(8, 12, 0.2),
 (8, 13, 1.0),
 (8, 7, 0.05);
 
@@ -305,7 +305,7 @@ INSERT INTO product_recipes (product_id, material_id, quantity) VALUES
 
 -- Cơm trắng
 INSERT INTO product_recipes (product_id, material_id, quantity) VALUES
-(15, 4, 0.2); -- Gạo trắng
+(15, 18, 0.2); -- Gạo trắng
 
 -- Side dishes recipes
 INSERT INTO product_recipes (product_id, material_id, quantity) VALUES

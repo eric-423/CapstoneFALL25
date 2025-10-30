@@ -56,7 +56,7 @@ public class OpenApiConfig {
                                 .url("http://localhost:8080")
                                 .description("Development Server"),
                         new Server()
-                                .url("https://api.tamtech.com")
+                                .url("https://tam-tac.com")
                                 .description("Production Server")))
                 .components(new Components()
                         .addSecuritySchemes("bearerAuth", securityScheme))
