@@ -19,7 +19,7 @@ export async function loginAction(formData: FormData) {
     });
 
     if (response.data.data.access_token) {
-      const cookieStore = cookies();
+      const cookieStore = await cookies();
       
       cookieStore.set('access_token', response.data.data.access_token, {
         httpOnly: true,
@@ -62,7 +62,7 @@ export async function loginAction(formData: FormData) {
 
 export async function logoutAction() {
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     
     cookieStore.set('access_token', '', { maxAge: 0 });
     cookieStore.set('refresh_token', '', { maxAge: 0 });

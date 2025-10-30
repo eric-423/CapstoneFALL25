@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { ShoppingCart, Plus } from 'lucide-react';
 import Image from 'next/image';
 import { useState } from 'react';
-import type { Product } from '@/types/product.type';
+import type { Product } from '@/apis/product.api';
 
 interface TableProductCardProps {
     product: Product;
@@ -40,11 +40,7 @@ export default function TableProductCard({ product, onAddToCart }: TableProductC
                             </div>
                         )}
 
-                        {product.isPromotion && (
-                            <Badge className='absolute top-2 right-2 bg-red-500 text-white'>
-                                Khuyến mãi
-                            </Badge>
-                        )}
+                        {/* Promotion badge removed: no field in Product type */}
                     </div>
 
                     <div className='p-3 sm:p-4 space-y-2 sm:space-y-3'>
@@ -53,20 +49,15 @@ export default function TableProductCard({ product, onAddToCart }: TableProductC
                                 {product.productName}
                             </h3>
                             <p className='text-xs sm:text-sm text-gray-600 line-clamp-2 mt-1'>
-                                {product.description}
+                                {product.productDescription}
                             </p>
                         </div>
 
                         <div className='flex items-center justify-between'>
                             <div className='flex flex-col'>
                                 <span className='text-base sm:text-lg font-bold text-primary'>
-                                    {(product.price || 0).toLocaleString()}đ
+                                    {product.productPrice.toLocaleString()}đ
                                 </span>
-                                {product.originalPrice && product.originalPrice > (product.price || 0) && (
-                                    <span className='text-xs sm:text-sm text-gray-500 line-through'>
-                                        {(product.originalPrice || 0).toLocaleString()}đ
-                                    </span>
-                                )}
                             </div>
                         </div>
 
