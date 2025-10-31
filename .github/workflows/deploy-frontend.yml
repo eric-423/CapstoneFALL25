@@ -27,6 +27,16 @@ jobs:
           npm ci
           npm run build
 
+      - name: 🔍 Debug build output
+        run: |
+          echo "=== Current directory ==="
+          pwd
+          echo "=== FE directory structure ==="
+          ls -la FE
+          echo "=== .next directory ==="
+          ls -la FE/.next || echo ".next not found"
+
+
       - name: 🛠️ Prepare deployment folder on server
         uses: appleboy/ssh-action@v0.1.10
         with:
