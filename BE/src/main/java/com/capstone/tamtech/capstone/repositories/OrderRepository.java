@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Integer> {
 
+    boolean existsByWorker_IdAndStatus_Name(int workerId, String statusName);
 }

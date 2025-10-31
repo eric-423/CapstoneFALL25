@@ -22,4 +22,6 @@ public interface UsersRepository extends JpaRepository<Users, Integer> {
     Optional<Users> findByEmailWithActiveRole(@Param("email") String email);
 
 
+
+
 }

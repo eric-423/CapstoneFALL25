@@ -55,6 +55,9 @@ public class Users {
     @Column(name = "phone_verified")
     private Boolean phoneVerified = false;
 
+    @Column(name = "is_busy")
+    private Boolean isBusy = false;
+
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH})
     @JoinColumn(name = "member_association_id")
