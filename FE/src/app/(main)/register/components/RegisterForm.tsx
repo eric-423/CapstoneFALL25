@@ -3,7 +3,6 @@
 import { GuestLayout } from '@/components/layouts/GuestLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -13,7 +12,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { registerCustomer, sendOtp } from '@/apis/user.api';
+import { registerCustomer, sendOtp, verifyOTP, getTimeResendOtp } from '@/apis/user.api';
 
 const registerSchema = z.object({
     fullName: z.string().min(2, 'Họ tên phải có ít nhất 2 ký tự'),
@@ -40,21 +39,26 @@ export default function RegisterForm() {
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [otpSent, setOtpSent] = useState(false);
+
     const [countdown, setCountdown] = useState(0);
-    const [verificationChannel, setVerificationChannel] = useState<'email' | 'sms'>('email');
     const [verificationIdentifier, setVerificationIdentifier] = useState('');
 
+    const [phoneForVerify, setPhoneForVerify] = useState<string | null>(null);
+
+
+
+
     useEffect(() => {
+
         if (typeof window !== 'undefined') {
             const params = new URLSearchParams(window.location.search);
             const phoneFromQuery = params.get('phone');
             if (phoneFromQuery && phoneFromQuery.match(/^[0-9]{10}$/)) {
                 setStep('otp');
-                setVerificationChannel('sms');
                 setVerificationIdentifier(phoneFromQuery);
             }
         }
+
     }, []);
 
     const {
@@ -79,10 +83,14 @@ export default function RegisterForm() {
                 dateOfBirth: data.dateOfBirth,
             });
 
-            toast.success('Đăng ký thành công! Vui lòng chọn hình thức xác thực.');
             setStep('otp');
-            setOtpSent(false);
             setCountdown(0);
+            setPhoneForVerify(data.phone);
+
+
+
+
+
         } catch (error) {
             const errorMessage =
                 (error as { response?: { data?: { desc?: string } } })?.response?.data?.desc ||
@@ -90,80 +98,50 @@ export default function RegisterForm() {
             toast.error(errorMessage);
         } finally {
             setLoading(false);
+
+
+            // send otp với sdt đã đk
+            sendOtp('zalo', data.phone);
+
+            const timeResendOtpResponse = await getTimeResendOtp('zalo', data.phone);
+            setCountdown(timeResendOtpResponse.data.ttl);
         }
     };
 
-    const handleSendVerification = async () => {
-        if (!verificationIdentifier) {
-            toast.error('Vui lòng nhập thông tin xác thực (email hoặc SMS).');
+
+
+    const handleVerifyOtp = async (value?: string) => {
+        const inputOtp = value ?? otp;
+
+        if (loading) {
             return;
         }
-        setLoading(true);
-        try {
-            await sendOtp(verificationChannel, verificationIdentifier);
-            toast.success('Đã gửi mã xác thực. Vui lòng kiểm tra.');
-            setOtpSent(true);
-            setCountdown(60);
-            const timer = setInterval(() => {
-                setCountdown((prev) => {
-                    if (prev <= 1) {
-                        clearInterval(timer);
-                        return 0;
-                    }
-                    return prev - 1;
-                });
-            }, 1000);
-        } catch (error) {
-            const errorMessage =
-                (error as { response?: { data?: { desc?: string } } })?.response?.data?.desc ||
-                'Không thể gửi mã xác thực. Vui lòng thử lại!';
-            toast.error(errorMessage);
-        } finally {
-            setLoading(false);
-        }
-    };
 
-    const handleVerifyOtp = async () => {
-        if (otp.length !== 6) {
-            toast.error('Vui lòng nhập đầy đủ mã OTP');
+        const identifier = verificationIdentifier || phoneForVerify;
+
+        if (!identifier) {
+            toast.error('Không tìm thấy thông tin xác thực phù hợp');
             return;
         }
 
         setLoading(true);
         try {
+
+            await verifyOTP('zalo', identifier, inputOtp);
+
             toast.success('Xác thực thành công!');
+
             router.push('/login');
+
+
         } catch (error) {
             const errorMessage =
                 (error as { response?: { data?: { desc?: string } } })?.response?.data?.desc ||
                 'Mã OTP không đúng hoặc đã hết hạn!';
             toast.error(errorMessage);
-        } finally {
-            setLoading(false);
-        }
-    };
 
-    const handleResendOtp = async () => {
-        if (countdown > 0) return;
+            setOtp('');
 
-        setLoading(true);
-        try {
-            await sendOtp(verificationChannel, verificationIdentifier);
-
-            toast.success('Mã OTP mới đã được gửi!');
-            setCountdown(60);
-
-            const timer = setInterval(() => {
-                setCountdown((prev) => {
-                    if (prev <= 1) {
-                        clearInterval(timer);
-                        return 0;
-                    }
-                    return prev - 1;
-                });
-            }, 1000);
-        } catch (error) {
-            toast.error('Không thể gửi lại mã OTP. Vui lòng thử lại!');
         } finally {
             setLoading(false);
         }
@@ -172,8 +150,8 @@ export default function RegisterForm() {
     return (
         <GuestLayout>
             <div className="min-h-screen bg-[#FFF5E6] flex">
-                {/* Left side - Image */}
                 <div className="hidden lg:flex lg:w-1/2 relative">
+
                     <Image
                         src="/images/Home - Banner.jpg"
                         alt="Tấm Tắc Food"
@@ -181,10 +159,12 @@ export default function RegisterForm() {
                         className="object-cover"
                         priority
                     />
+
                 </div>
 
                 <div className="w-full lg:w-1/2 flex items-center justify-center px-6 py-12">
                     <div className="w-full max-w-md">
+
                         {step === 'info' ? (
                             <>
                                 <div className="text-center mb-6">
@@ -198,6 +178,7 @@ export default function RegisterForm() {
                                         Thương hiệu cơm tấm hàng đầu dành cho sinh viên.
                                     </p>
                                 </div>
+
 
                                 <form
                                     className="space-y-4"
@@ -219,6 +200,8 @@ export default function RegisterForm() {
                                         )}
                                     </div>
 
+
+
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
                                             <Input
@@ -234,6 +217,8 @@ export default function RegisterForm() {
                                                 </p>
                                             )}
                                         </div>
+
+
                                         <div>
                                             <Input
                                                 {...register('dateOfBirth')}
@@ -356,10 +341,6 @@ export default function RegisterForm() {
                         ) : (
                             <>
                                 <div className="text-center mb-6">
-                                    <p className="text-gray-600 text-sm mb-6">
-                                        Chọn kênh xác thực và gửi mã OTP đến bạn.
-                                    </p>
-
                                     <h1 className="text-4xl font-bold mb-6">
                                         <span className="text-[#FF6B35]">Tấm</span>{' '}
                                         <span className="text-gray-800">ngon, </span>
@@ -367,57 +348,13 @@ export default function RegisterForm() {
                                         <span className="text-gray-800">nhớ!</span>
                                     </h1>
 
-                                    <div className="mb-4 text-left">
-                                        <Label className="mb-2 inline-block">Chọn kênh xác thực</Label>
-                                        <div className="flex gap-4 items-center">
-                                            <label className="flex items-center gap-2">
-                                                <input
-                                                    type="radio"
-                                                    name="channel"
-                                                    value="email"
-                                                    checked={verificationChannel === 'email'}
-                                                    onChange={() => setVerificationChannel('email')}
-                                                />
-                                                Email
-                                            </label>
-                                            <label className="flex items-center gap-2">
-                                                <input
-                                                    type="radio"
-                                                    name="channel"
-                                                    value="sms"
-                                                    checked={verificationChannel === 'sms'}
-                                                    onChange={() => setVerificationChannel('sms')}
-                                                />
-                                                Zalo
-                                            </label>
-                                        </div>
-                                    </div>
-
-                                    <div className="mb-6 text-left">
-                                        <Input
-                                            value={verificationIdentifier}
-                                            onChange={(e) => setVerificationIdentifier(e.target.value)}
-                                            placeholder={verificationChannel === 'email' ? 'Nhập email' : 'Nhập số điện thoại'}
-                                            className="rounded-lg border border-gray-300 focus:border-[#FF6B35] focus:ring-[#FF6B35]"
-                                        />
-                                    </div>
-
-                                    <div className="mb-6">
-                                        <Button
-                                            type="button"
-                                            onClick={handleSendVerification}
-                                            disabled={loading}
-                                            className="w-full bg-[#4CAF50] hover:bg-[#43A047] text-white rounded-lg py-3 font-semibold transition-colors"
-                                        >
-                                            Gửi mã xác thực
-                                        </Button>
-                                    </div>
-
                                     <div className="flex justify-center mb-6">
                                         <InputOTP
                                             maxLength={6}
                                             value={otp}
                                             onChange={(value) => setOtp(value)}
+                                            onComplete={(value) => handleVerifyOtp(value)}
+                                            disabled={loading}
                                         >
                                             <InputOTPGroup className="gap-2">
                                                 <InputOTPSlot
@@ -454,37 +391,17 @@ export default function RegisterForm() {
                                         </p>
                                     ) : (
                                         <button
-                                            onClick={handleResendOtp}
+                                            onClick={() => sendOtp('zalo', phoneForVerify || '')}
                                             disabled={loading}
                                             className="text-[#8BC34A] text-sm font-medium hover:text-[#7CB342] mb-6 underline"
                                         >
                                             Gửi lại mã OTP
                                         </button>
-                                    )}
-
-                                    <Button
-                                        onClick={handleVerifyOtp}
-                                        disabled={loading || otp.length !== 6}
-                                        className="w-full bg-[#FF6B35] hover:bg-[#FF5722] text-white rounded-lg py-3 font-semibold transition-colors"
-                                    >
-                                        {loading ? 'Đang xác thực...' : 'Đăng ký'}
-                                    </Button>
+                                    )
+                                    }
                                 </div>
 
-                                <div className="mt-6">
-                                    <div className="relative">
-                                        <div className="absolute inset-0 flex items-center">
-                                            <div className="w-full border-t border-gray-300" />
-                                        </div>
-                                        <div className="relative flex justify-center text-sm">
-                                            <span className="bg-[#FFF5E6] px-4 text-[#8BC34A] font-medium cursor-pointer hover:text-[#7CB342]">
-                                                <Link href="/login">
-                                                    Bạn là người nhà của Tấm Tắc?
-                                                </Link>
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
+
                             </>
                         )}
                     </div>
