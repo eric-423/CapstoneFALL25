@@ -16,7 +16,7 @@ import Image from 'next/image';
 interface CartItem {
     productId: number;
     productName: string;
-  price: number;
+    price: number;
     quantity: number;
     productImage?: string;
 }
@@ -277,7 +277,7 @@ export default function OrderTablePage() {
                         >
                             <div className="flex items-center gap-2">
                                 <ShoppingCart className="h-5 w-5 text-primary" />
-                                <span className="font-semibold text-sm">Giỏ hàng</span>
+                                <span className="font-semibold text-sm">Thêm Món</span>
                                 <Badge variant="secondary" className="text-xs">
                                     {getTotalItems()}
                                 </Badge>
@@ -336,7 +336,7 @@ export default function OrderTablePage() {
                                         ) : (
                                             <>
                                                 <CheckCircle className="h-4 w-4 mr-2" />
-                                                Xác nhận đặt món
+                                                Xác nhận thêm món
                                             </>
                                         )}
                                     </Button>
