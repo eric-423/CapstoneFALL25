@@ -59,10 +59,11 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          source: "FE/.next,FE/public,FE/package.json,FE/package-lock.json"
+          source: "FE/.next/**,FE/public/**,FE/package.json,FE/package-lock.json"
           target: "/var/www/myapp"
           strip_components: 1
           debug: true
+          dotfiles: true
 
       - name: ✅ Restart app service (optional)
         if: success()
