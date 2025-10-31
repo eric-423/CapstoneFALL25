@@ -24,4 +24,7 @@ public class OrderRequest {
     private List<OrderItemRequest> orderItemList;
 
     private String mode;
+
+    private int diningTableId;
+
 }

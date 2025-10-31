@@ -6,6 +6,7 @@ import com.capstone.tamtech.capstone.entities.keys.KeyOrderItem;
 import com.capstone.tamtech.capstone.exception.ResourceNotFoundException;
 import com.capstone.tamtech.capstone.payload.request.OrderItemRequest;
 import com.capstone.tamtech.capstone.payload.request.OrderRequest;
+import com.capstone.tamtech.capstone.payload.request.WaiterConfirmOrderRequest;
 import com.capstone.tamtech.capstone.repositories.*;
 import com.capstone.tamtech.capstone.services.impl.OrderService;
 import com.capstone.tamtech.capstone.services.impl.PaymentService;
@@ -24,6 +25,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private OrderRepository orderRepository;
+
+    @Autowired
+    private DiningTableRepository diningTableRepository;
 
     @Autowired
     private DistanceService distanceService;
@@ -183,7 +187,21 @@ public class OrderServiceImpl implements OrderService {
                 }
 
                 if (isCombo) {
-
+                    Optional<Combo> comboOptional = comboRepository.findById(itemReq.getComboId());
+                    if (comboOptional.isPresent()) {
+                        OrderItem orderItem = new OrderItem();
+                        KeyOrderItem key = new KeyOrderItem();
+                        key.setOrderId(saved.getId());
+                        key.setProductId(0);
+                        orderItem.setKeyOrderItem(key);
+                        orderItem.setOrder(saved);
+                        orderItem.setCombo(comboOptional.get());
+                        orderItem.setQuantity(itemReq.getQuantity());
+                        double unitPrice = orderItem.getCombo() != null && orderItem.getCombo().getPrice() != null ? orderItem.getCombo().getPrice() : 0.0;
+                        orderItem.setPrice(unitPrice);
+                        orderItem.setNote(itemReq.getNote());
+                        orderItemRepository.save(orderItem);
+                    }
                 }
             }
         }
@@ -194,6 +212,215 @@ public class OrderServiceImpl implements OrderService {
         OrderDTO result = toDTO(saved);
         result.setPaymentUrl(saved.getPaymentUrl());
         return result;
+    }
+
+    @Override
+    public OrderDTO createOrderForDining(OrderRequest orderRequest) {
+        inventoryService.assertSufficientMaterialsForOrder(orderRequest.getOrderItemList());
+        Order order = new Order();
+
+        order.setStatus(orderStatusRepository.findByName("CREATED").get());
+        DiningTable diningTable = diningTableRepository.findById(orderRequest.getDiningTableId()).orElse(null);
+        order.setDiningTable(diningTable);
+        if (diningTable != null && diningTable.getBranch() != null) {
+            order.setBranch(diningTable.getBranch());
+        }
+
+        order.setPickUp(false);
+        order.setCreatedAt(new Date());
+
+        if (orderRequest.getCustomerId() > 0) {
+            usersRepository.findById(orderRequest.getCustomerId()).ifPresent(order::setCustomer);
+        }
+
+        double subTotal = 0.0;
+        if (orderRequest.getOrderItemList() != null) {
+            for (OrderItemRequest itemReq : orderRequest.getOrderItemList()) {
+                boolean isCombo = itemReq.getComboId() > 0;
+                boolean isProduct = itemReq.getProductId() > 0;
+
+                if (isCombo) {
+                    Optional<Combo> comboOptional = comboRepository.findById(itemReq.getComboId());
+                    if (comboOptional.isPresent()) {
+                        Combo combo = comboOptional.get();
+                        Double unitPrice = combo.getPrice() != null ? combo.getPrice() : 0.0;
+                        int quantity = itemReq.getQuantity();
+                        subTotal += unitPrice * quantity;
+                    }
+                }
+
+                if (isProduct) {
+                    Optional<Product> productOptional = productRepository.findById(itemReq.getProductId());
+                    if (productOptional.isPresent()) {
+                        Product product = productOptional.get();
+                        double unitPrice = product.getPrice();
+                        int quantity = itemReq.getQuantity();
+                        subTotal += unitPrice * quantity;
+                    }
+                }
+            }
+        }
+        order.setSubTotal(subTotal);
+        order.setAmount(subTotal);
+
+        Order saved = orderRepository.save(order);
+
+        if (orderRequest.getOrderItemList() != null) {
+            for (OrderItemRequest itemReq : orderRequest.getOrderItemList()) {
+                boolean isProduct = itemReq.getProductId() > 0;
+                boolean isCombo = itemReq.getComboId() > 0;
+
+                if (isProduct) {
+                    OrderItem orderItem = new OrderItem();
+                    KeyOrderItem key = new KeyOrderItem();
+                    key.setOrderId(saved.getId());
+                    key.setProductId(itemReq.getProductId());
+                    orderItem.setKeyOrderItem(key);
+                    orderItem.setOrder(saved);
+
+                    productRepository.findById(itemReq.getProductId()).ifPresent(orderItem::setProduct);
+
+                    orderItem.setQuantity(itemReq.getQuantity());
+                    double unitPrice = orderItem.getProduct() != null ? orderItem.getProduct().getPrice() : 0.0;
+                    orderItem.setPrice(unitPrice);
+                    orderItem.setNote(itemReq.getNote());
+                    orderItem.setIsConfirmed(false);
+                    orderItemRepository.save(orderItem);
+                }
+
+                if (isCombo) {
+                    Optional<Combo> comboOptional = comboRepository.findById(itemReq.getComboId());
+                    if (comboOptional.isPresent()) {
+                        OrderItem orderItem = new OrderItem();
+                        KeyOrderItem key = new KeyOrderItem();
+                        key.setOrderId(saved.getId());
+                        key.setProductId(0);
+                        orderItem.setKeyOrderItem(key);
+                        orderItem.setOrder(saved);
+                        orderItem.setCombo(comboOptional.get());
+                        orderItem.setQuantity(itemReq.getQuantity());
+                        double unitPrice = orderItem.getCombo() != null && orderItem.getCombo().getPrice() != null ? orderItem.getCombo().getPrice() : 0.0;
+                        orderItem.setPrice(unitPrice);
+                        orderItem.setNote(itemReq.getNote());
+                        orderItem.setIsConfirmed(false);
+                        orderItemRepository.save(orderItem);
+                    }
+                }
+            }
+        }
+        Integer branchId = saved.getBranch() != null ? saved.getBranch().getId() : null;
+        inventoryService.consumeMaterialsForOrderItems(saved.getOrderItems(), branchId);
+        orderRepository.save(saved);
+        return toDTO(saved);
+    }
+
+    @Override
+     public Boolean confirmOrderItem(WaiterConfirmOrderRequest waiterConfirmOrderRequest){
+         Order order = orderRepository.findById(waiterConfirmOrderRequest.getOrderId()).orElseThrow(()->new ResourceNotFoundException("Order not found"));
+         List<OrderItem> orderItems = order.getOrderItems();
+ 
+         Integer branchId = order.getBranch() != null ? order.getBranch().getId() : null;
+ 
+        double confirmedSubTotal = 0.0;
+        if (orderItems != null) {
+            for (OrderItem oi : orderItems) {
+                if (oi.getIsConfirmed() == null || !oi.getIsConfirmed()) {
+                    inventoryService.restoreMaterialsForOrderItems(List.of(oi), branchId);
+                    orderItemRepository.delete(oi);
+                } else {
+                    if (oi.getProduct() != null) {
+                        confirmedSubTotal += oi.getPrice() * oi.getQuantity();
+                    }
+                    if (oi.getCombo() != null && oi.getCombo().getPrice() != null) {
+                        confirmedSubTotal += oi.getPrice() * oi.getQuantity();
+                    }
+                }
+            }
+        }
+
+        double subTotal = 0.0;
+        Date now = new Date();
+        if (waiterConfirmOrderRequest.getOrderItems() != null) {
+            for (OrderItem incoming : waiterConfirmOrderRequest.getOrderItems()) {
+                boolean hasCombo = incoming.getCombo() != null && incoming.getCombo().getId() > 0;
+                boolean hasProduct = incoming.getProduct() != null && incoming.getProduct().getId() > 0;
+
+                if (hasProduct) {
+                    OrderItem newItem = new OrderItem();
+                    KeyOrderItem key = new KeyOrderItem();
+                    key.setOrderId(order.getId());
+                    key.setProductId(incoming.getProduct().getId());
+                    newItem.setKeyOrderItem(key);
+                    newItem.setOrder(order);
+                    productRepository.findById(incoming.getProduct().getId()).ifPresent(newItem::setProduct);
+                    int qty = Math.max(0, incoming.getQuantity());
+                    newItem.setQuantity(qty);
+                    double unitPrice = newItem.getProduct() != null ? newItem.getProduct().getPrice() : 0.0;
+                    newItem.setPrice(unitPrice);
+                    newItem.setNote(incoming.getNote());
+                    newItem.setIsConfirmed(true);
+                    newItem.setConfirmAt(now);
+                    orderItemRepository.save(newItem);
+                    order.getOrderItems().add(newItem);
+                    subTotal += unitPrice * qty;
+                }
+
+                if (hasCombo) {
+                    OrderItem newItem = new OrderItem();
+                    KeyOrderItem key = new KeyOrderItem();
+                    key.setOrderId(order.getId());
+                    key.setProductId(0);
+                    newItem.setKeyOrderItem(key);
+                    newItem.setOrder(order);
+                    comboRepository.findById(incoming.getCombo().getId()).ifPresent(newItem::setCombo);
+                    int qty = Math.max(0, incoming.getQuantity());
+                    newItem.setQuantity(qty);
+                    Double unitPrice = newItem.getCombo() != null ? newItem.getCombo().getPrice() : 0.0;
+                    newItem.setPrice(unitPrice != null ? unitPrice : 0.0);
+                    newItem.setNote(incoming.getNote());
+                    newItem.setIsConfirmed(true);
+                    newItem.setConfirmAt(now);
+                    orderItemRepository.save(newItem);
+                    order.getOrderItems().add(newItem);
+                    subTotal += (unitPrice != null ? unitPrice : 0.0) * qty;
+                }
+            }
+        }
+
+        double newSubTotal = confirmedSubTotal + subTotal;
+        order.setSubTotal(newSubTotal);
+
+        inventoryService.consumeMaterialsForOrderItems(order.getOrderItems(), branchId);
+        orderRepository.save(order);
+        return true;
+    }
+
+    @Override
+    public Boolean confirmDeliveredOrderItem(WaiterConfirmOrderRequest waiterConfirmOrderRequest){
+        Order order = orderRepository.findById(waiterConfirmOrderRequest.getOrderId()).orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+        List<OrderItem> orderItems = order.getOrderItems();
+        Date now = new Date();
+        
+        if (waiterConfirmOrderRequest.getOrderItems() != null) {
+            for (OrderItem incoming : waiterConfirmOrderRequest.getOrderItems()) {
+                for (OrderItem existing : orderItems) {
+                    boolean match = false;
+                    if (existing.getProduct() != null && incoming.getProduct() != null && 
+                        existing.getProduct().getId() == incoming.getProduct().getId()) {
+                        match = true;
+                    }
+                    if (existing.getCombo() != null && incoming.getCombo() != null && 
+                        existing.getCombo().getId() == incoming.getCombo().getId()) {
+                        match = true;
+                    }
+                    if (match) {
+                        existing.setIsDelivered(true);
+                        orderItemRepository.save(existing);
+                    }
+                }
+            }
+        }
+        return true;
     }
 
     @Override
