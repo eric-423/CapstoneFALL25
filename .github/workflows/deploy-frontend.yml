@@ -64,8 +64,8 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           source: |
-            FE/.next/**
-            FE/public/**
+            FE/.next
+            FE/public
             FE/package.json
             FE/package-lock.json
           target: /var/www/myapp
