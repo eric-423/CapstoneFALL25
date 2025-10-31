@@ -2,6 +2,7 @@ package com.capstone.tamtech.capstone.controllers;
 
 import com.capstone.tamtech.capstone.payload.ResponseData;
 import com.capstone.tamtech.capstone.payload.request.OrderRequest;
+import com.capstone.tamtech.capstone.payload.request.WaiterConfirmOrderRequest;
 import com.capstone.tamtech.capstone.services.impl.OrderService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -44,6 +45,8 @@ public class OrderController {
         if(orderRequest.getMode().toUpperCase().equals("SHIPPING")){
             HashMap<String, Object> value = new HashMap<>();
             responseData.setData(orderService.createOrderForShipping(orderRequest));
+        } else if(orderRequest.getMode().toUpperCase().equals("DINING")){
+            responseData.setData(orderService.createOrderForDining(orderRequest));
         }
         return new ResponseEntity<>(responseData, HttpStatus.CREATED);
     }
@@ -107,7 +110,19 @@ public class OrderController {
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
 
+    @PostMapping("/waiter/confirm")
+    public ResponseEntity<?> confirmOrderItem(@RequestBody WaiterConfirmOrderRequest waiterConfirmOrderRequest){
+        ResponseData responseData = new ResponseData();
+        responseData.setData(orderService.confirmOrderItem(waiterConfirmOrderRequest));
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
 
+    @PostMapping("/waiter/delivered")
+    public ResponseEntity<?> confirmDeliveredOrderItem(@RequestBody WaiterConfirmOrderRequest waiterConfirmOrderRequest){
+        ResponseData responseData = new ResponseData();
+        responseData.setData(orderService.confirmDeliveredOrderItem(waiterConfirmOrderRequest));
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
 
     
 }

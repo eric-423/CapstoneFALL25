@@ -42,11 +42,21 @@ public class OrderItem {
     private String feedback;
 
     @Column(name = "is_feedbacked")
-    private boolean isFeedbacked;
+    private Boolean isFeedbacked;
 
     @Column(name = "feedback_point")
-    private int feedbackPoint;
+    private Integer feedbackPoint;
 
     @Column(name = "expired_feedback_date")
     private Date expiredFeedBackDate;
+
+    @Column(name = "is_confirm")
+    private Boolean isConfirmed = true;
+
+    @Column(name = "confirm_at")
+    private Date confirmAt;
+
+    @Column(name = "is_delivered")
+    private Boolean isDelivered;
+
 }

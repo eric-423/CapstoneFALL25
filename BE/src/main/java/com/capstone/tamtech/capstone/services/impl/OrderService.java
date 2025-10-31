@@ -2,6 +2,7 @@ package com.capstone.tamtech.capstone.services.impl;
 
 import com.capstone.tamtech.capstone.dto.OrderDTO;
 import com.capstone.tamtech.capstone.payload.request.OrderRequest;
+import com.capstone.tamtech.capstone.payload.request.WaiterConfirmOrderRequest;
 import org.apache.coyote.BadRequestException;
 
 public interface OrderService {
@@ -23,4 +24,10 @@ public interface OrderService {
     boolean completeOrder(int orderId);
 
     public double calculateShippingFee(String customerAddress, String branchAddress) throws BadRequestException;
+
+    OrderDTO createOrderForDining(OrderRequest orderRequest);
+
+    Boolean confirmOrderItem(WaiterConfirmOrderRequest waiterConfirmOrderRequest);
+
+    Boolean confirmDeliveredOrderItem(WaiterConfirmOrderRequest waiterConfirmOrderRequest);
 }
