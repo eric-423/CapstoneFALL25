@@ -95,8 +95,7 @@ export default function LoginForm() {
             <div className="min-h-screen bg-[#FFF5E6] flex">
 
 
-                <div className="hidden lg:flex lg:w-1/2 relative">
-
+                <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
                     <Image
                         src="/images/Home - Banner.jpg"
                         alt="Tấm Tắc Food"
@@ -104,31 +103,44 @@ export default function LoginForm() {
                         className="object-cover"
                         priority
                     />
-
+                    <div className="absolute inset-0 bg-black/30" />
+                    <div className="relative z-10 flex flex-col justify-between p-12 text-white">
+                        <div>
+                            <h2 className="text-4xl font-bold">Tấm Tắc Food</h2>
+                            <p className="mt-4 text-base leading-relaxed text-gray-100">
+                                Tận hưởng bữa cơm sinh viên chuẩn vị nhà làm với tốc độ phục vụ nhanh chóng.
+                            </p>
+                        </div>
+                        <div className="space-y-4 text-sm text-gray-200">
+                            <div>
+                                <p className="font-semibold">Ưu đãi thành viên</p>
+                                <p>Tích điểm thưởng, nhận voucher giảm giá và cập nhật thực đơn mỗi ngày.</p>
+                            </div>
+                            <div>
+                                <p className="font-semibold">Giao hàng tận nơi</p>
+                                <p>Đặt món qua ứng dụng, giao đến ký túc xá trong vòng 20 phút.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-
-
-
 
                 <div className="w-full lg:w-1/2 flex items-center justify-center px-6 py-12">
                     <div className="w-full max-w-md">
 
-                        <div className="text-center mb-8">
-                            <h1 className="text-4xl font-bold mb-4">
-                                <span className="text-[#FF6B35]">Tấm</span>{' '}
-                                <span className="text-gray-800">ngon, </span>
-                                <span className="text-[#8BC34A]">Tắc</span>{' '}
-                                <span className="text-gray-800">nhớ!</span>
+                        <div className="text-center mb-10">
+                            <h1 className="text-3xl font-semibold text-gray-900">
+                                <span className="text-[#FF6B35]">Đăng nhập</span> khách hàng
                             </h1>
-                            <p className="text-gray-600 text-sm">
-                                Thương hiệu cơm tấm hàng đầu dành cho sinh viên.
+                            <p className="mt-3 text-sm text-gray-600">
+                                Đồng bộ trải nghiệm với ứng dụng Tấm Tắc: đặt món, theo dõi đơn và tích điểm dễ dàng.
                             </p>
-
-
                         </div>
 
                         <form className="space-y-5" onSubmit={handleSubmit}>
                             <div>
+                                <label htmlFor="phone" className="mb-2 block text-sm font-medium text-slate-700">
+                                    Số điện thoại
+                                </label>
                                 <Input
                                     id="phone"
                                     name="phone"
@@ -136,18 +148,17 @@ export default function LoginForm() {
                                     required
                                     value={phone}
                                     onChange={(e) => setPhone(e.target.value)}
-                                    placeholder="Số điện thoại"
-                                    className={`rounded-lg border ${errors.phone ? 'border-red-500' : 'border-gray-300'} focus:border-[#FF6B35] focus:ring-[#FF6B35]`}
+                                    placeholder="Nhập số điện thoại"
+                                    className={`rounded-lg border ${errors.phone ? 'border-red-500' : 'border-gray-300'} focus:border-[#FF6B35] focus:ring-[#FF6B35] h-12 placeholder:text-slate-400`}
                                 />
 
                                 {errors.phone && (
-
                                     <>
                                         <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
                                         {errors.phone === 'Số điện thoại chưa được xác thực. Vui lòng xác thực số điện thoại trước khi đăng nhập.' && (
                                             <button
                                                 type="button"
-                                                className="mt-2 text-[#FF6B35] underline text-sm ml-2"
+                                                className="mt-2 ml-2 text-sm text-[#FF6B35] underline"
                                                 onClick={() => {
                                                     window.location.href = `/register?phone=${encodeURIComponent(phone)}`;
                                                 }}
@@ -163,10 +174,10 @@ export default function LoginForm() {
 
 
                             <div>
-
-
+                                <label htmlFor="password" className="mb-2 block text-sm font-medium text-slate-700">
+                                    Mật khẩu
+                                </label>
                                 <div className="relative">
-
                                     <Input
                                         id="password"
                                         name="password"
@@ -174,18 +185,15 @@ export default function LoginForm() {
                                         required
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
-                                        placeholder="Mật khẩu"
-                                        className={`rounded-lg border ${errors.password ? 'border-red-500' : 'border-gray-300'} focus:border-[#FF6B35] focus:ring-[#FF6B35] pr-10`}
+                                        placeholder="Nhập mật khẩu"
+                                        className={`rounded-lg border ${errors.password ? 'border-red-500' : 'border-gray-300'} focus:border-[#FF6B35] focus:ring-[#FF6B35] h-12 pr-12 placeholder:text-slate-400`}
                                     />
-
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute inset-y-0 right-0 pr-4 flex items-center"
+                                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-sm text-gray-500 hover:text-[#FF6B35]"
                                     >
-                                        <span className="text-sm text-gray-500">
-                                            {showPassword ? 'Ẩn' : 'Hiện'}
-                                        </span>
+                                        {showPassword ? 'Ẩn' : 'Hiện'}
                                     </button>
                                 </div>
 
@@ -194,6 +202,21 @@ export default function LoginForm() {
                                 )}
 
 
+                            </div>
+
+                            <div className="flex items-center justify-between text-sm">
+                                <label className="inline-flex items-center gap-2 text-slate-600">
+                                    <input
+                                        type="checkbox"
+                                        checked={rememberMe}
+                                        onChange={(e) => setRememberMe(e.target.checked)}
+                                        className="h-4 w-4 rounded border-gray-300 text-[#FF6B35] focus:ring-[#FF6B35]"
+                                    />
+                                    Ghi nhớ đăng nhập
+                                </label>
+                                <Link href="mailto:cs@tam-tac.com" className="text-[#FF6B35] font-medium hover:underline">
+                                    Quên mật khẩu?
+                                </Link>
                             </div>
 
                             <div>
@@ -208,15 +231,15 @@ export default function LoginForm() {
                         </form>
 
 
-                        <div className="mt-6">
+                        <div className="mt-8 text-center text-sm text-slate-600">
                             <div className="relative">
                                 <div className="absolute inset-0 flex items-center">
                                     <div className="w-full border-t border-gray-300" />
                                 </div>
-                                <div className="relative flex justify-center text-sm">
+                                <div className="relative flex justify-center">
                                     <Link
                                         href="/register"
-                                        className="bg-[#FFF5E6] px-4 text-[#8BC34A] font-medium hover:text-[#7CB342] transition-colors"
+                                        className="bg-[#FFF5E6] px-4 text-[#FF6B35] font-medium hover:text-[#FF5722] transition-colors"
                                     >
                                         Bạn chưa là người nhà của Tấm Tắc?
                                     </Link>
