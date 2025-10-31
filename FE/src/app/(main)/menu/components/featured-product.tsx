@@ -4,7 +4,7 @@ import { AddToCartDialog, AddToCartDrawer } from '@/components/common/add-to-car
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useIsMobile } from '@/utils/hooks/use-mobile';
-import type { Product } from '@/types/product.type';
+import type { Product } from '@/apis/product.api';
 
 import { ShoppingBag, Star } from 'lucide-react';
 import Image from 'next/image';

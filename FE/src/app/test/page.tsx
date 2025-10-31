@@ -29,19 +29,19 @@ export default function TestPage() {
         <div className="bg-purple-100 p-4 rounded">
           <h2 className="font-bold">🥘 Ingredients</h2>
           <p>Count: {sampleData.ingredients.length}</p>
-          <p>First: {sampleData.ingredients[0]?.ingredientName}</p>
+          <p>First: {sampleData.ingredients[0]?.name}</p>
         </div>
         
         <div className="bg-pink-100 p-4 rounded">
           <h2 className="font-bold">📚 Recipes</h2>
           <p>Count: {sampleData.recipes.length}</p>
-          <p>First: {sampleData.recipes[0]?.recipeName}</p>
+          <p>First: {sampleData.recipes[0]?.name}</p>
         </div>
         
         <div className="bg-orange-100 p-4 rounded">
           <h2 className="font-bold">🎓 Training</h2>
           <p>Count: {sampleData.trainingCourses.length}</p>
-          <p>First: {sampleData.trainingCourses[0]?.courseName}</p>
+          <p>First: {sampleData.trainingCourses[0]?.name}</p>
         </div>
       </div>
       

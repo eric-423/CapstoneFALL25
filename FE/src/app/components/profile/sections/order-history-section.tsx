@@ -6,7 +6,7 @@ import { OrderDetailsDialog, OrderDetailsDrawer } from '@/components/common/orde
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useIsMobile } from '@/utils/hooks/use-mobile';
-import { OrderResponse } from '@/types/order.type';
+import { OrderResponse } from '@/apis/order.api';
 import { OrderStatus } from '@/utils/enum';
 
 import { ShoppingBag } from 'lucide-react';

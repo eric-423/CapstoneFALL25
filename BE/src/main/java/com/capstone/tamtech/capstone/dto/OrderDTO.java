@@ -55,6 +55,9 @@ public class OrderDTO implements Serializable {
 
     private String status;
 
+    private String paymentUrl;
+
+
 
     @Override
     public String toString() {

@@ -1,6 +1,5 @@
-import { cancelOrder, GET_CUSTOMER_ORDER_QUERY_KEY, getCustomerOrders } from '@/apis/order.api';
-import { OrderResponse } from '@/types/order.type';
-import { OrderProductResponse } from '@/types/product.type';
+import { cancelOrder, GET_CUSTOMER_ORDER_QUERY_KEY, getCustomerOrders, OrderResponse } from '@/apis/order.api';
+import { OrderProductResponse } from '@/apis/product.api';
 import { OrderStatus } from '@/utils/enum';
 import { getTotalItems } from '@/utils/getTotalItems';
 import { STORE_INFO } from '@/utils/mockupData';

@@ -1,12 +1,12 @@
 // Web Vitals and Analytics
-import { getCLS, getFID, getFCP, getLCP, getTTFB } from 'web-vitals';
+import { getCLS, getFID, getFCP, getLCP, getTTFB, type Metric } from 'web-vitals';
 
 interface AnalyticsEvent {
   name: string;
   value: number;
   id: string;
   delta: number;
-  navigationType: string;
+  navigationType?: string;
 }
 
 class Analytics {
@@ -63,7 +63,7 @@ class Analytics {
     }
   }
 
-  private sendToAnalytics = (metric: AnalyticsEvent) => {
+  private sendToAnalytics = (metric: Metric) => {
     if (this.isDevelopment) {
       console.log('Web Vital:', metric);
     }

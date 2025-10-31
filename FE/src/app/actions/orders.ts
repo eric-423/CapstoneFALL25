@@ -6,7 +6,7 @@ import { redirect } from 'next/navigation';
 
 export async function createOrderAction(formData: FormData) {
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const accessToken = cookieStore.get('access_token')?.value;
 
     if (!accessToken) {
@@ -54,7 +54,7 @@ export async function createOrderAction(formData: FormData) {
 
 export async function cancelOrderAction(orderId: string) {
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const accessToken = cookieStore.get('access_token')?.value;
 
     if (!accessToken) {

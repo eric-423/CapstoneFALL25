@@ -1,7 +1,7 @@
 'use client';
 
 import { GuestLayout } from '@/components/layouts/GuestLayout';
-import { signIn } from '@/apis/user.api';
+import { loginCustomer, sendOtp } from '@/apis/user.api';
 import { useAuthContext } from '@/utils/contexts/AuthContext';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -36,7 +36,6 @@ export default function LoginForm() {
         e.preventDefault();
         setErrors({});
 
-        // Validate phone
         if (!validatePhone(phone)) {
             setErrors(prev => ({ ...prev, phone: 'Số điện thoại không hợp lệ (cần 10 số)' }));
             return;
@@ -45,9 +44,8 @@ export default function LoginForm() {
         setLoading(true);
 
         try {
-            const response = await signIn({ phoneNumber: phone, password });
+            const response = await loginCustomer({ phoneNumber: phone, password });
             if (response.status === 200) {
-                // Handle remember me
                 if (rememberMe) {
                     localStorage.setItem('rememberedPhone', phone);
                     localStorage.setItem('rememberMe', 'true');
@@ -62,10 +60,10 @@ export default function LoginForm() {
                 redirectAfterLogin(decoded.role);
             }
         } catch (error: unknown) {
-            const errorMessage = (error as { response?: { data?: { desc?: string } } })?.response?.data?.desc || 'Số điện thoại hoặc mật khẩu không đúng';
 
-            // Set field-specific errors if available
-            if (errorMessage.toLowerCase().includes('phone') || errorMessage.toLowerCase().includes('số điện thoại')) {
+            const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Số điện thoại hoặc mật khẩu không đúng';
+
+            if (errorMessage.toLowerCase().includes('phone number') || errorMessage.toLowerCase().includes('số điện thoại')) {
                 setErrors(prev => ({ ...prev, phone: errorMessage }));
             } else if (errorMessage.toLowerCase().includes('password') || errorMessage.toLowerCase().includes('mật khẩu')) {
                 setErrors(prev => ({ ...prev, password: errorMessage }));
@@ -107,7 +105,6 @@ export default function LoginForm() {
                             </p>
                         </div>
 
-                        {/* Form */}
                         <form className="space-y-5" onSubmit={handleSubmit}>
                             <div>
                                 <input
@@ -122,7 +119,20 @@ export default function LoginForm() {
                                     placeholder="Số điện thoại"
                                 />
                                 {errors.phone && (
-                                    <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
+                                    <>
+                                        <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
+                                        {errors.phone === 'Số điện thoại chưa được xác thực. Vui lòng xác thực số điện thoại trước khi đăng nhập.' && (
+                                            <button
+                                                type="button"
+                                                className="mt-2 text-[#FF6B35] underline text-sm ml-2"
+                                                onClick={() => {
+                                                    window.location.href = `/register?phone=${encodeURIComponent(phone)}`;
+                                                }}
+                                            >
+                                                Gửi lại mã xác thực
+                                            </button>
+                                        )}
+                                    </>
                                 )}
                             </div>
 
