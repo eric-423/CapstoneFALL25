@@ -54,8 +54,7 @@ export const signUp = (phoneNumber: string) => http.post('/customer/sign-up', { 
 export const sendOTP = (phoneNumber: string) => http.post('/verify-code/send?mode=', { phoneNumber });
 export const refetchToken = (refresh: string) => http.post(`/token/refresh?token=${refresh}`);
 
-export const verifyOTP = (phoneNumber: string, otp: string) =>
-  http.post(`/verify-code/verify?phoneNumber=${phoneNumber}&code=${otp}`);
+
 
 // Register với thông tin đầy đủ
 export const registerWithOTP = async (data: RegisterData, otp: string) => {
@@ -171,15 +170,29 @@ export const unbanUser = async (userId: number) => {
 
 // ========================================================
 
+
+
+
 // login 
 export const loginCustomer = (data: { phoneNumber: string; password: string }) =>
   http.post('/api/auth/customer/login', data);
 
-export const registerCustomer = (data: { fullName: string; phoneNumber: string; password: string; dateOfBirth: string }) =>
-  http.post('api/auth/customer/regiser', data);
 
-export const sendOtp = (channel: 'email' | 'sms', identifier: string) =>
-  http.post('api/auth/otp/send', { channel, identifier });
+
+export const registerCustomer = (data: { fullName: string; phoneNumber: string; password: string; dateOfBirth: string }) =>
+  http.post('/api/auth/customer/register', data);
+
+
+export const sendOtp = (channel: 'email' | 'zalo', indentifier: string) =>
+  http.post('/api/auth/otp/send', { channel, indentifier });
+
+
+export const verifyOTP = (channel: 'email' | 'zalo', identifier: string, inputOtp: string) =>
+  http.post(`/api/auth/otp/verify`, { channel, identifier, inputOtp });
+
+
+export const getTimeResendOtp = (channel: 'email' | 'zalo', identifier: string) =>
+  http.get(`/api/auth/otp/ttl?channel=${channel}&identifier=${identifier}`);
 
 
 // =====================================  employee ================================

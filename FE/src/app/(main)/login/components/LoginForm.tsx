@@ -1,7 +1,8 @@
 'use client';
 
 import { GuestLayout } from '@/components/layouts/GuestLayout';
-import { loginCustomer, sendOtp } from '@/apis/user.api';
+import { loginCustomer } from '@/apis/user.api';
+import { Input } from '@/components/ui/input';
 import { useAuthContext } from '@/utils/contexts/AuthContext';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -33,7 +34,9 @@ export default function LoginForm() {
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
+
         e.preventDefault();
+
         setErrors({});
 
         if (!validatePhone(phone)) {
@@ -46,27 +49,39 @@ export default function LoginForm() {
         try {
             const response = await loginCustomer({ phoneNumber: phone, password });
             if (response.status === 200) {
+
+
                 if (rememberMe) {
+
                     localStorage.setItem('rememberedPhone', phone);
                     localStorage.setItem('rememberMe', 'true');
                 } else {
+
                     localStorage.removeItem('rememberedPhone');
                     localStorage.setItem('rememberMe', 'false');
                 }
 
                 toast.success('Đăng nhập thành công!');
-                const token = response.data.data.access_token;
+
+                const token = response.data.token;
+
+                localStorage.setItem('tok', token);
+
                 const decoded = JSON.parse(atob(token.split('.')[1]));
+
+
                 redirectAfterLogin(decoded.role);
             }
+
+
         } catch (error: unknown) {
 
-            const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Số điện thoại hoặc mật khẩu không đúng';
+            const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
 
-            if (errorMessage.toLowerCase().includes('phone number') || errorMessage.toLowerCase().includes('số điện thoại')) {
-                setErrors(prev => ({ ...prev, phone: errorMessage }));
-            } else if (errorMessage.toLowerCase().includes('password') || errorMessage.toLowerCase().includes('mật khẩu')) {
-                setErrors(prev => ({ ...prev, password: errorMessage }));
+            if (errorMessage?.toLowerCase().includes('phone number') || errorMessage?.toLowerCase().includes('số điện thoại')) {
+                setErrors(prev => ({ ...prev, phone: 'Số điện thoại không hợp lệ (cần 10 số)' }));
+            } else if (errorMessage?.toLowerCase().includes('password') || errorMessage?.toLowerCase().includes('mật khẩu')) {
+                setErrors(prev => ({ ...prev, password: 'Mật khẩu không hợp lệ' }));
             } else {
                 toast.error(errorMessage);
             }
@@ -78,8 +93,10 @@ export default function LoginForm() {
     return (
         <GuestLayout>
             <div className="min-h-screen bg-[#FFF5E6] flex">
-                {/* Left side - Image */}
+
+
                 <div className="hidden lg:flex lg:w-1/2 relative">
+
                     <Image
                         src="/images/Home - Banner.jpg"
                         alt="Tấm Tắc Food"
@@ -87,12 +104,15 @@ export default function LoginForm() {
                         className="object-cover"
                         priority
                     />
+
                 </div>
 
-                {/* Right side - Login Form */}
+
+
+
                 <div className="w-full lg:w-1/2 flex items-center justify-center px-6 py-12">
                     <div className="w-full max-w-md">
-                        {/* Logo/Title */}
+
                         <div className="text-center mb-8">
                             <h1 className="text-4xl font-bold mb-4">
                                 <span className="text-[#FF6B35]">Tấm</span>{' '}
@@ -103,22 +123,25 @@ export default function LoginForm() {
                             <p className="text-gray-600 text-sm">
                                 Thương hiệu cơm tấm hàng đầu dành cho sinh viên.
                             </p>
+
+
                         </div>
 
                         <form className="space-y-5" onSubmit={handleSubmit}>
                             <div>
-                                <input
+                                <Input
                                     id="phone"
                                     name="phone"
                                     type="tel"
                                     required
                                     value={phone}
                                     onChange={(e) => setPhone(e.target.value)}
-                                    className={`block w-full appearance-none rounded-lg border ${errors.phone ? 'border-red-500' : 'border-gray-300'
-                                        } px-4 py-3 text-gray-900 placeholder-gray-400 shadow-sm focus:border-[#FF6B35] focus:outline-none focus:ring-2 focus:ring-[#FF6B35] sm:text-sm`}
                                     placeholder="Số điện thoại"
+                                    className={`rounded-lg border ${errors.phone ? 'border-red-500' : 'border-gray-300'} focus:border-[#FF6B35] focus:ring-[#FF6B35]`}
                                 />
+
                                 {errors.phone && (
+
                                     <>
                                         <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
                                         {errors.phone === 'Số điện thoại chưa được xác thực. Vui lòng xác thực số điện thoại trước khi đăng nhập.' && (
@@ -133,22 +156,28 @@ export default function LoginForm() {
                                             </button>
                                         )}
                                     </>
+
                                 )}
                             </div>
 
+
+
                             <div>
+
+
                                 <div className="relative">
-                                    <input
+
+                                    <Input
                                         id="password"
                                         name="password"
                                         type={showPassword ? 'text' : 'password'}
                                         required
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
-                                        className={`block w-full appearance-none rounded-lg border ${errors.password ? 'border-red-500' : 'border-gray-300'
-                                            } px-4 py-3 text-gray-900 placeholder-gray-400 shadow-sm focus:border-[#FF6B35] focus:outline-none focus:ring-2 focus:ring-[#FF6B35] sm:text-sm`}
                                         placeholder="Mật khẩu"
+                                        className={`rounded-lg border ${errors.password ? 'border-red-500' : 'border-gray-300'} focus:border-[#FF6B35] focus:ring-[#FF6B35] pr-10`}
                                     />
+
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
@@ -159,9 +188,12 @@ export default function LoginForm() {
                                         </span>
                                     </button>
                                 </div>
+
                                 {errors.password && (
                                     <p className="mt-1 text-sm text-red-600">{errors.password}</p>
                                 )}
+
+
                             </div>
 
                             <div>
@@ -175,7 +207,7 @@ export default function LoginForm() {
                             </div>
                         </form>
 
-                        {/* Divider */}
+
                         <div className="mt-6">
                             <div className="relative">
                                 <div className="absolute inset-0 flex items-center">
