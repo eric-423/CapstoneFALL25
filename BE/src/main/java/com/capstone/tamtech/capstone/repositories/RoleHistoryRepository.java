@@ -5,6 +5,7 @@ import com.capstone.tamtech.capstone.entities.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -13,6 +14,8 @@ public interface RoleHistoryRepository extends JpaRepository<RoleHistory, Intege
     Optional<RoleHistory> findByUserAndIsActiveTrue(Users user);
 
     RoleHistory findByUser_Id(int id);
+
+    List<RoleHistory> findByRole_NameAndBranch_IdAndIsActiveTrue(String name, int id);
 
 
 }

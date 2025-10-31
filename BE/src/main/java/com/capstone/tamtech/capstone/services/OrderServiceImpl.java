@@ -3,13 +3,16 @@ package com.capstone.tamtech.capstone.services;
 import com.capstone.tamtech.capstone.dto.*;
 import com.capstone.tamtech.capstone.entities.*;
 import com.capstone.tamtech.capstone.entities.keys.KeyOrderItem;
+import com.capstone.tamtech.capstone.exception.ResourceNotFoundException;
 import com.capstone.tamtech.capstone.payload.request.OrderItemRequest;
 import com.capstone.tamtech.capstone.payload.request.OrderRequest;
 import com.capstone.tamtech.capstone.repositories.*;
 import com.capstone.tamtech.capstone.services.impl.OrderService;
 import com.capstone.tamtech.capstone.services.impl.PaymentService;
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,10 +50,16 @@ public class OrderServiceImpl implements OrderService {
     private OrderStatusRepository orderStatusRepository;
 
     @Autowired
+    private BranchRepository branchRepository;
+
+    @Autowired
+    private RoleHistoryRepository roleHistoryRepository;
+
+    @Autowired
     private com.capstone.tamtech.capstone.services.impl.InventoryService inventoryService;
 
     @Override
-    public OrderDTO createOrderForShipping(OrderRequest orderRequest){
+    public OrderDTO createOrderForShipping(OrderRequest orderRequest) throws BadRequestException {
         inventoryService.assertSufficientMaterialsForOrder(orderRequest.getOrderItemList());
         Order order = new Order();
 
@@ -151,7 +160,7 @@ public class OrderServiceImpl implements OrderService {
         Order saved = orderRepository.save(order);
 
         if (orderRequest.getOrderItemList() != null) {
-            for (var itemReq : orderRequest.getOrderItemList()) {
+            for (OrderItemRequest itemReq : orderRequest.getOrderItemList()) {
                 boolean isProduct = itemReq.getProductId() > 0;
                 boolean isCombo = itemReq.getComboId() > 0;
 
@@ -178,6 +187,8 @@ public class OrderServiceImpl implements OrderService {
                 }
             }
         }
+        Integer branchId = saved.getBranch() != null ? saved.getBranch().getId() : null;
+        inventoryService.consumeMaterialsForOrderItems(saved.getOrderItems(), branchId);
         saved.setPaymentUrl(paymentService.createPaymentLink(saved.getId()));
         orderRepository.save(saved);
         OrderDTO result = toDTO(saved);
@@ -186,8 +197,11 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public void cancelOrder(int orderId) {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
+        Integer branchId = order.getBranch() != null ? order.getBranch().getId() : null;
+        inventoryService.restoreMaterialsForOrderItems(order.getOrderItems(), branchId);
         order.setStatus(orderStatusRepository.findByName("CANCEL").orElseThrow(() -> new RuntimeException("OrderStatus CANCEL not found")));
         order.setPaymentUrl(null);
         order.setPaymentCode(null);
@@ -201,12 +215,127 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.save(order);
     }
 
-    private double calculateShippingFee(String customerAddress, String branchAddress) {
+    @Override
+    public boolean assignOrderToCheff(int orderId) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
+        Branch branch = order.getBranch();
+        if (branch == null) {
+            throw new RuntimeException("Order has no branch assigned");
+        }
+        int branchId = branch.getId();
+
+        List<RoleHistory> chefs = roleHistoryRepository.findByRole_NameAndBranch_IdAndIsActiveTrue("CHEFF", branchId);
+        if (chefs == null || chefs.isEmpty()) {
+            throw new RuntimeException("No chefs found for branch id=" + branchId);
+        }
+        Users selected = null;
+        for (RoleHistory rh : chefs) {
+            Users user = rh.getUser();
+            if (!user.getIsBusy()) {
+                selected = user;
+                break;
+            }
+        }
+        if (selected == null) {
+            selected = chefs.get(0).getUser();
+        }
+        order.setWorker(selected);
+        order.setStatus(orderStatusRepository.findByName("COOKING").orElseThrow(() -> new RuntimeException("OrderStatus COOKING not found")));
+        orderRepository.save(order);
+        return true;
+    }
+
+    @Override
+    public boolean markAsCooked(int orderId) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
+        Users chef = usersRepository.findById(order.getWorker().getId()).orElseThrow(() -> new RuntimeException("Chef not found"));
+
+        chef.setIsBusy(false);
+        usersRepository.save(chef);
+        order.setStatus(orderStatusRepository.findByName("COOKED").orElseThrow(() -> new RuntimeException("OrderStatus COOKING not found")));
+
+        orderRepository.save(order);
+
+        return true;
+
+    }
+
+    @Override
+    public boolean assignToShipper(int orderId) {
+
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
+        Branch branch = order.getBranch();
+        if (branch == null) {
+            throw new RuntimeException("Order has no branch assigned");
+        }
+        int branchId = branch.getId();
+
+        List<RoleHistory> shipper = roleHistoryRepository.findByRole_NameAndBranch_IdAndIsActiveTrue("SHIPPER", branchId);
+        if (shipper == null || shipper.isEmpty()) {
+            throw new RuntimeException("No shipper found for branch id=" + branchId);
+        }
+        Users selected = null;
+        for (RoleHistory rh : shipper) {
+            Users user = rh.getUser();
+            if (!user.getIsBusy()) {
+                selected = user;
+                break;
+            }
+        }
+        if (selected == null) {
+            selected = shipper.get(0).getUser();
+        }
+        order.setShipper(selected);
+        selected.setIsBusy(true);
+        usersRepository.save(selected);
+        order.setStatus(orderStatusRepository.findByName("SHIPPING").orElseThrow(() -> new RuntimeException("OrderStatus COOKING not found")));
+        orderRepository.save(order);
+
+        return true;
+    }
+
+    @Override
+    public boolean deliveredOrder(int orderId) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
+        Users shipper = order.getShipper();
+        shipper.setIsBusy(false);
+
+        usersRepository.save(shipper);
+        orderRepository.save(order);
+
+        return true;
+    }
+
+    @Override
+    public boolean completeOrder(int orderId) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
+        Users shipper = order.getShipper();
+        Users customer = order.getCustomer();
+
+        customer.setMemberPoint(customer.getMemberPoint()+(int)(order.getAmount()/1000));
+        shipper.setIsBusy(false);
+        usersRepository.save(shipper);
+        usersRepository.save(customer);
+        order.setStatus(orderStatusRepository.findByName("COMPLETED").orElseThrow(() -> new RuntimeException("OrderStatus COMPLETED not found")));
+        orderRepository.save(order);
+
+        return true;
+    }
+
+    @Override
+    public double calculateShippingFee(String customerAddress, String branchAddress) throws BadRequestException {
+        double shippingFee = 0.0;
         long meters = distanceService.getDistanceInMeters(branchAddress, customerAddress);
+
+        if(meters>5000){
+            throw new BadRequestException("We only ship in 5km");
+        }
         if (meters >= 0 && meters <= 3000) {
             return 0.0;
+        } else{
+            shippingFee = (meters-3000)*10000;
         }
-        return 0.0;
+        return shippingFee;
     }
 
 
