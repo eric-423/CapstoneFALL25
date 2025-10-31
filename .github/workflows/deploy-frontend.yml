@@ -1,4 +1,4 @@
-name: Deploy Frontend (Next.js) to GCP Ubuntu
+name: Deploy Frontend to GCP Ubuntu
 
 on:
   push:
@@ -24,18 +24,12 @@ jobs:
       - name: 📦 Install & Build Next.js Frontend
         working-directory: ./FE
         run: |
+          echo "=== Start building FE ==="
           npm ci
           npm run build
-
-      - name: 🔍 Debug build output
-        run: |
-          echo "=== Current directory ==="
-          pwd
-          echo "=== FE directory structure ==="
-          ls -la FE
-          echo "=== .next directory ==="
-          ls -la FE/.next || echo ".next not found"
-
+          echo "=== List .next directory ==="
+          ls -la .next || echo ".next not found!"
+          echo "=== Build completed ==="
 
       - name: 🛠️ Prepare deployment folder on server
         uses: appleboy/ssh-action@v0.1.10
@@ -47,6 +41,7 @@ jobs:
             sudo mkdir -p /var/www/myapp
             sudo chown -R $USER:$USER /var/www/myapp
             sudo chmod -R 755 /var/www/myapp
+            echo "✅ Deployment folder prepared at /var/www/myapp"
 
       - name: 🗑️ Cleanup old files on server
         uses: appleboy/ssh-action@v0.1.10
@@ -56,6 +51,7 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             sudo rm -rf /var/www/myapp/*
+            echo "🧹 Old files cleaned up"
 
       - name: 🚀 Upload Next.js build to server
         uses: appleboy/scp-action@v0.1.4
@@ -63,14 +59,13 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          source: |
-            FE/.next
-            FE/public
-            FE/package.json
-            FE/package-lock.json
-          target: /var/www/myapp
+          source: "FE/.next,FE/public,FE/package.json,FE/package-lock.json"
+          target: "/var/www/myapp"
+          strip_components: 1
+          debug: true
 
-      - name: ▶️ Restart Next.js app on server
+      - name: ✅ Restart app service (optional)
+        if: success()
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -78,7 +73,8 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd /var/www/myapp
+            echo "Installing production dependencies..."
             npm ci --omit=dev
-            pm2 stop myapp || true
-            pm2 start npm --name "myapp" -- run start
-            pm2 save
+            echo "Restarting app service..."
+            pm2 restart myapp || pm2 start npm --name "myapp" -- run start
+            echo "✅ Deployment complete!"
