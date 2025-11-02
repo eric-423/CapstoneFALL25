@@ -13,12 +13,12 @@ const Footer = () => {
           {/* Logo and Tagline */}
           <div className='flex flex-col items-start'>
             <div className='flex items-center space-x-3 mb-4'>
-              <div className='relative w-32 h-12'>
+              <div className='relative w-40 h-12 overflow-visible'>
                 <Image
                   src='/full-logo-white.svg'
                   alt='Tấm Tắc Logo'
                   fill
-                  className='object-contain p-2'
+                  className='object-contain scale-110 lg:scale-125 p-1'
                 />
               </div>
             </div>
@@ -130,3 +130,4 @@ const Footer = () => {
 };
 
 export default Footer;
+

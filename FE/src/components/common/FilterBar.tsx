@@ -73,9 +73,9 @@ export function FilterBar({
     };
 
     return (
-        <div className={`space-y-4 ${className}`}>
+        <div className={`space-y-4 w-full max-w-full ${className}`}>
             {/* Main Filter Bar */}
-            <div className="flex flex-wrap items-center gap-3 bg-card rounded-lg border border-gray-200 p-4 shadow-sm">
+            <div className="flex flex-wrap items-center gap-3 bg-card rounded-lg border border-gray-200 p-4 shadow-sm w-full">
                 {/* Search Input */}
                 <div className="flex-1 min-w-[250px]">
                     <div className="relative">

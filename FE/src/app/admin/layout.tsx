@@ -141,9 +141,9 @@ export default function AdminLayout({
                     </aside>
 
                     {/* Main Content */}
-                    <main className="flex-1 ml-72 bg-[#f9fafb]">
+                    <main className="flex-1 ml-72 bg-[#f9fafb] min-w-0">
                         <AdminHeader />
-                        <div className="p-6">
+                        <div className="p-6 max-w-full overflow-x-hidden">
                             {children}
                         </div>
                     </main>

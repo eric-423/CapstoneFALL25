@@ -90,7 +90,7 @@ export function AdminHeader() {
 
     return (
         <header className="sticky top-0 z-40 w-full border-b border-gray-700/50 bg-slate-900">
-            <div className="flex h-16 items-center gap-4 px-6">
+            <div className="flex h-16 items-center gap-4 px-6 max-w-full overflow-x-auto">
                 {/* Breadcrumbs */}
                 <div className="flex items-center gap-2 text-sm">
                     <span className="text-gray-400">Admin</span>
@@ -244,7 +244,13 @@ export function AdminHeader() {
                             Cài đặt
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-red-600">
+                        <DropdownMenuItem
+                            className="text-red-600"
+                            onClick={() => {
+                                localStorage.clear();
+                                router.push('/inside/login');
+                            }}
+                        >
                             <LogOut className="mr-2 h-4 w-4" />
                             Đăng xuất
                         </DropdownMenuItem>

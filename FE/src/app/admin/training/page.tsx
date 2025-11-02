@@ -57,20 +57,24 @@ export default function TrainingPage() {
     ];
 
     const getRoleColor = (role: StaffRole) => {
-        const colors = {
+        const colors: Record<StaffRole, string> = {
             CHEF: 'from-orange-500 to-red-500',
             BRANCH_MANAGER: 'from-blue-500 to-cyan-500',
             STAFF: 'from-green-500 to-emerald-500',
+            WAITER: 'from-green-500 to-teal-500',
+            SHIPPER: 'from-purple-500 to-pink-500',
             ALL: 'from-purple-500 to-indigo-500',
         };
         return colors[role];
     };
 
     const getRoleText = (role: StaffRole) => {
-        const text = {
+        const text: Record<StaffRole, string> = {
             CHEF: 'Bếp trưởng',
             BRANCH_MANAGER: 'Quản lý',
             STAFF: 'Nhân viên',
+            WAITER: 'Phục vụ',
+            SHIPPER: 'Giao hàng',
             ALL: 'Tất cả',
         };
         return text[role];

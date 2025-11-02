@@ -87,7 +87,7 @@ export default function DashboardPage() {
                             {selectedBranch ? selectedBranch.name : 'Tổng quan hệ thống'}
                         </h1>
                         <p className="text-gray-600 text-lg">
-                            Dashboard quản trị & phân tích dữ liệu • {getTimePeriodLabel()}
+                            • {getTimePeriodLabel()}
                             {isLoading && <span className="ml-2 text-sm text-orange-500">Đang tải...</span>}
                         </p>
                     </div>

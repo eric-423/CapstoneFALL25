@@ -18,7 +18,7 @@ interface BranchFormData {
     address: string;
     phone: string;
     isParent: boolean;
-    active: boolean;
+    isActive: boolean;
 }
 
 export function AddBranchDialog() {
@@ -29,7 +29,7 @@ export function AddBranchDialog() {
         address: '',
         phone: '',
         isParent: false,
-        active: true,
+        isActive: true,
     });
 
     const [errors, setErrors] = useState<Partial<BranchFormData>>({});
@@ -64,7 +64,7 @@ export function AddBranchDialog() {
                 address: '',
                 phone: '',
                 isParent: false,
-                active: true,
+                isActive: true,
             });
             setErrors({});
             setIsLoading(false);
@@ -166,17 +166,17 @@ export function AddBranchDialog() {
                         </div>
 
                         <div className="flex items-center justify-between p-4 rounded-lg border-2 border-gray-200 hover:border-orange-300 transition-all bg-gray-50">
-                            <label htmlFor="active" className="text-sm font-semibold text-gray-700 cursor-pointer">
+                            <label htmlFor="isActive" className="text-sm font-semibold text-gray-700 cursor-pointer">
                                 Kích hoạt ngay
                             </label>
                             <button
                                 type="button"
-                                onClick={() => handleInputChange('active', !formData.active)}
-                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 ${formData.active ? 'bg-gradient-to-r from-green-500 to-green-600' : 'bg-gray-300'
+                                onClick={() => handleInputChange('isActive', !formData.isActive)}
+                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 ${formData.isActive ? 'bg-gradient-to-r from-green-500 to-green-600' : 'bg-gray-300'
                                     }`}
                             >
                                 <span
-                                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-lg transition-transform ${formData.active ? 'translate-x-6' : 'translate-x-1'
+                                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-lg transition-transform ${formData.isActive ? 'translate-x-6' : 'translate-x-1'
                                         }`}
                                 />
                             </button>
@@ -195,7 +195,7 @@ export function AddBranchDialog() {
                                     address: '',
                                     phone: '',
                                     isParent: false,
-                                    active: true,
+                                    isActive: true,
                                 });
                                 setErrors({});
                             }}

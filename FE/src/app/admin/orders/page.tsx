@@ -38,9 +38,9 @@ export default function OrdersPage() {
                         <Card className="relative overflow-hidden p-6 bg-white border-0 shadow-sm hover:shadow-xl transition-all duration-300 rounded-2xl group">
                             <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                             <div className="relative">
-                                <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">Đang xử lý</p>
+                                <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">Đang giao</p>
                                 <p className="text-4xl font-bold text-yellow-600">
-                                    {MOCK_ORDERS.filter(o => o.status === 'PENDING').length}
+                                    {MOCK_ORDERS.filter(o => o.status === 'DELIVERING').length}
                                 </p>
                             </div>
                         </Card>
@@ -58,7 +58,7 @@ export default function OrdersPage() {
                             <div className="relative">
                                 <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">Tổng doanh thu</p>
                                 <p className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                                    {(MOCK_ORDERS.reduce((sum, o) => sum + o.totalAmount, 0) / 1000000).toFixed(1)}M
+                                    {(MOCK_ORDERS.reduce((sum, o) => sum + o.amount, 0) / 1000000).toFixed(1)}M
                                 </p>
                             </div>
                         </Card>
@@ -82,17 +82,36 @@ export default function OrdersPage() {
                                     {MOCK_ORDERS.map(order => (
                                         <tr key={order.id} className="hover:bg-gradient-to-r hover:from-primary/5 hover:to-transparent transition-all duration-200 group">
                                             <td className="px-6 py-5 whitespace-nowrap">
-                                                <span className="text-sm font-bold text-primary group-hover:text-secondary transition-colors">#{order.id}</span>
+                                                <div>
+                                                    <span className="text-sm font-bold text-primary group-hover:text-secondary transition-colors">#{order.id}</span>
+                                                    {order.customerName && (
+                                                        <p className="text-xs text-gray-500 mt-1">{order.customerName}</p>
+                                                    )}
+                                                </div>
                                             </td>
                                             <td className="px-6 py-5 whitespace-nowrap">
-                                                <span className="text-sm font-medium text-gray-700">
-                                                    {new Date(order.orderDate).toLocaleDateString('vi-VN')}
-                                                </span>
+                                                <div>
+                                                    <span className="text-sm font-medium text-gray-700">
+                                                        {new Date(order.createdAt).toLocaleDateString('vi-VN')}
+                                                    </span>
+                                                    {order.isPickUp ? (
+                                                        <p className="text-xs text-blue-600 font-semibold mt-1">Lấy tại quán</p>
+                                                    ) : (
+                                                        <p className="text-xs text-green-600 font-semibold mt-1">Giao hàng</p>
+                                                    )}
+                                                </div>
                                             </td>
                                             <td className="px-6 py-5 whitespace-nowrap">
-                                                <span className="text-sm font-bold text-gray-900">
-                                                    {order.totalAmount.toLocaleString()}đ
-                                                </span>
+                                                <div>
+                                                    <span className="text-sm font-bold text-gray-900">
+                                                        {order.amount.toLocaleString()}đ
+                                                    </span>
+                                                    {order.discountValue > 0 && (
+                                                        <p className="text-xs text-green-600 mt-1">
+                                                            Giảm: {order.discountValue.toLocaleString()}đ
+                                                        </p>
+                                                    )}
+                                                </div>
                                             </td>
                                             <td className="px-6 py-5 whitespace-nowrap">
                                                 <span className="flex items-center gap-2 text-sm font-semibold">

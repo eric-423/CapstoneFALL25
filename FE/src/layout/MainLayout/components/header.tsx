@@ -24,12 +24,12 @@ export default function Header() {
       <div className='container mx-auto px-4 md:px-6 lg:px-8 py-4 flex items-center justify-between'>
         {/* Logo */}
         <Link href='/' className='flex items-center space-x-2'>
-          <div className='relative w-32 md:w-36 h-8'>
+          <div className='relative w-36 md:w-48 h-8 overflow-visible'>
             <Image
               src='/full-logo.svg'
               alt='Tấm Tắc Logo'
               fill
-              className='object-contain'
+              className='object-contain scale-110 md:scale-125'
               priority
             />
           </div>
@@ -185,3 +185,4 @@ function ActionButtons({
     </>
   );
 }
+

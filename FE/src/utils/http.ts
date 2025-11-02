@@ -31,10 +31,10 @@ class Http {
         'Content-Type': 'application/json',
       },
     });
-    
-    if (process.env.NEXT_PUBLIC_USE_MOCK === 'true') {
-      setupMockInterceptor(this.instance);
-    }
+
+    // Always setup mock interceptor to allow mock accounts to login
+    // regardless of NEXT_PUBLIC_USE_MOCK setting
+    setupMockInterceptor(this.instance, process.env.NEXT_PUBLIC_USE_MOCK === 'true');
 
     this.instance.interceptors.request.use(
       (config) => {

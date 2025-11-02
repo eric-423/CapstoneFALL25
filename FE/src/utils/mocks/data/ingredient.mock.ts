@@ -1,5 +1,8 @@
 import { Ingredient } from '@/utils/types/ingredient.type';
 
+// Mock Ingredients data matching MaterialDTO from Backend
+// MaterialDTO fields: id, name, quantity
+// Note: Extended with additional fields for FE display purposes
 export const MOCK_INGREDIENTS: Ingredient[] = [
     {
         id: 1,
