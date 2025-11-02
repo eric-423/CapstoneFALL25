@@ -1,4 +1,4 @@
-export type StaffRole = 'CHEF' | 'BRANCH_MANAGER' | 'STAFF' | 'ALL';
+export type StaffRole = 'CHEF' | 'BRANCH_MANAGER' | 'STAFF' | 'WAITER' | 'SHIPPER' | 'ALL';
 
 export interface TrainingCourse {
     id: number;

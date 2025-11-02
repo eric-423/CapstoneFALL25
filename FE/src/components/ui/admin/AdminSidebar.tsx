@@ -129,11 +129,14 @@ const AdminSidebar: React.FC = () => {
       label: 'Đăng xuất',
       icon: <LogoutOutlined />,
       onClick: () => {
-        localStorage.removeItem('access_token');
+        // Clear all localStorage
+        localStorage.clear();
+        // Remove cookies
         removeAccessToken();
         removeRefreshToken();
         message.success('Đăng xuất thành công');
-        router.push('/login');
+        // Redirect to inside login page
+        router.push('/inside/login');
       },
     },
   ];

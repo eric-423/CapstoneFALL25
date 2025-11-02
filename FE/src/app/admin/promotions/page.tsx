@@ -38,7 +38,7 @@ export default function PromotionsPage() {
                             <div className="relative">
                                 <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">Đang hoạt động</p>
                                 <p className="text-4xl font-bold text-green-600">
-                                    {MOCK_PROMOTIONS.filter(p => p.status === 'ACTIVE').length}
+                                    {MOCK_PROMOTIONS.filter(p => p.status === true).length}
                                 </p>
                             </div>
                         </Card>
@@ -47,16 +47,16 @@ export default function PromotionsPage() {
                             <div className="relative">
                                 <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">Đã kết thúc</p>
                                 <p className="text-4xl font-bold text-gray-600">
-                                    {MOCK_PROMOTIONS.filter(p => p.status !== 'ACTIVE').length}
+                                    {MOCK_PROMOTIONS.filter(p => p.status === false).length}
                                 </p>
                             </div>
                         </Card>
                         <Card className="relative overflow-hidden p-6 bg-white border-0 shadow-sm hover:shadow-xl transition-all duration-300 rounded-2xl group">
                             <div className="absolute inset-0 bg-gradient-to-br from-secondary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                             <div className="relative">
-                                <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">Đã sử dụng</p>
+                                <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">Đơn tối thiểu TB</p>
                                 <p className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                                    {MOCK_PROMOTIONS.reduce((sum, p) => sum + p.usedCount, 0)}
+                                    {Math.round(MOCK_PROMOTIONS.reduce((sum, p) => sum + p.minimumOrderValue, 0) / MOCK_PROMOTIONS.length / 1000)}k
                                 </p>
                             </div>
                         </Card>
@@ -97,10 +97,10 @@ export default function PromotionsPage() {
                                                 </div>
                                             </div>
                                         </div>
-                                        <span className={`inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl font-bold border-2 ${promo.status === 'ACTIVE' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-100 text-gray-700 border-gray-300'
+                                        <span className={`inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl font-bold border-2 ${promo.status ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-100 text-gray-700 border-gray-300'
                                             }`}>
-                                            {promo.status === 'ACTIVE' ? <CheckCircle size={14} strokeWidth={2.5} /> : <XCircle size={14} strokeWidth={2.5} />}
-                                            {promo.status}
+                                            {promo.status ? <CheckCircle size={14} strokeWidth={2.5} /> : <XCircle size={14} strokeWidth={2.5} />}
+                                            {promo.status ? 'Hoạt động' : 'Kết thúc'}
                                         </span>
                                     </div>
 
@@ -109,12 +109,23 @@ export default function PromotionsPage() {
                                             <div className={`w-10 h-10 bg-gradient-to-br ${colors.bg} rounded-xl flex items-center justify-center flex-shrink-0 shadow-md`}>
                                                 <Percent size={20} className="text-white" strokeWidth={2.5} />
                                             </div>
-                                            <div>
+                                            <div className="flex-1">
                                                 <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider">Giá trị giảm</p>
                                                 <p className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                                                    {promo.discountType === 'PERCENTAGE'
-                                                        ? `${promo.discountValue}%`
-                                                        : `${promo.discountValue.toLocaleString()}đ`}
+                                                    {promo.promotionType === 'PERCENTAGE'
+                                                        ? `${promo.value}%`
+                                                        : `${promo.value.toLocaleString()}đ`}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-4">
+                                            <div className={`w-10 h-10 bg-gradient-to-br ${colors.bg} rounded-xl flex items-center justify-center flex-shrink-0 shadow-md`}>
+                                                <Tag size={20} className="text-white" strokeWidth={2.5} />
+                                            </div>
+                                            <div className="flex-1">
+                                                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider">Đơn tối thiểu</p>
+                                                <p className="text-lg font-bold text-gray-900">
+                                                    {promo.minimumOrderValue.toLocaleString()}đ
                                                 </p>
                                             </div>
                                         </div>
@@ -122,7 +133,7 @@ export default function PromotionsPage() {
                                             <div className={`w-10 h-10 bg-gradient-to-br ${colors.bg} rounded-xl flex items-center justify-center flex-shrink-0 shadow-md`}>
                                                 <Calendar size={20} className="text-white" strokeWidth={2.5} />
                                             </div>
-                                            <div>
+                                            <div className="flex-1">
                                                 <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider">Thời gian</p>
                                                 <p className="text-sm font-bold text-gray-900">
                                                     {new Date(promo.startDate).toLocaleDateString('vi-VN')} - {new Date(promo.endDate).toLocaleDateString('vi-VN')}

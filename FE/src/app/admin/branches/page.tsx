@@ -19,13 +19,12 @@ export default function BranchesPage() {
                                 <Store className="text-primary" size={36} />
                                 Quản Lý Chi Nhánh
                             </h1>
-                            <p className="text-gray-600 text-lg">Quản lý thông tin các chi nhánh cửa hàng</p>
                         </div>
                         <AddBranchDialog />
                     </div>
 
                     {/* Stats */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                         <Card className="relative overflow-hidden p-6 bg-white border-0 shadow-sm hover:shadow-xl transition-all duration-300 rounded-2xl group">
                             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                             <div className="relative flex items-center justify-between">
@@ -44,7 +43,7 @@ export default function BranchesPage() {
                                 <div>
                                     <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">Đang hoạt động</p>
                                     <p className="text-4xl font-bold text-green-600">
-                                        {MOCK_BRANCHES.filter(b => b.status === 'ACTIVE').length}
+                                        {MOCK_BRANCHES.filter(b => b.isActive === true).length}
                                     </p>
                                 </div>
                                 <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all">
@@ -58,11 +57,25 @@ export default function BranchesPage() {
                                 <div>
                                     <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">Tạm ngưng</p>
                                     <p className="text-4xl font-bold text-red-600">
-                                        {MOCK_BRANCHES.filter(b => b.status !== 'ACTIVE').length}
+                                        {MOCK_BRANCHES.filter(b => b.isActive === false).length}
                                     </p>
                                 </div>
                                 <div className="w-16 h-16 bg-gradient-to-br from-red-400 to-red-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all">
                                     <XCircle size={32} className="text-white" strokeWidth={2.5} />
+                                </div>
+                            </div>
+                        </Card>
+                        <Card className="relative overflow-hidden p-6 bg-white border-0 shadow-sm hover:shadow-xl transition-all duration-300 rounded-2xl group">
+                            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            <div className="relative flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">Chi nhánh chính</p>
+                                    <p className="text-4xl font-bold text-blue-600">
+                                        {MOCK_BRANCHES.filter(b => b.isParent === true).length}
+                                    </p>
+                                </div>
+                                <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all">
+                                    <Store size={32} className="text-white" strokeWidth={2.5} />
                                 </div>
                             </div>
                         </Card>
@@ -85,13 +98,20 @@ export default function BranchesPage() {
                                                 <h3 className="text-2xl font-bold text-gray-900 mb-2 group-hover:text-primary transition-colors">
                                                     {branch.name}
                                                 </h3>
-                                                <span className={`inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full font-bold shadow-sm ${branch.status === 'ACTIVE'
-                                                    ? 'bg-green-50 text-green-700 border-2 border-green-200'
-                                                    : 'bg-red-50 text-red-700 border-2 border-red-200'
-                                                    }`}>
-                                                    {branch.status === 'ACTIVE' ? <CheckCircle size={14} strokeWidth={2.5} /> : <XCircle size={14} strokeWidth={2.5} />}
-                                                    {branch.status}
-                                                </span>
+                                                <div className="flex items-center gap-2">
+                                                    <span className={`inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full font-bold shadow-sm ${branch.isActive
+                                                        ? 'bg-green-50 text-green-700 border-2 border-green-200'
+                                                        : 'bg-red-50 text-red-700 border-2 border-red-200'
+                                                        }`}>
+                                                        {branch.isActive ? <CheckCircle size={14} strokeWidth={2.5} /> : <XCircle size={14} strokeWidth={2.5} />}
+                                                        {branch.isActive ? 'Hoạt động' : 'Tạm ngưng'}
+                                                    </span>
+                                                    {branch.isParent && (
+                                                        <span className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-blue-50 text-blue-700 border-2 border-blue-200 rounded-full font-bold shadow-sm">
+                                                            Chi nhánh chính
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

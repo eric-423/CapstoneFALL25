@@ -17,17 +17,17 @@ interface PromotionFormData {
     name: string;
     code: string;
     description: string;
-    discountType: string;
-    discountValue: string;
-    minOrderValue: string;
+    promotionType: string;
+    value: string;
+    minimumOrderValue: string;
     maxDiscount: string;
     startDate: string;
     endDate: string;
     usageLimit: string;
-    active: boolean;
+    status: boolean;
 }
 
-const DISCOUNT_TYPES = [
+const PROMOTION_TYPES = [
     { value: 'PERCENTAGE', label: 'Phần trăm', icon: '%', color: 'from-blue-500 to-blue-600' },
     { value: 'FIXED', label: 'Số tiền cố định', icon: '₫', color: 'from-green-500 to-green-600' },
 ];
@@ -39,14 +39,14 @@ export function AddPromotionDialog() {
         name: '',
         code: '',
         description: '',
-        discountType: 'PERCENTAGE',
-        discountValue: '',
-        minOrderValue: '',
+        promotionType: 'PERCENTAGE',
+        value: '',
+        minimumOrderValue: '',
         maxDiscount: '',
         startDate: '',
         endDate: '',
         usageLimit: '',
-        active: true,
+        status: true,
     });
 
     const [errors, setErrors] = useState<Partial<PromotionFormData>>({});
@@ -57,17 +57,17 @@ export function AddPromotionDialog() {
         if (!formData.name.trim()) newErrors.name = 'Vui lòng nhập tên khuyến mãi';
         if (!formData.code.trim()) newErrors.code = 'Vui lòng nhập mã khuyến mãi';
         if (!formData.description.trim()) newErrors.description = 'Vui lòng nhập mô tả';
-        if (!formData.discountValue) {
-            newErrors.discountValue = 'Vui lòng nhập giá trị giảm giá';
-        } else if (formData.discountType === 'PERCENTAGE' && (Number(formData.discountValue) <= 0 || Number(formData.discountValue) > 100)) {
-            newErrors.discountValue = 'Giá trị phải từ 1-100%';
-        } else if (formData.discountType === 'FIXED_AMOUNT' && Number(formData.discountValue) <= 0) {
-            newErrors.discountValue = 'Giá trị giảm phải lớn hơn 0';
+        if (!formData.value) {
+            newErrors.value = 'Vui lòng nhập giá trị giảm giá';
+        } else if (formData.promotionType === 'PERCENTAGE' && (Number(formData.value) <= 0 || Number(formData.value) > 100)) {
+            newErrors.value = 'Giá trị phải từ 1-100%';
+        } else if (formData.promotionType === 'FIXED_AMOUNT' && Number(formData.value) <= 0) {
+            newErrors.value = 'Giá trị giảm phải lớn hơn 0';
         }
 
         // Validate optional number fields
-        if (formData.minOrderValue && Number(formData.minOrderValue) < 0) {
-            newErrors.minOrderValue = 'Giá trị không được âm';
+        if (formData.minimumOrderValue && Number(formData.minimumOrderValue) < 0) {
+            newErrors.minimumOrderValue = 'Giá trị không được âm';
         }
         if (formData.maxDiscount && Number(formData.maxDiscount) < 0) {
             newErrors.maxDiscount = 'Giá trị không được âm';
@@ -103,14 +103,14 @@ export function AddPromotionDialog() {
             name: '',
             code: '',
             description: '',
-            discountType: 'PERCENTAGE',
-            discountValue: '',
-            minOrderValue: '',
+            promotionType: 'PERCENTAGE',
+            value: '',
+            minimumOrderValue: '',
             maxDiscount: '',
             startDate: '',
             endDate: '',
             usageLimit: '',
-            active: true,
+            status: true,
         });
         setErrors({});
     };
@@ -203,18 +203,18 @@ export function AddPromotionDialog() {
                     <div className="space-y-2">
                         <label className="text-sm font-semibold text-gray-700">Loại giảm giá</label>
                         <div className="grid grid-cols-2 gap-3">
-                            {DISCOUNT_TYPES.map((type) => (
+                            {PROMOTION_TYPES.map((type) => (
                                 <button
                                     key={type.value}
                                     type="button"
-                                    onClick={() => handleInputChange('discountType', type.value)}
-                                    className={`p-4 rounded-xl border-2 transition-all ${formData.discountType === type.value
+                                    onClick={() => handleInputChange('promotionType', type.value)}
+                                    className={`p-4 rounded-xl border-2 transition-all ${formData.promotionType === type.value
                                         ? `bg-gradient-to-br ${type.color} text-white border-transparent shadow-lg`
                                         : 'bg-white border-gray-200 hover:border-orange-300'
                                         }`}
                                 >
                                     <div className="text-3xl mb-2">{type.icon}</div>
-                                    <div className={`text-sm font-bold ${formData.discountType === type.value ? 'text-white' : 'text-gray-700'}`}>
+                                    <div className={`text-sm font-bold ${formData.promotionType === type.value ? 'text-white' : 'text-gray-700'}`}>
                                         {type.label}
                                     </div>
                                 </button>
@@ -227,19 +227,19 @@ export function AddPromotionDialog() {
                         <div className="space-y-2">
                             <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
                                 <Percent size={16} className="text-orange-500" />
-                                Giá trị giảm {formData.discountType === 'PERCENTAGE' ? '(%)' : '(VNĐ)'} <span className="text-red-500">*</span>
+                                Giá trị giảm {formData.promotionType === 'PERCENTAGE' ? '(%)' : '(VNĐ)'} <span className="text-red-500">*</span>
                             </label>
                             <Input
                                 type="number"
                                 min="0"
-                                max={formData.discountType === 'PERCENTAGE' ? '100' : undefined}
-                                step={formData.discountType === 'PERCENTAGE' ? '1' : '1000'}
-                                placeholder={formData.discountType === 'PERCENTAGE' ? '10' : '50000'}
-                                value={formData.discountValue}
-                                onChange={(e) => handleInputChange('discountValue', e.target.value)}
-                                className={`h-11 border-2 ${errors.discountValue ? 'border-red-400' : 'border-gray-200'} focus:border-orange-500`}
+                                max={formData.promotionType === 'PERCENTAGE' ? '100' : undefined}
+                                step={formData.promotionType === 'PERCENTAGE' ? '1' : '1000'}
+                                placeholder={formData.promotionType === 'PERCENTAGE' ? '10' : '50000'}
+                                value={formData.value}
+                                onChange={(e) => handleInputChange('value', e.target.value)}
+                                className={`h-11 border-2 ${errors.value ? 'border-red-400' : 'border-gray-200'} focus:border-orange-500`}
                             />
-                            {errors.discountValue && <p className="text-xs text-red-600 font-medium">{errors.discountValue}</p>}
+                            {errors.value && <p className="text-xs text-red-600 font-medium">{errors.value}</p>}
                         </div>
 
                         <div className="space-y-2">
@@ -251,8 +251,8 @@ export function AddPromotionDialog() {
                                 min="0"
                                 step="1000"
                                 placeholder="100000"
-                                value={formData.minOrderValue}
-                                onChange={(e) => handleInputChange('minOrderValue', e.target.value)}
+                                value={formData.minimumOrderValue}
+                                onChange={(e) => handleInputChange('minimumOrderValue', e.target.value)}
                                 className="h-11 border-2 border-gray-200 focus:border-orange-500"
                             />
                         </div>
@@ -325,17 +325,17 @@ export function AddPromotionDialog() {
                     {/* Active Status */}
                     <div className="space-y-3 pt-2">
                         <div className="flex items-center justify-between p-4 rounded-lg border-2 border-gray-200 hover:border-orange-300 transition-all bg-gray-50">
-                            <label htmlFor="active" className="text-sm font-semibold text-gray-700 cursor-pointer">
+                            <label htmlFor="status" className="text-sm font-semibold text-gray-700 cursor-pointer">
                                 Kích hoạt ngay
                             </label>
                             <button
                                 type="button"
-                                onClick={() => handleInputChange('active', !formData.active)}
-                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 ${formData.active ? 'bg-gradient-to-r from-green-500 to-green-600' : 'bg-gray-300'
+                                onClick={() => handleInputChange('status', !formData.status)}
+                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 ${formData.status ? 'bg-gradient-to-r from-green-500 to-green-600' : 'bg-gray-300'
                                     }`}
                             >
                                 <span
-                                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-lg transition-transform ${formData.active ? 'translate-x-6' : 'translate-x-1'
+                                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-lg transition-transform ${formData.status ? 'translate-x-6' : 'translate-x-1'
                                         }`}
                                 />
                             </button>

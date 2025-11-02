@@ -30,6 +30,38 @@ export const MOCK_USERS = [
     role: "CUSTOMER",
     avatar: null,
   },
+  {
+    id: 4,
+    email: "chef@tamtac.com",
+    password: "chef123",
+    fullName: "Chef User",
+    phone: "0904234567",
+    phoneNumber: "0904234567",
+    role: "CHEF",
+    branchId: 1,
+    avatar: null,
+  },
+  {
+    id: 5,
+    email: "waiter@tamtac.com",
+    password: "waiter123",
+    fullName: "Waiter User",
+    phone: "0905234567",
+    phoneNumber: "0905234567",
+    role: "WAITER",
+    branchId: 1,
+    avatar: null,
+  },
+  {
+    id: 6,
+    email: "shipper@tamtac.com",
+    password: "shipper123",
+    fullName: "Shipper User",
+    phone: "0906234567",
+    phoneNumber: "0906234567",
+    role: "SHIPPER",
+    avatar: null,
+  },
 ];
 
 export const MOCK_TOKENS = {

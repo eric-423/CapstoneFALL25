@@ -196,19 +196,43 @@ const useAuth = () => {
 
     // Logout function with Next.js router
     const logout = useCallback(() => {
+        const currentUserRole = authState.user?.role;
+
+        // Clear all localStorage
+        localStorage.clear();
+
+        // Remove cookies
         removeAccessToken();
         removeRefreshToken();
         removeAuthToken();
         removeUserRole();
 
+        // Aggressively clear all cookies as fallback
+        if (typeof document !== 'undefined') {
+            document.cookie.split(';').forEach((c) => {
+                document.cookie = c
+                    .replace(/^ +/, '')
+                    .replace(/=.*/, '=;expires=' + new Date().toUTCString() + ';path=/');
+            });
+        }
+
+        // Reset auth state IMMEDIATELY
         setAuthState({
             user: null,
             isAuthenticated: false,
             isInitialized: true,
         });
 
-        router.push('/login');
-    }, [router]);
+        // Force update token ref
+        lastTokenRef.current = null;
+
+        // Redirect based on role
+        if (currentUserRole && currentUserRole !== 'CUSTOMER') {
+            router.push('/inside/login');
+        } else {
+            router.push('/login');
+        }
+    }, [authState.user?.role, router]);
 
     // Login redirect function
     const redirectAfterLogin = useCallback((userRole: string) => {
@@ -219,12 +243,25 @@ const useAuth = () => {
             router.push(callbackUrl);
         } else {
             // Default redirect based on role
-            switch (userRole) {
+            switch (userRole.toUpperCase()) {
                 case 'ADMIN':
                     router.push('/admin');
                     break;
                 case 'MANAGER':
+                case 'BRANCH_MANAGER':
                     router.push('/manager');
+                    break;
+                case 'CHEF':
+                    router.push('/chef');
+                    break;
+                case 'WAITER':
+                    router.push('/waiter');
+                    break;
+                case 'SHIPPER':
+                    router.push('/shipper');
+                    break;
+                case 'CUSTOMER':
+                    router.push('/');
                     break;
                 default:
                     router.push('/');

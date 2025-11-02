@@ -11,7 +11,89 @@ export const setupMockInterceptor = (axiosInstance: AxiosInstance) => {
       const url = config.url || "";
       const method = config.method?.toUpperCase();
 
-      // Mock Customer Login (by phone number)
+      // ==================== NEW API: Customer Login ====================
+      // Check mock accounts first, if not found → let real API handle
+      if (url.includes("/api/auth/customer/login") && method === "POST") {
+        const { phoneNumber, password } = config.data;
+        const mockUser = MOCK_USERS.find(
+          (u) => u.phone === phoneNumber && u.password === password && u.role === "CUSTOMER"
+        );
+
+        if (mockUser) {
+          console.log("🎭 [MOCK] Customer login with mock account:", mockUser.fullName);
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { password: _, ...userWithoutPassword } = mockUser;
+          const mockAccessToken = createMockJWT(mockUser.id, mockUser.phone, mockUser.role);
+          const mockRefreshToken = createMockJWT(mockUser.id, mockUser.phone, mockUser.role);
+          localStorage.setItem("mock_user_id", mockUser.id.toString());
+          localStorage.setItem("access_token", mockAccessToken);
+
+          const mockResponse = {
+            status: 200,
+            statusText: "OK",
+            data: {
+              status: 200,
+              desc: "Login successful (Mock Account)",
+              data: {
+                access_token: mockAccessToken,
+                refresh_token: mockRefreshToken,
+                user: userWithoutPassword,
+              },
+            },
+            headers: {},
+            config,
+          };
+
+          throw { mockResponse };
+        }
+
+        // Not a mock account → continue to real API
+        console.log("🌐 [REAL API] Customer login:", phoneNumber);
+        return config;
+      }
+
+      // ==================== NEW API: Employee Login ====================
+      // Check mock accounts first, if not found → let real API handle
+      if (url.includes("/api/auth/employee/login") && method === "POST") {
+        const { email, password } = config.data;
+        const mockUser = MOCK_USERS.find(
+          (u) => u.email === email && u.password === password && u.role !== "CUSTOMER"
+        );
+
+        if (mockUser) {
+          console.log("🎭 [MOCK] Employee login with mock account:", mockUser.fullName, "-", mockUser.role);
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { password: _, ...userWithoutPassword } = mockUser;
+          const mockAccessToken = createMockJWT(mockUser.id, mockUser.phone, mockUser.role);
+          const mockRefreshToken = createMockJWT(mockUser.id, mockUser.phone, mockUser.role);
+          localStorage.setItem("mock_user_id", mockUser.id.toString());
+          localStorage.setItem("access_token", mockAccessToken);
+
+          const mockResponse = {
+            status: 200,
+            statusText: "OK",
+            data: {
+              status: 200,
+              desc: "Login successful (Mock Account)",
+              data: {
+                access_token: mockAccessToken,
+                refresh_token: mockRefreshToken,
+                user: userWithoutPassword,
+              },
+            },
+            headers: {},
+            config,
+          };
+
+          throw { mockResponse };
+        }
+
+        // Not a mock account → continue to real API
+        console.log("🌐 [REAL API] Employee login:", email);
+        return config;
+      }
+
+      // ==================== OLD API: Customer Login (Legacy) ====================
       if (url.includes("/customer/sign-in") && method === "POST") {
         const { phoneNumber, password } = config.data;
         const user = MOCK_USERS.find(
@@ -20,7 +102,7 @@ export const setupMockInterceptor = (axiosInstance: AxiosInstance) => {
 
         if (user) {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { password, ...userWithoutPassword } = user;
+          const { password: _, ...userWithoutPassword } = user;
           const mockAccessToken = createMockJWT(user.id, user.phone, user.role);
           const mockRefreshToken = createMockJWT(user.id, user.phone, user.role);
           localStorage.setItem("mock_user_id", user.id.toString());
@@ -41,20 +123,15 @@ export const setupMockInterceptor = (axiosInstance: AxiosInstance) => {
             headers: {},
             config,
           };
-          
+
           throw { mockResponse };
         }
 
-        throw {
-          response: {
-            status: 401,
-            data: { status: 401, desc: "Số điện thoại hoặc mật khẩu không đúng" },
-          },
-          config,
-        };
+        // Not found in mock → continue to real API (if implemented)
+        return config;
       }
 
-      // Mock Staff Login (by email - for Admin, Manager, etc.)
+      // ==================== OLD API: Staff Login (Legacy) ====================
       if (url.includes("/auth/sign-in") && method === "POST") {
         const { phoneNumber, password } = config.data;
         // For staff, phoneNumber field is actually email
@@ -64,7 +141,7 @@ export const setupMockInterceptor = (axiosInstance: AxiosInstance) => {
 
         if (user) {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { password, ...userWithoutPassword } = user;
+          const { password: _, ...userWithoutPassword } = user;
           const mockAccessToken = createMockJWT(user.id, user.phone, user.role);
           const mockRefreshToken = createMockJWT(user.id, user.phone, user.role);
           localStorage.setItem("mock_user_id", user.id.toString());
@@ -85,17 +162,12 @@ export const setupMockInterceptor = (axiosInstance: AxiosInstance) => {
             headers: {},
             config,
           };
-          
+
           throw { mockResponse };
         }
 
-        throw {
-          response: {
-            status: 401,
-            data: { status: 401, desc: "Email hoặc mật khẩu không đúng" },
-          },
-          config,
-        };
+        // Not found in mock → continue to real API (if implemented)
+        return config;
       }
 
       // Mock Get Current User Profile

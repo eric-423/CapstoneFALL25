@@ -40,7 +40,7 @@ export default function ProductsPage() {
                             <div className="relative">
                                 <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">Còn hàng</p>
                                 <p className="text-4xl font-bold text-green-600">
-                                    {MOCK_PRODUCTS.filter(p => p.status === 'AVAILABLE').length}
+                                    {MOCK_PRODUCTS.filter(p => p.status === true).length}
                                 </p>
                             </div>
                         </Card>
@@ -49,7 +49,7 @@ export default function ProductsPage() {
                             <div className="relative">
                                 <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">Hết hàng</p>
                                 <p className="text-4xl font-bold text-red-600">
-                                    {MOCK_PRODUCTS.filter(p => p.status !== 'AVAILABLE').length}
+                                    {MOCK_PRODUCTS.filter(p => p.status === false).length}
                                 </p>
                             </div>
                         </Card>
@@ -58,7 +58,7 @@ export default function ProductsPage() {
                             <div className="relative">
                                 <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">Giá trung bình</p>
                                 <p className="text-4xl font-bold text-secondary">
-                                    {Math.round(MOCK_PRODUCTS.reduce((sum, p) => sum + p.price, 0) / MOCK_PRODUCTS.length / 1000)}k
+                                    {Math.round(MOCK_PRODUCTS.reduce((sum, p) => sum + p.productPrice, 0) / MOCK_PRODUCTS.length / 1000)}k
                                 </p>
                             </div>
                         </Card>
@@ -67,40 +67,47 @@ export default function ProductsPage() {
                     {/* Products Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         {MOCK_PRODUCTS.map(product => (
-                            <Card key={product.id} className="overflow-hidden bg-white border-0 shadow-sm hover:shadow-2xl transition-all duration-500 group rounded-2xl cursor-pointer">
+                            <Card key={product.productId} className="overflow-hidden bg-white border-0 shadow-sm hover:shadow-2xl transition-all duration-500 group rounded-2xl cursor-pointer">
                                 {/* Product Image */}
                                 <div className="relative h-56 bg-gradient-to-br from-primary/5 to-secondary/5 flex items-center justify-center overflow-hidden">
                                     <span className="text-8xl group-hover:scale-125 group-hover:rotate-12 transition-all duration-500">🍜</span>
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
 
                                     {/* Status Badge */}
-                                    <span className={`absolute top-4 right-4 flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl font-bold shadow-lg backdrop-blur-sm ${product.status === 'AVAILABLE'
+                                    <span className={`absolute top-4 right-4 flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl font-bold shadow-lg backdrop-blur-sm ${product.status
                                         ? 'bg-green-500/90 text-white border-2 border-white/50'
                                         : 'bg-gray-600/90 text-white border-2 border-white/50'
                                         }`}>
-                                        {product.status === 'AVAILABLE' ? <CheckCircle size={14} strokeWidth={2.5} /> : <XCircle size={14} strokeWidth={2.5} />}
-                                        {product.status === 'AVAILABLE' ? 'Còn hàng' : 'Hết hàng'}
+                                        {product.status ? <CheckCircle size={14} strokeWidth={2.5} /> : <XCircle size={14} strokeWidth={2.5} />}
+                                        {product.status ? 'Còn hàng' : 'Hết hàng'}
                                     </span>
 
                                     {/* Category Badge */}
                                     <span className="absolute bottom-4 left-4 px-3 py-1.5 bg-white/90 backdrop-blur-sm rounded-lg text-xs font-bold text-gray-700 shadow-md">
-                                        {product.category}
+                                        {product.productType}
                                     </span>
                                 </div>
 
                                 {/* Product Info */}
                                 <div className="p-5">
                                     <h3 className="font-bold text-lg mb-2 text-gray-900 line-clamp-1 group-hover:text-primary transition-colors">
-                                        {product.name}
+                                        {product.productName}
                                     </h3>
-                                    <p className="text-gray-600 text-sm mb-4 line-clamp-2 h-10 leading-relaxed">{product.description}</p>
+                                    <p className="text-gray-600 text-sm mb-4 line-clamp-2 h-10 leading-relaxed">{product.productDescription}</p>
+
+                                    {/* Quantity Badge */}
+                                    <div className="mb-3">
+                                        <span className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded-lg font-semibold">
+                                            Tồn kho: {product.productQuantity}
+                                        </span>
+                                    </div>
 
                                     {/* Price */}
                                     <div className="mb-4 pt-4 border-t-2 border-gray-100">
                                         <p className="text-xs text-gray-500 mb-1 font-medium">Giá bán</p>
                                         <div className="flex items-baseline gap-1">
                                             <span className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                                                {product.price.toLocaleString()}
+                                                {product.productPrice.toLocaleString()}
                                             </span>
                                             <span className="text-base font-bold text-gray-600">đ</span>
                                         </div>
