@@ -63,7 +63,7 @@ public class AuthController {
             @ApiResponse(responseCode = "201", description = "Đăng ký thành công", content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "400", description = "Số điện thoại đã tồn tại hoặc dữ liệu không hợp lệ")
     })
-    @PostMapping("/customer/regiser")
+    @PostMapping("/customer/register")
     public ResponseEntity<?> customerRegister(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Thông tin đăng ký khách hàng", required = true, content = @Content(schema = @Schema(implementation = CustomerRegisterRequest.class), examples = @ExampleObject(value = "{\"fullName\": \"Nguyễn Văn A\", \"phoneNumber\": \"0987654321\", \"password\": \"password123\", \"dateOfBirth\": \"2000-01-01\"}"))) @RequestBody CustomerRegisterRequest customerRegisterRequest) {
 

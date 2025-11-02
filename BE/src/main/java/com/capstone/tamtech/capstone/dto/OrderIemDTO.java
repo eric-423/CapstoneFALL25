@@ -25,6 +25,8 @@ public class OrderIemDTO implements Serializable {
     private Date expiredFeedbackTime;
     private String productImg;
     private ComboDTO comboDTO;
+    private Boolean isConfirmed;
+    private Boolean isDelivered;
 
     @Override
     public String toString() {

@@ -55,6 +55,9 @@ public class Users {
     @Column(name = "phone_verified")
     private Boolean phoneVerified = false;
 
+    @Column(name = "is_busy")
+    private Boolean isBusy = false;
+
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH})
     @JoinColumn(name = "member_association_id")
@@ -74,6 +77,9 @@ public class Users {
 
     @OneToMany(mappedBy = "customer", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH})
     private List<Order> orders;
+
+    @OneToMany(mappedBy = "waiter", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH})
+    private List<Order> orderWaited;
 
 
     @OneToMany(mappedBy = "author", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH})

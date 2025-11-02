@@ -1,7 +1,8 @@
 'use client';
 
 import { GuestLayout } from '@/components/layouts/GuestLayout';
-import { loginCustomer, sendOtp } from '@/apis/user.api';
+import { loginCustomer } from '@/apis/user.api';
+import { Input } from '@/components/ui/input';
 import { useAuthContext } from '@/utils/contexts/AuthContext';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -33,7 +34,9 @@ export default function LoginForm() {
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
+
         e.preventDefault();
+
         setErrors({});
 
         if (!validatePhone(phone)) {
@@ -46,27 +49,39 @@ export default function LoginForm() {
         try {
             const response = await loginCustomer({ phoneNumber: phone, password });
             if (response.status === 200) {
+
+
                 if (rememberMe) {
+
                     localStorage.setItem('rememberedPhone', phone);
                     localStorage.setItem('rememberMe', 'true');
                 } else {
+
                     localStorage.removeItem('rememberedPhone');
                     localStorage.setItem('rememberMe', 'false');
                 }
 
                 toast.success('Đăng nhập thành công!');
-                const token = response.data.data.access_token;
+
+                const token = response.data.token;
+
+                localStorage.setItem('tok', token);
+
                 const decoded = JSON.parse(atob(token.split('.')[1]));
+
+
                 redirectAfterLogin(decoded.role);
             }
+
+
         } catch (error: unknown) {
 
-            const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Số điện thoại hoặc mật khẩu không đúng';
+            const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
 
-            if (errorMessage.toLowerCase().includes('phone number') || errorMessage.toLowerCase().includes('số điện thoại')) {
-                setErrors(prev => ({ ...prev, phone: errorMessage }));
-            } else if (errorMessage.toLowerCase().includes('password') || errorMessage.toLowerCase().includes('mật khẩu')) {
-                setErrors(prev => ({ ...prev, password: errorMessage }));
+            if (errorMessage?.toLowerCase().includes('phone number') || errorMessage?.toLowerCase().includes('số điện thoại')) {
+                setErrors(prev => ({ ...prev, phone: 'Số điện thoại không hợp lệ (cần 10 số)' }));
+            } else if (errorMessage?.toLowerCase().includes('password') || errorMessage?.toLowerCase().includes('mật khẩu')) {
+                setErrors(prev => ({ ...prev, password: 'Mật khẩu không hợp lệ' }));
             } else {
                 toast.error(errorMessage);
             }
@@ -78,8 +93,9 @@ export default function LoginForm() {
     return (
         <GuestLayout>
             <div className="min-h-screen bg-[#FFF5E6] flex">
-                {/* Left side - Image */}
-                <div className="hidden lg:flex lg:w-1/2 relative">
+
+
+                <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
                     <Image
                         src="/images/Home - Banner.jpg"
                         alt="Tấm Tắc Food"
@@ -87,44 +103,62 @@ export default function LoginForm() {
                         className="object-cover"
                         priority
                     />
+                    <div className="absolute inset-0 bg-black/30" />
+                    <div className="relative z-10 flex flex-col justify-between p-12 text-white">
+                        <div>
+                            <h2 className="text-4xl font-bold">Tấm Tắc Food</h2>
+                            <p className="mt-4 text-base leading-relaxed text-gray-100">
+                                Tận hưởng bữa cơm sinh viên chuẩn vị nhà làm với tốc độ phục vụ nhanh chóng.
+                            </p>
+                        </div>
+                        <div className="space-y-4 text-sm text-gray-200">
+                            <div>
+                                <p className="font-semibold">Ưu đãi thành viên</p>
+                                <p>Tích điểm thưởng, nhận voucher giảm giá và cập nhật thực đơn mỗi ngày.</p>
+                            </div>
+                            <div>
+                                <p className="font-semibold">Giao hàng tận nơi</p>
+                                <p>Đặt món qua ứng dụng, giao đến ký túc xá trong vòng 20 phút.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                {/* Right side - Login Form */}
                 <div className="w-full lg:w-1/2 flex items-center justify-center px-6 py-12">
                     <div className="w-full max-w-md">
-                        {/* Logo/Title */}
-                        <div className="text-center mb-8">
-                            <h1 className="text-4xl font-bold mb-4">
-                                <span className="text-[#FF6B35]">Tấm</span>{' '}
-                                <span className="text-gray-800">ngon, </span>
-                                <span className="text-[#8BC34A]">Tắc</span>{' '}
-                                <span className="text-gray-800">nhớ!</span>
+
+                        <div className="text-center mb-10">
+                            <h1 className="text-3xl font-semibold text-gray-900">
+                                <span className="text-[#FF6B35]">Đăng nhập</span> khách hàng
                             </h1>
-                            <p className="text-gray-600 text-sm">
-                                Thương hiệu cơm tấm hàng đầu dành cho sinh viên.
+                            <p className="mt-3 text-sm text-gray-600">
+                                Đồng bộ trải nghiệm với ứng dụng Tấm Tắc: đặt món, theo dõi đơn và tích điểm dễ dàng.
                             </p>
                         </div>
 
                         <form className="space-y-5" onSubmit={handleSubmit}>
                             <div>
-                                <input
+                                <label htmlFor="phone" className="mb-2 block text-sm font-medium text-slate-700">
+                                    Số điện thoại
+                                </label>
+                                <Input
                                     id="phone"
                                     name="phone"
                                     type="tel"
                                     required
                                     value={phone}
                                     onChange={(e) => setPhone(e.target.value)}
-                                    className={`block w-full appearance-none rounded-lg border ${errors.phone ? 'border-red-500' : 'border-gray-300'
-                                        } px-4 py-3 text-gray-900 placeholder-gray-400 shadow-sm focus:border-[#FF6B35] focus:outline-none focus:ring-2 focus:ring-[#FF6B35] sm:text-sm`}
-                                    placeholder="Số điện thoại"
+                                    placeholder="Nhập số điện thoại"
+                                    className={`rounded-lg border ${errors.phone ? 'border-red-500' : 'border-gray-300'} focus:border-[#FF6B35] focus:ring-[#FF6B35] h-12 placeholder:text-slate-400`}
                                 />
+
                                 {errors.phone && (
                                     <>
                                         <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
                                         {errors.phone === 'Số điện thoại chưa được xác thực. Vui lòng xác thực số điện thoại trước khi đăng nhập.' && (
                                             <button
                                                 type="button"
-                                                className="mt-2 text-[#FF6B35] underline text-sm ml-2"
+                                                className="mt-2 ml-2 text-sm text-[#FF6B35] underline"
                                                 onClick={() => {
                                                     window.location.href = `/register?phone=${encodeURIComponent(phone)}`;
                                                 }}
@@ -133,35 +167,56 @@ export default function LoginForm() {
                                             </button>
                                         )}
                                     </>
+
                                 )}
                             </div>
 
+
+
                             <div>
+                                <label htmlFor="password" className="mb-2 block text-sm font-medium text-slate-700">
+                                    Mật khẩu
+                                </label>
                                 <div className="relative">
-                                    <input
+                                    <Input
                                         id="password"
                                         name="password"
                                         type={showPassword ? 'text' : 'password'}
                                         required
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
-                                        className={`block w-full appearance-none rounded-lg border ${errors.password ? 'border-red-500' : 'border-gray-300'
-                                            } px-4 py-3 text-gray-900 placeholder-gray-400 shadow-sm focus:border-[#FF6B35] focus:outline-none focus:ring-2 focus:ring-[#FF6B35] sm:text-sm`}
-                                        placeholder="Mật khẩu"
+                                        placeholder="Nhập mật khẩu"
+                                        className={`rounded-lg border ${errors.password ? 'border-red-500' : 'border-gray-300'} focus:border-[#FF6B35] focus:ring-[#FF6B35] h-12 pr-12 placeholder:text-slate-400`}
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute inset-y-0 right-0 pr-4 flex items-center"
+                                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-sm text-gray-500 hover:text-[#FF6B35]"
                                     >
-                                        <span className="text-sm text-gray-500">
-                                            {showPassword ? 'Ẩn' : 'Hiện'}
-                                        </span>
+                                        {showPassword ? 'Ẩn' : 'Hiện'}
                                     </button>
                                 </div>
+
                                 {errors.password && (
                                     <p className="mt-1 text-sm text-red-600">{errors.password}</p>
                                 )}
+
+
+                            </div>
+
+                            <div className="flex items-center justify-between text-sm">
+                                <label className="inline-flex items-center gap-2 text-slate-600">
+                                    <input
+                                        type="checkbox"
+                                        checked={rememberMe}
+                                        onChange={(e) => setRememberMe(e.target.checked)}
+                                        className="h-4 w-4 rounded border-gray-300 text-[#FF6B35] focus:ring-[#FF6B35]"
+                                    />
+                                    Ghi nhớ đăng nhập
+                                </label>
+                                <Link href="mailto:cs@tam-tac.com" className="text-[#FF6B35] font-medium hover:underline">
+                                    Quên mật khẩu?
+                                </Link>
                             </div>
 
                             <div>
@@ -175,16 +230,16 @@ export default function LoginForm() {
                             </div>
                         </form>
 
-                        {/* Divider */}
-                        <div className="mt-6">
+
+                        <div className="mt-8 text-center text-sm text-slate-600">
                             <div className="relative">
                                 <div className="absolute inset-0 flex items-center">
                                     <div className="w-full border-t border-gray-300" />
                                 </div>
-                                <div className="relative flex justify-center text-sm">
+                                <div className="relative flex justify-center">
                                     <Link
                                         href="/register"
-                                        className="bg-[#FFF5E6] px-4 text-[#8BC34A] font-medium hover:text-[#7CB342] transition-colors"
+                                        className="bg-[#FFF5E6] px-4 text-[#FF6B35] font-medium hover:text-[#FF5722] transition-colors"
                                     >
                                         Bạn chưa là người nhà của Tấm Tắc?
                                     </Link>

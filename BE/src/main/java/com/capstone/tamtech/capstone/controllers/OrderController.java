@@ -2,10 +2,13 @@ package com.capstone.tamtech.capstone.controllers;
 
 import com.capstone.tamtech.capstone.payload.ResponseData;
 import com.capstone.tamtech.capstone.payload.request.OrderRequest;
+import com.capstone.tamtech.capstone.payload.request.WaiterConfirmOrderRequest;
 import com.capstone.tamtech.capstone.services.impl.OrderService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.models.responses.ApiResponse;
+import org.apache.coyote.BadRequestException;
+import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -36,12 +39,14 @@ public class OrderController {
     private String checksumKey;
 
     @PostMapping
-    public ResponseEntity<?> createOrder(@RequestBody OrderRequest orderRequest){
+    public ResponseEntity<?> createOrder(@RequestBody OrderRequest orderRequest) throws BadRequestException {
 
         ResponseData responseData = new ResponseData();
         if(orderRequest.getMode().toUpperCase().equals("SHIPPING")){
             HashMap<String, Object> value = new HashMap<>();
             responseData.setData(orderService.createOrderForShipping(orderRequest));
+        } else if(orderRequest.getMode().toUpperCase().equals("DINING")){
+            responseData.setData(orderService.createOrderForDining(orderRequest));
         }
         return new ResponseEntity<>(responseData, HttpStatus.CREATED);
     }
@@ -66,5 +71,58 @@ public class OrderController {
             return new ResponseEntity<>("Cancel", HttpStatus.OK);
         }
     }
+
+
+    @GetMapping("/manager/assign/cheff")
+    public ResponseEntity<?> assignOrderToCheff(@RequestParam int orderId){
+        boolean result = orderService.assignOrderToCheff(orderId);
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @GetMapping("/cheff/cooked")
+    public ResponseEntity<?> markAsCooked(@RequestParam int orderId){
+        boolean result = orderService.markAsCooked(orderId);
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @GetMapping("/manager/assign/shipper")
+    public ResponseEntity<?> assignToShipper(@RequestParam int orderId){
+        boolean result = orderService.assignToShipper(orderId);
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @GetMapping("/shipper/delivered")
+    public ResponseEntity<?> deliveredOrder(@RequestParam int orderId){
+        boolean result = orderService.deliveredOrder(orderId);
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @GetMapping("/customer/comleted")
+    public ResponseEntity<?> completeOrder(@RequestBody int orderId){
+        boolean result = orderService.completeOrder(orderId);
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @GetMapping("/shipping/fee")
+    public ResponseEntity<?> getShippingFee(@RequestBody String customerAddress, String branchAddress) throws BadRequestException {
+        ResponseData responseData = new ResponseData();
+        responseData.setData(orderService.calculateShippingFee(customerAddress, branchAddress));
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
+
+    @PostMapping("/waiter/confirm")
+    public ResponseEntity<?> confirmOrderItem(@RequestBody WaiterConfirmOrderRequest waiterConfirmOrderRequest){
+        ResponseData responseData = new ResponseData();
+        responseData.setData(orderService.confirmOrderItem(waiterConfirmOrderRequest));
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
+
+    @PostMapping("/waiter/delivered")
+    public ResponseEntity<?> confirmDeliveredOrderItem(@RequestBody WaiterConfirmOrderRequest waiterConfirmOrderRequest){
+        ResponseData responseData = new ResponseData();
+        responseData.setData(orderService.confirmDeliveredOrderItem(waiterConfirmOrderRequest));
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
+
     
 }

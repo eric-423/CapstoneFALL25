@@ -2,11 +2,11 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { ShoppingCart, Plus } from 'lucide-react';
 import Image from 'next/image';
 import { useState } from 'react';
 import type { Product } from '@/apis/product.api';
+
 
 interface TableProductCardProps {
     product: Product;
@@ -75,7 +75,7 @@ export default function TableProductCard({ product, onAddToCart }: TableProductC
                             ) : (
                                 <>
                                     <Plus className='h-4 w-4 mr-2' />
-                                    Thêm vào giỏ
+                                    Thêm món
                                 </>
                             )}
                         </Button>
