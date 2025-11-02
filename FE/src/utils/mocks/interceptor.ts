@@ -5,14 +5,14 @@ import { MOCK_ORDERS } from "./data/orders.mock";
 import { MOCK_BRANCHES } from "./data/branches.mock";
 import { createMockJWT } from "./utils/jwt.mock";
 
-export const setupMockInterceptor = (axiosInstance: AxiosInstance) => {
+export const setupMockInterceptor = (axiosInstance: AxiosInstance, enableFullMock = false) => {
   axiosInstance.interceptors.request.use(
     async (config) => {
       const url = config.url || "";
       const method = config.method?.toUpperCase();
 
       // ==================== NEW API: Customer Login ====================
-      // Check mock accounts first, if not found → let real API handle
+      // Always check mock accounts first, if not found → let real API handle
       if (url.includes("/api/auth/customer/login") && method === "POST") {
         const { phoneNumber, password } = config.data;
         const mockUser = MOCK_USERS.find(
@@ -170,12 +170,15 @@ export const setupMockInterceptor = (axiosInstance: AxiosInstance) => {
         return config;
       }
 
-      // Mock Get Current User Profile
+      // Mock Get Current User Profile (only if full mock is enabled OR for mock users)
       if (url.includes("/customer/profile/") && method === "GET") {
         const token = config.headers?.Authorization;
         const tokenStr = typeof token === 'string' ? token : '';
-        if (tokenStr.includes("mock_access_token") || tokenStr.includes("eyJ")) {
-          const userId = parseInt(localStorage.getItem("mock_user_id") || "3");
+        const mockUserId = localStorage.getItem("mock_user_id");
+
+        // Only mock if full mock enabled OR if user logged in with mock account
+        if (enableFullMock || (mockUserId && (tokenStr.includes("mock_access_token") || tokenStr.includes("eyJ")))) {
+          const userId = parseInt(mockUserId || "3");
           const user = MOCK_USERS.find((u) => u.id === userId);
           if (user) {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -194,6 +197,11 @@ export const setupMockInterceptor = (axiosInstance: AxiosInstance) => {
             throw { mockResponse };
           }
         }
+      }
+
+      // Only mock these APIs if full mock is enabled
+      if (!enableFullMock) {
+        return config;
       }
 
       // Mock Products
