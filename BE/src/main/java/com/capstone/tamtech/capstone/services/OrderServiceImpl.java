@@ -665,6 +665,9 @@ public class OrderServiceImpl implements OrderService {
             orderIemDTO.setProductImg(product.getImage());
         }
 
+        orderIemDTO.setIsConfirmed(orderItem.getIsConfirmed());
+        orderIemDTO.setIsDelivered(orderItem.getIsDelivered());
+
         return orderIemDTO;
     }
 
