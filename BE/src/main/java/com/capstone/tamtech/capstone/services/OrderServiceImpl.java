@@ -62,6 +62,9 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private com.capstone.tamtech.capstone.services.impl.InventoryService inventoryService;
 
+    @Autowired
+    private PaymentMethodRepository paymentMethodRepository;
+
     @Override
     public OrderDTO createOrderForShipping(OrderRequest orderRequest) throws BadRequestException {
         inventoryService.assertSufficientMaterialsForOrder(orderRequest.getOrderItemList());
@@ -126,11 +129,16 @@ public class OrderServiceImpl implements OrderService {
                 boolean meetsMinimum = subTotal >= (promotion.getMinimumOrderValue());
 
                 if (promotionIsActive && meetsMinimum) {
-                    String promotionTypeName = promotion.getPromotionType() != null ? promotion.getPromotionType().getName() : null;
+                    String promotionTypeName = promotion.getPromotionType() != null
+                            ? promotion.getPromotionType().getName()
+                            : null;
 
-                    boolean isPercentType = promotionTypeName != null && promotionTypeName.equalsIgnoreCase("Giảm giá theo %");
-                    boolean isFixedType = promotionTypeName != null && promotionTypeName.equalsIgnoreCase("Giảm giá cố định");
-                    boolean isFreeShipType = promotionTypeName != null && promotionTypeName.equalsIgnoreCase("Miễn phí vận chuyển");
+                    boolean isPercentType = promotionTypeName != null
+                            && promotionTypeName.equalsIgnoreCase("Giảm giá theo %");
+                    boolean isFixedType = promotionTypeName != null
+                            && promotionTypeName.equalsIgnoreCase("Giảm giá cố định");
+                    boolean isFreeShipType = promotionTypeName != null
+                            && promotionTypeName.equalsIgnoreCase("Miễn phí vận chuyển");
 
                     if (isPercentType) {
                         int percent = Math.max(0, promotion.getValue());
@@ -197,7 +205,9 @@ public class OrderServiceImpl implements OrderService {
                         orderItem.setOrder(saved);
                         orderItem.setCombo(comboOptional.get());
                         orderItem.setQuantity(itemReq.getQuantity());
-                        double unitPrice = orderItem.getCombo() != null && orderItem.getCombo().getPrice() != null ? orderItem.getCombo().getPrice() : 0.0;
+                        double unitPrice = orderItem.getCombo() != null && orderItem.getCombo().getPrice() != null
+                                ? orderItem.getCombo().getPrice()
+                                : 0.0;
                         orderItem.setPrice(unitPrice);
                         orderItem.setNote(itemReq.getNote());
                         orderItemRepository.save(orderItem);
@@ -227,6 +237,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         order.setPickUp(false);
+        order.setIsTable(true);
         order.setCreatedAt(new Date());
 
         if (orderRequest.getCustomerId() > 0) {
@@ -299,7 +310,9 @@ public class OrderServiceImpl implements OrderService {
                         orderItem.setOrder(saved);
                         orderItem.setCombo(comboOptional.get());
                         orderItem.setQuantity(itemReq.getQuantity());
-                        double unitPrice = orderItem.getCombo() != null && orderItem.getCombo().getPrice() != null ? orderItem.getCombo().getPrice() : 0.0;
+                        double unitPrice = orderItem.getCombo() != null && orderItem.getCombo().getPrice() != null
+                                ? orderItem.getCombo().getPrice()
+                                : 0.0;
                         orderItem.setPrice(unitPrice);
                         orderItem.setNote(itemReq.getNote());
                         orderItem.setIsConfirmed(false);
@@ -315,12 +328,13 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-     public Boolean confirmOrderItem(WaiterConfirmOrderRequest waiterConfirmOrderRequest){
-         Order order = orderRepository.findById(waiterConfirmOrderRequest.getOrderId()).orElseThrow(()->new ResourceNotFoundException("Order not found"));
-         List<OrderItem> orderItems = order.getOrderItems();
- 
-         Integer branchId = order.getBranch() != null ? order.getBranch().getId() : null;
- 
+    public Boolean confirmOrderItem(WaiterConfirmOrderRequest waiterConfirmOrderRequest) {
+        Order order = orderRepository.findById(waiterConfirmOrderRequest.getOrderId())
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+        List<OrderItem> orderItems = order.getOrderItems();
+
+        Integer branchId = order.getBranch() != null ? order.getBranch().getId() : null;
+
         double confirmedSubTotal = 0.0;
         if (orderItems != null) {
             for (OrderItem oi : orderItems) {
@@ -396,21 +410,22 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Boolean confirmDeliveredOrderItem(WaiterConfirmOrderRequest waiterConfirmOrderRequest){
-        Order order = orderRepository.findById(waiterConfirmOrderRequest.getOrderId()).orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+    public Boolean confirmDeliveredOrderItem(WaiterConfirmOrderRequest waiterConfirmOrderRequest) {
+        Order order = orderRepository.findById(waiterConfirmOrderRequest.getOrderId())
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
         List<OrderItem> orderItems = order.getOrderItems();
         Date now = new Date();
-        
+
         if (waiterConfirmOrderRequest.getOrderItems() != null) {
             for (OrderItem incoming : waiterConfirmOrderRequest.getOrderItems()) {
                 for (OrderItem existing : orderItems) {
                     boolean match = false;
-                    if (existing.getProduct() != null && incoming.getProduct() != null && 
-                        existing.getProduct().getId() == incoming.getProduct().getId()) {
+                    if (existing.getProduct() != null && incoming.getProduct() != null &&
+                            existing.getProduct().getId() == incoming.getProduct().getId()) {
                         match = true;
                     }
-                    if (existing.getCombo() != null && incoming.getCombo() != null && 
-                        existing.getCombo().getId() == incoming.getCombo().getId()) {
+                    if (existing.getCombo() != null && incoming.getCombo() != null &&
+                            existing.getCombo().getId() == incoming.getCombo().getId()) {
                         match = true;
                     }
                     if (match) {
@@ -429,7 +444,8 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
         Integer branchId = order.getBranch() != null ? order.getBranch().getId() : null;
         inventoryService.restoreMaterialsForOrderItems(order.getOrderItems(), branchId);
-        order.setStatus(orderStatusRepository.findByName("CANCEL").orElseThrow(() -> new RuntimeException("OrderStatus CANCEL not found")));
+        order.setStatus(orderStatusRepository.findByName("CANCEL")
+                .orElseThrow(() -> new RuntimeException("OrderStatus CANCEL not found")));
         order.setPaymentUrl(null);
         order.setPaymentCode(null);
         orderRepository.save(order);
@@ -438,7 +454,33 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public void markOrderPaidSuccess(int orderId) {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
-        order.setStatus(orderStatusRepository.findByName("IN PROCESS").orElseThrow(() -> new RuntimeException("OrderStatus IN_PROCESS not found")));
+        order.setPaymentTime(new Date());
+
+        boolean isDiningTable = order.getIsTable() != null && order.getIsTable();
+
+        if (isDiningTable) {
+            OrderStatus completedStatus = orderStatusRepository.findByName("COMPLETED")
+                    .orElseThrow(() -> new RuntimeException("OrderStatus COMPLETED not found"));
+            order.setStatus(completedStatus);
+
+            if (order.getCustomer() != null) {
+                Users customer = order.getCustomer();
+                int pointsEarned = (int) (order.getAmount() / 1000);
+                customer.setMemberPoint(customer.getMemberPoint() + pointsEarned);
+                order.setPointEarned(pointsEarned);
+                usersRepository.save(customer);
+            }
+
+            if (order.getDiningTable() != null) {
+                DiningTable table = order.getDiningTable();
+                table.setIsActive(true);
+                diningTableRepository.save(table);
+            }
+        } else {
+            order.setStatus(orderStatusRepository.findByName("IN PROCESS")
+                    .orElseThrow(() -> new RuntimeException("OrderStatus IN_PROCESS not found")));
+        }
+
         orderRepository.save(order);
     }
 
@@ -467,7 +509,8 @@ public class OrderServiceImpl implements OrderService {
             selected = chefs.get(0).getUser();
         }
         order.setWorker(selected);
-        order.setStatus(orderStatusRepository.findByName("COOKING").orElseThrow(() -> new RuntimeException("OrderStatus COOKING not found")));
+        order.setStatus(orderStatusRepository.findByName("COOKING")
+                .orElseThrow(() -> new RuntimeException("OrderStatus COOKING not found")));
         orderRepository.save(order);
         return true;
     }
@@ -475,11 +518,13 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public boolean markAsCooked(int orderId) {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
-        Users chef = usersRepository.findById(order.getWorker().getId()).orElseThrow(() -> new RuntimeException("Chef not found"));
+        Users chef = usersRepository.findById(order.getWorker().getId())
+                .orElseThrow(() -> new RuntimeException("Chef not found"));
 
         chef.setIsBusy(false);
         usersRepository.save(chef);
-        order.setStatus(orderStatusRepository.findByName("COOKED").orElseThrow(() -> new RuntimeException("OrderStatus COOKING not found")));
+        order.setStatus(orderStatusRepository.findByName("COOKED")
+                .orElseThrow(() -> new RuntimeException("OrderStatus COOKING not found")));
 
         orderRepository.save(order);
 
@@ -497,7 +542,8 @@ public class OrderServiceImpl implements OrderService {
         }
         int branchId = branch.getId();
 
-        List<RoleHistory> shipper = roleHistoryRepository.findByRole_NameAndBranch_IdAndIsActiveTrue("SHIPPER", branchId);
+        List<RoleHistory> shipper = roleHistoryRepository.findByRole_NameAndBranch_IdAndIsActiveTrue("SHIPPER",
+                branchId);
         if (shipper == null || shipper.isEmpty()) {
             throw new RuntimeException("No shipper found for branch id=" + branchId);
         }
@@ -515,7 +561,8 @@ public class OrderServiceImpl implements OrderService {
         order.setShipper(selected);
         selected.setIsBusy(true);
         usersRepository.save(selected);
-        order.setStatus(orderStatusRepository.findByName("SHIPPING").orElseThrow(() -> new RuntimeException("OrderStatus COOKING not found")));
+        order.setStatus(orderStatusRepository.findByName("SHIPPING")
+                .orElseThrow(() -> new RuntimeException("OrderStatus COOKING not found")));
         orderRepository.save(order);
 
         return true;
@@ -539,11 +586,12 @@ public class OrderServiceImpl implements OrderService {
         Users shipper = order.getShipper();
         Users customer = order.getCustomer();
 
-        customer.setMemberPoint(customer.getMemberPoint()+(int)(order.getAmount()/1000));
+        customer.setMemberPoint(customer.getMemberPoint() + (int) (order.getAmount() / 1000));
         shipper.setIsBusy(false);
         usersRepository.save(shipper);
         usersRepository.save(customer);
-        order.setStatus(orderStatusRepository.findByName("COMPLETED").orElseThrow(() -> new RuntimeException("OrderStatus COMPLETED not found")));
+        order.setStatus(orderStatusRepository.findByName("COMPLETED")
+                .orElseThrow(() -> new RuntimeException("OrderStatus COMPLETED not found")));
         orderRepository.save(order);
 
         return true;
@@ -554,47 +602,46 @@ public class OrderServiceImpl implements OrderService {
         double shippingFee = 0.0;
         long meters = distanceService.getDistanceInMeters(branchAddress, customerAddress);
 
-        if(meters>5000){
+        if (meters > 5000) {
             throw new BadRequestException("We only ship in 5km");
         }
         if (meters >= 0 && meters <= 3000) {
             return 0.0;
-        } else{
-            shippingFee = (meters-3000)*10000;
+        } else {
+            shippingFee = (meters - 3000) * 10000;
         }
         return shippingFee;
     }
 
-
-    public OrderDTO toDTO(Order order){
+    public OrderDTO toDTO(Order order) {
         OrderDTO orderDTO = new OrderDTO();
 
         orderDTO.setId(order.getId());
         orderDTO.setSubTotal(order.getSubTotal());
 
-        if(order.getPromotionCode() != null){
+        if (order.getPromotionCode() != null) {
             orderDTO.setPromotionCode(order.getPromotionCode());
         }
 
-        if(order.getDiscountValue()!=0){
+        if (order.getDiscountValue() != 0) {
             orderDTO.setDiscountValue(order.getDiscountValue());
         }
 
-        if(order.getDiscountPercent()!=0){
+        if (order.getDiscountPercent() != 0) {
             orderDTO.setDiscountPercent(order.getDiscountPercent());
         }
 
         orderDTO.setAmount(order.getAmount());
-        if(order.getShipper()!=null){
+        if (order.getShipper() != null) {
             orderDTO.setShippingFee(order.getShippingFee());
-            if(order.getDeliveryAtt()!=null){
+            if (order.getDeliveryAtt() != null) {
                 orderDTO.setDelivery_at(order.getDeliveryAtt());
             }
-        } else if(order.isPickUp()){
+        } else if (order.isPickUp()) {
             orderDTO.setIsPickUp(true);
             orderDTO.setIsTable(false);
             orderDTO.setPickupTime(order.getPickupTime());
-        } else{
+        } else {
             orderDTO.setIsPickUp(false);
             orderDTO.setIsTable(true);
         }
@@ -611,33 +658,31 @@ public class OrderServiceImpl implements OrderService {
         List<OrderItem> orderItems = order.getOrderItems();
         List<OrderIemDTO> orderItemsDTO = new ArrayList<>();
 
-        for(OrderItem orderItem : orderItems){
+        for (OrderItem orderItem : orderItems) {
             OrderIemDTO orderIemDTO = toOrderItemDTO(orderItem);
             orderItemsDTO.add(orderIemDTO);
         }
 
         orderDTO.setOrderItems(orderItemsDTO);
 
-
-        CustomerDTO customerDTO = new CustomerDTO();
-
         Users customer = order.getCustomer();
+        if (customer != null) {
+            CustomerDTO customerDTO = new CustomerDTO();
+            customerDTO.setId(customer.getId());
+            customerDTO.setFullName(customer.getFullName());
+            orderDTO.setCustomerDTO(customerDTO);
+            orderDTO.setCustomerName(customer.getFullName());
+        }
 
-        customerDTO.setId(customer.getId());
-        customerDTO.setFullName(customer.getFullName());
-
-        orderDTO.setCustomerDTO(customerDTO);
-        orderDTO.setCustomerName(customer.getFullName());
         orderDTO.setStatus(order.getStatus().getName());
 
         return orderDTO;
     }
 
-
-    public OrderIemDTO toOrderItemDTO(OrderItem orderItem){
+    public OrderIemDTO toOrderItemDTO(OrderItem orderItem) {
         OrderIemDTO orderIemDTO = new OrderIemDTO();
 
-        if(orderItem.getCombo()!=null) {
+        if (orderItem.getCombo() != null) {
 
             ComboDTO comboDTO = new ComboDTO();
             Combo combo = orderItem.getCombo();
@@ -653,7 +698,7 @@ public class OrderServiceImpl implements OrderService {
             comboDTO.setComboItems(comboItemDTOList);
             orderIemDTO.setComboDTO(comboDTO);
             orderIemDTO.setQuantity(orderItem.getQuantity());
-        } else{
+        } else {
             Product product = orderItem.getProduct();
 
             orderIemDTO.setProductId(product.getId());
@@ -684,5 +729,132 @@ public class OrderServiceImpl implements OrderService {
             comboItemDTOList.add(comboItemDTO);
         }
         return comboItemDTOList;
+    }
+
+    @Override
+    public OrderDTO payDiningTableOrder(
+            com.capstone.tamtech.capstone.payload.request.DiningTablePaymentRequest paymentRequest)
+            throws BadRequestException {
+        Order order = orderRepository.findById(paymentRequest.getOrderId())
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+
+        if (order.getIsTable() == null || !order.getIsTable()) {
+            throw new BadRequestException("This order is not a dining table order");
+        }
+
+        List<OrderItem> orderItems = order.getOrderItems();
+        if (orderItems == null || orderItems.isEmpty()) {
+            throw new BadRequestException("Order has no items");
+        }
+
+        for (OrderItem item : orderItems) {
+            if (item.getIsDelivered() == null || !item.getIsDelivered()) {
+                throw new BadRequestException("All order items must be delivered before payment");
+            }
+        }
+
+        double subTotal = 0.0;
+        for (OrderItem item : orderItems) {
+            if (item.getProduct() != null) {
+                subTotal += item.getPrice() * item.getQuantity();
+            }
+            if (item.getCombo() != null && item.getCombo().getPrice() != null) {
+                subTotal += item.getPrice() * item.getQuantity();
+            }
+        }
+        order.setSubTotal(subTotal);
+
+        order.setPromotionCode(paymentRequest.getPromotionCode());
+        double discountValue = paymentRequest.getDiscountValue() != 0 ? paymentRequest.getDiscountValue() : 0.0;
+        order.setDiscountValue(discountValue);
+
+        Integer discountPercent = 0;
+        String promotionCode = paymentRequest.getPromotionCode();
+        boolean hasPromotionCode = promotionCode != null && !promotionCode.isBlank();
+
+        if (hasPromotionCode) {
+            Optional<Promotion> promotionOptional = promotionRepository.findByNameIgnoreCase(promotionCode.trim());
+            if (promotionOptional.isPresent()) {
+                Promotion promotion = promotionOptional.get();
+                boolean promotionIsActive = promotion.isStatus();
+                boolean meetsMinimum = subTotal >= (promotion.getMinimumOrderValue());
+
+                if (promotionIsActive && meetsMinimum) {
+                    String promotionTypeName = promotion.getPromotionType() != null
+                            ? promotion.getPromotionType().getName()
+                            : null;
+
+                    boolean isPercentType = promotionTypeName != null
+                            && promotionTypeName.equalsIgnoreCase("Giảm giá theo %");
+                    boolean isFixedType = promotionTypeName != null
+                            && promotionTypeName.equalsIgnoreCase("Giảm giá cố định");
+
+                    if (isPercentType) {
+                        int percent = Math.max(0, promotion.getValue());
+                        discountPercent = percent;
+                    }
+
+                    if (isFixedType) {
+                        double value = Math.max(0, promotion.getValue());
+                        discountValue += value;
+                    }
+                }
+            }
+        }
+        order.setDiscountPercent(discountPercent);
+        order.setDiscountValue(discountValue);
+
+        double percentDiscountAmount = 0.0;
+        if (discountPercent != null && discountPercent > 0) {
+            percentDiscountAmount = subTotal * ((double) discountPercent / 100.0);
+        }
+        double amount = subTotal - discountValue - percentDiscountAmount;
+        if (amount < 0) {
+            amount = 0;
+        }
+        order.setAmount(amount);
+
+        PaymentMethod paymentMethod = paymentMethodRepository.findById(paymentRequest.getPaymentMethodId())
+                .orElseThrow(() -> new ResourceNotFoundException("Payment method not found"));
+        order.setPaymentMethod(paymentMethod);
+
+        boolean isPayOS = paymentMethod.getName() != null && paymentMethod.getName().equalsIgnoreCase("PAYOS");
+
+        if (isPayOS) {
+            orderRepository.save(order);
+            String paymentUrl = paymentService.createPaymentLink(order.getId());
+            order.setPaymentUrl(paymentUrl);
+            OrderStatus pendingPaymentStatus = orderStatusRepository.findByName("IN PROCESS")
+                    .orElse(orderStatusRepository.findByName("CREATED").orElse(null));
+            if (pendingPaymentStatus != null) {
+                order.setStatus(pendingPaymentStatus);
+            }
+            orderRepository.save(order);
+            OrderDTO result = toDTO(order);
+            result.setPaymentUrl(paymentUrl);
+            return result;
+        } else {
+            order.setPaymentTime(new Date());
+            OrderStatus completedStatus = orderStatusRepository.findByName("COMPLETED")
+                    .orElseThrow(() -> new ResourceNotFoundException("OrderStatus COMPLETED not found"));
+            order.setStatus(completedStatus);
+
+            if (order.getCustomer() != null) {
+                Users customer = order.getCustomer();
+                int pointsEarned = (int) (order.getAmount() / 1000);
+                customer.setMemberPoint(customer.getMemberPoint() + pointsEarned);
+                order.setPointEarned(pointsEarned);
+                usersRepository.save(customer);
+            }
+
+            if (order.getDiningTable() != null) {
+                DiningTable table = order.getDiningTable();
+                table.setIsActive(true);
+                diningTableRepository.save(table);
+            }
+
+            orderRepository.save(order);
+            return toDTO(order);
+        }
     }
 }

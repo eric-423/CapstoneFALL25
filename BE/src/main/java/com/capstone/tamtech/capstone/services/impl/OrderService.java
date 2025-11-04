@@ -1,6 +1,7 @@
 package com.capstone.tamtech.capstone.services.impl;
 
 import com.capstone.tamtech.capstone.dto.OrderDTO;
+import com.capstone.tamtech.capstone.payload.request.DiningTablePaymentRequest;
 import com.capstone.tamtech.capstone.payload.request.OrderRequest;
 import com.capstone.tamtech.capstone.payload.request.WaiterConfirmOrderRequest;
 import org.apache.coyote.BadRequestException;
@@ -30,4 +31,6 @@ public interface OrderService {
     Boolean confirmOrderItem(WaiterConfirmOrderRequest waiterConfirmOrderRequest);
 
     Boolean confirmDeliveredOrderItem(WaiterConfirmOrderRequest waiterConfirmOrderRequest);
+
+    OrderDTO payDiningTableOrder(DiningTablePaymentRequest paymentRequest) throws BadRequestException;
 }

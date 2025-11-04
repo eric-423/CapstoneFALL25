@@ -32,12 +32,6 @@ public class AuthController {
     private OtpService otpService;
 
     @Operation(summary = "Đăng nhập khách hàng", description = "API cho phép khách hàng đăng nhập bằng số điện thoại và mật khẩu. Trả về token JWT để sử dụng cho các API yêu cầu xác thực.", security = {} // Không
-                                                                                                                                                                                                            // yêu
-                                                                                                                                                                                                            // cầu
-                                                                                                                                                                                                            // JWT
-                                                                                                                                                                                                            // cho
-                                                                                                                                                                                                            // endpoint
-                                                                                                                                                                                                            // này
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Đăng nhập thành công", content = @Content(mediaType = "application/json", schema = @Schema(implementation = LoginResponse.class))),
@@ -51,13 +45,7 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "Đăng ký tài khoản khách hàng", description = "API cho phép khách hàng tạo tài khoản mới với số điện thoại, mật khẩu và thông tin cá nhân", security = {} // Không
-                                                                                                                                                                                   // yêu
-                                                                                                                                                                                   // cầu
-                                                                                                                                                                                   // JWT
-                                                                                                                                                                                   // cho
-                                                                                                                                                                                   // endpoint
-                                                                                                                                                                                   // này
+    @Operation(summary = "Đăng ký tài khoản khách hàng", description = "API cho phép khách hàng tạo tài khoản mới với số điện thoại, mật khẩu và thông tin cá nhân", security = {}
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Đăng ký thành công", content = @Content(mediaType = "application/json")),
@@ -71,12 +59,12 @@ public class AuthController {
     }
 
     @Operation(summary = "Đăng nhập nhân viên", description = "API cho phép nhân viên đăng nhập bằng email và mật khẩu. Trả về token JWT và thông tin nhân viên.", security = {} // Không
-                                                                                                                                                                                 // yêu
-                                                                                                                                                                                 // cầu
-                                                                                                                                                                                 // JWT
-                                                                                                                                                                                 // cho
-                                                                                                                                                                                 // endpoint
-                                                                                                                                                                                 // này
+            // yêu
+            // cầu
+            // JWT
+            // cho
+            // endpoint
+            // này
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Đăng nhập thành công", content = @Content(mediaType = "application/json", schema = @Schema(implementation = LoginResponse.class))),
@@ -91,12 +79,12 @@ public class AuthController {
     }
 
     @Operation(summary = "Đăng ký tài khoản nhân viên", description = "API cho phép tạo tài khoản mới cho nhân viên với email, mật khẩu, thông tin cá nhân và vai trò (role)", security = {} // Không
-                                                                                                                                                                                             // yêu
-                                                                                                                                                                                             // cầu
-                                                                                                                                                                                             // JWT
-                                                                                                                                                                                             // cho
-                                                                                                                                                                                             // endpoint
-                                                                                                                                                                                             // này
+            // yêu
+            // cầu
+            // JWT
+            // cho
+            // endpoint
+            // này
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Đăng ký nhân viên thành công", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseData.class))),
@@ -113,12 +101,12 @@ public class AuthController {
     }
 
     @Operation(summary = "Gửi mã OTP", description = "API gửi mã OTP đến email hoặc số điện thoại của người dùng. Channel có thể là 'email' hoặc 'sms'.", security = {} // Không
-                                                                                                                                                                        // yêu
-                                                                                                                                                                        // cầu
-                                                                                                                                                                        // JWT
-                                                                                                                                                                        // cho
-                                                                                                                                                                        // endpoint
-                                                                                                                                                                        // này
+            // yêu
+            // cầu
+            // JWT
+            // cho
+            // endpoint
+            // này
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Gửi mã OTP thành công", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseData.class))),
@@ -139,12 +127,12 @@ public class AuthController {
     }
 
     @Operation(summary = "Xác thực mã OTP", description = "API xác thực mã OTP mà người dùng nhập vào. Kiểm tra tính hợp lệ và thời gian hết hạn của mã OTP.", security = {} // Không
-                                                                                                                                                                             // yêu
-                                                                                                                                                                             // cầu
-                                                                                                                                                                             // JWT
-                                                                                                                                                                             // cho
-                                                                                                                                                                             // endpoint
-                                                                                                                                                                             // này
+            // yêu
+            // cầu
+            // JWT
+            // cho
+            // endpoint
+            // này
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Xác thực OTP thành công", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseData.class), examples = @ExampleObject(value = "{\"status\": 200, \"desc\": \"Xác thực mã OTP thành công\", \"data\": true}"))),
@@ -168,13 +156,7 @@ public class AuthController {
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
 
-    @Operation(summary = "Lấy thời gian còn lại của mã OTP", description = "API trả về số giây còn lại trước khi mã OTP hết hạn. Hữu ích để hiển thị đếm ngược trên giao diện người dùng.", security = {} // Không
-                                                                                                                                                                                                          // yêu
-                                                                                                                                                                                                          // cầu
-                                                                                                                                                                                                          // JWT
-                                                                                                                                                                                                          // cho
-                                                                                                                                                                                                          // endpoint
-                                                                                                                                                                                                          // này
+    @Operation(summary = "Lấy thời gian còn lại của mã OTP", description = "API trả về số giây còn lại trước khi mã OTP hết hạn. Hữu ích để hiển thị đếm ngược trên giao diện người dùng.", security = {}
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lấy thời gian tồn tại của OTP thành công", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseData.class), examples = @ExampleObject(value = "{\"status\": 200, \"desc\": \"Lấy thời gian tồn tại của OTP thành công\", \"data\": 120}"))),
