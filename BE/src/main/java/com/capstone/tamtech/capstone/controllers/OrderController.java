@@ -48,6 +48,8 @@ public class OrderController {
             responseData.setData(orderService.createOrderForShipping(orderRequest));
         } else if (orderRequest.getMode().toUpperCase().equals("DINING")) {
             responseData.setData(orderService.createOrderForDining(orderRequest));
+        } else if (orderRequest.getMode().toUpperCase().equals("PICKUP")) {
+            responseData.setData(orderService.createOrderForPickup(orderRequest));
         }
         return new ResponseEntity<>(responseData, HttpStatus.CREATED);
     }
@@ -132,6 +134,13 @@ public class OrderController {
             throws BadRequestException {
         ResponseData responseData = new ResponseData();
         responseData.setData(orderService.payDiningTableOrder(paymentRequest));
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
+
+    @GetMapping("/customer/pickup")
+    public ResponseEntity<?> customerPickupOrder(@RequestParam int orderId) {
+        ResponseData responseData = new ResponseData();
+        responseData.setData(orderService.customerPickedUpOrder(orderId));
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
 

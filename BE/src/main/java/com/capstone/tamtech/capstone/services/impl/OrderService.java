@@ -10,6 +10,8 @@ public interface OrderService {
 
     public OrderDTO createOrderForShipping(OrderRequest orderRequest) throws BadRequestException;
 
+    public OrderDTO createOrderForPickup(OrderRequest orderRequest) throws BadRequestException;
+
     public void cancelOrder(int orderId);
 
     public void markOrderPaidSuccess(int orderId);
@@ -33,4 +35,6 @@ public interface OrderService {
     Boolean confirmDeliveredOrderItem(WaiterConfirmOrderRequest waiterConfirmOrderRequest);
 
     OrderDTO payDiningTableOrder(DiningTablePaymentRequest paymentRequest) throws BadRequestException;
+
+    boolean customerPickedUpOrder(int orderId);
 }

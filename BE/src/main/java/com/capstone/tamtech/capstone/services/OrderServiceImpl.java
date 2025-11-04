@@ -225,6 +225,159 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public OrderDTO createOrderForPickup(OrderRequest orderRequest) throws BadRequestException {
+        inventoryService.assertSufficientMaterialsForOrder(orderRequest.getOrderItemList());
+        Order order = new Order();
+
+        order.setStatus(orderStatusRepository.findByName("CREATED").get());
+
+        if (orderRequest.getBranchId() > 0) {
+            branchRepository.findById(orderRequest.getBranchId()).ifPresent(order::setBranch);
+        }
+
+        order.setPhone(orderRequest.getShippingPhoneNumber());
+        order.setPromotionCode(orderRequest.getPromotionCode());
+        order.setDiscountValue(orderRequest.getDiscountValue());
+        order.setPickUp(true);
+        order.setShippingFee(0.0);
+        order.setCreatedAt(new Date());
+
+        if (orderRequest.getCustomerId() > 0) {
+            usersRepository.findById(orderRequest.getCustomerId()).ifPresent(order::setCustomer);
+        }
+
+        double subTotal = 0.0;
+        if (orderRequest.getOrderItemList() != null) {
+            for (OrderItemRequest itemReq : orderRequest.getOrderItemList()) {
+                boolean isCombo = itemReq.getComboId() > 0;
+                boolean isProduct = itemReq.getProductId() > 0;
+
+                if (isCombo) {
+                    Optional<Combo> comboOptional = comboRepository.findById(itemReq.getComboId());
+                    if (comboOptional.isPresent()) {
+                        Combo combo = comboOptional.get();
+                        Double unitPrice = combo.getPrice() != null ? combo.getPrice() : 0.0;
+                        int quantity = itemReq.getQuantity();
+                        subTotal += unitPrice * quantity;
+                    }
+                }
+
+                if (isProduct) {
+                    Optional<Product> productOptional = productRepository.findById(itemReq.getProductId());
+                    if (productOptional.isPresent()) {
+                        Product product = productOptional.get();
+                        double unitPrice = product.getPrice();
+                        int quantity = itemReq.getQuantity();
+                        subTotal += unitPrice * quantity;
+                    }
+                }
+            }
+        }
+        order.setSubTotal(subTotal);
+
+        Integer discountPercent = 0;
+        double discountValue = order.getDiscountValue() != 0 ? order.getDiscountValue() : 0.0;
+
+        String promotionCode = orderRequest.getPromotionCode();
+        boolean hasPromotionCode = promotionCode != null && !promotionCode.isBlank();
+        if (hasPromotionCode) {
+            Optional<Promotion> promotionOptional = promotionRepository.findByNameIgnoreCase(promotionCode.trim());
+            if (promotionOptional.isPresent()) {
+                Promotion promotion = promotionOptional.get();
+                boolean promotionIsActive = promotion.isStatus();
+                boolean meetsMinimum = subTotal >= (promotion.getMinimumOrderValue());
+
+                if (promotionIsActive && meetsMinimum) {
+                    String promotionTypeName = promotion.getPromotionType() != null
+                            ? promotion.getPromotionType().getName()
+                            : null;
+
+                    boolean isPercentType = promotionTypeName != null
+                            && promotionTypeName.equalsIgnoreCase("Giảm giá theo %");
+                    boolean isFixedType = promotionTypeName != null
+                            && promotionTypeName.equalsIgnoreCase("Giảm giá cố định");
+
+                    if (isPercentType) {
+                        int percent = Math.max(0, promotion.getValue());
+                        discountPercent = percent;
+                    }
+
+                    if (isFixedType) {
+                        double value = Math.max(0, promotion.getValue());
+                        discountValue += value;
+                    }
+                }
+            }
+        }
+        order.setDiscountPercent(discountPercent);
+        order.setDiscountValue(discountValue);
+
+        double percentDiscountAmount = 0.0;
+        if (discountPercent != null && discountPercent > 0) {
+            percentDiscountAmount = subTotal * ((double) discountPercent / 100.0);
+        }
+        double amount = subTotal - discountValue - percentDiscountAmount;
+        if (amount < 0) {
+            amount = 0;
+        }
+        order.setAmount(amount);
+
+        Order saved = orderRepository.save(order);
+
+        if (orderRequest.getOrderItemList() != null) {
+            for (OrderItemRequest itemReq : orderRequest.getOrderItemList()) {
+                boolean isProduct = itemReq.getProductId() > 0;
+                boolean isCombo = itemReq.getComboId() > 0;
+
+                if (isProduct) {
+                    OrderItem orderItem = new OrderItem();
+                    KeyOrderItem key = new KeyOrderItem();
+                    key.setOrderId(saved.getId());
+                    key.setProductId(itemReq.getProductId());
+                    orderItem.setKeyOrderItem(key);
+                    orderItem.setOrder(saved);
+
+                    productRepository.findById(itemReq.getProductId()).ifPresent(orderItem::setProduct);
+
+                    orderItem.setQuantity(itemReq.getQuantity());
+                    double unitPrice = orderItem.getProduct() != null ? orderItem.getProduct().getPrice() : 0.0;
+                    orderItem.setPrice(unitPrice);
+                    orderItem.setNote(itemReq.getNote());
+
+                    orderItemRepository.save(orderItem);
+                }
+
+                if (isCombo) {
+                    Optional<Combo> comboOptional = comboRepository.findById(itemReq.getComboId());
+                    if (comboOptional.isPresent()) {
+                        OrderItem orderItem = new OrderItem();
+                        KeyOrderItem key = new KeyOrderItem();
+                        key.setOrderId(saved.getId());
+                        key.setProductId(0);
+                        orderItem.setKeyOrderItem(key);
+                        orderItem.setOrder(saved);
+                        orderItem.setCombo(comboOptional.get());
+                        orderItem.setQuantity(itemReq.getQuantity());
+                        double unitPrice = orderItem.getCombo() != null && orderItem.getCombo().getPrice() != null
+                                ? orderItem.getCombo().getPrice()
+                                : 0.0;
+                        orderItem.setPrice(unitPrice);
+                        orderItem.setNote(itemReq.getNote());
+                        orderItemRepository.save(orderItem);
+                    }
+                }
+            }
+        }
+        Integer branchId = saved.getBranch() != null ? saved.getBranch().getId() : null;
+        inventoryService.consumeMaterialsForOrderItems(saved.getOrderItems(), branchId);
+        saved.setPaymentUrl(paymentService.createPaymentLink(saved.getId()));
+        orderRepository.save(saved);
+        OrderDTO result = toDTO(saved);
+        result.setPaymentUrl(saved.getPaymentUrl());
+        return result;
+    }
+
+    @Override
     public OrderDTO createOrderForDining(OrderRequest orderRequest) {
         inventoryService.assertSufficientMaterialsForOrder(orderRequest.getOrderItemList());
         Order order = new Order();
@@ -457,6 +610,7 @@ public class OrderServiceImpl implements OrderService {
         order.setPaymentTime(new Date());
 
         boolean isDiningTable = order.getIsTable() != null && order.getIsTable();
+        boolean isPickup = order.isPickUp();
 
         if (isDiningTable) {
             OrderStatus completedStatus = orderStatusRepository.findByName("COMPLETED")
@@ -476,6 +630,9 @@ public class OrderServiceImpl implements OrderService {
                 table.setIsActive(true);
                 diningTableRepository.save(table);
             }
+        } else if (isPickup) {
+            order.setStatus(orderStatusRepository.findByName("IN PROCESS")
+                    .orElseThrow(() -> new RuntimeException("OrderStatus IN_PROCESS not found")));
         } else {
             order.setStatus(orderStatusRepository.findByName("IN PROCESS")
                     .orElseThrow(() -> new RuntimeException("OrderStatus IN_PROCESS not found")));
@@ -856,5 +1013,35 @@ public class OrderServiceImpl implements OrderService {
             orderRepository.save(order);
             return toDTO(order);
         }
+    }
+
+    @Override
+    public boolean customerPickedUpOrder(int orderId) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
+
+        if (order.getPickupTime() != null) {
+            throw new RuntimeException("Order already picked up");
+        }
+
+        boolean isPickup = order.isPickUp();
+        if (!isPickup) {
+            throw new RuntimeException("This order is not a pickup order");
+        }
+
+        order.setPickupTime(new Date());
+        OrderStatus completedStatus = orderStatusRepository.findByName("COMPLETED")
+                .orElseThrow(() -> new RuntimeException("OrderStatus COMPLETED not found"));
+        order.setStatus(completedStatus);
+
+        if (order.getCustomer() != null) {
+            Users customer = order.getCustomer();
+            int pointsEarned = (int) (order.getAmount() / 1000);
+            customer.setMemberPoint(customer.getMemberPoint() + pointsEarned);
+            order.setPointEarned(pointsEarned);
+            usersRepository.save(customer);
+        }
+
+        orderRepository.save(order);
+        return true;
     }
 }
