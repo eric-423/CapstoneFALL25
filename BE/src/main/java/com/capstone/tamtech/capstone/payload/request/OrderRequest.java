@@ -27,4 +27,6 @@ public class OrderRequest {
 
     private int diningTableId;
 
+    private int branchId;
+
 }

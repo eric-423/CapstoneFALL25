@@ -18,7 +18,6 @@ public class OpenApiConfig {
 
     @Bean
     public OpenAPI customOpenAPI() {
-        // Định nghĩa Security Scheme cho JWT
         SecurityScheme securityScheme = new SecurityScheme()
                 .type(SecurityScheme.Type.HTTP)
                 .scheme("bearer")
@@ -26,7 +25,6 @@ public class OpenApiConfig {
                 .name("JWT Authentication")
                 .description("Nhập JWT token để xác thực. Token có thể lấy được từ API đăng nhập.");
 
-        // Tạo Security Requirement
         SecurityRequirement securityRequirement = new SecurityRequirement()
                 .addList("bearerAuth");
 
