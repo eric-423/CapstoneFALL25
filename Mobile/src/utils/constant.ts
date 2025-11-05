@@ -24,3 +24,5 @@ export const APP_FONT = {
     BOLD: "Montserrat-Bold",
   },
 };
+
+export const BASE_URL = "https://tam-tac.com/api";
