@@ -1,5 +1,4 @@
 import LoadingOverlay from "@/components/loading/overlay";
-// import { resendCodeAPI, verifyEmailCustomer } from "@/utils/api";
 import { APP_COLOR } from "@/utils/constant";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
@@ -10,14 +9,13 @@ import {
   Image,
   TouchableOpacity,
   Keyboard,
-  Platform,
-  KeyboardAvoidingView,
 } from "react-native";
 import OTPTextView from "react-native-otp-textinput";
 import Toast from "react-native-root-toast";
 import { FONTS } from "@/theme/typography";
 import logo from "@/assets/logo.png";
 import footerFrame from "@/assets/frame_footer.png";
+import { SendOTP, TTLOtpAPI, VeryfyOTP } from "@/utils/api";
 
 const styles = StyleSheet.create({
   container: {
@@ -74,79 +72,89 @@ const VerifyPage = () => {
   const [countdown, setCountdown] = useState<number>(0);
   const otpRef = useRef<OTPTextView>(null);
   const [code, setCode] = useState<string>("");
-  const { email } = useLocalSearchParams();
-  const [coundownEmail, setCoundownEmail] = useState<number>(600);
+  const { phoneNumber, channel } = useLocalSearchParams();
   useEffect(() => {
-    let timer: number | null;
-    if (countdown > 0 || coundownEmail > 0) {
-      timer = setInterval(() => {
-        setCountdown((prev) => prev - 1);
-        setCoundownEmail((prev) => prev - 1);
-      }, 1000);
-    }
-    return () => {
-      if (timer) clearInterval(timer);
-    };
-  }, [countdown, coundownEmail]);
+    if (typeof phoneNumber !== "string" || !phoneNumber) return;
 
-  const verifyCustomerEmail = async (email: string, otp: string) => {
-    // try {
-    //   console.log(email, otp);
-    //   Keyboard.dismiss();
-    //   setIsSubmit(true);
-    //   const verifyRes = await verifyEmailCustomer(email, otp);
-    //   console.log(verifyRes);
-    //   setIsSubmit(false);
-    //   if (verifyRes) {
-    //     Toast.show("Xác thực tài khoản thành công", {
-    //       duration: Toast.durations.LONG,
-    //       textColor: "white",
-    //       backgroundColor: APP_COLOR.ORANGE,
-    //       opacity: 1,
-    //       position: -35,
-    //     });
-    //     router.replace("/(auth)/welcome");
-    //   } else {
-    //     Toast.show("Xác thực tài khoản thất bại", {
-    //       duration: Toast.durations.LONG,
-    //       textColor: "white",
-    //       backgroundColor: APP_COLOR.CANCEL,
-    //       opacity: 1,
-    //     });
-    //   }
-    // } catch (error) {
-    //   console.log("Lỗi không thể xác thực được email", error);
-    // }
+    const channelStr = channel as string;
+    const getCountdown = async () => {
+      try {
+        const res = await TTLOtpAPI(channelStr, phoneNumber);
+        setCountdown(res?.data?.ttl ?? res?.data?.data ?? 0);
+      } catch (err: any) {
+        console.log(
+          "TTL OTP error:",
+          err?.response?.status,
+          err?.response?.data
+        );
+        setCountdown(0);
+      }
+    };
+
+    getCountdown();
+    const intervalId = setInterval(() => {
+      getCountdown();
+    }, 1000);
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [phoneNumber, channel]);
+  const verifyOTP = async (
+    channel: string,
+    identifier: string,
+    inputOtp: string
+  ) => {
+    try {
+      Keyboard.dismiss();
+      setIsSubmit(true);
+      const verifyRes = await VeryfyOTP(channel, identifier, inputOtp);
+      console.log(verifyRes);
+      setIsSubmit(false);
+      if (verifyRes) {
+        Toast.show("Xác thực tài khoản thành công", {
+          duration: Toast.durations.LONG,
+          textColor: "white",
+          backgroundColor: APP_COLOR.ORANGE,
+          opacity: 1,
+          position: -35,
+        });
+        router.replace("/(auth)/welcome");
+      } else {
+        Toast.show("Xác thực tài khoản thất bại", {
+          duration: Toast.durations.LONG,
+          textColor: "white",
+          backgroundColor: APP_COLOR.CANCEL,
+          opacity: 1,
+        });
+      }
+    } catch (error) {
+      console.log("Lỗi không thể xác thực được email", error);
+    }
   };
 
-  useEffect(() => {
-    if (code && code.length === 6) {
-      verifyCustomerEmail(email as string, code);
-    }
-  }, [code, email]);
-
   const handleResendCode = async () => {
-    // if (countdown > 0) return;
-    // otpRef?.current?.clear();
-    // setCountdown(60);
-    // try {
-    //   const res = await resendCodeAPI(email as string);
-    //   const m = res.data ? "Resend code thành công" : res.message;
-    //   Toast.show(m as string, {
-    //     duration: Toast.durations.LONG,
-    //     textColor: "white",
-    //     backgroundColor: APP_COLOR.ORANGE,
-    //     opacity: 1,
-    //   });
-    // } catch (error) {
-    //   console.error("Error resending code:", error);
-    //   Toast.show("Không thể gửi lại mã. Vui lòng thử lại sau.", {
-    //     duration: Toast.durations.LONG,
-    //     textColor: "white",
-    //     backgroundColor: APP_COLOR.ORANGE,
-    //     opacity: 1,
-    //   });
-    // }
+    if (countdown > 0) return;
+    otpRef?.current?.clear();
+    try {
+      await SendOTP(channel as string, phoneNumber as string);
+      const ttlRes = await TTLOtpAPI(channel as string, phoneNumber as string);
+      const newTtl = ttlRes?.data?.ttl ?? ttlRes?.data?.data ?? 0;
+      setCountdown(newTtl);
+      Toast.show("Đã gửi lại mã OTP", {
+        duration: Toast.durations.SHORT,
+        textColor: "white",
+        backgroundColor: APP_COLOR.ORANGE,
+        opacity: 1,
+      });
+    } catch (error) {
+      console.error("Error resending code:", error);
+      Toast.show("Không thể gửi lại mã. Vui lòng thử lại sau.", {
+        duration: Toast.durations.LONG,
+        textColor: "white",
+        backgroundColor: APP_COLOR.ORANGE,
+        opacity: 1,
+      });
+    }
   };
 
   return (
@@ -154,7 +162,7 @@ const VerifyPage = () => {
       <View style={styles.welcomeText}>
         <Image style={styles.imgLogo} source={logo} />
         <Text style={styles.headerText}>Chào mừng bạn đến với Tấm Tắc</Text>
-        {coundownEmail == 0 ? (
+        {countdown <= 0 ? (
           <Text
             style={{
               marginVertical: 10,
@@ -176,14 +184,22 @@ const VerifyPage = () => {
               textAlign: "center",
             }}
           >
-            Mã OTP đã được gửi về {email}, OTP có hiệu lực trong{" "}
-            {formatCountdown(coundownEmail)}
+            Mã OTP đã được gửi về số điện thoại {phoneNumber}
           </Text>
         )}
         <View style={{ marginVertical: 20 }}>
           <OTPTextView
             ref={otpRef}
-            handleTextChange={setCode}
+            handleTextChange={(val: string) => {
+              setCode(val);
+              if (
+                !isSubmit &&
+                typeof phoneNumber === "string" &&
+                val.length === 6
+              ) {
+                verifyOTP((channel as string) || "zalo", phoneNumber, val);
+              }
+            }}
             autoFocus
             inputCount={6}
             inputCellLength={1}
@@ -214,7 +230,9 @@ const VerifyPage = () => {
                 { textDecorationLine: "underline" },
               ]}
             >
-              {countdown > 0 ? `Gửi lại (${countdown}s)` : "Gửi lại"}
+              {countdown > 0
+                ? `Gửi lại (${formatCountdown(countdown)})`
+                : "Gửi lại"}
             </Text>
           </TouchableOpacity>
         </View>

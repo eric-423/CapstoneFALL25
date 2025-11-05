@@ -9,6 +9,8 @@ import { Text, View, StyleSheet, Image } from "react-native";
 import footerFrame from "@/assets/frame_footer.png";
 import logo from "@/assets/logo.png";
 import { FONTS, typography } from "@/theme/typography";
+import { CustomersSignupAPI, SendOTP } from "@/utils/api";
+import Toast from "react-native-root-toast";
 const styles = StyleSheet.create({
   itemContainer: {
     marginHorizontal: 30,
@@ -17,49 +19,47 @@ const styles = StyleSheet.create({
 });
 const handleSignUp = async (
   fullName: string,
-  phone_number: string,
-  email: string,
+  phoneNumber: string,
   password: string,
-  date_of_birth: string
+  dateOfBirth: string
 ) => {
-  console.log("handleSignUp called", {
-    fullName,
-    phone_number,
-    email,
-    password,
-    date_of_birth,
-  });
-  // try {
-  //   const signUpResponse = await customerRegisterAPI(
-  //     fullName,
-  //     phone_number,
-  //     email,
-  //     password,
-  //     date_of_birth
-  //   );
-  //   console.log(signUpResponse);
+  try {
+    await CustomersSignupAPI(fullName, phoneNumber, password, dateOfBirth);
+    const channel = "zalo";
+    let otpSent = true;
+    try {
+      await SendOTP(channel, phoneNumber);
+    } catch (otpErr: any) {
+      otpSent = false;
+    }
 
-  //   Toast.show("Đăng ký thành công!", {
-  //     duration: Toast.durations.LONG,
-  //     backgroundColor: APP_COLOR.ORANGE,
-  //   });
-  //   router.replace({
-  //     pathname: "/(auth)/verify",
-  //     params: { email: email },
-  //   });
-  // } catch (error: any) {
-  //   let errorMessage = "Đăng ký thất bại. Vui lòng thử lại.";
-  //   if (error.response?.data?.message) {
-  //     errorMessage = error.response.data.message;
-  //   } else if (typeof error.response?.data === "string") {
-  //     errorMessage = error.response.data;
-  //   }
-  //   console.log("Sign up error:", errorMessage, error);
-  //   Toast.show(errorMessage, {
-  //     duration: Toast.durations.LONG,
-  //     backgroundColor: APP_COLOR.CANCEL,
-  //   });
-  // }
+    Toast.show(
+      otpSent
+        ? "Đăng ký thành công! Mã OTP đã được gửi."
+        : "Đăng ký thành công, nhưng gửi OTP thất bại. Hãy thử Gửi lại ở màn hình OTP.",
+      {
+        duration: Toast.durations.LONG,
+        backgroundColor: otpSent ? APP_COLOR.ORANGE : APP_COLOR.CANCEL,
+      }
+    );
+
+    router.replace({
+      pathname: "/(auth)/verify",
+      params: { phoneNumber, channel },
+    });
+  } catch (error: any) {
+    let errorMessage = "Đăng ký thất bại. Vui lòng thử lại.";
+    if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    } else if (typeof error.response?.data === "string") {
+      errorMessage = error.response.data;
+    }
+    console.log("Sign up error:", errorMessage, error);
+    Toast.show(errorMessage, {
+      duration: Toast.durations.LONG,
+      backgroundColor: APP_COLOR.CANCEL,
+    });
+  }
 };
 const CustomerSignUpPage = () => {
   return (
@@ -75,13 +75,19 @@ const CustomerSignUpPage = () => {
           validationSchema={CustomerSignUpSchema}
           initialValues={{
             fullName: "",
-            phone_number: "",
-            email: "",
-            date_of_birth: "",
+            phoneNumber: "",
+            dateOfBirth: "",
             password: "",
             confirmPassword: "",
           }}
-          onSubmit={() => {}}
+          onSubmit={(values) => {
+            handleSignUp(
+              values.fullName,
+              values.phoneNumber,
+              values.password,
+              values.dateOfBirth
+            );
+          }}
         >
           {({ handleChange, handleBlur, values, errors, touched }) => (
             <View style={styles.itemContainer}>
@@ -118,28 +124,19 @@ const CustomerSignUpPage = () => {
                 <ShareInput
                   placeholder="Số điện thoại"
                   placeholderTextColor={APP_COLOR.BROWN}
-                  onChangeText={handleChange("phone_number")}
-                  onBlur={handleBlur("phone_number")}
-                  value={values.phone_number}
-                  error={errors.phone_number}
-                  touched={touched.phone_number}
-                />
-                <ShareInput
-                  placeholder="Email"
-                  placeholderTextColor={APP_COLOR.BROWN}
-                  onChangeText={handleChange("email")}
-                  onBlur={handleBlur("email")}
-                  value={values.email}
-                  error={errors.email}
-                  touched={touched.email}
+                  onChangeText={handleChange("phoneNumber")}
+                  onBlur={handleBlur("phoneNumber")}
+                  value={values.phoneNumber}
+                  error={errors.phoneNumber}
+                  touched={touched.phoneNumber}
                 />
                 <DateInput
                   placeholder="Nhập ngày sinh của bạn"
-                  onChangeText={handleChange("date_of_birth")}
-                  onBlur={handleBlur("date_of_birth")}
-                  value={values.date_of_birth}
-                  error={errors.date_of_birth}
-                  touched={touched.date_of_birth}
+                  onChangeText={handleChange("dateOfBirth")}
+                  onBlur={handleBlur("dateOfBirth")}
+                  value={values.dateOfBirth}
+                  error={errors.dateOfBirth}
+                  touched={touched.dateOfBirth}
                   minDate="1900-01-01"
                   maxDate={new Date().toISOString().split("T")[0]}
                 />
@@ -198,17 +195,12 @@ const CustomerSignUpPage = () => {
               <ShareButton
                 title="Đăng Ký với Khách"
                 onPress={() =>
-                  // handleSignUp(
-                  //   values.fullName,
-                  //   values.phone_number,
-                  //   values.email,
-                  //   values.password,
-                  //   values.date_of_birth
-                  // )
-                  router.replace({
-                    pathname: "/(auth)/verify",
-                    params: { email: values.email },
-                  })
+                  handleSignUp(
+                    values.fullName,
+                    values.phoneNumber,
+                    values.password,
+                    values.dateOfBirth
+                  )
                 }
                 textStyle={{
                   color: APP_COLOR.WHITE,
