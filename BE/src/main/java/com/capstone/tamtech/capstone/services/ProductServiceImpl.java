@@ -1,14 +1,17 @@
 package com.capstone.tamtech.capstone.services;
 
+import com.capstone.tamtech.capstone.dto.ProductDTO;
 import com.capstone.tamtech.capstone.dto.ProductSearchDTO;
 import com.capstone.tamtech.capstone.entities.BranchProduct;
 import com.capstone.tamtech.capstone.entities.Product;
+import com.capstone.tamtech.capstone.entities.ProductRecipes;
+import com.capstone.tamtech.capstone.entities.keys.KeyProductRecipes;
 import com.capstone.tamtech.capstone.exception.ResourceNotFoundException;
 import com.capstone.tamtech.capstone.payload.PagedResponse;
+import com.capstone.tamtech.capstone.payload.request.ProductCreateRequest;
 import com.capstone.tamtech.capstone.payload.request.ProductSearchRequest;
-import com.capstone.tamtech.capstone.repositories.BranchProductRepository;
-import com.capstone.tamtech.capstone.repositories.BranchRepository;
-import com.capstone.tamtech.capstone.repositories.ProductRepository;
+import com.capstone.tamtech.capstone.payload.request.RecipesRequest;
+import com.capstone.tamtech.capstone.repositories.*;
 import com.capstone.tamtech.capstone.services.impl.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -18,9 +21,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,10 +31,16 @@ public class ProductServiceImpl implements ProductService {
     private ProductRepository productRepository;
 
     @Autowired
+    private ProductTypeRepository productTypeRepository;
+
+    @Autowired
     private BranchProductRepository branchProductRepository;
 
     @Autowired
     private BranchRepository branchRepository;
+
+    @Autowired
+    private ProductRecipesRepository productRecipesRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -51,7 +58,7 @@ public class ProductServiceImpl implements ProductService {
         Page<Product> productPage = productRepository.searchProductsByBranch(
                 searchRequest.getBranchId(),
                 searchRequest.getKeyword(),
-                searchRequest.getProductType(),
+                searchRequest.getProductTypeId(),
                 searchRequest.getIsActive(),
                 searchRequest.getMinPrice(),
                 searchRequest.getMaxPrice(),
@@ -70,6 +77,98 @@ public class ProductServiceImpl implements ProductService {
                 .collect(Collectors.toList());
 
         return createPagedResponse(productPage, productDTOs);
+    }
+
+    @Override
+    public ProductDTO createProduct(ProductCreateRequest productCreateRequest) {
+        Product product = new Product();
+
+        List<ProductRecipes> productRecipesList = new ArrayList<>();
+
+        product.setName(productCreateRequest.getName());
+        product.setDescription(productCreateRequest.getDescription());
+        product.setPrice(productCreateRequest.getPrice());
+        product.setImage(productCreateRequest.getImageUrl());
+        product.setCreatedDate(new Date());
+        product.setUpdateDate(new Date());
+        product.setActive(true);
+        product.setProductType(productTypeRepository.findById(productCreateRequest.getTypeId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Không tìm thấy loại sản phẩm với ID: " + productCreateRequest.getTypeId())));
+
+        for (RecipesRequest request : productCreateRequest.getRecipesRequests()) {
+            KeyProductRecipes key = new KeyProductRecipes();
+            key.setProductId(product.getId());
+            key.setMaterialId(request.getMaterialId());
+
+            ProductRecipes productRecipes = new ProductRecipes();
+
+            productRecipes.setKeyProductRecipes(key);
+            productRecipes.setQuantity(request.getQuantity());
+
+            productRecipesRepository.save(productRecipes);
+
+            product.getProductRecipes().add(productRecipes);
+            productRecipesList.add(productRecipes);
+        }
+
+        product.setProductRecipes(productRecipesList);
+        productRepository.save(product);
+
+        return toDTO(product);
+    }
+
+    @Override
+    public ProductDTO updateProduct(int id, ProductCreateRequest productCreateRequest) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + id));
+
+        List<ProductRecipes> productRecipesList = new ArrayList<>();
+
+        product.setName(productCreateRequest.getName());
+        product.setDescription(productCreateRequest.getDescription());
+        product.setPrice(productCreateRequest.getPrice());
+        product.setImage(productCreateRequest.getImageUrl());
+        product.setCreatedDate(new Date());
+        product.setUpdateDate(new Date());
+        product.setActive(true);
+        product.setProductType(productTypeRepository.findById(productCreateRequest.getTypeId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Không tìm thấy loại sản phẩm với ID: " + productCreateRequest.getTypeId())));
+
+        for (RecipesRequest request : productCreateRequest.getRecipesRequests()) {
+            KeyProductRecipes key = new KeyProductRecipes();
+            key.setProductId(product.getId());
+            key.setMaterialId(request.getMaterialId());
+
+            ProductRecipes productRecipes = new ProductRecipes();
+
+            productRecipes.setKeyProductRecipes(key);
+            productRecipes.setQuantity(request.getQuantity());
+
+            productRecipesRepository.save(productRecipes);
+
+            product.getProductRecipes().add(productRecipes);
+            productRecipesList.add(productRecipes);
+        }
+
+        product.setProductRecipes(productRecipesList);
+        productRepository.save(product);
+
+        return toDTO(product);
+    }
+
+    private ProductDTO toDTO(Product product) {
+        ProductDTO productDTO = new ProductDTO();
+
+        productDTO.setProductId(product.getId());
+        productDTO.setProductName(product.getName());
+        productDTO.setProductDescription(product.getDescription());
+        productDTO.setProductImage(product.getImage());
+        productDTO.setProductPrice(product.getPrice());
+        productDTO.setProductType(product.getProductType().getName());
+
+        return productDTO;
     }
 
     private Pageable createPageable(ProductSearchRequest searchRequest) {

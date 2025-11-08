@@ -12,4 +12,7 @@ public interface AuthService {
 
     UserDTO employeeRegister(EmployeeRegisterRequest employeeRegisterRequest);
 
+    Boolean forgotPasswordForCustomer(CustomerForgotPasswordRequest customerForgotPasswordRequest) throws Exception;
+
+    Boolean resetPasswordForCustomer(CustomerResetPasswordRequest customerResetPasswordRequest);
 }
