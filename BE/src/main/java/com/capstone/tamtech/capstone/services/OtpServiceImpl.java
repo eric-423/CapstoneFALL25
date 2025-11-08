@@ -119,6 +119,33 @@ public class OtpServiceImpl implements OtpService {
     }
 
     @Override
+    public boolean verifyOtpForForgotPassword(String channel, String identifier, String inputOtp) {
+        ValueOperations<String, String> ops = redis.opsForValue();
+        String key = otpKey(channel, identifier);
+        String stored = ops.get(key);
+
+        if (stored == null) return false;
+
+        if (stored.equals(inputOtp)) {
+            redis.delete(key);
+            redis.delete(failKey(channel, identifier));
+
+            return true;
+        } else {
+            String fk = failKey(channel, identifier);
+            Long fails = ops.increment(fk);
+            if (fails != null && fails == 1L) {
+                redis.expire(fk, OTP_TTL.getSeconds(), TimeUnit.SECONDS);
+            }
+            if (fails != null && fails >= MAX_FAILS) {
+                redis.delete(key);
+            }
+            return false;
+        }
+    }
+
+
+    @Override
     public boolean sendOtp(String channel, String identifier) throws Exception {
         String otp = createAndStoreOtp(channel, identifier);
 

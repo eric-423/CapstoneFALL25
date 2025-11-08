@@ -45,6 +45,28 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/customer/forgot-password")
+    public ResponseEntity<?> forgotPasswordForCustomer(@RequestBody CustomerForgotPasswordRequest customerForgotPasswordRequest) throws Exception {
+        authService.forgotPasswordForCustomer(customerForgotPasswordRequest);
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PostMapping("/customer/reset-password")
+    public ResponseEntity<?> resetPasswordForCustomer(@RequestBody CustomerResetPasswordRequest customerResetPasswordRequest) throws Exception {
+        Boolean result = authService.resetPasswordForCustomer(customerResetPasswordRequest);
+        ResponseData responseData = new ResponseData();
+        if(!result){
+            responseData.setStatus(400);
+            responseData.setDesc("Đặt lại mật khẩu thất bại");
+            return new ResponseEntity<>(responseData, HttpStatus.BAD_REQUEST);
+        } else{
+            responseData.setStatus(200);
+            responseData.setDesc("Đặt lại mật khẩu thành công");
+        }
+        return new ResponseEntity<>(responseData,HttpStatus.OK);
+    }
+
     @Operation(summary = "Đăng ký tài khoản khách hàng", description = "API cho phép khách hàng tạo tài khoản mới với số điện thoại, mật khẩu và thông tin cá nhân", security = {}
     )
     @ApiResponses(value = {
@@ -173,4 +195,6 @@ public class AuthController {
         responseData.setStatus(200);
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
+
+
 }

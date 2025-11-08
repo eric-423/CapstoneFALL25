@@ -17,8 +17,8 @@ public class ProductSearchRequest {
     @Schema(description = "Từ khóa tìm kiếm (tên sản phẩm, mô tả)", example = "phở")
     private String keyword;
 
-    @Schema(description = "Loại sản phẩm", example = "Món chính")
-    private String productType;
+    @Schema(description = "ID loại sản phẩm", example = "1")
+    private Integer productTypeId;
 
     @Schema(description = "Trạng thái sản phẩm (true: đang bán, false: ngừng bán)", example = "true")
     private Boolean isActive;

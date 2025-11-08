@@ -11,6 +11,7 @@ import com.capstone.tamtech.capstone.repositories.RoleHistoryRepository;
 import com.capstone.tamtech.capstone.repositories.RoleRepository;
 import com.capstone.tamtech.capstone.repositories.UsersRepository;
 import com.capstone.tamtech.capstone.services.impl.AuthService;
+import com.capstone.tamtech.capstone.services.impl.OtpService;
 import com.capstone.tamtech.capstone.untils.JwtTokenHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -38,6 +39,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Autowired
     private RoleRepository roleRepository;
+
+    @Autowired
+    private OtpService otpService;
 
     @Autowired
     private MemberAssociationRepository memberAssociationRepository;
@@ -129,6 +133,30 @@ public class AuthServiceImpl implements AuthService {
 
         usersRepository.save(employee);
         return convertToDTO(employee);
+    }
+
+    @Override
+    public Boolean forgotPasswordForCustomer(CustomerForgotPasswordRequest customerForgotPasswordRequest) throws Exception {
+        Users users = usersRepository.findByPhoneNumber(customerForgotPasswordRequest.getPhoneNumber())
+                .orElseThrow(() -> new ResourceNotFoundException("Số điện thoại không tồn tại trong hệ thống"));
+
+        return otpService.sendOtp("zalo", users.getPhoneNumber());
+    }
+
+    @Override
+    public Boolean resetPasswordForCustomer(CustomerResetPasswordRequest customerResetPasswordRequest) {
+        boolean isValid = otpService.verifyOtp("zalo", customerResetPasswordRequest.getPhoneNumber(),
+                customerResetPasswordRequest.getOtp());
+
+        if (isValid) {
+            Users users = usersRepository.findByPhoneNumber(customerResetPasswordRequest.getPhoneNumber())
+                    .orElseThrow(() -> new ResourceNotFoundException("Số điện thoại không tồn tại trong hệ thống"));
+
+            users.setPassword(passwordEncoder.encode(customerResetPasswordRequest.getNewPassword()));
+            usersRepository.save(users);
+            return true;
+        }
+        return false;
     }
 
 
