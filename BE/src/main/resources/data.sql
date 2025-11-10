@@ -301,7 +301,7 @@ VALUES ('Cơm tấm sườn nướng', 'Cơm tấm với sườn heo nướng th
         'https://scvanwhslmgejfwcmlzx.supabase.co/storage/v1/object/public/images_tamtech/sua-tuoi.jpg',
         '2025-11-10 05:32:18', '2025-11-10 05:32:18', true, 2),
        ('Cà phê đá', 'Cà phê phin truyền thống', 20000,
-        'https://scvanwhslmgejfwcmlzx.supabase.co/storage/v1/object/public/images_tamtech/ca-phe-da.jpg',
+        'https://scvanwhslmgejfwcmlzx.supabase.co/storage/v1/object/public/images_tamtech/ca-phe-da1.jpg',
         '2025-11-10 05:32:18', '2025-11-10 05:32:18', true, 2),
        ('Trà đá', 'Trà đá mát lạnh', 10000,
         'https://scvanwhslmgejfwcmlzx.supabase.co/storage/v1/object/public/images_tamtech/tra-da.jpg',
