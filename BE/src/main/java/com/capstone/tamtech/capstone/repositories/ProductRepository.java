@@ -13,27 +13,28 @@ import java.util.Optional;
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Integer> {
 
-    Optional<Product> findByName(String name);
+        Optional<Product> findByName(String name);
 
-    /**
-     * Tìm kiếm sản phẩm theo chi nhánh với các điều kiện lọc
-     */
-    @Query("SELECT DISTINCT p FROM Product p " +
-            "INNER JOIN p.branchProducts bp " +
-            "WHERE bp.keyBranchProduct.branchId = :branchId " +
-            "AND (:keyword IS NULL OR :keyword = '' OR " +
-            "     LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-            "     LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
-            "AND (:productType IS NULL OR :productType = '' OR p.productType.name = :productType) " +
-            "AND (:isActive IS NULL OR p.isActive = :isActive) " +
-            "AND (:minPrice IS NULL OR p.price >= :minPrice) " +
-            "AND (:maxPrice IS NULL OR p.price <= :maxPrice)")
-    Page<Product> searchProductsByBranch(
-            @Param("branchId") Integer branchId,
-            @Param("keyword") String keyword,
-            @Param("productType") String productType,
-            @Param("isActive") Boolean isActive,
-            @Param("minPrice") Double minPrice,
-            @Param("maxPrice") Double maxPrice,
-            Pageable pageable);
+        /**
+         * Tìm kiếm sản phẩm theo chi nhánh với các điều kiện lọc
+         */
+        @Query("SELECT DISTINCT p FROM Product p " +
+                        "INNER JOIN p.branchProducts bp " +
+                        "LEFT JOIN p.productType pt " +
+                        "WHERE bp.keyBranchProduct.branchId = :branchId " +
+                        "AND (:keyword IS NULL OR :keyword = '' OR " +
+                        "     LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+                        "     LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+                        "AND (:productTypeId IS NULL OR pt.id = :productTypeId) " +
+                        "AND (:isActive IS NULL OR p.isActive = :isActive) " +
+                        "AND (:minPrice IS NULL OR p.price >= :minPrice) " +
+                        "AND (:maxPrice IS NULL OR p.price <= :maxPrice)")
+        Page<Product> searchProductsByBranch(
+                        @Param("branchId") Integer branchId,
+                        @Param("keyword") String keyword,
+                        @Param("productTypeId") Integer productTypeId,
+                        @Param("isActive") Boolean isActive,
+                        @Param("minPrice") Double minPrice,
+                        @Param("maxPrice") Double maxPrice,
+                        Pageable pageable);
 }

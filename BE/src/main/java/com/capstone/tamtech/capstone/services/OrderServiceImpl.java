@@ -613,8 +613,8 @@ public class OrderServiceImpl implements OrderService {
         boolean isPickup = order.isPickUp();
 
         if (isDiningTable) {
-            OrderStatus completedStatus = orderStatusRepository.findByName("COMPLETED")
-                    .orElseThrow(() -> new RuntimeException("OrderStatus COMPLETED not found"));
+            OrderStatus completedStatus = orderStatusRepository.findByName("PAID")
+                    .orElseThrow(() -> new RuntimeException("PAID COMPLETED not found"));
             order.setStatus(completedStatus);
 
             if (order.getCustomer() != null) {
