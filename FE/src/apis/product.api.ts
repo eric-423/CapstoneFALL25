@@ -17,14 +17,32 @@ export interface Product {
   productDescription: string;
   productImage: string;
   productPrice: number;
-  rating: number;
+  rating?: number;
   productType: string;
-  productQuantity: number;
+  productTypeId: number;
+  productQuantity?: number;
+  quantityInBranch?: number;
+  createdDate?: string;
+  updatedDate?: string;
+  active?: boolean;
 }
 
 export interface ProductType {
   id: number;
   name: string;
+}
+
+export interface ProductSearchParams {
+  branchId: number;
+  isActive?: boolean;
+  keyword?: string;
+  productTypeId?: number;
+  minPrice?: number;
+  maxPrice?: number;
+  sortBy?: string;
+  sortDirection?: 'ASC' | 'DESC';
+  page?: number;
+  size?: number;
 }
 
 export type ProductResponse = SuccessResponse<{
@@ -57,8 +75,8 @@ export interface OrderProductResponse {
 
 
 export const getProductType = async () => {
-  const { data } = await http.get('/product-type');
-  return [{ id: 0, name: 'Tất cả' }, ...data] as ProductType[];
+  const { data } = await http.get('/product-types');
+  return [{ id: 0, name: 'Tất cả' }, ...data.data] as ProductType[];
 };
 
 export const getProducts = async (page: number = 0, size: number = 100, productType: number = 0) => {
@@ -87,3 +105,22 @@ export const getProductsByBranch = async (
   });
   return data.data;
 };
+
+export const searchProducts = async (params: ProductSearchParams) => {
+  const { data } = await http.get('/products/search', {
+    params: {
+      branchId: params.branchId,
+      isActive: params.isActive ?? true,
+      keyword: params.keyword,
+      productTypeId: params.productTypeId,
+      minPrice: params.minPrice,
+      maxPrice: params.maxPrice,
+      sortBy: params.sortBy,
+      sortDirection: params.sortDirection,
+      page: params.page ?? 0,
+      size: params.size ?? 10,
+    },
+  });
+  return data;
+};
+
