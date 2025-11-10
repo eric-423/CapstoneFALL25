@@ -20,7 +20,9 @@ export const getProductsByPriceRange = (min: number, max: number): Product[] => 
 };
 
 export const getTopRatedProducts = (limit: number = 5): Product[] => {
+
   return [...sampleData.products]
+
     .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
     .slice(0, limit);
 };

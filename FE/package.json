@@ -70,7 +70,6 @@
     "react-icons": "^5.5.0",
     "react-toastify": "^11.0.5",
     "recharts": "^2.15.4",
-    "scss": "^0.2.4",
     "sockjs-client": "^1.6.1",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
@@ -110,7 +109,7 @@
     "jest-environment-jsdom": "^29.7.0",
     "postcss": "^8.5.3",
     "prettier": "^3.5.3",
-    "sass-embedded": "^1.88.0",
+    "sass": "^1.93.2",
     "tailwindcss": "^4",
     "typescript": "~5.7.2"
   }

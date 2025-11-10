@@ -45,6 +45,19 @@ export interface ProductSearchResponse {
   empty: boolean;
 }
 
+export interface ProductSearchParams {
+  branchId: number;
+  isActive?: boolean;
+  keyword?: string;
+  productTypeId?: number;
+  minPrice?: number;
+  maxPrice?: number;
+  sortBy?: string;
+  sortDirection?: 'ASC' | 'DESC';
+  page?: number;
+  size?: number;
+}
+
 export type ProductResponse = SuccessResponse<{
   content: Product[];
   totalElements: number;
@@ -75,8 +88,8 @@ export interface OrderProductResponse {
 
 
 export const getProductType = async () => {
-  const { data } = await http.get('/product-type');
-  return [{ id: 0, name: 'Tất cả' }, ...data] as ProductType[];
+  const { data } = await http.get('/product-types');
+  return [{ id: 0, name: 'Tất cả' }, ...data.data] as ProductType[];
 };
 
 export const getProducts = async (page: number = 0, size: number = 100, productType: number = 0) => {
@@ -105,6 +118,7 @@ export const getProductsByBranch = async (
   });
   return data.data;
 };
+
 
 
 // =============================== API PRODUCT ===============================
@@ -192,3 +206,4 @@ export const getProduct = async (
     statusCode: 200,
   };
 }
+
