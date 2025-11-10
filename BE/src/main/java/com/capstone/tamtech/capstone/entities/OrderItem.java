@@ -1,7 +1,5 @@
 package com.capstone.tamtech.capstone.entities;
 
-
-import com.capstone.tamtech.capstone.entities.keys.KeyOrderItem;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,16 +12,18 @@ import java.util.Date;
 @Table(name = "order_item")
 public class OrderItem {
 
-    @EmbeddedId
-    private KeyOrderItem keyOrderItem;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "order_item_id")
+    private Long id;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH})
-    @JoinColumn(name = "product_id", insertable = false, updatable = false)
-    private Product product;
-
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH})
-    @JoinColumn(name = "order_id", insertable = false, updatable = false)
+    @ManyToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH })
+    @JoinColumn(name = "order_id")
     private Order order;
+
+    @ManyToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH })
+    @JoinColumn(name = "product_id")
+    private Product product;
 
     @OneToOne
     @JoinColumn(name = "combo_id")
@@ -58,5 +58,16 @@ public class OrderItem {
 
     @Column(name = "is_delivered")
     private Boolean isDelivered;
+
+    @Column(name = "created_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt == null) {
+            createdAt = new Date();
+        }
+    }
 
 }

@@ -2,6 +2,7 @@ package com.capstone.tamtech.capstone.controllers;
 
 import com.capstone.tamtech.capstone.payload.ResponseData;
 import com.capstone.tamtech.capstone.payload.request.DiningTablePaymentRequest;
+import com.capstone.tamtech.capstone.payload.request.DiningTableProductRequest;
 import com.capstone.tamtech.capstone.payload.request.OrderRequest;
 import com.capstone.tamtech.capstone.payload.request.WaiterConfirmOrderRequest;
 import com.capstone.tamtech.capstone.services.impl.OrderService;
@@ -53,6 +54,15 @@ public class OrderController {
         }
         return new ResponseEntity<>(responseData, HttpStatus.CREATED);
     }
+
+    @PutMapping("/dining-table/update/{orderId}")
+    public ResponseEntity<?> updateDiningTableOrder(@RequestBody DiningTableProductRequest diningTableProductRequest,
+                                                    @PathVariable int orderId) throws BadRequestException {
+        ResponseData responseData = new ResponseData();
+        responseData.setData(orderService.updateOrderForDining(orderId, diningTableProductRequest));
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
+
 
     @PostMapping("/payment/webhook")
     public ResponseEntity<String> paymentWebhook(@RequestBody Object body)

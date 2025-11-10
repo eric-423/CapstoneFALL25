@@ -4,6 +4,7 @@ import com.capstone.tamtech.capstone.dto.DiningTableDTO;
 import com.capstone.tamtech.capstone.dto.OrderDTO;
 import com.capstone.tamtech.capstone.dto.OrderIemDTO;
 import com.capstone.tamtech.capstone.entities.*;
+import com.capstone.tamtech.capstone.exception.ResourceNotFoundException;
 import com.capstone.tamtech.capstone.repositories.DiningTableRepository;
 import com.capstone.tamtech.capstone.services.impl.DiningTableService;
 import com.capstone.tamtech.capstone.services.impl.OrderService;
@@ -45,6 +46,26 @@ public class DiningTableServiceImpl implements DiningTableService {
         return toDTOWithOrders(diningTable);
     }
 
+    @Override
+    public OrderDTO getCurrentOrderForDiningTable(int tableId) {
+        DiningTable diningTable = diningTableRepository.findById(tableId).orElseThrow(() -> new ResourceNotFoundException("Dining table not found"));
+
+        List<Order> allOrders = diningTable.getOrders();
+        if (allOrders != null && !allOrders.isEmpty()) {
+            Order currentActiveOrder = allOrders.stream()
+                    .filter(order -> order.getStatus() != null &&
+                            !order.getStatus().getName().equalsIgnoreCase("COMPLETED") &&
+                            !order.getStatus().getName().equalsIgnoreCase("CANCEL"))
+                    .findFirst()
+                    .orElse(null);
+
+            if (currentActiveOrder != null) {
+                return orderServiceImpl.toDTO(currentActiveOrder);
+            }
+        }
+        return null;
+    }
+
     private DiningTableDTO toDTO(DiningTable diningTable) {
         DiningTableDTO diningTableDTO = new  DiningTableDTO();
         diningTableDTO.setId(diningTable.getId());
@@ -84,7 +105,8 @@ public class DiningTableServiceImpl implements DiningTableService {
                 diningTableDTO.setCurrentOrder(orderServiceImpl.toDTO(currentActiveOrder));
             }
         }
-
         return diningTableDTO;
     }
+
+
 }
