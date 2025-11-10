@@ -2,8 +2,8 @@ package com.capstone.tamtech.capstone.services;
 
 import com.capstone.tamtech.capstone.dto.*;
 import com.capstone.tamtech.capstone.entities.*;
-import com.capstone.tamtech.capstone.entities.keys.KeyOrderItem;
 import com.capstone.tamtech.capstone.exception.ResourceNotFoundException;
+import com.capstone.tamtech.capstone.payload.request.DiningTableProductRequest;
 import com.capstone.tamtech.capstone.payload.request.OrderItemRequest;
 import com.capstone.tamtech.capstone.payload.request.OrderRequest;
 import com.capstone.tamtech.capstone.payload.request.WaiterConfirmOrderRequest;
@@ -178,10 +178,6 @@ public class OrderServiceImpl implements OrderService {
 
                 if (isProduct) {
                     OrderItem orderItem = new OrderItem();
-                    KeyOrderItem key = new KeyOrderItem();
-                    key.setOrderId(saved.getId());
-                    key.setProductId(itemReq.getProductId());
-                    orderItem.setKeyOrderItem(key);
                     orderItem.setOrder(saved);
 
                     productRepository.findById(itemReq.getProductId()).ifPresent(orderItem::setProduct);
@@ -198,10 +194,6 @@ public class OrderServiceImpl implements OrderService {
                     Optional<Combo> comboOptional = comboRepository.findById(itemReq.getComboId());
                     if (comboOptional.isPresent()) {
                         OrderItem orderItem = new OrderItem();
-                        KeyOrderItem key = new KeyOrderItem();
-                        key.setOrderId(saved.getId());
-                        key.setProductId(0);
-                        orderItem.setKeyOrderItem(key);
                         orderItem.setOrder(saved);
                         orderItem.setCombo(comboOptional.get());
                         orderItem.setQuantity(itemReq.getQuantity());
@@ -331,10 +323,6 @@ public class OrderServiceImpl implements OrderService {
 
                 if (isProduct) {
                     OrderItem orderItem = new OrderItem();
-                    KeyOrderItem key = new KeyOrderItem();
-                    key.setOrderId(saved.getId());
-                    key.setProductId(itemReq.getProductId());
-                    orderItem.setKeyOrderItem(key);
                     orderItem.setOrder(saved);
 
                     productRepository.findById(itemReq.getProductId()).ifPresent(orderItem::setProduct);
@@ -351,10 +339,6 @@ public class OrderServiceImpl implements OrderService {
                     Optional<Combo> comboOptional = comboRepository.findById(itemReq.getComboId());
                     if (comboOptional.isPresent()) {
                         OrderItem orderItem = new OrderItem();
-                        KeyOrderItem key = new KeyOrderItem();
-                        key.setOrderId(saved.getId());
-                        key.setProductId(0);
-                        orderItem.setKeyOrderItem(key);
                         orderItem.setOrder(saved);
                         orderItem.setCombo(comboOptional.get());
                         orderItem.setQuantity(itemReq.getQuantity());
@@ -436,10 +420,6 @@ public class OrderServiceImpl implements OrderService {
 
                 if (isProduct) {
                     OrderItem orderItem = new OrderItem();
-                    KeyOrderItem key = new KeyOrderItem();
-                    key.setOrderId(saved.getId());
-                    key.setProductId(itemReq.getProductId());
-                    orderItem.setKeyOrderItem(key);
                     orderItem.setOrder(saved);
 
                     productRepository.findById(itemReq.getProductId()).ifPresent(orderItem::setProduct);
@@ -456,10 +436,6 @@ public class OrderServiceImpl implements OrderService {
                     Optional<Combo> comboOptional = comboRepository.findById(itemReq.getComboId());
                     if (comboOptional.isPresent()) {
                         OrderItem orderItem = new OrderItem();
-                        KeyOrderItem key = new KeyOrderItem();
-                        key.setOrderId(saved.getId());
-                        key.setProductId(0);
-                        orderItem.setKeyOrderItem(key);
                         orderItem.setOrder(saved);
                         orderItem.setCombo(comboOptional.get());
                         orderItem.setQuantity(itemReq.getQuantity());
@@ -514,10 +490,6 @@ public class OrderServiceImpl implements OrderService {
 
                 if (hasProduct) {
                     OrderItem newItem = new OrderItem();
-                    KeyOrderItem key = new KeyOrderItem();
-                    key.setOrderId(order.getId());
-                    key.setProductId(incoming.getProduct().getId());
-                    newItem.setKeyOrderItem(key);
                     newItem.setOrder(order);
                     productRepository.findById(incoming.getProduct().getId()).ifPresent(newItem::setProduct);
                     int qty = Math.max(0, incoming.getQuantity());
@@ -534,10 +506,6 @@ public class OrderServiceImpl implements OrderService {
 
                 if (hasCombo) {
                     OrderItem newItem = new OrderItem();
-                    KeyOrderItem key = new KeyOrderItem();
-                    key.setOrderId(order.getId());
-                    key.setProductId(0);
-                    newItem.setKeyOrderItem(key);
                     newItem.setOrder(order);
                     comboRepository.findById(incoming.getCombo().getId()).ifPresent(newItem::setCombo);
                     int qty = Math.max(0, incoming.getQuantity());
@@ -1043,5 +1011,56 @@ public class OrderServiceImpl implements OrderService {
 
         orderRepository.save(order);
         return true;
+    }
+
+    @Override
+    public OrderDTO updateOrderForDining(int orderId, DiningTableProductRequest diningTableProductRequest) {
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+
+        if (diningTableProductRequest.getOrderItems() != null) {
+            for (OrderItemRequest itemReq : diningTableProductRequest.getOrderItems()) {
+                boolean isProduct = itemReq.getProductId() > 0;
+                boolean isCombo = itemReq.getComboId() > 0;
+
+                if (isProduct) {
+                    OrderItem orderItem = new OrderItem();
+                    orderItem.setOrder(order);
+
+                    productRepository.findById(itemReq.getProductId()).ifPresent(orderItem::setProduct);
+
+                    orderItem.setQuantity(itemReq.getQuantity());
+                    double unitPrice = orderItem.getProduct() != null ? orderItem.getProduct().getPrice() : 0.0;
+                    orderItem.setPrice(unitPrice);
+                    orderItem.setNote(itemReq.getNote());
+
+                    orderItem.setIsConfirmed(false);
+
+                    orderItemRepository.save(orderItem); // Lưu vào DB (ID tự động tăng)
+                }
+
+                if (isCombo) {
+                    Optional<Combo> comboOptional = comboRepository.findById(itemReq.getComboId());
+                    if (comboOptional.isPresent()) {
+                        OrderItem orderItem = new OrderItem();
+                        orderItem.setOrder(order);
+                        orderItem.setCombo(comboOptional.get());
+                        orderItem.setQuantity(itemReq.getQuantity());
+                        double unitPrice = orderItem.getCombo() != null && orderItem.getCombo().getPrice() != null
+                                ? orderItem.getCombo().getPrice()
+                                : 0.0;
+                        orderItem.setPrice(unitPrice);
+                        orderItem.setNote(itemReq.getNote());
+
+                        orderItem.setIsConfirmed(false);
+
+                        orderItemRepository.save(orderItem);
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 }
