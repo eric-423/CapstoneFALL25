@@ -946,25 +946,25 @@ VALUES (80000, NULL, 0, 0, 80000, 0, NULL, 'Lấy lúc 18h', NULL, NULL, '091000
 
 
 
-INSERT INTO order_item (order_id, product_id, quantity, price, note, is_confirm, confirm_at)
-VALUES (1, 1, 2, 50000, NULL, true, DATE_SUB(NOW(), INTERVAL 5 DAY)),
-       (1, 9, 2, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 5 DAY)),
-       (1, 16, 1, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 5 DAY)),
-       (2, 6, 2, 65000, NULL, true, DATE_SUB(NOW(), INTERVAL 3 DAY)),
-       (2, 9, 2, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 3 DAY)),
-       (3, 3, 1, 55000, NULL, false, NULL),
-       (3, 4, 1, 50000, NULL, false, NULL);
+INSERT INTO order_item (order_id, product_id, quantity, price, note, is_confirm, confirm_at, created_at)
+VALUES (1, 1, 2, 50000, NULL, true, DATE_SUB(NOW(), INTERVAL 5 DAY), DATE_SUB(NOW(), INTERVAL 5 DAY)),
+       (1, 9, 2, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 5 DAY), DATE_SUB(NOW(), INTERVAL 5 DAY)),
+       (1, 16, 1, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 5 DAY), DATE_SUB(NOW(), INTERVAL 5 DAY)),
+       (2, 6, 2, 65000, NULL, true, DATE_SUB(NOW(), INTERVAL 3 DAY), DATE_SUB(NOW(), INTERVAL 3 DAY)),
+       (2, 9, 2, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 3 DAY), DATE_SUB(NOW(), INTERVAL 3 DAY)),
+       (3, 3, 1, 55000, NULL, false, NULL, DATE_SUB(NOW(), INTERVAL 2 DAY)),
+       (3, 4, 1, 50000, NULL, false, NULL, DATE_SUB(NOW(), INTERVAL 2 DAY));
 
 
 
-INSERT INTO order_item (order_id, product_id, quantity, price, note, is_confirm, confirm_at, is_delivered)
-VALUES (4, 1, 2, 50000, 'Không cay', true, DATE_SUB(NOW(), INTERVAL 2 HOUR), true),
-       (4, 9, 2, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 2 HOUR), true),
-       (5, 6, 2, 65000, 'Thêm nước mắm', true, DATE_SUB(NOW(), INTERVAL 1 HOUR), false),
-       (5, 10, 2, 20000, NULL, true, DATE_SUB(NOW(), INTERVAL 1 HOUR), false);
+INSERT INTO order_item (order_id, product_id, quantity, price, note, is_confirm, confirm_at, is_delivered, created_at)
+VALUES (4, 1, 2, 50000, 'Không cay', true, DATE_SUB(NOW(), INTERVAL 2 HOUR), true, DATE_SUB(NOW(), INTERVAL 2 HOUR)),
+       (4, 9, 2, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 2 HOUR), true, DATE_SUB(NOW(), INTERVAL 2 HOUR)),
+       (5, 6, 2, 65000, 'Thêm nước mắm', true, DATE_SUB(NOW(), INTERVAL 1 HOUR), false, DATE_SUB(NOW(), INTERVAL 1 HOUR)),
+       (5, 10, 2, 20000, NULL, true, DATE_SUB(NOW(), INTERVAL 1 HOUR), false, DATE_SUB(NOW(), INTERVAL 1 HOUR));
 
 
 
-INSERT INTO order_item (order_id, product_id, quantity, price, note, is_confirm, confirm_at)
-VALUES (6, 1, 1, 50000, NULL, true, DATE_SUB(NOW(), INTERVAL 1 DAY)),
-       (6, 9, 2, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 1 DAY));
+INSERT INTO order_item (order_id, product_id, quantity, price, note, is_confirm, confirm_at, created_at)
+VALUES (6, 1, 1, 50000, NULL, true, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 1 DAY)),
+       (6, 9, 2, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 1 DAY));
