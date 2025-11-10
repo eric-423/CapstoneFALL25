@@ -16,6 +16,38 @@ export interface OrderProduct {
   note: string;
 }
 
+export interface OrderItemRequest {
+  productId: number;
+  comboId: number;
+  quantity: number;
+  price: number;
+  note: string;
+}
+
+export interface DiningOrderRequest {
+  customerId: number;
+  promotionCode?: string;
+  discountValue?: number;
+  shippingAddress?: string;
+  shippingPhoneNumber?: string;
+  orderItemList: OrderItemRequest[];
+  mode: 'DINING' | 'SHIPPING' | 'PICKUP';
+  diningTableId: number;
+  branchId: number;
+}
+
+export interface DiningTablePaymentRequest {
+  orderId: number;
+  paymentMethodId: number; // 1 = cash, 2 = transfer
+  promotionCode?: string;
+  discountValue?: number;
+}
+
+export interface UpdateDiningTableOrderRequest {
+  diningTableId: number;
+  orderItems: OrderItemRequest[];
+}
+
 export interface OrderProductResponse {
   productId: number;
   productName: string;
@@ -94,5 +126,20 @@ export const getCustomerOrders = async (userId: number) => {
 
 export const cancelOrder = async (orderId: number, customerId: number) => {
   const { data } = await http.put(`/orders/cancel/${orderId}?customerId=${customerId}`);
+  return data;
+};
+
+export const createDiningOrder = async (orderRequest: DiningOrderRequest) => {
+  const { data } = await http.post('/orders', orderRequest);
+  return data;
+};
+
+export const payDiningTableOrder = async (paymentRequest: DiningTablePaymentRequest) => {
+  const { data } = await http.post('/orders/dining-table/payment', paymentRequest);
+  return data;
+};
+
+export const updateDiningTableOrder = async (orderId: number, updateRequest: UpdateDiningTableOrderRequest) => {
+  const { data } = await http.put(`/orders/dining-table/update/${orderId}`, updateRequest);
   return data;
 };

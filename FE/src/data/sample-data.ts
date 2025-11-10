@@ -23,6 +23,7 @@ export const sampleProducts: Product[] = [
     productPrice: 35000,
     rating: 4.8,
     productType: 'Cơm Tấm',
+    productTypeId: 1,
     productQuantity: 50,
   },
   {
@@ -33,6 +34,7 @@ export const sampleProducts: Product[] = [
     productPrice: 30000,
     rating: 4.6,
     productType: 'Cơm Tấm',
+    productTypeId: 1,
     productQuantity: 45,
   },
   {
@@ -43,6 +45,7 @@ export const sampleProducts: Product[] = [
     productPrice: 40000,
     rating: 4.9,
     productType: 'Cơm Tấm',
+    productTypeId: 1,
     productQuantity: 30,
   },
   {
@@ -53,6 +56,7 @@ export const sampleProducts: Product[] = [
     productPrice: 32000,
     rating: 4.5,
     productType: 'Cơm Dĩa',
+    productTypeId: 2,
     productQuantity: 25,
   },
   {
@@ -63,6 +67,7 @@ export const sampleProducts: Product[] = [
     productPrice: 38000,
     rating: 4.7,
     productType: 'Cơm Dĩa',
+    productTypeId: 2,
     productQuantity: 35,
   },
   {
@@ -73,6 +78,7 @@ export const sampleProducts: Product[] = [
     productPrice: 5000,
     rating: 4.2,
     productType: 'Nước Uống',
+    productTypeId: 3,
     productQuantity: 100,
   },
   {
@@ -83,6 +89,7 @@ export const sampleProducts: Product[] = [
     productPrice: 8000,
     rating: 4.4,
     productType: 'Nước Uống',
+    productTypeId: 3,
     productQuantity: 80,
   },
   {
@@ -93,6 +100,7 @@ export const sampleProducts: Product[] = [
     productPrice: 12000,
     rating: 4.6,
     productType: 'Tráng Miệng',
+    productTypeId: 4,
     productQuantity: 40,
   },
   {
@@ -103,6 +111,7 @@ export const sampleProducts: Product[] = [
     productPrice: 15000,
     rating: 4.8,
     productType: 'Tráng Miệng',
+    productTypeId: 4,
     productQuantity: 30,
   },
   {
@@ -113,6 +122,7 @@ export const sampleProducts: Product[] = [
     productPrice: 18000,
     rating: 4.5,
     productType: 'Đồ Ăn Kèm',
+    productTypeId: 5,
     productQuantity: 20,
   },
 ];
