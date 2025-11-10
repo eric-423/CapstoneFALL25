@@ -1,675 +1,970 @@
-INSERT INTO member_association (member_association_point, member_association_name, member_association_description) VALUES
-                                                                                                                       (0, 'Đồng', 'Hạng đồng - 0 điểm'),
-                                                                                                                       (100, 'Bạc', 'Hạng bạc - 100 điểm'),
-                                                                                                                       (500, 'Vàng', 'Hạng vàng - 500 điểm'),
-                                                                                                                       (1000, 'Bạch Kim', 'Hạng bạch kim - 1000 điểm'),
-                                                                                                                       (2000, 'Kim Cương', 'Hạng kim cương - 2000 điểm');
-
-
-
-INSERT INTO role (name) VALUES
-                            ('ADMIN'),
-                            ('MANAGER'),
-                            ('STAFF'),
-                            ('WAITER'),
-                            ('SHIPPER'),
-                            ('CHEF'),
-                            ('CUSTOMER');
-
-
-
-INSERT INTO users (full_name, address, phone_number, email, password, date_of_birth, note, is_ban, created_at, member_point, email_verified, phone_verified, member_association_id) VALUES
-('Nguyễn Văn An', '123 Nguyễn Huệ, Q1, TP.HCM', '0900000001', 'anadmin@comtam.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1990-01-01', 'Administrator chính', false, NOW(), 0, true, true, NULL),
-('Trần Thị An', '456 Điện Biên Phủ, Q3, TP.HCM', '0900000002', 'anmanager@comtam.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1992-05-15', 'Quản lý chi nhánh', false, NOW(), 0, true, true, NULL),
-('Lê Văn An', '789 Lý Tự Trọng, Q1, TP.HCM', '0901000101', 'anmanager1@comtam.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1988-03-20', 'Quản lý chi nhánh Quận 1', false, NOW(), 0, true, true, NULL),
-('Phạm Thị An', '321 Nguyễn Văn Cừ, Q5, TP.HCM', '0901000202', 'anmanager2@comtam.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1990-07-10', 'Quản lý chi nhánh Quận 5', false, NOW(), 0, true, true, NULL),
-('Hoàng Văn An', '123 Cầu Kho, Q1, TP.HCM', '0902000001', 'anstaff1@comtam.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1995-02-14', 'Nhân viên bếp', false, NOW(), 0, true, true, NULL),
-('Võ Thị An', '456 Bùi Viện, Q1, TP.HCM', '0902000002', 'anstaff2@comtam.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1993-09-22', 'Nhân viên phục vụ', false, NOW(), 0, true, true, NULL),
-('Đỗ Văn An', '789 Nguyễn Thái Học, Q1, TP.HCM', '0902000003', 'anstaff3@comtam.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1996-11-30', 'Nhân viên bếp', false, NOW(), 0, true, true, NULL),
-('Bùi Thị An', '321 Lê Hồng Phong, Q5, TP.HCM', '0902000004', 'anstaff4@comtam.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1994-04-18', 'Nhân viên thu ngân', false, NOW(), 0, true, true, NULL),
-('Lý Văn An', '123 Trần Hưng Đạo, Q5, TP.HCM', '0902000005', 'anstaff5@comtam.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1997-08-05', 'Nhân viên bếp', false, NOW(), 0, true, true, NULL),
-('Ngô Thị An', '456 Võ Văn Tần, Q3, TP.HCM', '0902000006', 'anstaff6@comtam.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1995-12-12', 'Nhân viên phục vụ', false, NOW(), 0, true, true, NULL),
-('Trịnh Văn An', '789 Nguyễn Đình Chiểu, Q3, TP.HCM', '0902000007', 'anstaff7@comtam.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1998-06-25', 'Nhân viên bếp', false, NOW(), 0, true, true, NULL),
-('Nguyễn Thị An', '321 Hoàng Văn Thụ, Q3, TP.HCM', '0902000008', 'anstaff8@comtam.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1993-01-08', 'Nhân viên thu ngân', false, NOW(), 0, true, true, NULL),
-('Phạm Văn An', '123 Nguyễn Thái Sơn, Q7, TP.HCM', '0902000009', 'anstaff9@comtam.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1996-10-14', 'Nhân viên bếp', false, NOW(), 0, true, true, NULL),
-('Đặng Thị An', '456 Huỳnh Tấn Phát, Q7, TP.HCM', '0902000010', 'anstaff10@comtam.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1994-03-20', 'Nhân viên phục vụ', false, NOW(), 0, true, true, NULL),
-('Vũ Văn An', '123 Phạm Ngũ Lão, Q1, TP.HCM', '0903000001', 'anwaiter1@comtam.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1997-05-15', 'Phục vụ chi nhánh Q1', false, NOW(), 0, true, true, NULL),
-('Đỗ Thị An', '456 Nguyễn Du, Q1, TP.HCM', '0903000002', 'anwaiter2@comtam.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1999-08-22', 'Phục vụ chi nhánh Q1', false, NOW(), 0, true, true, NULL),
-('Lê Văn An', '789 Chợ Lớn, Q5, TP.HCM', '0903000003', 'anwaiter3@comtam.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1996-11-10', 'Phục vụ chi nhánh Q5', false, NOW(), 0, true, true, NULL),
-('Trần Thị An', '321 Phạm Ngũ Lão, Q1, TP.HCM', '0903000004', 'anwaiter4@comtam.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1998-02-28', 'Phục vụ chi nhánh Q3', false, NOW(), 0, true, true, NULL),
-('Nguyễn Văn An', '123 Nguyễn Cảnh Chân, Q1, TP.HCM', '0903000005', 'anwaiter5@comtam.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1995-07-05', 'Phục vụ chi nhánh Q7', false, NOW(), 0, true, true, NULL),
-('Lý Văn An', '123 Hưng Đạo Vương, Q5, TP.HCM', '0904000001', 'anshipper1@comtam.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1995-04-12', 'Shipper chi nhánh chính', false, NOW(), 0, true, true, NULL),
-('Hoàng Thị An', '456 Minh Phụng, Q11, TP.HCM', '0904000002', 'anshipper2@comtam.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1993-09-18', 'Shipper giao hàng', false, NOW(), 0, true, true, NULL),
-('Phan Văn An', '789 Vĩnh Viễn, Q10, TP.HCM', '0904000003', 'anshipper3@comtam.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1996-12-03', 'Shipper giao hàng', false, NOW(), 0, true, true, NULL),
-('Trần Văn Anh', '123 Nguyễn Huệ, Q1, TP.HCM', '0910000001', 'anhtran@gmail.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1990-01-05', 'Khách hàng VIP', false, NOW(), 250, true, true, 3),
-('Nguyễn Thị Bình', '456 Lê Lợi, Q1, TP.HCM', '0910000002', 'binhnguyen@gmail.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1992-03-15', NULL, false, NOW(), 120, true, true, 2),
-('Lê Văn Cường', '789 Lý Tự Trọng, Q3, TP.HCM', '0910000003', 'cuongle@gmail.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1988-07-20', NULL, false, NOW(), 850, true, true, 3),
-('Phạm Thị Dung', '321 Nguyễn Văn Cừ, Q5, TP.HCM', '0910000004', 'dungpham@gmail.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1995-05-10', NULL, false, NOW(), 50, true, true, 1),
-('Hoàng Văn Em', '123 Chợ Lớn, Q5, TP.HCM', '0910000005', 'emhoang@gmail.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1991-11-25', NULL, false, NOW(), 300, true, true, 3),
-('Võ Thị Phượng', '456 Hải Thượng Lãn Ông, Q5, TP.HCM', '0910000006', 'phuongvo@gmail.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1994-09-08', NULL, false, NOW(), 680, true, true, 3),
-('Đỗ Văn Giang', '789 Nguyễn Văn Luông, Q6, TP.HCM', '0910000007', 'giangdo@gmail.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1989-02-14', NULL, false, NOW(), 35, true, true, 1),
-('Bùi Thị Hân', '321 An Dương Vương, Q5, TP.HCM', '0910000008', 'hanbui@gmail.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1993-06-30', NULL, false, NOW(), 450, true, true, 3),
-('Lý Văn Hùng', '123 Hồng Bàng, Q5, TP.HCM', '0910000009', 'hungly@gmail.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1996-04-17', NULL, false, NOW(), 200, true, true, 3),
-('Ngô Thị Im', '456 Tạ Uyên, Q11, TP.HCM', '0910000010', 'imngo@gmail.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1992-08-22', NULL, false, NOW(), 850, true, true, 3),
-('Trịnh Văn Khoa', '789 Nguyễn Tri Phương, Q10, TP.HCM', '0910000011', 'khoatrinh@gmail.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1990-12-05', 'Khách hàng thân thiết', false, NOW(), 1200, true, true, 4),
-('Vũ Thị Loan', '321 Cách Mạng Tháng 8, Q10, TP.HCM', '0910000012', 'loanvu@gmail.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1994-01-28', NULL, false, NOW(), 180, true, true, 2),
-('Hoàng Văn Mạnh', '123 Nguyễn Ảnh Thủ, Q12, TP.HCM', '0910000013', 'manhhoang@gmail.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1991-03-12', NULL, false, NOW(), 600, true, true, 3),
-('Đặng Thị Nga', '456 Nguyễn Chí Thanh, Q10, TP.HCM', '0910000014', 'ngadang@gmail.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1997-10-08', NULL, false, NOW(), 280, true, true, 3),
-('Nguyễn Văn Oanh', '789 Lý Thường Kiệt, Q10, TP.HCM', '0910000015', 'oanhnguyen@gmail.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1993-05-20', NULL, false, NOW(), 950, true, true, 3),
-('Phạm Thị Phương', '321 Trường Chinh, Q12, TP.HCM', '0910000016', 'phuongpham@gmail.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1995-11-14', NULL, false, NOW(), 1800, true, true, 4),
-('Lê Văn Quang', '123 Dương Đình Nghệ, Q7, TP.HCM', '0910000017', 'quangle@gmail.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1989-09-03', NULL, false, NOW(), 750, true, true, 3),
-('Trần Thị Quỳnh', '456 Nguyễn Thị Thập, Q7, TP.HCM', '0910000018', 'quynhtran@gmail.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1996-07-16', NULL, false, NOW(), 120, true, true, 2),
-('Võ Văn Sơn', '789 Nguyễn Văn Linh, Q7, TP.HCM', '0910000019', 'sonvo@gmail.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1992-04-25', NULL, false, NOW(), 520, true, true, 3),
-('Đỗ Thị Thảo', '321 Hà Huy Giáp, Q12, TP.HCM', '0910000020', 'thaodo@gmail.com', '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1994-08-11', 'Khách hàng thân thiết', false, NOW(), 2150, true, true, 5);
-
-
-
-INSERT INTO branch (name, address, phone_number, is_parent) VALUES
-('Chi nhánh chính', 'Vinhomes Grand Park Quận 9 TP HCM', '0901234567', true),
-('Chi nhánh 1 - Quận 1', '123 Lê Lợi, Quận 1, TP.HCM', '0901234567', false),
-                                                                ('Chi nhánh 2 - Quận 3', '456 Nguyễn Đình Chiểu, Quận 3, TP.HCM', '0901234568', false),
-                                                                ('Chi nhánh 3 - Quận 7', '789 Nguyễn Thái Sơn, Quận 7, TP.HCM', '0901234569', false),
-                                                                ('Chi nhánh 4 - Quận 5', '321 Nguyễn Trãi, Quận 5, TP.HCM', '0901234570', false);
-
-
-
-INSERT INTO role_history (start_date, end_date, is_active, role_id, user_id, branch_id) VALUES
-(NOW(), NULL, true, 1, 1, NULL),
-(NOW(), NULL, true, 1, 2, NULL),
-('2024-01-01', NULL, true, 2, 3, 1),
-('2024-01-01', NULL, true, 2, 4, 4),
-                                                                                            ('2024-02-01', NULL, true, 3, 5, 1),
-                                                                                            ('2024-02-01', NULL, true, 3, 6, 1),
-                                                                                            ('2024-02-01', NULL, true, 3, 7, 1),
-                                                                                            ('2024-02-01', NULL, true, 3, 8, 4),
-                                                                                            ('2024-02-01', NULL, true, 3, 9, 4),
-                                                                                            ('2024-02-01', NULL, true, 3, 10, 2),
-                                                                                            ('2024-02-01', NULL, true, 3, 11, 2),
-                                                                                            ('2024-02-01', NULL, true, 3, 12, 2),
-                                                                                            ('2024-02-01', NULL, true, 3, 13, 3),
-                                                                                            ('2024-02-01', NULL, true, 3, 14, 3),
-                                                                                            ('2024-03-01', NULL, true, 4, 15, 1),
-                                                                                            ('2024-03-01', NULL, true, 4, 16, 1),
-                                                                                            ('2024-03-01', NULL, true, 4, 17, 4),
-                                                                                            ('2024-03-01', NULL, true, 4, 18, 2),
-                                                                                            ('2024-03-01', NULL, true, 4, 19, 3),
-                                                                                            ('2024-04-01', NULL, true, 5, 20, 1),
-                                                                                            ('2024-04-01', NULL, true, 5, 21, 1),
-                                                                                            ('2024-04-01', NULL, true, 5, 22, 1),
-                                                                                            (NOW(), NULL, true, 6, 23, 1),
-                                                                                            (NOW(), NULL, true, 6, 24, 1),
-                                                                                            (NOW(), NULL, true, 6, 25, 2),
-                                                                                            (NOW(), NULL, true, 6, 26, 4),
-                                                                                            (NOW(), NULL, true, 6, 27, 4),
-                                                                                            (NOW(), NULL, true, 6, 28, 4),
-                                                                                            (NOW(), NULL, true, 6, 29, 4),
-                                                                                            (NOW(), NULL, true, 6, 30, 4),
-                                                                                            (NOW(), NULL, true, 6, 31, 1),
-                                                                                            (NOW(), NULL, true, 6, 32, 2),
-                                                                                            (NOW(), NULL, true, 6, 33, 2),
-                                                                                            (NOW(), NULL, true, 6, 34, 2),
-                                                                                            (NOW(), NULL, true, 6, 35, 3),
-                                                                                            (NOW(), NULL, true, 6, 36, 3),
-                                                                                            (NOW(), NULL, true, 6, 37, 3),
-                                                                                            (NOW(), NULL, true, 6, 38, 1),
-                                                                                            (NOW(), NULL, true, 6, 39, 2),
-                                                                                            (NOW(), NULL, true, 6, 40, 3),
-                                                                                            (NOW(), NULL, true, 6, 41, 4),
-                                                                                            (NOW(), NULL, true, 6, 42, 1);
-
-
-
-
-INSERT INTO product_type (name) VALUES
-                                    ('Cơm tấm'),
-                                    ('Thức uống'),
-                                    ('Cơm trắng'),
-                                    ('Đồ ăn kèm');
-
-
-
-INSERT INTO material_type (material_type_name) VALUES
-                                                   ('Thịt'),
-                                                   ('Rau'),
-                                                   ('Gạo'),
-                                                   ('Gia vị'),
-                                                   ('Đồ uống'),
-                                                   ('Trứng'),
-                                                   ('Xúc xích');
-
-
-
-INSERT INTO material (material_name, material_type_id) VALUES
-('Sườn nướng', 1),
-('Thịt nướng', 1),
-('Gà nướng', 1),
-('Chả trứng', 1),
-('Bì bún', 1),
-('Chả lụa', 1),
-('Dưa leo', 2),
-('Cà chua', 2),
-('Đậu phộng', 2),
-('Giá đỗ', 2),
-('Xà lách', 2),
-('Chuối xanh', 2),
-('Gạo tấm', 3),
-('Gạo trắng', 3),
-('Nước mắm', 4),
-('Ớt', 4),
-('Hành lá', 4),
-('Tiêu', 4),
-('Trứng ốp la', 6),
-('Xúc xích Đức', 7),
-('Canh chua', 2);
-
-
-
-
-INSERT INTO warehouse (warehouse_name, branch_id) VALUES
-                                                      ('Kho chi nhánh Quận 1', 1),
-                                                      ('Kho chi nhánh Quận 3', 2),
-                                                      ('Kho chi nhánh Quận 7', 3),
-                                                      ('Kho chi nhánh Quận 5', 4);
-
-
-
-
-INSERT INTO product (product_name, product_description, product_price, product_image, create_date, update_date, is_active, product_type_id) VALUES
-                                                                                                                                                ('Cơm tấm sườn nướng', 'Cơm tấm với sườn heo nướng thơm lừng, kèm bì chả trứng cà', 50000, 'com-tam-suon-nuong.jpg', NOW(), NOW(), true, 1),
-                                                                                                                                                ('Cơm tấm bì chả trứng cà', 'Cơm tấm bì bún ăn kèm chả trứng và cà tím nướng', 45000, 'com-tam-bi-cha-trung-ca.jpg', NOW(), NOW(), true, 1),
-                                                                                                                                                ('Cơm tấm gà nướng', 'Cơm tấm với đùi gà nướng mật ong, thơm béo', 55000, 'com-tam-ga-nuong.jpg', NOW(), NOW(), true, 1),
-                                                                                                                                                ('Cơm tấm thịt nướng', 'Cơm tấm thịt heo nướng BBQ đậm đà', 50000, 'com-tam-thit-nuong.jpg', NOW(), NOW(), true, 1),
-                                                                                                                                                ('Cơm tấm sườn cây', 'Cơm tấm với sườn cây dài nướng thơm ngon', 60000, 'com-tam-suon-cay.jpg', NOW(), NOW(), true, 1),
-                                                                                                                                                ('Cơm tấm đặc biệt', 'Cơm tấm đầy đủ sườn, chả, trứng, bì, bì chả, xúc xích', 65000, 'com-tam-dac-biet.jpg', NOW(), NOW(), true, 1),
-                                                                                                                                                ('Cơm tấm bì chả chạo tôm', 'Cơm tấm bì chả trứng và chạo tôm nướng', 55000, 'com-tam-bi-cha-chao-tom.jpg', NOW(), NOW(), true, 1),
-                                                                                                                                                ('Cơm tấm nem nướng', 'Cơm tấm với nem nướng Nha Trang', 55000, 'com-tam-nem-nuong.jpg', NOW(), NOW(), true, 1),
-                                                                                                                                                ('Chanh muối', 'Chanh muối mát lạnh giải nhiệt', 15000, 'chanh-muoi.jpg', NOW(), NOW(), true, 2),
-                                                                                                                                                ('Soda chanh dây', 'Soda chanh dây chua ngọt thanh mát', 20000, 'soda-chanh-day.jpg', NOW(), NOW(), true, 2),
-                                                                                                                                                ('Nước mía', 'Nước mía tươi ngon giải khát', 15000, 'nuoc-mia.jpg', NOW(), NOW(), true, 2),
-                                                                                                                                                ('Sữa tươi', 'Sữa tươi đường đá', 20000, 'sua-tuoi.jpg', NOW(), NOW(), true, 2),
-                                                                                                                                                ('Cà phê đá', 'Cà phê phin truyền thống', 20000, 'ca-phe-da.jpg', NOW(), NOW(), true, 2),
-                                                                                                                                                ('Trà đá', 'Trà đá mát lạnh', 10000, 'tra-da.jpg', NOW(), NOW(), true, 2),
-                                                                                                                                                ('Cơm trắng', 'Cơm trắng dẻo thơm', 10000, 'com-trang.jpg', NOW(), NOW(), true, 3),
-                                                                                                                                                ('Trứng ốp la', 'Trứng ốp la giòn ngoài mềm trong', 15000, 'trung-op-la.jpg', NOW(), NOW(), true, 4),
-                                                                                                                                                ('Chả trứng', 'Chả trứng chiên vàng thơm', 10000, 'cha-trung.jpg', NOW(), NOW(), true, 4),
-                                                                                                                                                ('Bì bún', 'Bì bún sợi giòn sần sật', 10000, 'bi-bun.jpg', NOW(), NOW(), true, 4),
-                                                                                                                                                ('Canh chua', 'Canh chua cá bạc má chua cay', 15000, 'canh-chua.jpg', NOW(), NOW(), true, 4),
-                                                                                                                                                ('Dưa cà muối', 'Dưa chua cà muối đậm đà', 5000, 'dua-ca-muoi.jpg', NOW(), NOW(), true, 4);
-
-
-
-
-INSERT INTO product_recipes (product_id, material_id, quantity) VALUES
-                                                                    (1, 12, 0.2),
-                                                                    (1, 13, 1.0),
-                                                                    (1, 14, 0.1),
-                                                                    (1, 15, 0.05),
-                                                                    (1, 6, 0.1),
-                                                                    (1, 7, 0.05),
-                                                                    (2, 12, 0.2),
-                                                                    (2, 13, 1.0),
-                                                                    (2, 4, 0.05),
-                                                                    (2, 5, 0.05),
-                                                                    (2, 7, 0.05),
-                                                                    (3, 12, 0.2),
-                                                                    (3, 13, 1.0),
-                                                                    (3, 3, 0.15),
-                                                                    (3, 7, 0.05),
-                                                                    (4, 12, 0.2),
-                                                                    (4, 13, 1.0),
-                                                                    (4, 2, 0.15),
-                                                                    (4, 7, 0.05),
-                                                                    (5, 12, 0.2),
-                                                                    (5, 13, 1.0),
-                                                                    (5, 1, 0.2),
-                                                                    (5, 7, 0.05),
-                                                                    (6, 12, 0.2),
-                                                                    (6, 13, 1.0),
-                                                                    (6, 1, 0.15),
-                                                                    (6, 4, 0.05),
-                                                                    (6, 5, 0.05),
-                                                                    (6, 17, 0.05),
-                                                                    (6, 7, 0.05),   
-                                                                    (7, 12, 0.2),
-                                                                    (7, 13, 1.0),
-                                                                    (7, 4, 0.05),
-                                                                    (7, 5, 0.05),
-                                                                    (7, 7, 0.05),
-                                                                    (8, 12, 0.2),
-                                                                    (8, 13, 1.0),
-                                                                    (8, 7, 0.05),
-                                                                    (9, 18, 0.3),
-                                                                    (10, 18, 0.3),
-                                                                    (11, 3, 0.2),
-                                                                    (12, 3, 0.3),
-                                                                    (13, 3, 0.2),
-                                                                    (14, 3, 0.1),
-                                                                    (15, 18, 0.2),
-                                                                    (16, 16, 1.0),
-                                                                    (17, 4, 1.0),
-                                                                    (18, 5, 1.0),
-                                                                    (19, 18, 0.5),
-                                                                    (20, 7, 0.1);
-
-
-
-
-
-INSERT INTO branch_product (branch_id, product_id, quantity) VALUES
-                                                                 (1, 1, 100), (1, 2, 100), (1, 3, 100), (1, 4, 100), (1, 5, 80), (1, 6, 60),
-                                                                 (1, 7, 70), (1, 8, 70), (1, 9, 200), (1, 10, 150), (1, 11, 150),
-                                                                 (1, 12, 150), (1, 13, 100), (1, 14, 200), (1, 15, 200), (1, 16, 100),
-(1, 17, 100), (1, 18, 100), (1, 19, 50), (1, 20, 100),
-                                                                 (2, 1, 90), (2, 2, 90), (2, 3, 90), (2, 4, 90), (2, 5, 75),
-                                                                 (2, 6, 50), (2, 7, 60), (2, 8, 60), (2, 9, 180), (2, 10, 140),
-                                                                 (2, 11, 140), (2, 12, 140), (2, 13, 90), (2, 14, 180), (2, 15, 180),
-(2, 16, 90), (2, 17, 90), (2, 18, 90), (2, 19, 40), (2, 20, 90),
-                                                                 (3, 1, 85), (3, 2, 85), (3, 3, 85), (3, 4, 85), (3, 5, 70),
-                                                                 (3, 6, 45), (3, 7, 55), (3, 8, 55), (3, 9, 170), (3, 10, 130),
-                                                                 (3, 11, 130), (3, 12, 130), (3, 13, 85), (3, 14, 170), (3, 15, 170),
-(3, 16, 85), (3, 17, 85), (3, 18, 85), (3, 19, 35), (3, 20, 85),
-                                                                 (4, 1, 95), (4, 2, 95), (4, 3, 95), (4, 4, 95), (4, 5, 78),
-                                                                 (4, 6, 55), (4, 7, 65), (4, 8, 65), (4, 9, 190), (4, 10, 145),
-                                                                 (4, 11, 145), (4, 12, 145), (4, 13, 95), (4, 14, 190), (4, 15, 190),
-                                                                 (4, 16, 95), (4, 17, 95), (4, 18, 95), (4, 19, 45), (4, 20, 95);
-
-
-
-
-INSERT INTO material_warehouse (material_id, warehouse_id, quantity) VALUES
-(1, 1, 50.0), (2, 1, 50.0), (3, 1, 100.0), (4, 1, 200.0), (5, 1, 200.0),
-(6, 1, 100.0), (7, 1, 500.0), (8, 1, 200.0), (9, 1, 300.0), (10, 1, 200.0),
-(11, 1, 300.0), (12, 1, 5000.0), (13, 1, 1000.0), (14, 1, 500.0), (15, 1, 300.0),
-(16, 1, 1000.0), (17, 1, 200.0), (18, 1, 1000.0),
-                                                                         (1, 2, 45.0), (2, 2, 45.0), (3, 2, 90.0), (4, 2, 180.0), (5, 2, 180.0),
-                                                                         (6, 2, 90.0), (7, 2, 450.0), (8, 2, 180.0), (9, 2, 270.0), (10, 2, 180.0),
-                                                                         (11, 2, 270.0), (12, 2, 4500.0), (13, 2, 900.0), (14, 2, 450.0), (15, 2, 270.0),
-(16, 2, 900.0), (17, 2, 180.0), (18, 2, 900.0),
-                                                                         (1, 3, 40.0), (2, 3, 40.0), (3, 3, 85.0), (4, 3, 170.0), (5, 3, 170.0),
-                                                                         (6, 3, 85.0), (7, 3, 400.0), (8, 3, 170.0), (9, 3, 260.0), (10, 3, 170.0),
-                                                                         (11, 3, 260.0), (12, 3, 4000.0), (13, 3, 850.0), (14, 3, 400.0), (15, 3, 260.0),
-(16, 3, 850.0), (17, 3, 170.0), (18, 3, 800.0),
-                                                                         (1, 4, 48.0), (2, 4, 48.0), (3, 4, 95.0), (4, 4, 190.0), (5, 4, 190.0),
-                                                                         (6, 4, 95.0), (7, 4, 480.0), (8, 4, 190.0), (9, 4, 290.0), (10, 4, 190.0),
-                                                                         (11, 4, 290.0), (12, 4, 4800.0), (13, 4, 950.0), (14, 4, 480.0), (15, 4, 290.0),
-                                                                         (16, 4, 950.0), (17, 4, 190.0), (18, 4, 950.0);
-
-
-
-
-INSERT INTO promotion_type (promotion_type_name) VALUES
-                                                     ('Giảm giá theo %'),
-                                                     ('Giảm giá cố định'),
-                                                     ('Miễn phí vận chuyển'),
-                                                     ('Mua kèm giảm giá');
-
-
-
-
-INSERT INTO promotion (promotion_id, promotion_name, promotion_description, promotion_discount, minimum_order_value, promotion_start_date, promotion_end_date, promotion_status, created_at, promotion_type_id, user_id) VALUES
-                                                                                                                                                                                                                             (1, 'Khuyến mãi 20% thứ 2', 'Giảm 20% tất cả các món vào thứ 2 hàng tuần', 20, 100000, '2025-01-01', '2025-12-31', true, NOW(), 1, NULL),
-                                                                                                                                                                                                                             (2, 'Combo gia đình', 'Giảm 30000đ cho đơn hàng trên 200000đ', 30000, 200000, '2025-01-01', '2025-12-31', true, NOW(), 2, NULL),
-                                                                                                                                                                                                                             (3, 'Free ship cho đơn trên 50000đ', 'Miễn phí vận chuyển cho đơn hàng trên 50000đ', 0, 50000, '2025-01-01', '2025-12-31', true, NOW(), 3, NULL);
-
-
-
-
-
-INSERT INTO combo (name, description, price, start_date, end_date, is_active, created_at, updated_at, branch_id) VALUES
-                                                                                                                     ('Combo cơm tấm 2 người', '2 phần cơm tấm sườn + 2 chanh muối', 110000, '2025-01-01', '2025-12-31', true, NOW(), NOW(), 1),
-                                                                                                                     ('Combo cơm tấm 3 người', '3 phần cơm tấm đặc biệt + 3 chanh muối', 205000, '2025-01-01', '2025-12-31', true, NOW(), NOW(), 1),
-('Combo gia đình 4 người', '4 phần cơm tấm sườn + 4 chanh muối + 1 cơm tấm đặc biệt', 295000, '2025-01-01', '2025-12-31', true, NOW(), NOW(), 1),
-                                                                                                                     ('Combo cơm tấm 2 người', '2 phần cơm tấm sườn + 2 chanh muối', 110000, '2025-01-01', '2025-12-31', true, NOW(), NOW(), 2),
-                                                                                                                     ('Combo cơm tấm 3 người', '3 phần cơm tấm đặc biệt + 3 chanh muối', 205000, '2025-01-01', '2025-12-31', true, NOW(), NOW(), 2),
-('Combo gia đình 4 người', '4 phần cơm tấm sườn + 4 chanh muối + 1 cơm tấm đặc biệt', 295000, '2025-01-01', '2025-12-31', true, NOW(), NOW(), 2),
-                                                                                                                     ('Combo cơm tấm 2 người', '2 phần cơm tấm sườn + 2 chanh muối', 110000, '2025-01-01', '2025-12-31', true, NOW(), NOW(), 3),
-                                                                                                                     ('Combo cơm tấm 3 người', '3 phần cơm tấm đặc biệt + 3 chanh muối', 205000, '2025-01-01', '2025-12-31', true, NOW(), NOW(), 3),
-('Combo gia đình 4 người', '4 phần cơm tấm sườn + 4 chanh muối + 1 cơm tấm đặc biệt', 295000, '2025-01-01', '2025-12-31', true, NOW(), NOW(), 3),
-                                                                                                                     ('Combo cơm tấm 2 người', '2 phần cơm tấm sườn + 2 chanh muối', 110000, '2025-01-01', '2025-12-31', true, NOW(), NOW(), 4),
-                                                                                                                     ('Combo cơm tấm 3 người', '3 phần cơm tấm đặc biệt + 3 chanh muối', 205000, '2025-01-01', '2025-12-31', true, NOW(), NOW(), 4),
-                                                                                                                     ('Combo gia đình 4 người', '4 phần cơm tấm sườn + 4 chanh muối + 1 cơm tấm đặc biệt', 295000, '2025-01-01', '2025-12-31', true, NOW(), NOW(), 4);
-
-
-
-
-INSERT INTO combo_item (note, quantity, combo_id, product_id) VALUES
-                                                                  ('Phần chính', 2, 1, 1),
-                                                                  ('Nước uống', 2, 1, 9),
-                                                                  ('Phần chính', 3, 2, 6),
-                                                                  ('Nước uống', 3, 2, 9),
-                                                                  ('Phần chính', 4, 3, 1),
-                                                                  ('Phần đặc biệt', 1, 3, 6),
-('Nước uống', 4, 3, 9),
-                                                                  ('Phần chính', 2, 4, 1),
-                                                                  ('Nước uống', 2, 4, 9),
-                                                                  ('Phần chính', 3, 5, 6),
-                                                                  ('Nước uống', 3, 5, 9),
-                                                                  ('Phần chính', 4, 6, 1),
-                                                                  ('Phần đặc biệt', 1, 6, 6),
-('Nước uống', 4, 6, 9),
-                                                                  ('Phần chính', 2, 7, 1),
-                                                                  ('Nước uống', 2, 7, 9),
-                                                                  ('Phần chính', 3, 8, 6),
-                                                                  ('Nước uống', 3, 8, 9),
-                                                                  ('Phần chính', 4, 9, 1),
-                                                                  ('Phần đặc biệt', 1, 9, 6),
-('Nước uống', 4, 9, 9),
-                                                                  ('Phần chính', 2, 10, 1),
-                                                                  ('Nước uống', 2, 10, 9),
-                                                                  ('Phần chính', 3, 11, 6),
-                                                                  ('Nước uống', 3, 11, 9),
-                                                                  ('Phần chính', 4, 12, 1),
-                                                                  ('Phần đặc biệt', 1, 12, 6),
-                                                                  ('Nước uống', 4, 12, 9);
-
-
-
-
-INSERT INTO payment_method (payment_method_name) VALUES
-('Tiền mặt'),
-('PayOS');
-
-
-
-INSERT INTO order_status (order_status_name) VALUES
-('CREATED'),
-('COOKING'),
-('COOKED'),
-('IN_PROCESS'),
-('SHIPPING'),
-('DELIVERED'),
-('COMPLETED'),
-('CANCEL'),
-('PAID');
-
-
-
-INSERT INTO dining_table (id, name, is_active, seat, note, branch_id) VALUES
-(1, 'Bàn 1', true, 2, 'Bàn nhỏ 2 người', 1),
-(2, 'Bàn 2', true, 2, 'Bàn nhỏ 2 người', 1),
-(3, 'Bàn 3', true, 4, 'Bàn vừa 4 người', 1),
-(4, 'Bàn 4', true, 4, 'Bàn vừa 4 người', 1),
-(5, 'Bàn 5', true, 4, 'Bàn vừa 4 người', 1),
-(6, 'Bàn 6', true, 6, 'Bàn lớn 6 người', 1),
-(7, 'Bàn 7', true, 6, 'Bàn lớn 6 người', 1),
-(8, 'Bàn 8', true, 8, 'Bàn VIP 8 người', 1),
-(9, 'Bàn 9', true, 2, 'Bàn nhỏ 2 người', 1),
-(10, 'Bàn 10', true, 4, 'Bàn vừa 4 người', 1),
-(11, 'Bàn 11', true, 4, 'Bàn vừa 4 người', 1),
-(12, 'Bàn 12', true, 6, 'Bàn lớn 6 người', 1),
-(13, 'Bàn 13', true, 2, 'Bàn nhỏ 2 người', 1),
-(14, 'Bàn 14', true, 4, 'Bàn vừa 4 người', 1),
-(15, 'Bàn 15', true, 10, 'Bàn gia đình 10 người', 1),
-(16, 'Bàn 1', true, 2, 'Bàn nhỏ 2 người', 2),
-(17, 'Bàn 2', true, 2, 'Bàn nhỏ 2 người', 2),
-(18, 'Bàn 3', true, 4, 'Bàn vừa 4 người', 2),
-(19, 'Bàn 4', true, 4, 'Bàn vừa 4 người', 2),
-(20, 'Bàn 5', true, 4, 'Bàn vừa 4 người', 2),
-(21, 'Bàn 6', true, 6, 'Bàn lớn 6 người', 2),
-(22, 'Bàn 7', true, 6, 'Bàn lớn 6 người', 2),
-(23, 'Bàn 8', true, 8, 'Bàn VIP 8 người', 2),
-(24, 'Bàn 9', true, 2, 'Bàn nhỏ 2 người', 2),
-(25, 'Bàn 10', true, 4, 'Bàn vừa 4 người', 2),
-(26, 'Bàn 11', true, 4, 'Bàn vừa 4 người', 2),
-(27, 'Bàn 12', true, 6, 'Bàn lớn 6 người', 2),
-(28, 'Bàn 1', true, 2, 'Bàn nhỏ 2 người', 3),
-(29, 'Bàn 2', true, 2, 'Bàn nhỏ 2 người', 3),
-(30, 'Bàn 3', true, 4, 'Bàn vừa 4 người', 3),
-(31, 'Bàn 4', true, 4, 'Bàn vừa 4 người', 3),
-(32, 'Bàn 5', true, 4, 'Bàn vừa 4 người', 3),
-(33, 'Bàn 6', true, 6, 'Bàn lớn 6 người', 3),
-(34, 'Bàn 7', true, 6, 'Bàn lớn 6 người', 3),
-(35, 'Bàn 8', true, 8, 'Bàn VIP 8 người', 3),
-(36, 'Bàn 9', true, 2, 'Bàn nhỏ 2 người', 3),
-(37, 'Bàn 10', true, 4, 'Bàn vừa 4 người', 3),
-(38, 'Bàn 1', true, 2, 'Bàn nhỏ 2 người', 4),
-(39, 'Bàn 2', true, 2, 'Bàn nhỏ 2 người', 4),
-(40, 'Bàn 3', true, 4, 'Bàn vừa 4 người', 4),
-(41, 'Bàn 4', true, 4, 'Bàn vừa 4 người', 4),
-(42, 'Bàn 5', true, 4, 'Bàn vừa 4 người', 4),
-(43, 'Bàn 6', true, 6, 'Bàn lớn 6 người', 4),
-(44, 'Bàn 7', true, 6, 'Bàn lớn 6 người', 4),
-(45, 'Bàn 8', true, 8, 'Bàn VIP 8 người', 4),
-(46, 'Bàn 9', true, 2, 'Bàn nhỏ 2 người', 4),
-(47, 'Bàn 10', true, 4, 'Bàn vừa 4 người', 4),
-(48, 'Bàn 11', true, 4, 'Bàn vừa 4 người', 4),
-(49, 'Bàn 12', true, 6, 'Bàn lớn 6 người', 4);
-
-
-
-
-INSERT INTO information (information_name, information_address, information_phone, is_default, user_id) VALUES
-('Nhà riêng', '123 Nguyễn Huệ, Q1, TP.HCM', '0910000001', true, 23),
-('Công ty', '456 Lê Lợi, Q1, TP.HCM', '0910000001', false, 23),
-('Nhà riêng', '456 Lê Lợi, Q1, TP.HCM', '0910000002', true, 24),
-('Nhà riêng', '789 Lý Tự Trọng, Q3, TP.HCM', '0910000003', true, 25),
-('Nhà bạn', '321 Nguyễn Văn Cừ, Q5, TP.HCM', '0910000003', false, 25),
-('Nhà riêng', '321 Nguyễn Văn Cừ, Q5, TP.HCM', '0910000004', true, 26),
-('Nhà riêng', '123 Chợ Lớn, Q5, TP.HCM', '0910000005', true, 27),
-('Nhà riêng', '789 Nguyễn Tri Phương, Q10, TP.HCM', '0910000011', true, 31),
-('Văn phòng', '123 Cách Mạng Tháng 8, Q10, TP.HCM', '0910000011', false, 31),
-('Nhà riêng', '321 Trường Chinh, Q12, TP.HCM', '0910000016', true, 36),
-('Nhà riêng', '321 Hà Huy Giáp, Q12, TP.HCM', '0910000020', true, 42),
-('Công ty', '456 Nguyễn Thị Thập, Q7, TP.HCM', '0910000020', false, 42);
-
-
-
-
-INSERT INTO notification_type (notification_type_name) VALUES
-('Đơn hàng mới'),
-('Đơn hàng đã được xác nhận'),
-('Đơn hàng đang được chuẩn bị'),
-('Đơn hàng đã sẵn sàng'),
-('Đơn hàng đang được giao'),
-('Đơn hàng đã giao thành công'),
-('Khuyến mãi mới'),
-('Thông báo hệ thống'),
-('Nhắc nhở thanh toán'),
-('Đánh giá đơn hàng');
-
-
-
-INSERT INTO notification (notification_name, notification_content, notification_ref_link, notification_is_seen, notification_created_at, receiver_id, sender_id, notification_type_id) VALUES
-('Đơn hàng #1 đã được tạo', 'Đơn hàng của bạn đã được tạo thành công. Vui lòng thanh toán trong vòng 15 phút.', '/orders/1', false, DATE_SUB(NOW(), INTERVAL 2 DAY), 23, 1, 1),
-('Đơn hàng #1 đã được xác nhận', 'Đơn hàng của bạn đã được xác nhận và đang được chuẩn bị.', '/orders/1', false, DATE_SUB(NOW(), INTERVAL 1 DAY), 23, 3, 2),
-('Khuyến mãi cuối tuần', 'Giảm 20% tất cả các món vào thứ 2 hàng tuần. Áp dụng cho đơn hàng trên 100,000đ.', '/promotions', false, DATE_SUB(NOW(), INTERVAL 3 DAY), 24, 1, 7),
-('Nhắc nhở đánh giá', 'Bạn có muốn đánh giá đơn hàng #2 không?', '/orders/2/feedback', false, DATE_SUB(NOW(), INTERVAL 1 DAY), 25, 1, 10),
-('Đơn hàng đã giao thành công', 'Đơn hàng #3 của bạn đã được giao thành công. Cảm ơn bạn đã sử dụng dịch vụ!', '/orders/3', true, DATE_SUB(NOW(), INTERVAL 5 DAY), 26, 20, 6);
-
-
-
-INSERT INTO blog_type (blog_type_name) VALUES
-('Tin tức'),
-('Khuyến mãi'),
-('Công thức nấu ăn'),
-('Giới thiệu món mới'),
-('Sự kiện'),
-('Hướng dẫn');
-
-
-INSERT INTO blog (blog_title, blog_content, blog_image, blog_status, blog_type_blog_type_id, author_id) VALUES
-('Giới thiệu món Cơm Tấm Sườn Nướng đặc biệt', 'Cơm tấm sườn nướng là món ăn đặc trưng của miền Nam Việt Nam. Với sườn heo được ướp gia vị đậm đà và nướng trên than hoa, món ăn này mang đến hương vị khó quên. Kèm theo là bì bún giòn tan, chả trứng thơm ngon và nước mắm pha chua ngọt đậm đà.', 'blog-com-tam-suon.jpg', true, 4, 1),
-('Khuyến mãi đặc biệt tháng 12 - Giảm 30% cho đơn hàng trên 200k', 'Nhân dịp cuối năm, nhà hàng áp dụng chương trình khuyến mãi đặc biệt: Giảm 30% cho tất cả đơn hàng trên 200,000đ. Chương trình áp dụng từ ngày 1/12 đến hết ngày 31/12/2025.', 'blog-khuyen-mai-thang-12.jpg', true, 2, 1),
-('Công thức làm nước mắm pha chuẩn vị miền Nam', 'Nước mắm pha là linh hồn của món cơm tấm. Công thức chuẩn: 3 muỗng nước mắm, 2 muỗng đường, 1 muỗng nước cốt chanh, tỏi ớt băm nhuyễn. Khuấy đều và thêm chút nước lọc để có độ loãng vừa phải.', 'blog-nuoc-mam-pha.jpg', true, 3, 2),
-('Món mới: Cơm Tấm Nem Nướng Nha Trang', 'Chúng tôi tự hào giới thiệu món mới: Cơm Tấm Nem Nướng Nha Trang. Nem được làm từ thịt heo tươi, nướng trên than hoa, có vị ngọt đặc trưng của Nha Trang.', 'blog-nem-nuong.jpg', true, 4, 1),
-('Sự kiện: Ngày hội Cơm Tấm miền Nam', 'Tham gia ngày hội Cơm Tấm miền Nam vào cuối tuần này. Nhiều hoạt động thú vị và quà tặng hấp dẫn đang chờ đón bạn!', 'blog-ngay-hoi.jpg', true, 5, 2);
-
-
-
-INSERT INTO chat_room (name, created_at) VALUES
-('Hỗ trợ khách hàng', DATE_SUB(NOW(), INTERVAL 30 DAY)),
-('Nhóm quản lý', DATE_SUB(NOW(), INTERVAL 20 DAY)),
-('Nhóm nhân viên bếp', DATE_SUB(NOW(), INTERVAL 15 DAY)),
-('Nhóm shipper', DATE_SUB(NOW(), INTERVAL 10 DAY));
-
-INSERT INTO chat_room_user (chat_room_id, user_id) VALUES
-(1, 1),
-(1, 23),
-(1, 24),
-(1, 25),
-(2, 1),
-(2, 2),
-(2, 3),
-(2, 4),
-(3, 5),
-(3, 7),
-(3, 9),
-(3, 11),
-(3, 13),
-(4, 20),
-(4, 21),
-(4, 22);
-
-
-
-INSERT INTO message (content, send_time, chat_room_id, sender_id) VALUES
-('Xin chào, tôi muốn hỏi về giờ mở cửa của nhà hàng?', DATE_SUB(NOW(), INTERVAL 2 DAY), 1, 23),
-('Chào bạn! Nhà hàng mở cửa từ 6h sáng đến 10h tối hàng ngày.', DATE_SUB(NOW(), INTERVAL 2 DAY), 1, 1),
-('Cảm ơn bạn nhiều!', DATE_SUB(NOW(), INTERVAL 2 DAY), 1, 23),
-('Họp định kỳ tháng này sẽ diễn ra vào thứ 6 tuần sau', DATE_SUB(NOW(), INTERVAL 1 DAY), 2, 1),
-('Đã nhận được thông báo, cảm ơn admin!', DATE_SUB(NOW(), INTERVAL 1 DAY), 2, 3),
-('Nhớ chuẩn bị đủ nguyên liệu cho ca tối nhé các bạn', DATE_SUB(NOW(), INTERVAL 5 HOUR), 3, 5),
-('Đã kiểm tra kho, đủ nguyên liệu rồi anh', DATE_SUB(NOW(), INTERVAL 4 HOUR), 3, 7);
-
-
-
-INSERT INTO black_list (address, phone_number, branch_id) VALUES
-('999 Đường giả mạo, Q1, TP.HCM', '0999999999', 1),
-('888 Địa chỉ không hợp lệ, Q3, TP.HCM', '0888888888', 2),
-('777 Số điện thoại spam, Q5, TP.HCM', '0777777777', 4);
-
-
-
-
-INSERT INTO contract (contract_start_date, contract_end_date, contract_status, contract_ref_link, contract_term, branch_id, user_id) VALUES
-('2024-01-01', '2025-12-31', true, '/contracts/contract_manager1.pdf', 'Hợp đồng lao động không xác định thời hạn', 1, 3),
-('2024-01-01', '2025-12-31', true, '/contracts/contract_manager2.pdf', 'Hợp đồng lao động không xác định thời hạn', 4, 4),
-('2024-02-01', '2025-01-31', true, '/contracts/contract_staff1.pdf', 'Hợp đồng lao động có thời hạn 1 năm', 1, 5),
-('2024-02-01', '2025-01-31', true, '/contracts/contract_staff2.pdf', 'Hợp đồng lao động có thời hạn 1 năm', 1, 6),
-('2024-02-01', '2025-01-31', true, '/contracts/contract_staff3.pdf', 'Hợp đồng lao động có thời hạn 1 năm', 4, 8),
-('2024-03-01', '2025-02-28', true, '/contracts/contract_waiter1.pdf', 'Hợp đồng lao động có thời hạn 1 năm', 1, 15),
-('2024-03-01', '2025-02-28', true, '/contracts/contract_waiter2.pdf', 'Hợp đồng lao động có thời hạn 1 năm', 1, 16),
-('2024-04-01', '2025-03-31', true, '/contracts/contract_shipper1.pdf', 'Hợp đồng lao động có thời hạn 1 năm', 1, 20),
-('2024-04-01', '2025-03-31', true, '/contracts/contract_shipper2.pdf', 'Hợp đồng lao động có thời hạn 1 năm', 1, 21);
-
-
-
-
-INSERT INTO utensils_type (utensils_type_name) VALUES
-('Nồi'),
-('Chảo'),
-('Dao'),
-('Thớt'),
-('Kẹp'),
-('Muỗng'),
-('Đũa'),
-('Bát đĩa'),
-('Máy móc');
-
-
-
-INSERT INTO cooking_utensils (cooking_utensils_name, cooking_utensils_quantity, utensils_type_id, warehouse_id) VALUES
-('Nồi lớn 50L', 5, 1, 1),
-('Nồi vừa 30L', 8, 1, 1),
-('Chảo lớn', 10, 2, 1),
-('Chảo nhỏ', 15, 2, 1),
-('Dao thái thịt', 12, 3, 1),
-('Dao thái rau', 15, 3, 1),
-('Thớt lớn', 10, 4, 1),
-('Thớt nhỏ', 20, 4, 1),
-('Kẹp nướng', 15, 5, 1),
-('Muỗng lớn', 20, 6, 1),
-('Đũa cả', 30, 7, 1),
-('Bát đĩa sứ', 200, 8, 1),
-('Máy xay thịt', 2, 9, 1),
-('Lò nướng', 3, 9, 1),
-('Nồi lớn 50L', 4, 1, 2),
-('Nồi vừa 30L', 6, 1, 2),
-('Chảo lớn', 8, 2, 2),
-('Chảo nhỏ', 12, 2, 2),
-('Dao thái thịt', 10, 3, 2),
-('Dao thái rau', 12, 3, 2),
-('Thớt lớn', 8, 4, 2),
-('Thớt nhỏ', 15, 4, 2),
-('Kẹp nướng', 12, 5, 2),
-('Muỗng lớn', 15, 6, 2),
-('Đũa cả', 25, 7, 2),
-('Bát đĩa sứ', 150, 8, 2),
-('Máy xay thịt', 1, 9, 2),
-('Lò nướng', 2, 9, 2),
-('Nồi lớn 50L', 3, 1, 3),
-('Nồi vừa 30L', 5, 1, 3),
-('Chảo lớn', 7, 2, 3),
-('Chảo nhỏ', 10, 2, 3),
-('Dao thái thịt', 8, 3, 3),
-('Dao thái rau', 10, 3, 3),
-('Thớt lớn', 6, 4, 3),
-('Thớt nhỏ', 12, 4, 3),
-('Kẹp nướng', 10, 5, 3),
-('Muỗng lớn', 12, 6, 3),
-('Đũa cả', 20, 7, 3),
-('Bát đĩa sứ', 120, 8, 3),
-('Máy xay thịt', 1, 9, 3),
-('Lò nướng', 2, 9, 3),
-('Nồi lớn 50L', 4, 1, 4),
-('Nồi vừa 30L', 7, 1, 4),
-('Chảo lớn', 9, 2, 4),
-('Chảo nhỏ', 13, 2, 4),
-('Dao thái thịt', 11, 3, 4),
-('Dao thái rau', 13, 3, 4),
-('Thớt lớn', 9, 4, 4),
-('Thớt nhỏ', 18, 4, 4),
-('Kẹp nướng', 13, 5, 4),
-('Muỗng lớn', 18, 6, 4),
-('Đũa cả', 28, 7, 4),
-('Bát đĩa sứ', 180, 8, 4),
-('Máy xay thịt', 2, 9, 4),
-('Lò nướng', 2, 9, 4);
-
-
-
-
-INSERT INTO `order` (order_sub_total, order_promotion_code, order_discount_value, order_discount_percent, order_amount, order_shiping_free, order_delivery_at, order_note, order_payment_code, order_address, order_phone, order_point_used, order_point_earned, order_created_at, is_pick_up, payment_time, is_table, customer_name, customer_email, customer_id, branch_id, status_id, payment_method_id) VALUES
-(150000, NULL, 0, 0, 170000, 20000, DATE_ADD(NOW(), INTERVAL 1 DAY), 'Giao vào buổi trưa', NULL, '123 Nguyễn Huệ, Q1, TP.HCM', '0910000001', 0, 150, DATE_SUB(NOW(), INTERVAL 5 DAY), false, DATE_SUB(NOW(), INTERVAL 5 DAY), false, 'Trần Văn Anh', 'anhtran@gmail.com', 23, 1, 7, 2),
-(200000, 'COMBO_GIA_DINH', 30000, 0, 190000, 20000, DATE_ADD(NOW(), INTERVAL 1 DAY), 'Giao trước 12h', NULL, '456 Lê Lợi, Q1, TP.HCM', '0910000002', 0, 200, DATE_SUB(NOW(), INTERVAL 3 DAY), false, DATE_SUB(NOW(), INTERVAL 3 DAY), false, 'Nguyễn Thị Bình', 'binhnguyen@gmail.com', 24, 1, 7, 2),
-(100000, NULL, 0, 20, 100000, 0, DATE_ADD(NOW(), INTERVAL 2 DAY), NULL, NULL, '789 Lý Tự Trọng, Q3, TP.HCM', '0910000003', 0, 100, DATE_SUB(NOW(), INTERVAL 1 DAY), false, NULL, false, 'Lê Văn Cường', 'cuongle@gmail.com', 25, 2, 1, NULL);
-
-
-
-
-INSERT INTO `order` (order_sub_total, order_promotion_code, order_discount_value, order_discount_percent, order_amount, order_shiping_free, order_delivery_at, order_note, order_payment_code, order_address, order_phone, order_point_used, order_point_earned, order_created_at, is_pick_up, payment_time, is_table, customer_name, customer_email, customer_id, branch_id, status_id, payment_method_id, dining_table_id, waiter_id) VALUES
-(120000, NULL, 0, 0, 120000, 0, NULL, 'Không cay', NULL, NULL, '0910000004', 0, 120, DATE_SUB(NOW(), INTERVAL 2 HOUR), false, NULL, true, 'Phạm Thị Dung', 'dungpham@gmail.com', 26, 4, 4, NULL, 1, 17),
-(180000, NULL, 0, 0, 180000, 0, NULL, 'Thêm nước mắm', NULL, NULL, '0910000005', 0, 180, DATE_SUB(NOW(), INTERVAL 1 HOUR), false, NULL, true, 'Hoàng Văn Em', 'emhoang@gmail.com', 27, 4, 3, NULL, 2, 17);
-
-
-
-INSERT INTO `order` (order_sub_total, order_promotion_code, order_discount_value, order_discount_percent, order_amount, order_shiping_free, order_delivery_at, order_note, order_payment_code, order_address, order_phone, order_point_used, order_point_earned, order_created_at, is_pick_up, payment_time, pickup_time, is_table, customer_name, customer_email, customer_id, branch_id, status_id, payment_method_id) VALUES
-(80000, NULL, 0, 0, 80000, 0, NULL, 'Lấy lúc 18h', NULL, NULL, '0910000006', 0, 80, DATE_SUB(NOW(), INTERVAL 1 DAY), true, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 1 DAY), false, 'Võ Thị Phượng', 'phuongvo@gmail.com', 28, 4, 7, 1);
-
-
-
-
-INSERT INTO order_item (order_id, product_id, quantity, price, note, is_confirm, confirm_at) VALUES
-(1, 1, 2, 50000, NULL, true, DATE_SUB(NOW(), INTERVAL 5 DAY)),
-(1, 9, 2, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 5 DAY)),
-(1, 16, 1, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 5 DAY)),
-(2, 6, 2, 65000, NULL, true, DATE_SUB(NOW(), INTERVAL 3 DAY)),
-(2, 9, 2, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 3 DAY)),
-(3, 3, 1, 55000, NULL, false, NULL),
-(3, 4, 1, 50000, NULL, false, NULL);
-
-
-
-
-INSERT INTO order_item (order_id, product_id, quantity, price, note, is_confirm, confirm_at, is_delivered) VALUES
-(4, 1, 2, 50000, 'Không cay', true, DATE_SUB(NOW(), INTERVAL 2 HOUR), true),
-(4, 9, 2, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 2 HOUR), true),
-(5, 6, 2, 65000, 'Thêm nước mắm', true, DATE_SUB(NOW(), INTERVAL 1 HOUR), false),
-(5, 10, 2, 20000, NULL, true, DATE_SUB(NOW(), INTERVAL 1 HOUR), false);
-
-
-
-
-INSERT INTO order_item (order_id, product_id, quantity, price, note, is_confirm, confirm_at) VALUES
-(6, 1, 1, 50000, NULL, true, DATE_SUB(NOW(), INTERVAL 1 DAY)),
-(6, 9, 2, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 1 DAY));
+INSERT INTO member_association (member_association_point, member_association_name, member_association_description)
+VALUES (0, 'Đồng', 'Hạng đồng - 0 điểm'),
+       (100, 'Bạc', 'Hạng bạc - 100 điểm'),
+       (500, 'Vàng', 'Hạng vàng - 500 điểm'),
+       (1000, 'Bạch Kim', 'Hạng bạch kim - 1000 điểm'),
+       (2000, 'Kim Cương', 'Hạng kim cương - 2000 điểm');
+
+
+
+INSERT INTO role (name)
+VALUES ('ADMIN'),
+       ('MANAGER'),
+       ('STAFF'),
+       ('WAITER'),
+       ('SHIPPER'),
+       ('CHEF'),
+       ('CUSTOMER');
+
+
+
+INSERT INTO users (full_name, address, phone_number, email, password, date_of_birth, note, is_ban, created_at,
+                   member_point, email_verified, phone_verified, member_association_id)
+VALUES ('Nguyễn Văn An', '123 Nguyễn Huệ, Q1, TP.HCM', '0900000001', 'anadmin@comtam.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1990-01-01', 'Administrator chính', false,
+        NOW(), 0, true, true, NULL),
+       ('Trần Thị An', '456 Điện Biên Phủ, Q3, TP.HCM', '0900000002', 'anmanager@comtam.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1992-05-15', 'Quản lý chi nhánh', false, NOW(),
+        0, true, true, NULL),
+       ('Lê Văn An', '789 Lý Tự Trọng, Q1, TP.HCM', '0901000101', 'anmanager1@comtam.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1988-03-20', 'Quản lý chi nhánh Quận 1', false,
+        NOW(), 0, true, true, NULL),
+       ('Phạm Thị An', '321 Nguyễn Văn Cừ, Q5, TP.HCM', '0901000202', 'anmanager2@comtam.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1990-07-10', 'Quản lý chi nhánh Quận 5', false,
+        NOW(), 0, true, true, NULL),
+       ('Hoàng Văn An', '123 Cầu Kho, Q1, TP.HCM', '0902000001', 'anstaff1@comtam.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1995-02-14', 'Nhân viên bếp', false, NOW(), 0,
+        true, true, NULL),
+       ('Võ Thị An', '456 Bùi Viện, Q1, TP.HCM', '0902000002', 'anstaff2@comtam.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1993-09-22', 'Nhân viên phục vụ', false, NOW(),
+        0, true, true, NULL),
+       ('Đỗ Văn An', '789 Nguyễn Thái Học, Q1, TP.HCM', '0902000003', 'anstaff3@comtam.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1996-11-30', 'Nhân viên bếp', false, NOW(), 0,
+        true, true, NULL),
+       ('Bùi Thị An', '321 Lê Hồng Phong, Q5, TP.HCM', '0902000004', 'anstaff4@comtam.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1994-04-18', 'Nhân viên thu ngân', false,
+        NOW(), 0, true, true, NULL),
+       ('Lý Văn An', '123 Trần Hưng Đạo, Q5, TP.HCM', '0902000005', 'anstaff5@comtam.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1997-08-05', 'Nhân viên bếp', false, NOW(), 0,
+        true, true, NULL),
+       ('Ngô Thị An', '456 Võ Văn Tần, Q3, TP.HCM', '0902000006', 'anstaff6@comtam.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1995-12-12', 'Nhân viên phục vụ', false, NOW(),
+        0, true, true, NULL),
+       ('Trịnh Văn An', '789 Nguyễn Đình Chiểu, Q3, TP.HCM', '0902000007', 'anstaff7@comtam.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1998-06-25', 'Nhân viên bếp', false, NOW(), 0,
+        true, true, NULL),
+       ('Nguyễn Thị An', '321 Hoàng Văn Thụ, Q3, TP.HCM', '0902000008', 'anstaff8@comtam.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1993-01-08', 'Nhân viên thu ngân', false,
+        NOW(), 0, true, true, NULL),
+       ('Phạm Văn An', '123 Nguyễn Thái Sơn, Q7, TP.HCM', '0902000009', 'anstaff9@comtam.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1996-10-14', 'Nhân viên bếp', false, NOW(), 0,
+        true, true, NULL),
+       ('Đặng Thị An', '456 Huỳnh Tấn Phát, Q7, TP.HCM', '0902000010', 'anstaff10@comtam.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1994-03-20', 'Nhân viên phục vụ', false, NOW(),
+        0, true, true, NULL),
+       ('Vũ Văn An', '123 Phạm Ngũ Lão, Q1, TP.HCM', '0903000001', 'anwaiter1@comtam.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1997-05-15', 'Phục vụ chi nhánh Q1', false,
+        NOW(), 0, true, true, NULL),
+       ('Đỗ Thị An', '456 Nguyễn Du, Q1, TP.HCM', '0903000002', 'anwaiter2@comtam.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1999-08-22', 'Phục vụ chi nhánh Q1', false,
+        NOW(), 0, true, true, NULL),
+       ('Lê Văn An', '789 Chợ Lớn, Q5, TP.HCM', '0903000003', 'anwaiter3@comtam.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1996-11-10', 'Phục vụ chi nhánh Q5', false,
+        NOW(), 0, true, true, NULL),
+       ('Trần Thị An', '321 Phạm Ngũ Lão, Q1, TP.HCM', '0903000004', 'anwaiter4@comtam.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1998-02-28', 'Phục vụ chi nhánh Q3', false,
+        NOW(), 0, true, true, NULL),
+       ('Nguyễn Văn An', '123 Nguyễn Cảnh Chân, Q1, TP.HCM', '0903000005', 'anwaiter5@comtam.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1995-07-05', 'Phục vụ chi nhánh Q7', false,
+        NOW(), 0, true, true, NULL),
+       ('Lý Văn An', '123 Hưng Đạo Vương, Q5, TP.HCM', '0904000001', 'anshipper1@comtam.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1995-04-12', 'Shipper chi nhánh chính', false,
+        NOW(), 0, true, true, NULL),
+       ('Hoàng Thị An', '456 Minh Phụng, Q11, TP.HCM', '0904000002', 'anshipper2@comtam.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1993-09-18', 'Shipper giao hàng', false, NOW(),
+        0, true, true, NULL),
+       ('Phan Văn An', '789 Vĩnh Viễn, Q10, TP.HCM', '0904000003', 'anshipper3@comtam.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1996-12-03', 'Shipper giao hàng', false, NOW(),
+        0, true, true, NULL),
+       ('Trần Văn Anh', '123 Nguyễn Huệ, Q1, TP.HCM', '0910000001', 'anhtran@gmail.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1990-01-05', 'Khách hàng VIP', false, NOW(),
+        250, true, true, 3),
+       ('Nguyễn Thị Bình', '456 Lê Lợi, Q1, TP.HCM', '0910000002', 'binhnguyen@gmail.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1992-03-15', NULL, false, NOW(), 120, true,
+        true, 2),
+       ('Lê Văn Cường', '789 Lý Tự Trọng, Q3, TP.HCM', '0910000003', 'cuongle@gmail.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1988-07-20', NULL, false, NOW(), 850, true,
+        true, 3),
+       ('Phạm Thị Dung', '321 Nguyễn Văn Cừ, Q5, TP.HCM', '0910000004', 'dungpham@gmail.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1995-05-10', NULL, false, NOW(), 50, true,
+        true, 1),
+       ('Hoàng Văn Em', '123 Chợ Lớn, Q5, TP.HCM', '0910000005', 'emhoang@gmail.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1991-11-25', NULL, false, NOW(), 300, true,
+        true, 3),
+       ('Võ Thị Phượng', '456 Hải Thượng Lãn Ông, Q5, TP.HCM', '0910000006', 'phuongvo@gmail.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1994-09-08', NULL, false, NOW(), 680, true,
+        true, 3),
+       ('Đỗ Văn Giang', '789 Nguyễn Văn Luông, Q6, TP.HCM', '0910000007', 'giangdo@gmail.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1989-02-14', NULL, false, NOW(), 35, true,
+        true, 1),
+       ('Bùi Thị Hân', '321 An Dương Vương, Q5, TP.HCM', '0910000008', 'hanbui@gmail.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1993-06-30', NULL, false, NOW(), 450, true,
+        true, 3),
+       ('Lý Văn Hùng', '123 Hồng Bàng, Q5, TP.HCM', '0910000009', 'hungly@gmail.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1996-04-17', NULL, false, NOW(), 200, true,
+        true, 3),
+       ('Ngô Thị Im', '456 Tạ Uyên, Q11, TP.HCM', '0910000010', 'imngo@gmail.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1992-08-22', NULL, false, NOW(), 850, true,
+        true, 3),
+       ('Trịnh Văn Khoa', '789 Nguyễn Tri Phương, Q10, TP.HCM', '0910000011', 'khoatrinh@gmail.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1990-12-05', 'Khách hàng thân thiết', false,
+        NOW(), 1200, true, true, 4),
+       ('Vũ Thị Loan', '321 Cách Mạng Tháng 8, Q10, TP.HCM', '0910000012', 'loanvu@gmail.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1994-01-28', NULL, false, NOW(), 180, true,
+        true, 2),
+       ('Hoàng Văn Mạnh', '123 Nguyễn Ảnh Thủ, Q12, TP.HCM', '0910000013', 'manhhoang@gmail.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1991-03-12', NULL, false, NOW(), 600, true,
+        true, 3),
+       ('Đặng Thị Nga', '456 Nguyễn Chí Thanh, Q10, TP.HCM', '0910000014', 'ngadang@gmail.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1997-10-08', NULL, false, NOW(), 280, true,
+        true, 3),
+       ('Nguyễn Văn Oanh', '789 Lý Thường Kiệt, Q10, TP.HCM', '0910000015', 'oanhnguyen@gmail.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1993-05-20', NULL, false, NOW(), 950, true,
+        true, 3),
+       ('Phạm Thị Phương', '321 Trường Chinh, Q12, TP.HCM', '0910000016', 'phuongpham@gmail.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1995-11-14', NULL, false, NOW(), 1800, true,
+        true, 4),
+       ('Lê Văn Quang', '123 Dương Đình Nghệ, Q7, TP.HCM', '0910000017', 'quangle@gmail.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1989-09-03', NULL, false, NOW(), 750, true,
+        true, 3),
+       ('Trần Thị Quỳnh', '456 Nguyễn Thị Thập, Q7, TP.HCM', '0910000018', 'quynhtran@gmail.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1996-07-16', NULL, false, NOW(), 120, true,
+        true, 2),
+       ('Võ Văn Sơn', '789 Nguyễn Văn Linh, Q7, TP.HCM', '0910000019', 'sonvo@gmail.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1992-04-25', NULL, false, NOW(), 520, true,
+        true, 3),
+       ('Đỗ Thị Thảo', '321 Hà Huy Giáp, Q12, TP.HCM', '0910000020', 'thaodo@gmail.com',
+        '$2a$12$/WxUnBKrKZLG/R7P8tMvIuXrYj1J4cBixfvk2BO0YHVGdKyeAcMfO', '1994-08-11', 'Khách hàng thân thiết', false,
+        NOW(), 2150, true, true, 5);
+
+
+
+INSERT INTO branch (name, address, phone_number, is_parent)
+VALUES ('Chi nhánh chính', 'Vinhomes Grand Park Quận 9 TP HCM', '0901234567', true),
+       ('Chi nhánh 1 - Quận 1', '123 Lê Lợi, Quận 1, TP.HCM', '0901234567', false),
+       ('Chi nhánh 2 - Quận 3', '456 Nguyễn Đình Chiểu, Quận 3, TP.HCM', '0901234568', false),
+       ('Chi nhánh 3 - Quận 7', '789 Nguyễn Thái Sơn, Quận 7, TP.HCM', '0901234569', false),
+       ('Chi nhánh 4 - Quận 5', '321 Nguyễn Trãi, Quận 5, TP.HCM', '0901234570', false);
+
+
+
+INSERT INTO role_history (start_date, end_date, is_active, role_id, user_id, branch_id)
+VALUES (NOW(), NULL, true, 1, 1, NULL),
+       (NOW(), NULL, true, 1, 2, NULL),
+       ('2024-01-01', NULL, true, 2, 3, 1),
+       ('2024-01-01', NULL, true, 2, 4, 4),
+       ('2024-02-01', NULL, true, 3, 5, 1),
+       ('2024-02-01', NULL, true, 3, 6, 1),
+       ('2024-02-01', NULL, true, 3, 7, 1),
+       ('2024-02-01', NULL, true, 3, 8, 4),
+       ('2024-02-01', NULL, true, 3, 9, 4),
+       ('2024-02-01', NULL, true, 3, 10, 2),
+       ('2024-02-01', NULL, true, 3, 11, 2),
+       ('2024-02-01', NULL, true, 3, 12, 2),
+       ('2024-02-01', NULL, true, 3, 13, 3),
+       ('2024-02-01', NULL, true, 3, 14, 3),
+       ('2024-03-01', NULL, true, 4, 15, 1),
+       ('2024-03-01', NULL, true, 4, 16, 1),
+       ('2024-03-01', NULL, true, 4, 17, 4),
+       ('2024-03-01', NULL, true, 4, 18, 2),
+       ('2024-03-01', NULL, true, 4, 19, 3),
+       ('2024-04-01', NULL, true, 5, 20, 1),
+       ('2024-04-01', NULL, true, 5, 21, 1),
+       ('2024-04-01', NULL, true, 5, 22, 1),
+       (NOW(), NULL, true, 6, 23, 1),
+       (NOW(), NULL, true, 6, 24, 1),
+       (NOW(), NULL, true, 6, 25, 2),
+       (NOW(), NULL, true, 6, 26, 4),
+       (NOW(), NULL, true, 6, 27, 4),
+       (NOW(), NULL, true, 6, 28, 4),
+       (NOW(), NULL, true, 6, 29, 4),
+       (NOW(), NULL, true, 6, 30, 4),
+       (NOW(), NULL, true, 6, 31, 1),
+       (NOW(), NULL, true, 6, 32, 2),
+       (NOW(), NULL, true, 6, 33, 2),
+       (NOW(), NULL, true, 6, 34, 2),
+       (NOW(), NULL, true, 6, 35, 3),
+       (NOW(), NULL, true, 6, 36, 3),
+       (NOW(), NULL, true, 6, 37, 3),
+       (NOW(), NULL, true, 6, 38, 1),
+       (NOW(), NULL, true, 6, 39, 2),
+       (NOW(), NULL, true, 6, 40, 3),
+       (NOW(), NULL, true, 6, 41, 4),
+       (NOW(), NULL, true, 6, 42, 1);
+
+
+
+INSERT INTO product_type (name)
+VALUES ('Cơm tấm'),
+       ('Thức uống'),
+       ('Cơm trắng'),
+       ('Đồ ăn kèm');
+
+
+
+INSERT INTO material_type (material_type_name)
+VALUES ('Thịt'),
+       ('Rau'),
+       ('Gạo'),
+       ('Gia vị'),
+       ('Đồ uống'),
+       ('Trứng'),
+       ('Xúc xích');
+
+
+
+INSERT INTO material (material_name, material_type_id)
+VALUES ('Sườn nướng', 1),
+       ('Thịt nướng', 1),
+       ('Gà nướng', 1),
+       ('Chả trứng', 1),
+       ('Bì bún', 1),
+       ('Chả lụa', 1),
+       ('Dưa leo', 2),
+       ('Cà chua', 2),
+       ('Đậu phộng', 2),
+       ('Giá đỗ', 2),
+       ('Xà lách', 2),
+       ('Chuối xanh', 2),
+       ('Gạo tấm', 3),
+       ('Gạo trắng', 3),
+       ('Nước mắm', 4),
+       ('Ớt', 4),
+       ('Hành lá', 4),
+       ('Tiêu', 4),
+       ('Trứng ốp la', 6),
+       ('Xúc xích Đức', 7),
+       ('Canh chua', 2);
+
+
+
+INSERT INTO warehouse (warehouse_name, branch_id)
+VALUES ('Kho chi nhánh Quận 1', 1),
+       ('Kho chi nhánh Quận 3', 2),
+       ('Kho chi nhánh Quận 7', 3),
+       ('Kho chi nhánh Quận 5', 4);
+
+
+
+INSERT INTO product (product_name,
+                     product_description,
+                     product_price,
+                     product_image,
+                     create_date,
+                     update_date,
+                     is_active,
+                     product_type_id)
+VALUES ('Cơm tấm sườn nướng', 'Cơm tấm với sườn heo nướng thơm lừng, kèm bì chả trứng cà', 50000,
+        'https://scvanwhslmgejfwcmlzx.supabase.co/storage/v1/object/public/images_tamtech/com-tam-suon-nuong.jpg',
+        '2025-11-10 05:32:18', '2025-11-10 05:32:18', true, 1),
+       ('Cơm tấm bì chả trứng cà', 'Cơm tấm bì bún ăn kèm chả trứng và cà tím nướng', 45000,
+        'https://scvanwhslmgejfwcmlzx.supabase.co/storage/v1/object/public/images_tamtech/com-tam-bi-cha-trung-ca.jpg',
+        '2025-11-10 05:32:18', '2025-11-10 05:32:18', true, 1),
+       ('Cơm tấm gà nướng', 'Cơm tấm với đùi gà nướng mật ong, thơm béo', 55000,
+        'https://scvanwhslmgejfwcmlzx.supabase.co/storage/v1/object/public/images_tamtech/com-tam-ga-nuong.jpg',
+        '2025-11-10 05:32:18', '2025-11-10 05:32:18', true, 1),
+       ('Cơm tấm thịt nướng', 'Cơm tấm thịt heo nướng BBQ đậm đà', 50000,
+        'https://scvanwhslmgejfwcmlzx.supabase.co/storage/v1/object/public/images_tamtech/com-tam-thit-nuong.jpg',
+        '2025-11-10 05:32:18', '2025-11-10 05:32:18', true, 1),
+       ('Cơm tấm sườn cây', 'Cơm tấm với sườn cây dài nướng thơm ngon', 60000,
+        'https://scvanwhslmgejfwcmlzx.supabase.co/storage/v1/object/public/images_tamtech/com-tam-suon-cay.jpg',
+        '2025-11-10 05:32:18', '2025-11-10 05:32:18', true, 1),
+       ('Cơm tấm đặc biệt', 'Cơm tấm đầy đủ sườn, chả, trứng, bì, bì chả, xúc xích', 65000,
+        'https://scvanwhslmgejfwcmlzx.supabase.co/storage/v1/object/public/images_tamtech/com-tam-dac-biet.jpg',
+        '2025-11-10 05:32:18', '2025-11-10 05:32:18', true, 1),
+       ('Cơm tấm bì chả chạo tôm', 'Cơm tấm bì chả trứng và chạo tôm nướng', 55000,
+        'https://scvanwhslmgejfwcmlzx.supabase.co/storage/v1/object/public/images_tamtech/com-tam-bi-cha-chao-tom.jpg',
+        '2025-11-10 05:32:18', '2025-11-10 05:32:18', true, 1),
+       ('Cơm tấm nem nướng', 'Cơm tấm với nem nướng Nha Trang', 55000,
+        'https://scvanwhslmgejfwcmlzx.supabase.co/storage/v1/object/public/images_tamtech/com-tam-nem-nuong.jpg',
+        '2025-11-10 05:32:18', '2025-11-10 05:32:18', true, 1),
+       ('Chanh muối', 'Chanh muối mát lạnh giải nhiệt', 15000,
+        'https://scvanwhslmgejfwcmlzx.supabase.co/storage/v1/object/public/images_tamtech/chanh-muoi.jpg',
+        '2025-11-10 05:32:18', '2025-11-10 05:32:18', true, 2),
+       ('Soda chanh dây', 'Soda chanh dây chua ngọt thanh mát', 20000,
+        'https://scvanwhslmgejfwcmlzx.supabase.co/storage/v1/object/public/images_tamtech/soda-chanh-day.jpg',
+        '2025-11-10 05:32:18', '2025-11-10 05:32:18', true, 2),
+       ('Nước mía', 'Nước mía tươi ngon giải khát', 15000,
+        'https://scvanwhslmgejfwcmlzx.supabase.co/storage/v1/object/public/images_tamtech/nuoc-mia.jpg',
+        '2025-11-10 05:32:18', '2025-11-10 05:32:18', true, 2),
+       ('Sữa tươi', 'Sữa tươi đường đá', 20000,
+        'https://scvanwhslmgejfwcmlzx.supabase.co/storage/v1/object/public/images_tamtech/sua-tuoi.jpg',
+        '2025-11-10 05:32:18', '2025-11-10 05:32:18', true, 2),
+       ('Cà phê đá', 'Cà phê phin truyền thống', 20000,
+        'https://scvanwhslmgejfwcmlzx.supabase.co/storage/v1/object/public/images_tamtech/ca-phe-da.jpg',
+        '2025-11-10 05:32:18', '2025-11-10 05:32:18', true, 2),
+       ('Trà đá', 'Trà đá mát lạnh', 10000,
+        'https://scvanwhslmgejfwcmlzx.supabase.co/storage/v1/object/public/images_tamtech/tra-da.jpg',
+        '2025-11-10 05:32:18', '2025-11-10 05:32:18', true, 2),
+       ('Cơm trắng', 'Cơm trắng dẻo thơm', 10000,
+        'https://scvanwhslmgejfwcmlzx.supabase.co/storage/v1/object/public/images_tamtech/com-trang.jpg',
+        '2025-11-10 05:32:18', '2025-11-10 05:32:18', true, 3),
+       ('Trứng ốp la', 'Trứng ốp la giòn ngoài mềm trong', 15000,
+        'https://scvanwhslmgejfwcmlzx.supabase.co/storage/v1/object/public/images_tamtech/trung-op-la.jpg',
+        '2025-11-10 05:32:18', '2025-11-10 05:32:18', true, 4),
+       ('Chả trứng', 'Chả trứng chiên vàng thơm', 10000,
+        'https://scvanwhslmgejfwcmlzx.supabase.co/storage/v1/object/public/images_tamtech/cha-trung.jpg',
+        '2025-11-10 05:32:18', '2025-11-10 05:32:18', true, 4),
+       ('Bì bún', 'Bì bún sợi giòn sần sật', 10000,
+        'https://scvanwhslmgejfwcmlzx.supabase.co/storage/v1/object/public/images_tamtech/bi-bun.jpg',
+        '2025-11-10 05:32:18', '2025-11-10 05:32:18', true, 4),
+       ('Canh chua', 'Canh chua cá bạc má chua cay', 15000,
+        'https://scvanwhslmgejfwcmlzx.supabase.co/storage/v1/object/public/images_tamtech/canh-chua.jpg',
+        '2025-11-10 05:32:18', '2025-11-10 05:32:18', true, 4),
+       ('Dưa cà muối', 'Dưa chua cà muối đậm đà', 5000,
+        'https://scvanwhslmgejfwcmlzx.supabase.co/storage/v1/object/public/images_tamtech/com-trang.jpg',
+        '2025-11-10 05:32:18', '2025-11-10 05:32:18', true, 4);
+
+
+
+INSERT INTO product_recipes (product_id, material_id, quantity)
+VALUES (1, 12, 0.2),
+       (1, 13, 1.0),
+       (1, 14, 0.1),
+       (1, 15, 0.05),
+       (1, 6, 0.1),
+       (1, 7, 0.05),
+       (2, 12, 0.2),
+       (2, 13, 1.0),
+       (2, 4, 0.05),
+       (2, 5, 0.05),
+       (2, 7, 0.05),
+       (3, 12, 0.2),
+       (3, 13, 1.0),
+       (3, 3, 0.15),
+       (3, 7, 0.05),
+       (4, 12, 0.2),
+       (4, 13, 1.0),
+       (4, 2, 0.15),
+       (4, 7, 0.05),
+       (5, 12, 0.2),
+       (5, 13, 1.0),
+       (5, 1, 0.2),
+       (5, 7, 0.05),
+       (6, 12, 0.2),
+       (6, 13, 1.0),
+       (6, 1, 0.15),
+       (6, 4, 0.05),
+       (6, 5, 0.05),
+       (6, 17, 0.05),
+       (6, 7, 0.05),
+       (7, 12, 0.2),
+       (7, 13, 1.0),
+       (7, 4, 0.05),
+       (7, 5, 0.05),
+       (7, 7, 0.05),
+       (8, 12, 0.2),
+       (8, 13, 1.0),
+       (8, 7, 0.05),
+       (9, 18, 0.3),
+       (10, 18, 0.3),
+       (11, 3, 0.2),
+       (12, 3, 0.3),
+       (13, 3, 0.2),
+       (14, 3, 0.1),
+       (15, 18, 0.2),
+       (16, 16, 1.0),
+       (17, 4, 1.0),
+       (18, 5, 1.0),
+       (19, 18, 0.5),
+       (20, 7, 0.1);
+
+
+
+INSERT INTO branch_product (branch_id, product_id, quantity)
+VALUES (1, 1, 100),
+       (1, 2, 100),
+       (1, 3, 100),
+       (1, 4, 100),
+       (1, 5, 80),
+       (1, 6, 60),
+       (1, 7, 70),
+       (1, 8, 70),
+       (1, 9, 200),
+       (1, 10, 150),
+       (1, 11, 150),
+       (1, 12, 150),
+       (1, 13, 100),
+       (1, 14, 200),
+       (1, 15, 200),
+       (1, 16, 100),
+       (1, 17, 100),
+       (1, 18, 100),
+       (1, 19, 50),
+       (1, 20, 100),
+       (2, 1, 90),
+       (2, 2, 90),
+       (2, 3, 90),
+       (2, 4, 90),
+       (2, 5, 75),
+       (2, 6, 50),
+       (2, 7, 60),
+       (2, 8, 60),
+       (2, 9, 180),
+       (2, 10, 140),
+       (2, 11, 140),
+       (2, 12, 140),
+       (2, 13, 90),
+       (2, 14, 180),
+       (2, 15, 180),
+       (2, 16, 90),
+       (2, 17, 90),
+       (2, 18, 90),
+       (2, 19, 40),
+       (2, 20, 90),
+       (3, 1, 85),
+       (3, 2, 85),
+       (3, 3, 85),
+       (3, 4, 85),
+       (3, 5, 70),
+       (3, 6, 45),
+       (3, 7, 55),
+       (3, 8, 55),
+       (3, 9, 170),
+       (3, 10, 130),
+       (3, 11, 130),
+       (3, 12, 130),
+       (3, 13, 85),
+       (3, 14, 170),
+       (3, 15, 170),
+       (3, 16, 85),
+       (3, 17, 85),
+       (3, 18, 85),
+       (3, 19, 35),
+       (3, 20, 85),
+       (4, 1, 95),
+       (4, 2, 95),
+       (4, 3, 95),
+       (4, 4, 95),
+       (4, 5, 78),
+       (4, 6, 55),
+       (4, 7, 65),
+       (4, 8, 65),
+       (4, 9, 190),
+       (4, 10, 145),
+       (4, 11, 145),
+       (4, 12, 145),
+       (4, 13, 95),
+       (4, 14, 190),
+       (4, 15, 190),
+       (4, 16, 95),
+       (4, 17, 95),
+       (4, 18, 95),
+       (4, 19, 45),
+       (4, 20, 95);
+
+
+
+INSERT INTO material_warehouse (material_id, warehouse_id, quantity)
+VALUES (1, 1, 50.0),
+       (2, 1, 50.0),
+       (3, 1, 100.0),
+       (4, 1, 200.0),
+       (5, 1, 200.0),
+       (6, 1, 100.0),
+       (7, 1, 500.0),
+       (8, 1, 200.0),
+       (9, 1, 300.0),
+       (10, 1, 200.0),
+       (11, 1, 300.0),
+       (12, 1, 5000.0),
+       (13, 1, 1000.0),
+       (14, 1, 500.0),
+       (15, 1, 300.0),
+       (16, 1, 1000.0),
+       (17, 1, 200.0),
+       (18, 1, 1000.0),
+       (1, 2, 45.0),
+       (2, 2, 45.0),
+       (3, 2, 90.0),
+       (4, 2, 180.0),
+       (5, 2, 180.0),
+       (6, 2, 90.0),
+       (7, 2, 450.0),
+       (8, 2, 180.0),
+       (9, 2, 270.0),
+       (10, 2, 180.0),
+       (11, 2, 270.0),
+       (12, 2, 4500.0),
+       (13, 2, 900.0),
+       (14, 2, 450.0),
+       (15, 2, 270.0),
+       (16, 2, 900.0),
+       (17, 2, 180.0),
+       (18, 2, 900.0),
+       (1, 3, 40.0),
+       (2, 3, 40.0),
+       (3, 3, 85.0),
+       (4, 3, 170.0),
+       (5, 3, 170.0),
+       (6, 3, 85.0),
+       (7, 3, 400.0),
+       (8, 3, 170.0),
+       (9, 3, 260.0),
+       (10, 3, 170.0),
+       (11, 3, 260.0),
+       (12, 3, 4000.0),
+       (13, 3, 850.0),
+       (14, 3, 400.0),
+       (15, 3, 260.0),
+       (16, 3, 850.0),
+       (17, 3, 170.0),
+       (18, 3, 800.0),
+       (1, 4, 48.0),
+       (2, 4, 48.0),
+       (3, 4, 95.0),
+       (4, 4, 190.0),
+       (5, 4, 190.0),
+       (6, 4, 95.0),
+       (7, 4, 480.0),
+       (8, 4, 190.0),
+       (9, 4, 290.0),
+       (10, 4, 190.0),
+       (11, 4, 290.0),
+       (12, 4, 4800.0),
+       (13, 4, 950.0),
+       (14, 4, 480.0),
+       (15, 4, 290.0),
+       (16, 4, 950.0),
+       (17, 4, 190.0),
+       (18, 4, 950.0);
+
+
+
+INSERT INTO promotion_type (promotion_type_name)
+VALUES ('Giảm giá theo %'),
+       ('Giảm giá cố định'),
+       ('Miễn phí vận chuyển'),
+       ('Mua kèm giảm giá');
+
+
+
+INSERT INTO promotion (promotion_id, promotion_name, promotion_description, promotion_discount, minimum_order_value,
+                       promotion_start_date, promotion_end_date, promotion_status, created_at, promotion_type_id,
+                       user_id)
+VALUES (1, 'Khuyến mãi 20% thứ 2', 'Giảm 20% tất cả các món vào thứ 2 hàng tuần', 20, 100000, '2025-01-01',
+        '2025-12-31', true, NOW(), 1, NULL),
+       (2, 'Combo gia đình', 'Giảm 30000đ cho đơn hàng trên 200000đ', 30000, 200000, '2025-01-01', '2025-12-31', true,
+        NOW(), 2, NULL),
+       (3, 'Free ship cho đơn trên 50000đ', 'Miễn phí vận chuyển cho đơn hàng trên 50000đ', 0, 50000, '2025-01-01',
+        '2025-12-31', true, NOW(), 3, NULL);
+
+
+
+INSERT INTO combo (name, description, price, start_date, end_date, is_active, created_at, updated_at, branch_id)
+VALUES ('Combo cơm tấm 2 người', '2 phần cơm tấm sườn + 2 chanh muối', 110000, '2025-01-01', '2025-12-31', true, NOW(),
+        NOW(), 1),
+       ('Combo cơm tấm 3 người', '3 phần cơm tấm đặc biệt + 3 chanh muối', 205000, '2025-01-01', '2025-12-31', true,
+        NOW(), NOW(), 1),
+       ('Combo gia đình 4 người', '4 phần cơm tấm sườn + 4 chanh muối + 1 cơm tấm đặc biệt', 295000, '2025-01-01',
+        '2025-12-31', true, NOW(), NOW(), 1),
+       ('Combo cơm tấm 2 người', '2 phần cơm tấm sườn + 2 chanh muối', 110000, '2025-01-01', '2025-12-31', true, NOW(),
+        NOW(), 2),
+       ('Combo cơm tấm 3 người', '3 phần cơm tấm đặc biệt + 3 chanh muối', 205000, '2025-01-01', '2025-12-31', true,
+        NOW(), NOW(), 2),
+       ('Combo gia đình 4 người', '4 phần cơm tấm sườn + 4 chanh muối + 1 cơm tấm đặc biệt', 295000, '2025-01-01',
+        '2025-12-31', true, NOW(), NOW(), 2),
+       ('Combo cơm tấm 2 người', '2 phần cơm tấm sườn + 2 chanh muối', 110000, '2025-01-01', '2025-12-31', true, NOW(),
+        NOW(), 3),
+       ('Combo cơm tấm 3 người', '3 phần cơm tấm đặc biệt + 3 chanh muối', 205000, '2025-01-01', '2025-12-31', true,
+        NOW(), NOW(), 3),
+       ('Combo gia đình 4 người', '4 phần cơm tấm sườn + 4 chanh muối + 1 cơm tấm đặc biệt', 295000, '2025-01-01',
+        '2025-12-31', true, NOW(), NOW(), 3),
+       ('Combo cơm tấm 2 người', '2 phần cơm tấm sườn + 2 chanh muối', 110000, '2025-01-01', '2025-12-31', true, NOW(),
+        NOW(), 4),
+       ('Combo cơm tấm 3 người', '3 phần cơm tấm đặc biệt + 3 chanh muối', 205000, '2025-01-01', '2025-12-31', true,
+        NOW(), NOW(), 4),
+       ('Combo gia đình 4 người', '4 phần cơm tấm sườn + 4 chanh muối + 1 cơm tấm đặc biệt', 295000, '2025-01-01',
+        '2025-12-31', true, NOW(), NOW(), 4);
+
+
+
+INSERT INTO combo_item (note, quantity, combo_id, product_id)
+VALUES ('Phần chính', 2, 1, 1),
+       ('Nước uống', 2, 1, 9),
+       ('Phần chính', 3, 2, 6),
+       ('Nước uống', 3, 2, 9),
+       ('Phần chính', 4, 3, 1),
+       ('Phần đặc biệt', 1, 3, 6),
+       ('Nước uống', 4, 3, 9),
+       ('Phần chính', 2, 4, 1),
+       ('Nước uống', 2, 4, 9),
+       ('Phần chính', 3, 5, 6),
+       ('Nước uống', 3, 5, 9),
+       ('Phần chính', 4, 6, 1),
+       ('Phần đặc biệt', 1, 6, 6),
+       ('Nước uống', 4, 6, 9),
+       ('Phần chính', 2, 7, 1),
+       ('Nước uống', 2, 7, 9),
+       ('Phần chính', 3, 8, 6),
+       ('Nước uống', 3, 8, 9),
+       ('Phần chính', 4, 9, 1),
+       ('Phần đặc biệt', 1, 9, 6),
+       ('Nước uống', 4, 9, 9),
+       ('Phần chính', 2, 10, 1),
+       ('Nước uống', 2, 10, 9),
+       ('Phần chính', 3, 11, 6),
+       ('Nước uống', 3, 11, 9),
+       ('Phần chính', 4, 12, 1),
+       ('Phần đặc biệt', 1, 12, 6),
+       ('Nước uống', 4, 12, 9);
+
+
+
+INSERT INTO payment_method (payment_method_name)
+VALUES ('Tiền mặt'),
+       ('PayOS');
+
+
+
+INSERT INTO order_status (order_status_name)
+VALUES ('CREATED'),
+       ('COOKING'),
+       ('COOKED'),
+       ('IN_PROCESS'),
+       ('SHIPPING'),
+       ('DELIVERED'),
+       ('COMPLETED'),
+       ('CANCEL'),
+       ('PAID');
+
+
+
+INSERT INTO dining_table (id, name, is_active, seat, note, branch_id)
+VALUES (1, 'Bàn 1', true, 2, 'Bàn nhỏ 2 người', 1),
+       (2, 'Bàn 2', true, 2, 'Bàn nhỏ 2 người', 1),
+       (3, 'Bàn 3', true, 4, 'Bàn vừa 4 người', 1),
+       (4, 'Bàn 4', true, 4, 'Bàn vừa 4 người', 1),
+       (5, 'Bàn 5', true, 4, 'Bàn vừa 4 người', 1),
+       (6, 'Bàn 6', true, 6, 'Bàn lớn 6 người', 1),
+       (7, 'Bàn 7', true, 6, 'Bàn lớn 6 người', 1),
+       (8, 'Bàn 8', true, 8, 'Bàn VIP 8 người', 1),
+       (9, 'Bàn 9', true, 2, 'Bàn nhỏ 2 người', 1),
+       (10, 'Bàn 10', true, 4, 'Bàn vừa 4 người', 1),
+       (11, 'Bàn 11', true, 4, 'Bàn vừa 4 người', 1),
+       (12, 'Bàn 12', true, 6, 'Bàn lớn 6 người', 1),
+       (13, 'Bàn 13', true, 2, 'Bàn nhỏ 2 người', 1),
+       (14, 'Bàn 14', true, 4, 'Bàn vừa 4 người', 1),
+       (15, 'Bàn 15', true, 10, 'Bàn gia đình 10 người', 1),
+       (16, 'Bàn 1', true, 2, 'Bàn nhỏ 2 người', 2),
+       (17, 'Bàn 2', true, 2, 'Bàn nhỏ 2 người', 2),
+       (18, 'Bàn 3', true, 4, 'Bàn vừa 4 người', 2),
+       (19, 'Bàn 4', true, 4, 'Bàn vừa 4 người', 2),
+       (20, 'Bàn 5', true, 4, 'Bàn vừa 4 người', 2),
+       (21, 'Bàn 6', true, 6, 'Bàn lớn 6 người', 2),
+       (22, 'Bàn 7', true, 6, 'Bàn lớn 6 người', 2),
+       (23, 'Bàn 8', true, 8, 'Bàn VIP 8 người', 2),
+       (24, 'Bàn 9', true, 2, 'Bàn nhỏ 2 người', 2),
+       (25, 'Bàn 10', true, 4, 'Bàn vừa 4 người', 2),
+       (26, 'Bàn 11', true, 4, 'Bàn vừa 4 người', 2),
+       (27, 'Bàn 12', true, 6, 'Bàn lớn 6 người', 2),
+       (28, 'Bàn 1', true, 2, 'Bàn nhỏ 2 người', 3),
+       (29, 'Bàn 2', true, 2, 'Bàn nhỏ 2 người', 3),
+       (30, 'Bàn 3', true, 4, 'Bàn vừa 4 người', 3),
+       (31, 'Bàn 4', true, 4, 'Bàn vừa 4 người', 3),
+       (32, 'Bàn 5', true, 4, 'Bàn vừa 4 người', 3),
+       (33, 'Bàn 6', true, 6, 'Bàn lớn 6 người', 3),
+       (34, 'Bàn 7', true, 6, 'Bàn lớn 6 người', 3),
+       (35, 'Bàn 8', true, 8, 'Bàn VIP 8 người', 3),
+       (36, 'Bàn 9', true, 2, 'Bàn nhỏ 2 người', 3),
+       (37, 'Bàn 10', true, 4, 'Bàn vừa 4 người', 3),
+       (38, 'Bàn 1', true, 2, 'Bàn nhỏ 2 người', 4),
+       (39, 'Bàn 2', true, 2, 'Bàn nhỏ 2 người', 4),
+       (40, 'Bàn 3', true, 4, 'Bàn vừa 4 người', 4),
+       (41, 'Bàn 4', true, 4, 'Bàn vừa 4 người', 4),
+       (42, 'Bàn 5', true, 4, 'Bàn vừa 4 người', 4),
+       (43, 'Bàn 6', true, 6, 'Bàn lớn 6 người', 4),
+       (44, 'Bàn 7', true, 6, 'Bàn lớn 6 người', 4),
+       (45, 'Bàn 8', true, 8, 'Bàn VIP 8 người', 4),
+       (46, 'Bàn 9', true, 2, 'Bàn nhỏ 2 người', 4),
+       (47, 'Bàn 10', true, 4, 'Bàn vừa 4 người', 4),
+       (48, 'Bàn 11', true, 4, 'Bàn vừa 4 người', 4),
+       (49, 'Bàn 12', true, 6, 'Bàn lớn 6 người', 4);
+
+
+
+INSERT INTO information (information_name, information_address, information_phone, is_default, user_id)
+VALUES ('Nhà riêng', '123 Nguyễn Huệ, Q1, TP.HCM', '0910000001', true, 23),
+       ('Công ty', '456 Lê Lợi, Q1, TP.HCM', '0910000001', false, 23),
+       ('Nhà riêng', '456 Lê Lợi, Q1, TP.HCM', '0910000002', true, 24),
+       ('Nhà riêng', '789 Lý Tự Trọng, Q3, TP.HCM', '0910000003', true, 25),
+       ('Nhà bạn', '321 Nguyễn Văn Cừ, Q5, TP.HCM', '0910000003', false, 25),
+       ('Nhà riêng', '321 Nguyễn Văn Cừ, Q5, TP.HCM', '0910000004', true, 26),
+       ('Nhà riêng', '123 Chợ Lớn, Q5, TP.HCM', '0910000005', true, 27),
+       ('Nhà riêng', '789 Nguyễn Tri Phương, Q10, TP.HCM', '0910000011', true, 31),
+       ('Văn phòng', '123 Cách Mạng Tháng 8, Q10, TP.HCM', '0910000011', false, 31),
+       ('Nhà riêng', '321 Trường Chinh, Q12, TP.HCM', '0910000016', true, 36),
+       ('Nhà riêng', '321 Hà Huy Giáp, Q12, TP.HCM', '0910000020', true, 42),
+       ('Công ty', '456 Nguyễn Thị Thập, Q7, TP.HCM', '0910000020', false, 42);
+
+
+
+INSERT INTO notification_type (notification_type_name)
+VALUES ('Đơn hàng mới'),
+       ('Đơn hàng đã được xác nhận'),
+       ('Đơn hàng đang được chuẩn bị'),
+       ('Đơn hàng đã sẵn sàng'),
+       ('Đơn hàng đang được giao'),
+       ('Đơn hàng đã giao thành công'),
+       ('Khuyến mãi mới'),
+       ('Thông báo hệ thống'),
+       ('Nhắc nhở thanh toán'),
+       ('Đánh giá đơn hàng');
+
+
+
+INSERT INTO notification (notification_name, notification_content, notification_ref_link, notification_is_seen,
+                          notification_created_at, receiver_id, sender_id, notification_type_id)
+VALUES ('Đơn hàng #1 đã được tạo', 'Đơn hàng của bạn đã được tạo thành công. Vui lòng thanh toán trong vòng 15 phút.',
+        '/orders/1', false, DATE_SUB(NOW(), INTERVAL 2 DAY), 23, 1, 1),
+       ('Đơn hàng #1 đã được xác nhận', 'Đơn hàng của bạn đã được xác nhận và đang được chuẩn bị.', '/orders/1', false,
+        DATE_SUB(NOW(), INTERVAL 1 DAY), 23, 3, 2),
+       ('Khuyến mãi cuối tuần', 'Giảm 20% tất cả các món vào thứ 2 hàng tuần. Áp dụng cho đơn hàng trên 100,000đ.',
+        '/promotions', false, DATE_SUB(NOW(), INTERVAL 3 DAY), 24, 1, 7),
+       ('Nhắc nhở đánh giá', 'Bạn có muốn đánh giá đơn hàng #2 không?', '/orders/2/feedback', false,
+        DATE_SUB(NOW(), INTERVAL 1 DAY), 25, 1, 10),
+       ('Đơn hàng đã giao thành công', 'Đơn hàng #3 của bạn đã được giao thành công. Cảm ơn bạn đã sử dụng dịch vụ!',
+        '/orders/3', true, DATE_SUB(NOW(), INTERVAL 5 DAY), 26, 20, 6);
+
+
+
+INSERT INTO blog_type (blog_type_name)
+VALUES ('Tin tức'),
+       ('Khuyến mãi'),
+       ('Công thức nấu ăn'),
+       ('Giới thiệu món mới'),
+       ('Sự kiện'),
+       ('Hướng dẫn');
+
+
+INSERT INTO blog (blog_title, blog_content, blog_image, blog_status, blog_type_blog_type_id, author_id)
+VALUES ('Giới thiệu món Cơm Tấm Sườn Nướng đặc biệt',
+        'Cơm tấm sườn nướng là món ăn đặc trưng của miền Nam Việt Nam. Với sườn heo được ướp gia vị đậm đà và nướng trên than hoa, món ăn này mang đến hương vị khó quên. Kèm theo là bì bún giòn tan, chả trứng thơm ngon và nước mắm pha chua ngọt đậm đà.',
+        'blog-com-tam-suon.jpg', true, 4, 1),
+       ('Khuyến mãi đặc biệt tháng 12 - Giảm 30% cho đơn hàng trên 200k',
+        'Nhân dịp cuối năm, nhà hàng áp dụng chương trình khuyến mãi đặc biệt: Giảm 30% cho tất cả đơn hàng trên 200,000đ. Chương trình áp dụng từ ngày 1/12 đến hết ngày 31/12/2025.',
+        'blog-khuyen-mai-thang-12.jpg', true, 2, 1),
+       ('Công thức làm nước mắm pha chuẩn vị miền Nam',
+        'Nước mắm pha là linh hồn của món cơm tấm. Công thức chuẩn: 3 muỗng nước mắm, 2 muỗng đường, 1 muỗng nước cốt chanh, tỏi ớt băm nhuyễn. Khuấy đều và thêm chút nước lọc để có độ loãng vừa phải.',
+        'blog-nuoc-mam-pha.jpg', true, 3, 2),
+       ('Món mới: Cơm Tấm Nem Nướng Nha Trang',
+        'Chúng tôi tự hào giới thiệu món mới: Cơm Tấm Nem Nướng Nha Trang. Nem được làm từ thịt heo tươi, nướng trên than hoa, có vị ngọt đặc trưng của Nha Trang.',
+        'blog-nem-nuong.jpg', true, 4, 1),
+       ('Sự kiện: Ngày hội Cơm Tấm miền Nam',
+        'Tham gia ngày hội Cơm Tấm miền Nam vào cuối tuần này. Nhiều hoạt động thú vị và quà tặng hấp dẫn đang chờ đón bạn!',
+        'blog-ngay-hoi.jpg', true, 5, 2);
+
+
+
+INSERT INTO chat_room (name, created_at)
+VALUES ('Hỗ trợ khách hàng', DATE_SUB(NOW(), INTERVAL 30 DAY)),
+       ('Nhóm quản lý', DATE_SUB(NOW(), INTERVAL 20 DAY)),
+       ('Nhóm nhân viên bếp', DATE_SUB(NOW(), INTERVAL 15 DAY)),
+       ('Nhóm shipper', DATE_SUB(NOW(), INTERVAL 10 DAY));
+
+INSERT INTO chat_room_user (chat_room_id, user_id)
+VALUES (1, 1),
+       (1, 23),
+       (1, 24),
+       (1, 25),
+       (2, 1),
+       (2, 2),
+       (2, 3),
+       (2, 4),
+       (3, 5),
+       (3, 7),
+       (3, 9),
+       (3, 11),
+       (3, 13),
+       (4, 20),
+       (4, 21),
+       (4, 22);
+
+
+
+INSERT INTO message (content, send_time, chat_room_id, sender_id)
+VALUES ('Xin chào, tôi muốn hỏi về giờ mở cửa của nhà hàng?', DATE_SUB(NOW(), INTERVAL 2 DAY), 1, 23),
+       ('Chào bạn! Nhà hàng mở cửa từ 6h sáng đến 10h tối hàng ngày.', DATE_SUB(NOW(), INTERVAL 2 DAY), 1, 1),
+       ('Cảm ơn bạn nhiều!', DATE_SUB(NOW(), INTERVAL 2 DAY), 1, 23),
+       ('Họp định kỳ tháng này sẽ diễn ra vào thứ 6 tuần sau', DATE_SUB(NOW(), INTERVAL 1 DAY), 2, 1),
+       ('Đã nhận được thông báo, cảm ơn admin!', DATE_SUB(NOW(), INTERVAL 1 DAY), 2, 3),
+       ('Nhớ chuẩn bị đủ nguyên liệu cho ca tối nhé các bạn', DATE_SUB(NOW(), INTERVAL 5 HOUR), 3, 5),
+       ('Đã kiểm tra kho, đủ nguyên liệu rồi anh', DATE_SUB(NOW(), INTERVAL 4 HOUR), 3, 7);
+
+
+
+INSERT INTO black_list (address, phone_number, branch_id)
+VALUES ('999 Đường giả mạo, Q1, TP.HCM', '0999999999', 1),
+       ('888 Địa chỉ không hợp lệ, Q3, TP.HCM', '0888888888', 2),
+       ('777 Số điện thoại spam, Q5, TP.HCM', '0777777777', 4);
+
+
+
+INSERT INTO contract (contract_start_date, contract_end_date, contract_status, contract_ref_link, contract_term,
+                      branch_id, user_id)
+VALUES ('2024-01-01', '2025-12-31', true, '/contracts/contract_manager1.pdf',
+        'Hợp đồng lao động không xác định thời hạn', 1, 3),
+       ('2024-01-01', '2025-12-31', true, '/contracts/contract_manager2.pdf',
+        'Hợp đồng lao động không xác định thời hạn', 4, 4),
+       ('2024-02-01', '2025-01-31', true, '/contracts/contract_staff1.pdf', 'Hợp đồng lao động có thời hạn 1 năm', 1,
+        5),
+       ('2024-02-01', '2025-01-31', true, '/contracts/contract_staff2.pdf', 'Hợp đồng lao động có thời hạn 1 năm', 1,
+        6),
+       ('2024-02-01', '2025-01-31', true, '/contracts/contract_staff3.pdf', 'Hợp đồng lao động có thời hạn 1 năm', 4,
+        8),
+       ('2024-03-01', '2025-02-28', true, '/contracts/contract_waiter1.pdf', 'Hợp đồng lao động có thời hạn 1 năm', 1,
+        15),
+       ('2024-03-01', '2025-02-28', true, '/contracts/contract_waiter2.pdf', 'Hợp đồng lao động có thời hạn 1 năm', 1,
+        16),
+       ('2024-04-01', '2025-03-31', true, '/contracts/contract_shipper1.pdf', 'Hợp đồng lao động có thời hạn 1 năm', 1,
+        20),
+       ('2024-04-01', '2025-03-31', true, '/contracts/contract_shipper2.pdf', 'Hợp đồng lao động có thời hạn 1 năm', 1,
+        21);
+
+
+
+INSERT INTO utensils_type (utensils_type_name)
+VALUES ('Nồi'),
+       ('Chảo'),
+       ('Dao'),
+       ('Thớt'),
+       ('Kẹp'),
+       ('Muỗng'),
+       ('Đũa'),
+       ('Bát đĩa'),
+       ('Máy móc');
+
+
+
+INSERT INTO cooking_utensils (cooking_utensils_name, cooking_utensils_quantity, utensils_type_id, warehouse_id)
+VALUES ('Nồi lớn 50L', 5, 1, 1),
+       ('Nồi vừa 30L', 8, 1, 1),
+       ('Chảo lớn', 10, 2, 1),
+       ('Chảo nhỏ', 15, 2, 1),
+       ('Dao thái thịt', 12, 3, 1),
+       ('Dao thái rau', 15, 3, 1),
+       ('Thớt lớn', 10, 4, 1),
+       ('Thớt nhỏ', 20, 4, 1),
+       ('Kẹp nướng', 15, 5, 1),
+       ('Muỗng lớn', 20, 6, 1),
+       ('Đũa cả', 30, 7, 1),
+       ('Bát đĩa sứ', 200, 8, 1),
+       ('Máy xay thịt', 2, 9, 1),
+       ('Lò nướng', 3, 9, 1),
+       ('Nồi lớn 50L', 4, 1, 2),
+       ('Nồi vừa 30L', 6, 1, 2),
+       ('Chảo lớn', 8, 2, 2),
+       ('Chảo nhỏ', 12, 2, 2),
+       ('Dao thái thịt', 10, 3, 2),
+       ('Dao thái rau', 12, 3, 2),
+       ('Thớt lớn', 8, 4, 2),
+       ('Thớt nhỏ', 15, 4, 2),
+       ('Kẹp nướng', 12, 5, 2),
+       ('Muỗng lớn', 15, 6, 2),
+       ('Đũa cả', 25, 7, 2),
+       ('Bát đĩa sứ', 150, 8, 2),
+       ('Máy xay thịt', 1, 9, 2),
+       ('Lò nướng', 2, 9, 2),
+       ('Nồi lớn 50L', 3, 1, 3),
+       ('Nồi vừa 30L', 5, 1, 3),
+       ('Chảo lớn', 7, 2, 3),
+       ('Chảo nhỏ', 10, 2, 3),
+       ('Dao thái thịt', 8, 3, 3),
+       ('Dao thái rau', 10, 3, 3),
+       ('Thớt lớn', 6, 4, 3),
+       ('Thớt nhỏ', 12, 4, 3),
+       ('Kẹp nướng', 10, 5, 3),
+       ('Muỗng lớn', 12, 6, 3),
+       ('Đũa cả', 20, 7, 3),
+       ('Bát đĩa sứ', 120, 8, 3),
+       ('Máy xay thịt', 1, 9, 3),
+       ('Lò nướng', 2, 9, 3),
+       ('Nồi lớn 50L', 4, 1, 4),
+       ('Nồi vừa 30L', 7, 1, 4),
+       ('Chảo lớn', 9, 2, 4),
+       ('Chảo nhỏ', 13, 2, 4),
+       ('Dao thái thịt', 11, 3, 4),
+       ('Dao thái rau', 13, 3, 4),
+       ('Thớt lớn', 9, 4, 4),
+       ('Thớt nhỏ', 18, 4, 4),
+       ('Kẹp nướng', 13, 5, 4),
+       ('Muỗng lớn', 18, 6, 4),
+       ('Đũa cả', 28, 7, 4),
+       ('Bát đĩa sứ', 180, 8, 4),
+       ('Máy xay thịt', 2, 9, 4),
+       ('Lò nướng', 2, 9, 4);
+
+
+
+INSERT INTO `order` (order_sub_total, order_promotion_code, order_discount_value, order_discount_percent, order_amount,
+                     order_shiping_free, order_delivery_at, order_note, order_payment_code, order_address, order_phone,
+                     order_point_used, order_point_earned, order_created_at, is_pick_up, payment_time, is_table,
+                     customer_name, customer_email, customer_id, branch_id, status_id, payment_method_id)
+VALUES (150000, NULL, 0, 0, 170000, 20000, DATE_ADD(NOW(), INTERVAL 1 DAY), 'Giao vào buổi trưa', NULL,
+        '123 Nguyễn Huệ, Q1, TP.HCM', '0910000001', 0, 150, DATE_SUB(NOW(), INTERVAL 5 DAY), false,
+        DATE_SUB(NOW(), INTERVAL 5 DAY), false, 'Trần Văn Anh', 'anhtran@gmail.com', 23, 1, 7, 2),
+       (200000, 'COMBO_GIA_DINH', 30000, 0, 190000, 20000, DATE_ADD(NOW(), INTERVAL 1 DAY), 'Giao trước 12h', NULL,
+        '456 Lê Lợi, Q1, TP.HCM', '0910000002', 0, 200, DATE_SUB(NOW(), INTERVAL 3 DAY), false,
+        DATE_SUB(NOW(), INTERVAL 3 DAY), false, 'Nguyễn Thị Bình', 'binhnguyen@gmail.com', 24, 1, 7, 2),
+       (100000, NULL, 0, 20, 100000, 0, DATE_ADD(NOW(), INTERVAL 2 DAY), NULL, NULL, '789 Lý Tự Trọng, Q3, TP.HCM',
+        '0910000003', 0, 100, DATE_SUB(NOW(), INTERVAL 1 DAY), false, NULL, false, 'Lê Văn Cường', 'cuongle@gmail.com',
+        25, 2, 1, NULL);
+
+
+
+INSERT INTO `order` (order_sub_total, order_promotion_code, order_discount_value, order_discount_percent, order_amount,
+                     order_shiping_free, order_delivery_at, order_note, order_payment_code, order_address, order_phone,
+                     order_point_used, order_point_earned, order_created_at, is_pick_up, payment_time, is_table,
+                     customer_name, customer_email, customer_id, branch_id, status_id, payment_method_id,
+                     dining_table_id, waiter_id)
+VALUES (120000, NULL, 0, 0, 120000, 0, NULL, 'Không cay', NULL, NULL, '0910000004', 0, 120,
+        DATE_SUB(NOW(), INTERVAL 2 HOUR), false, NULL, true, 'Phạm Thị Dung', 'dungpham@gmail.com', 26, 4, 4, NULL, 1,
+        17),
+       (180000, NULL, 0, 0, 180000, 0, NULL, 'Thêm nước mắm', NULL, NULL, '0910000005', 0, 180,
+        DATE_SUB(NOW(), INTERVAL 1 HOUR), false, NULL, true, 'Hoàng Văn Em', 'emhoang@gmail.com', 27, 4, 3, NULL, 2,
+        17);
+
+
+
+INSERT INTO `order` (order_sub_total, order_promotion_code, order_discount_value, order_discount_percent, order_amount,
+                     order_shiping_free, order_delivery_at, order_note, order_payment_code, order_address, order_phone,
+                     order_point_used, order_point_earned, order_created_at, is_pick_up, payment_time, pickup_time,
+                     is_table, customer_name, customer_email, customer_id, branch_id, status_id, payment_method_id)
+VALUES (80000, NULL, 0, 0, 80000, 0, NULL, 'Lấy lúc 18h', NULL, NULL, '0910000006', 0, 80,
+        DATE_SUB(NOW(), INTERVAL 1 DAY), true, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 1 DAY), false,
+        'Võ Thị Phượng', 'phuongvo@gmail.com', 28, 4, 7, 1);
+
+
+
+INSERT INTO order_item (order_id, product_id, quantity, price, note, is_confirm, confirm_at)
+VALUES (1, 1, 2, 50000, NULL, true, DATE_SUB(NOW(), INTERVAL 5 DAY)),
+       (1, 9, 2, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 5 DAY)),
+       (1, 16, 1, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 5 DAY)),
+       (2, 6, 2, 65000, NULL, true, DATE_SUB(NOW(), INTERVAL 3 DAY)),
+       (2, 9, 2, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 3 DAY)),
+       (3, 3, 1, 55000, NULL, false, NULL),
+       (3, 4, 1, 50000, NULL, false, NULL);
+
+
+
+INSERT INTO order_item (order_id, product_id, quantity, price, note, is_confirm, confirm_at, is_delivered)
+VALUES (4, 1, 2, 50000, 'Không cay', true, DATE_SUB(NOW(), INTERVAL 2 HOUR), true),
+       (4, 9, 2, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 2 HOUR), true),
+       (5, 6, 2, 65000, 'Thêm nước mắm', true, DATE_SUB(NOW(), INTERVAL 1 HOUR), false),
+       (5, 10, 2, 20000, NULL, true, DATE_SUB(NOW(), INTERVAL 1 HOUR), false);
+
+
+
+INSERT INTO order_item (order_id, product_id, quantity, price, note, is_confirm, confirm_at)
+VALUES (6, 1, 1, 50000, NULL, true, DATE_SUB(NOW(), INTERVAL 1 DAY)),
+       (6, 9, 2, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 1 DAY));
