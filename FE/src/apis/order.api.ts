@@ -25,43 +25,27 @@ export interface OrderProductResponse {
   feedback?: string;
 }
 
-export interface Order {
-  customerId: number;
-  customerName: string;
-  customerEmail?: string;
-  promotionCode: string;
-  note: string;
-  address: string;
-  phoneNumber: string;
-  branchId: number;
-  pointUsed: number;
-  pointEarned: number;
-  paymentMethodId: number;
-  longitude: string;
-  latitude: string;
-  orderItems: OrderProduct[];
-  pickUp: boolean;
-  pickupTime: string;
+export type OrderMode = 'PICKUP' | 'DELIVERY';
+
+export interface CreateOrderItem {
+  productId: number;
+  comboId?: number | null;
+  quantity: number;
+  price: number;
+  note?: string;
 }
 
-export const initialOrder: Order = {
-  customerId: 0,
-  customerName: '',
-  customerEmail: '',
-  promotionCode: '',
-  note: '',
-  address: '',
-  phoneNumber: '',
-  branchId: 1,
-  pointUsed: 0,
-  pointEarned: 0,
-  paymentMethodId: 0,
-  longitude: '',
-  latitude: '',
-  orderItems: [],
-  pickUp: true,
-  pickupTime: '',
-};
+export interface CreateOrderPayload {
+  customerId?: number;
+  promotionCode?: string;
+  discountValue?: number;
+  shippingAddress?: string;
+  shippingPhoneNumber?: string;
+  orderItemList: CreateOrderItem[];
+  mode: OrderMode | string;
+  diningTableId?: number | null;
+  branchId: number;
+}
 
 export interface OrderResponse {
   id: number;
@@ -82,8 +66,8 @@ export interface OrderResponse {
 
 export const GET_CUSTOMER_ORDER_QUERY_KEY = 'GET_CUSTOMER_ORDER_QUERY_KEY';
 
-export const placeOrder = async (order: Order) => {
-  const { data } = await http.post('/orders/', order);
+export const createOrder = async (payload: CreateOrderPayload) => {
+  const { data } = await http.post('/orders', payload);
   return data;
 };
 

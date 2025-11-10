@@ -13,17 +13,27 @@ type BranchListProps = {
     branches: Branch[];
     selectedBranch: Branch | null;
     setSelectedBranch: Dispatch<SetStateAction<Branch | null>>;
+    resetAndRefetch: () => void;
 };
 
-const BranchList = ({ branches, selectedBranch, setSelectedBranch }: BranchListProps) => {
+const BranchList = ({ branches, selectedBranch, setSelectedBranch, resetAndRefetch }: BranchListProps) => {
+    const handleBranchClick = (branch: Branch) => {
+        setSelectedBranch(branch);
+        setTimeout(() => {
+            resetAndRefetch();
+        }, 0);
+    };
+
     return (
         <div className='space-y-3 max-h-[200px] overflow-y-auto'>
             {branches.map((branch) => (
                 <Button
                     key={branch.branchId}
                     variant="ghost"
-                    onClick={() => setSelectedBranch(branch)}
-                    className={`w-full justify-start p-3 h-auto ${selectedBranch?.branchId === branch.branchId ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-primary/10'}`}
+                    onClick={() => handleBranchClick(branch)}
+                    className={`w-full justify-start p-3 h-auto 
+                        ${selectedBranch?.branchId === branch.branchId ?
+                            'bg-primary/10 text-primary font-medium' : 'hover:bg-primary/10'}`}
                 >
                     <div className="text-left">
                         <div className="font-medium text-sm">{branch.branchName}</div>

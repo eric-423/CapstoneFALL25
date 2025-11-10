@@ -29,7 +29,9 @@ export default function Home() {
     refetchOnWindowFocus: false,
   });
 
-  // Suppress unused variable warning - branches data reserved for future features
+
+
+
   void branches;
 
   return (

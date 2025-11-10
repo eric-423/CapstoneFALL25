@@ -1,6 +1,6 @@
 'use client';
 
-import { placeOrder } from '@/apis/order.api';
+import { createOrder, CreateOrderPayload } from '@/apis/order.api';
 import { GET_ME_QUERY_KEY, getMe } from '@/apis/user.api';
 import ControlledDateTimePicker from '@/components/common/controlled-date-time-picker';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
@@ -16,18 +16,32 @@ import { useCart } from '@/utils/contexts/cart/CartContext';
 import { useAuth } from '@/utils/hooks';
 import useScrollTop from '@/utils/hooks/useScrollTop';
 import { cn } from '@/utils/lib/utils';
-import { initialOrder, Order } from '@/apis/order.api';
+import configs from '@/utils/configs';
 import { setCookie } from '@/utils/cookies';
 import { getReceiveTime } from '@/utils/getReceiveTime';
 import { STORE_INFO } from '@/utils/mockupData';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { Clock, CreditCard, MapPin, QrCode, ShieldCheck, User } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import {
+    Clock,
+    CreditCard,
+    Loader2,
+    MapPin,
+    Phone,
+    QrCode,
+    ShieldCheck,
+    ShoppingCart,
+    Store,
+    Truck,
+    User,
+    Wallet,
+} from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { z } from 'zod';
+import { useRouter } from 'next/navigation';
 
 import CheckoutSection from './components/checkout-section';
 import { CheckoutFormData, checkoutSchema } from './schema';
@@ -36,6 +50,7 @@ export default function CheckoutPage() {
     useScrollTop();
     const { items, getTotalPrice } = useCart();
     const { user } = useAuth();
+    const router = useRouter();
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [timeRestriction, setTimeRestriction] = useState<number[]>([0, 15, 30]);
@@ -48,15 +63,22 @@ export default function CheckoutPage() {
         refetchOnWindowFocus: false,
     });
 
-    const { mutate: placeOrderMutate, isPending: isPlacingOrderPending } = useMutation({
-        mutationFn: (order: Order) => placeOrder(order),
-        onSuccess: (data) => {
-            toast.success('Đặt hàng thành công! Chuyển hướng đến thanh toán...');
-            setCookie('is_paying', 'true');
+    const { mutate: createOrderMutate, isPending: isPlacingOrderPending } = useMutation({
+        mutationFn: (payload: CreateOrderPayload) => createOrder(payload),
+        onSuccess: (response) => {
             setIsSubmitting(false);
-            setTimeout(() => {
-                window.location.href = data.data.payment_url;
-            }, 1000);
+
+            const paymentUrl = response?.data?.payment_url || response?.payment_url;
+            if (paymentUrl) {
+                toast.success('Đặt hàng thành công! Chuyển hướng đến thanh toán...');
+                setCookie('is_paying', 'true');
+                setTimeout(() => {
+                    window.location.href = paymentUrl;
+                }, 1000);
+                return;
+            }
+
+            toast.success('Đặt hàng thành công!');
         },
         onError: () => {
             toast.error('Không thể đặt hàng. Vui lòng thử lại sau.');
@@ -64,38 +86,77 @@ export default function CheckoutPage() {
         },
     });
 
+    const getDefaultReceiveTime = useCallback(() => {
+        const nextTime = getReceiveTime();
+        return z.date().safeParse(nextTime).success ? nextTime : new Date();
+    }, []);
+
     const form = useForm<CheckoutFormData>({
         resolver: zodResolver(checkoutSchema),
         mode: 'onChange',
         defaultValues: {
+            fulfillmentMethod: 'pickup',
             customerName: '',
             customerPhone: user?.phoneNumber,
             customerEmail: undefined,
-            receiveTime: z.date().safeParse(getReceiveTime()).success ? getReceiveTime() : new Date(),
+            receiveTime: getDefaultReceiveTime(),
+            deliveryAddress: '',
             paymentMethod: 'qr',
+            note: '',
         },
     });
 
     useEffect(() => {
         if (userData) {
+            const currentFulfillment = form.getValues('fulfillmentMethod') || 'pickup';
+            const currentPaymentMethod = form.getValues('paymentMethod') || 'qr';
+            const currentNote = form.getValues('note') || '';
             form.reset({
-                customerName: userData.fullName || undefined,
+                fulfillmentMethod: currentFulfillment,
+                customerName: userData.fullName || '',
                 customerPhone: userData.phone || '',
                 customerEmail: userData.email || undefined,
-                receiveTime: z.date().safeParse(getReceiveTime()).success ? getReceiveTime() : new Date(),
-                paymentMethod: 'qr',
+                receiveTime: currentFulfillment === 'pickup' ? getDefaultReceiveTime() : undefined,
+                deliveryAddress: userData.address || '',
+                paymentMethod: currentPaymentMethod,
+                note: currentNote,
             });
         }
-    }, [userData, form]);
+    }, [userData, form, getDefaultReceiveTime]);
+
+    const fulfillmentMethod = form.watch('fulfillmentMethod');
+
+
+    const deliveryAddressValue = form.watch('deliveryAddress');
+
+    useEffect(() => {
+        if (fulfillmentMethod === 'pickup') {
+            const currentReceiveTime = form.getValues('receiveTime');
+            if (!currentReceiveTime) {
+                form.setValue('receiveTime', getDefaultReceiveTime(), { shouldValidate: true });
+            }
+            form.clearErrors('deliveryAddress');
+        } else {
+            if (form.getValues('receiveTime') !== undefined) {
+                form.setValue('receiveTime', undefined, { shouldValidate: true });
+            } else {
+                form.clearErrors('receiveTime');
+            }
+        }
+    }, [fulfillmentMethod, form, getDefaultReceiveTime]);
 
     function handleDateSelect(date: Date | undefined) {
-        if (date) {
-            form.setValue('receiveTime', new Date(date.setHours(12, 0)));
-        }
+        if (fulfillmentMethod !== 'pickup' || !date) return;
+
+        const updatedDate = new Date(date);
+        updatedDate.setHours(12, 0, 0, 0);
+        form.setValue('receiveTime', updatedDate, { shouldValidate: true });
     }
 
     function handleTimeChange(type: 'hour' | 'minute', value: string) {
-        const currentDate = form.getValues('receiveTime') || new Date();
+        if (fulfillmentMethod !== 'pickup') return;
+
+        const currentDate = form.getValues('receiveTime') || getDefaultReceiveTime();
         const newDate = new Date(currentDate);
 
         if (type === 'hour') {
@@ -111,7 +172,7 @@ export default function CheckoutPage() {
             newDate.setMinutes(minute);
         }
 
-        form.setValue('receiveTime', newDate);
+        form.setValue('receiveTime', newDate, { shouldValidate: true });
     }
 
     const onSubmit = async (data: CheckoutFormData) => {
@@ -119,51 +180,79 @@ export default function CheckoutPage() {
         setIsSubmitting(true);
 
         try {
-            const orderData: Order = {
-                ...initialOrder,
-                customerId: user?.id || 0,
-                customerName: data.customerName,
-                customerEmail: data.customerEmail || '',
-                phoneNumber: data.customerPhone,
-                paymentMethodId: 2,
-                note: data.note || '',
-                pickupTime: data.receiveTime.toISOString(),
-                orderItems: items.map((item) => ({
+            const isPickup = data.fulfillmentMethod === 'pickup';
+            const shippingAddress = isPickup ? STORE_INFO.address : (data.deliveryAddress?.trim() || '');
+            const payload: CreateOrderPayload = {
+                customerId: user?.id,
+                promotionCode: '',
+                discountValue: 0,
+                shippingAddress,
+                shippingPhoneNumber: data.customerPhone,
+                branchId: 1,
+                diningTableId: null,
+                mode: isPickup ? 'PICKUP' : 'DELIVERY',
+                orderItemList: items.map((item) => ({
                     productId: item.productId,
+                    comboId: null,
                     quantity: item.quantity,
+                    price: item.productPrice,
                     note: item.note || '',
                 })),
             };
 
-            placeOrderMutate(orderData);
+            createOrderMutate(payload);
         } catch (error) {
             console.error('Order submission error:', error);
             toast.error('Không thể đặt hàng. Vui lòng thử lại sau.');
         }
     };
 
+    const isOrderSubmitting = isSubmitting || isPlacingOrderPending;
+    const isOrderButtonDisabled = useMemo(() => {
+        return items.length === 0 || isOrderSubmitting || !form.formState.isValid;
+    }, [form.formState.isValid, isOrderSubmitting, items.length]);
+
+    if (!items.length) {
+        return (
+            <div className='min-h-screen flex flex-col items-center justify-center gap-4 px-4 text-center'>
+                <div className='flex items-center justify-center h-16 w-16 rounded-full bg-primary/10 text-primary'>
+                    <ShoppingCart className='h-8 w-8' />
+                </div>
+                <h2 className='text-2xl font-semibold'>Giỏ hàng của bạn đang trống</h2>
+                <p className='text-muted-foreground max-w-md'>
+                    Vui lòng quay lại thực đơn để chọn món trước khi tiếp tục thanh toán.
+                </p>
+                <Button onClick={() => router.push(configs.routes.menu)} className='bg-primary text-white hover:bg-primary/90'>
+                    Quay lại thực đơn
+                </Button>
+            </div>
+        );
+    }
+
+
+
+    
     return (
         <>
-            {(isSubmitting || isLoadingUserData) && (
+            {(isOrderSubmitting || isLoadingUserData) && (
                 <div className='fixed inset-0 bg-foreground/30 flex items-center justify-center z-50'>
                     <div className='flex flex-col items-center justify-center space-y-4'>
                         <LoadingSpinner />
                     </div>
                 </div>
             )}
-            <div className={cn('min-h-screen py-8 px-4 md:px-30', isSubmitting && 'opacity-50 pointer-events-none')}>
+            <div className={cn('min-h-screen py-8 px-4 md:px-30', isOrderSubmitting && 'opacity-50 pointer-events-none')}>
                 <div className='container mx-auto max-w-6xl'>
                     <h1 className='text-3xl font-bold text-center mb-8'>Xác nhận đơn hàng</h1>
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
                             {/* Left Column - Customer Information */}
                             <div className='lg:col-span-2 space-y-6'>
-                                {/* Customer Information */}
                                 <Card>
-                                    <CardContent className='space-y-4'>
+                                    <CardContent className='space-y-6'>
                                         <CheckoutSection
                                             title='Thông tin khách hàng'
-                                            className='mb-4'
+                                            className='mb-2'
                                             icon={<User className='h-5 w-5 text-primary' />}
                                         >
                                             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
@@ -217,49 +306,132 @@ export default function CheckoutPage() {
                                                     </FormItem>
                                                 )}
                                             ></FormField>
-                                            <Separator className='my-8 bg-foreground/20' />
                                         </CheckoutSection>
 
+                                        <Separator className='my-6 bg-foreground/20' />
+
                                         <CheckoutSection
-                                            title='Thời gian nhận hàng'
-                                            className='mb-4'
-                                            icon={<Clock className='h-5 w-5 text-primary' />}
+                                            title='Hình thức nhận hàng'
+                                            className='mb-2'
+                                            icon={<Store className='h-5 w-5 text-primary' />}
                                         >
                                             <FormField
                                                 control={form.control}
-                                                name='receiveTime'
+                                                name='fulfillmentMethod'
                                                 render={({ field }) => (
-                                                    <FormItem className='flex flex-col'>
-                                                        <div className='flex items-center px-4'>
-                                                            <FormLabel htmlFor='scheduled' className=' mr-2'>
-                                                                Hẹn lịch nhận lúc
-                                                            </FormLabel>
-                                                            <div className='flex'>
-                                                                <ControlledDateTimePicker
-                                                                    field={field.value}
-                                                                    timeRestriction={timeRestriction}
-                                                                    handleDateSelect={handleDateSelect}
-                                                                    handleTimeChange={handleTimeChange}
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                        <div className='flex items-start text-sm text-medium ml-3 mt-2'>
-                                                            <MapPin className='h-4 w-4 mr-2 mt-0.5 flex-shrink-0' />
-                                                            <span className='font-medium'>
-                                                                {STORE_INFO.name} (gần Trà sữa BeTea)
-                                                                <p className='font-normal'>Cổng trước {STORE_INFO.address}</p>
-                                                            </span>
-                                                        </div>
+                                                    <FormItem className='space-y-3'>
+                                                        <FormControl>
+                                                            <RadioGroup value={field.value} onValueChange={field.onChange} className='space-y-2'>
+                                                                <div className='flex items-start space-x-3 p-3 rounded-lg border border-gray-200 bg-white transition-colors'>
+                                                                    <RadioGroupItem value='pickup' id='pickup' className='mt-1.5' />
+                                                                    <Label htmlFor='pickup' className='flex-1 cursor-pointer'>
+                                                                        <div className='flex items-center gap-3'>
+                                                                            <Store className='h-5 w-5 text-primary' />
+                                                                            <div>
+                                                                                <p className='font-medium'>Nhận tại quán</p>
+                                                                                <p className='text-sm text-muted-foreground'>Đến trực tiếp {STORE_INFO.name} để nhận món.</p>
+                                                                            </div>
+                                                                        </div>
+                                                                    </Label>
+                                                                </div>
+                                                                <div className='flex items-start space-x-3 p-3 rounded-lg border border-gray-200 bg-white transition-colors'>
+                                                                    <RadioGroupItem value='delivery' id='delivery' className='mt-1.5' />
+                                                                    <Label htmlFor='delivery' className='flex-1 cursor-pointer'>
+                                                                        <div className='flex items-center gap-3'>
+                                                                            <Truck className='h-5 w-5 text-primary' />
+                                                                            <div>
+                                                                                <p className='font-medium'>Giao tận nơi</p>
+                                                                                <p className='text-sm text-muted-foreground'>Ship đến địa chỉ bạn cung cấp.</p>
+                                                                            </div>
+                                                                        </div>
+                                                                    </Label>
+                                                                </div>
+                                                            </RadioGroup>
+                                                        </FormControl>
                                                     </FormItem>
                                                 )}
-                                            />
-
-                                            <Separator className='my-8 bg-foreground/20' />
+                                            ></FormField>
                                         </CheckoutSection>
+
+                                        <Separator className='my-6 bg-foreground/20' />
+
+                                        {fulfillmentMethod === 'pickup' ? (
+                                            <CheckoutSection
+                                                title='Thời gian nhận món'
+                                                className='mb-2'
+                                                icon={<Clock className='h-5 w-5 text-primary' />}
+                                            >
+                                                <FormField
+                                                    control={form.control}
+                                                    name='receiveTime'
+                                                    render={({ field }) => (
+                                                        <FormItem className='flex flex-col'>
+                                                            <div className='flex items-center px-4'>
+                                                                <FormLabel htmlFor='scheduled' className='mr-2'>
+                                                                    Hẹn lịch nhận lúc
+                                                                </FormLabel>
+                                                                <div className='flex'>
+                                                                    <ControlledDateTimePicker
+                                                                        field={field.value}
+                                                                        timeRestriction={timeRestriction}
+                                                                        handleDateSelect={handleDateSelect}
+                                                                        handleTimeChange={handleTimeChange}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                            <div className='flex items-start text-sm text-medium ml-3 mt-2'>
+                                                                <MapPin className='h-4 w-4 mr-2 mt-0.5 flex-shrink-0' />
+                                                                <span className='font-medium'>
+                                                                    {STORE_INFO.name} (gần Trà sữa BeTea)
+                                                                    <p className='font-normal'>Cổng trước {STORE_INFO.address}</p>
+                                                                </span>
+                                                            </div>
+                                                            {form.getFieldState('receiveTime').error && (
+                                                                <p className='text-red-500 text-sm ml-3 mt-2'>
+                                                                    {form.getFieldState('receiveTime').error?.message}
+                                                                </p>
+                                                            )}
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                            </CheckoutSection>
+                                        ) : (
+                                            <CheckoutSection
+                                                title='Địa chỉ giao hàng'
+                                                className='mb-2'
+                                                icon={<Truck className='h-5 w-5 text-primary' />}
+                                            >
+                                                <FormField
+                                                    control={form.control}
+                                                    name='deliveryAddress'
+                                                    render={({ field }) => (
+                                                        <FormItem className='space-y-2'>
+                                                            <FormLabel htmlFor='deliveryAddress'>Địa chỉ giao hàng</FormLabel>
+                                                            <Textarea
+                                                                id='deliveryAddress'
+                                                                placeholder='Ví dụ: Số nhà, đường, phường/xã, quận/huyện, thành phố'
+                                                                rows={3}
+                                                                {...field}
+                                                            />
+                                                            {form.getFieldState(field.name).error && (
+                                                                <p className='text-red-500 text-sm'>
+                                                                    {form.getFieldState(field.name).error?.message}
+                                                                </p>
+                                                            )}
+                                                        </FormItem>
+                                                    )}
+                                                ></FormField>
+                                                <p className='text-sm text-muted-foreground'>
+                                                    Nhân viên sẽ liên hệ để xác nhận và thông báo phí vận chuyển (nếu có).
+                                                </p>
+                                            </CheckoutSection>
+                                        )}
+
+                                        <Separator className='my-6 bg-foreground/20' />
 
                                         <CheckoutSection
                                             title='Phương thức thanh toán'
-                                            className='mb-4'
+                                            className='mb-2'
                                             icon={<CreditCard className='h-5 w-5 text-primary' />}
                                         >
                                             <FormField
@@ -269,8 +441,8 @@ export default function CheckoutPage() {
                                                     <FormItem className='space-y-3'>
                                                         <FormControl>
                                                             <RadioGroup
+                                                                value={field.value}
                                                                 onValueChange={field.onChange}
-                                                                defaultValue={field.value}
                                                                 className='space-y-2'
                                                             >
                                                                 <div className='flex items-center space-x-3 p-3 rounded-lg border border-gray-200 bg-white'>
@@ -280,6 +452,15 @@ export default function CheckoutPage() {
                                                                             <QrCode className='h-5 w-5 text-white' />
                                                                         </div>
                                                                         <span>Quét mã QR</span>
+                                                                    </Label>
+                                                                </div>
+                                                                <div className='flex items-center space-x-3 p-3 rounded-lg border border-gray-200 bg-white'>
+                                                                    <RadioGroupItem value='cash' id='cash' />
+                                                                    <Label htmlFor='cash' className='flex items-center cursor-pointer flex-1'>
+                                                                        <div className='h-8 w-8 bg-primary/10 rounded-md flex items-center justify-center mr-3 text-primary'>
+                                                                            <Wallet className='h-5 w-5' />
+                                                                        </div>
+                                                                        <span>Thanh toán tiền mặt</span>
                                                                     </Label>
                                                                 </div>
                                                             </RadioGroup>
@@ -294,7 +475,51 @@ export default function CheckoutPage() {
 
                             {/* Right Column - Order Summary */}
                             <div className='space-y-4'>
-                                {/* Restaurant Info */}
+                                {/* Fulfillment Summary */}
+                                {fulfillmentMethod === 'pickup' ? (
+                                    <Card>
+                                        <CardContent className='p-4 space-y-4'>
+                                            <div className='flex items-center gap-2'>
+                                                <Store className='h-5 w-5 text-primary' />
+                                                <CardTitle className='text-lg m-0'>Chi nhánh nhận món</CardTitle>
+                                            </div>
+                                            <div className='space-y-2 text-sm text-muted-foreground'>
+                                                <div className='flex items-center gap-2 text-foreground'>
+                                                    <MapPin className='h-4 w-4 text-primary' />
+                                                    <span>{STORE_INFO.address}</span>
+                                                </div>
+                                                <div className='flex items-center gap-2 text-foreground'>
+                                                    <Phone className='h-4 w-4 text-primary' />
+                                                    <span>{STORE_INFO.phone}</span>
+                                                </div>
+                                                <p>
+                                                    Nhận món trực tiếp tại cửa hàng <span className='font-medium'>{STORE_INFO.name}</span>.
+                                                    Vui lòng đến quầy thu ngân để thanh toán và nhận món theo thời gian đã chọn.
+                                                </p>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                ) : (
+                                    <Card>
+                                        <CardContent className='p-4 space-y-4'>
+                                            <div className='flex items-center gap-2'>
+                                                <Truck className='h-5 w-5 text-primary' />
+                                                <CardTitle className='text-lg m-0'>Thông tin giao hàng</CardTitle>
+                                            </div>
+                                            <div className='space-y-2 text-sm text-muted-foreground'>
+                                                <div className='flex items-start gap-2 text-foreground'>
+                                                    <MapPin className='h-4 w-4 text-primary mt-0.5' />
+                                                    <span>
+                                                        {deliveryAddressValue?.trim()
+                                                            ? deliveryAddressValue
+                                                            : 'Vui lòng nhập địa chỉ giao hàng trong biểu mẫu bên trái.'}
+                                                    </span>
+                                                </div>
+                                                <p>Nhân viên sẽ liên hệ qua số điện thoại để xác nhận đơn và phí giao hàng.</p>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                )}
 
                                 {/* Order Items */}
                                 <Card className='p-4 gap-2'>
@@ -355,7 +580,12 @@ export default function CheckoutPage() {
                                         </div>
                                     </CardContent>
                                     <CardFooter className='px-4 py-0'>
-                                        <Button className='w-full h-12 bg-[#4CAF50] hover:bg-[#43A047] text-white rounded-lg font-medium'>
+                                        <Button
+                                            type='submit'
+                                            className='w-full h-12 bg-[#4CAF50] hover:bg-[#43A047] text-white rounded-lg font-medium'
+                                            disabled={isOrderButtonDisabled}
+                                        >
+                                            {isOrderSubmitting && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
                                             Đặt hàng
                                         </Button>
                                     </CardFooter>

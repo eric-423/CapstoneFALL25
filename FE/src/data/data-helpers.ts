@@ -20,13 +20,13 @@ export const getProductsByPriceRange = (min: number, max: number): Product[] => 
 };
 
 export const getTopRatedProducts = (limit: number = 5): Product[] => {
-  return sampleData.products
-    .sort((a, b) => b.rating - a.rating)
+  return [...sampleData.products]
+    .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
     .slice(0, limit);
 };
 
 export const getLowStockProducts = (threshold: number = 20): Product[] => {
-  return sampleData.products.filter(product => product.productQuantity < threshold);
+  return sampleData.products.filter(product => (product.productQuantity ?? 0) < threshold);
 };
 
 export const getUserById = (id: string): User | undefined => {

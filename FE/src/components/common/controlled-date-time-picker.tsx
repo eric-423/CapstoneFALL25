@@ -11,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { ScrollArea, ScrollBar } from '../ui/scroll-area';
 
 interface ControlledDateTimePickerProps {
-  field: Date;
+  field?: Date;
   handleDateSelect?: (date: Date | undefined) => void;
   handleTimeChange: (type: 'hour' | 'minute', value: string) => void;
   timeRestriction?: number[];
@@ -26,12 +26,12 @@ const ControlledDateTimePicker = ({
   return (
     <>
       <Popover>
-        <PopoverTrigger>
+        <PopoverTrigger asChild>
           <FormControl>
             <Button
               variant='outline'
               className={cn(
-                'w-full pl-3 text-left font-normal rounded-xl  hover:bg-secondary  ',
+                'w-full pl-3 text-left font-normal rounded-xl hover:bg-secondary',
                 !field && 'text-muted-foreground',
               )}
               type='button'

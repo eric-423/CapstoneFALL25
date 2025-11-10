@@ -29,6 +29,7 @@ export default function Header() {
               src='/full-logo.svg'
               alt='Tấm Tắc Logo'
               fill
+              sizes='(max-width: 768px) 144px, 192px'
               className='object-contain scale-110 md:scale-125'
               priority
             />
@@ -172,11 +173,11 @@ function ActionButtons({
         </>
       )}
 
-      {/* Cart Icon */}
+
       {url !== configs.routes.checkout && (
         <div className="relative">
           {mobile ? <CartDrawer /> : <CartPopover />}
-          {/* Cart badge - can be added based on cart count */}
+
           <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
             0
           </span>

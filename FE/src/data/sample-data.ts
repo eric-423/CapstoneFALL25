@@ -7,10 +7,9 @@ import { TrainingCourse } from '@/utils/types/training.type';
 // ==================== PRODUCT TYPES ====================
 export const sampleProductTypes: ProductType[] = [
   { id: 1, name: 'Cơm Tấm' },
-  { id: 2, name: 'Cơm Dĩa' },
-  { id: 3, name: 'Nước Uống' },
-  { id: 4, name: 'Tráng Miệng' },
-  { id: 5, name: 'Đồ Ăn Kèm' },
+  { id: 2, name: 'Nước Uống' },
+  { id: 3, name: 'Tráng Miệng' },
+  { id: 4, name: 'Đồ Ăn Kèm' },
 ];
 
 // ==================== PRODUCTS ====================

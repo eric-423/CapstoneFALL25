@@ -5,7 +5,8 @@ import { LoadingSpinner } from '@/components/common/loading-spinner';
 import StyledHeading from '@/components/common/styled-heading';
 import InfiniteScroll from '@/components/ui/infinite-scroll';
 import useScrollTop from '@/utils/hooks/useScrollTop';
-import { useSampleProducts, useSampleProductTypes, useSampleBranches } from '@/utils/hooks/useSampleData';
+import { useSampleProductTypes, useSampleBranches } from '@/utils/hooks/useSampleData';
+import useGetProductSearch from '@/utils/hooks/useGetProductSearch';
 import { ProductType } from '@/apis/product.api';
 
 import Image from 'next/image';
@@ -16,30 +17,41 @@ import FeaturedProduct from './components/featured-product';
 import ProductList from './components/product-list';
 import ProductTypeList from './components/product-type-list';
 
+type Branch = {
+    branchId: number;
+    branchName: string;
+    address: string;
+    phone: string;
+    isActive: boolean;
+};
+
 export default function MenuPage() {
     useScrollTop();
     const [productType, setProductType] = useState<ProductType>({ id: 0, name: 'Tất cả' });
-    const [selectedBranch, setSelectedBranch] = useState<any>(null);
+    const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
 
-    // Use sample data hooks
     const {
         products: productList,
         isLoading: isLoadingProducts,
         nextPage,
         hasMore,
-        totalElements,
-    } = useSampleProducts({
+        resetAndRefetch,
+    } = useGetProductSearch({
         size: 12,
-        productType: productType.id,
+        productTypeId: productType.id === 0 ? undefined : productType.id,
+        branchId: selectedBranch?.branchId || 1,
+        isActive: true,
     });
 
     const { productTypes, isLoading: isLoadingProductTypes } = useSampleProductTypes();
     const { branches, isLoading: isLoadingBranches } = useSampleBranches();
 
     useEffect(() => {
+
         if (branches && !selectedBranch) {
             setSelectedBranch(branches[0]);
         }
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [branches]);
 
@@ -49,7 +61,7 @@ export default function MenuPage() {
 
     return (
         <div className='min-h-screen'>
-            {/* Hero Section */}
+
 
             {isLoadingBranches || isLoadingProductTypes ? (
                 <div className='flex items-center justify-center min-h-screen'>
@@ -74,38 +86,37 @@ export default function MenuPage() {
                     </div>
                     <div className='container mx-auto px-10 md:px-10 pt-8 py-20'>
                         <div className='flex flex-col lg:flex-row gap-8'>
-                            {/* Sidebar */}
+
                             <div className='lg:w-1/4'>
                                 <div className='bg-white rounded-xl shadow-sm p-6 sticky top-24'>
                                     <h2 className='text-xl font-bold mb-6'>Danh mục</h2>
 
                                     <div className='space-y-6'>
-                                        {/* Categories */}
+
                                         <ProductTypeList
                                             productTypes={productTypes || []}
                                             productType={productType}
                                             setProductType={setProductType}
+                                            resetAndRefetch={resetAndRefetch}
                                         />
 
-                                        {/* Locations */}
+
                                         <div>
                                             <h3 className='text-sm uppercase text-gray-500 font-medium mb-3'>Cửa hàng</h3>
                                             <BranchList
                                                 branches={branches || []}
                                                 selectedBranch={selectedBranch}
                                                 setSelectedBranch={setSelectedBranch}
+                                                resetAndRefetch={resetAndRefetch}
                                             />
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Main Content */}
 
                             <div className='lg:w-3/4' id='menu-content'>
-                                {/* Featured Product */}
                                 {productList?.length > 0 && productType.id === 0 && <FeaturedProduct product={productList[0]} />}
-                                {/* Menu Grid */}
                                 <div>
                                     <div className='flex items-center justify-between mb-6'>
                                         <h2 className='text-xl font-bold'>
