@@ -80,7 +80,8 @@ export const useSampleProductTypes = () => {
 
   useEffect(() => {
     setTimeout(() => {
-      setProductTypes(sampleData.productTypes);
+      // Thêm "Tất cả" vào đầu danh sách với id: 0
+      setProductTypes([{ id: 0, name: 'Tất cả' }, ...sampleData.productTypes]);
       setIsLoading(false);
     }, 300);
   }, []);
