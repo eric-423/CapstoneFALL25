@@ -67,6 +67,28 @@ public class AuthController {
         return new ResponseEntity<>(responseData,HttpStatus.OK);
     }
 
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Xác thực OTP thành công", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseData.class), examples = @ExampleObject(value = "{\"status\": 200, \"desc\": \"Xác thực mã OTP thành công\", \"data\": true}"))),
+            @ApiResponse(responseCode = "400", description = "Mã OTP không hợp lệ hoặc đã hết hạn", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{\"status\": 400, \"desc\": \"Mã OTP không hợp lệ hoặc đã hết hạn\", \"data\": false}")))
+    })
+    @PostMapping("/otp/verify-otp-forgot-password")
+    public ResponseEntity<?> verifyOtpForgotPassword(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Thông tin xác thực OTP. Channel: zalo, Identifier: số điện thoại, InputOtp: mã OTP nhận được", required = true, content = @Content(schema = @Schema(implementation = OtpVerifyRequest.class), examples = @ExampleObject(value = "{\"channel\": \"email\", \"identifier\": \"user@example.com\", \"inputOtp\": \"123456\"}"))) @RequestBody OtpVerifyRequest otpVerifyRequest)
+            throws Exception {
+        ResponseData responseData = new ResponseData();
+        Boolean result = otpService.verifyOtpForForgotPassword(otpVerifyRequest.getChannel(), otpVerifyRequest.getIdentifier(),
+                otpVerifyRequest.getInputOtp(), false);
+        responseData.setData(result);
+        if (!result) {
+            responseData.setDesc("Mã OTP không hợp lệ hoặc đã hết hạn");
+            responseData.setStatus(400);
+            return new ResponseEntity<>(responseData, HttpStatus.BAD_REQUEST);
+        }
+        responseData.setDesc("Xác thực mã OTP thành công");
+        responseData.setStatus(200);
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
+
     @Operation(summary = "Đăng ký tài khoản khách hàng", description = "API cho phép khách hàng tạo tài khoản mới với số điện thoại, mật khẩu và thông tin cá nhân", security = {}
     )
     @ApiResponses(value = {

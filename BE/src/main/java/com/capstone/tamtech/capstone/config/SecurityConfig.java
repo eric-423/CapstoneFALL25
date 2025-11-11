@@ -56,6 +56,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/payment-method").permitAll()
                         .requestMatchers("/api/orders/shipping/fee").permitAll()
                         .requestMatchers("/api/orders/payment/webhook").permitAll()
+                        
+                        // Public statistics for customers
+                        .requestMatchers("/api/statistics/top-selling").permitAll()
+                        .requestMatchers("/api/statistics/item-sales").permitAll()
 
                         .requestMatchers("/api/product-types/create").hasRole("ADMIN")
                         .requestMatchers("/api/product-types/update/**").hasRole("ADMIN")
@@ -63,6 +67,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/products/create").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers("/api/products/update/**").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers("/api/orders/manager/**").hasAnyRole("MANAGER", "ADMIN")
+                        .requestMatchers("/api/statistics/**").hasAnyRole("MANAGER", "ADMIN")
 
                         .requestMatchers("/api/orders/waiter/**").hasRole("WAITER")
                         .requestMatchers("/api/table/**").hasAnyRole("WAITER", "MANAGER", "ADMIN")
