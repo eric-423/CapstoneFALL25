@@ -39,8 +39,40 @@ public class SecurityConfig {
                                 "/swagger-resources/**",
                                 "/webjars/**")
                         .permitAll()
+
                         .requestMatchers("/api/auth/**").permitAll()
-                        .anyRequest().permitAll());
+
+                        .requestMatchers("/api/branches/nearby").permitAll()
+                        .requestMatchers("/api/combos/search").permitAll()
+                        .requestMatchers("/api/products/search").permitAll()
+                        .requestMatchers("/api/product-types", "/api/product-types/{id}").permitAll()
+                        .requestMatchers("/api/payment-method").permitAll()
+                        .requestMatchers("/api/orders/shipping/fee").permitAll()
+                        .requestMatchers("/api/orders/payment/webhook").permitAll()
+
+                        .requestMatchers("/api/product-types/create").hasRole("ADMIN")
+                        .requestMatchers("/api/product-types/update/**").hasRole("ADMIN")
+
+                        .requestMatchers("/api/products/create").hasAnyRole("MANAGER", "ADMIN")
+                        .requestMatchers("/api/products/update/**").hasAnyRole("MANAGER", "ADMIN")
+                        .requestMatchers("/api/orders/manager/**").hasAnyRole("MANAGER", "ADMIN")
+
+                        .requestMatchers("/api/orders/waiter/**").hasRole("WAITER")
+                        .requestMatchers("/api/table/**").hasAnyRole("WAITER", "MANAGER", "ADMIN")
+
+                        .requestMatchers("/api/orders/cheff/**").hasRole("CHEF")
+
+                        .requestMatchers("/api/orders/shipper/**").hasRole("SHIPPER")
+
+                        .requestMatchers("/api/customers/**").hasRole("CUSTOMER")
+                        .requestMatchers("/api/orders/customer/**").hasRole("CUSTOMER")
+                        .requestMatchers("/api/orders/dining-table/**").hasRole("CUSTOMER")
+
+                        .requestMatchers("/api/orders/customer/pickup").hasAnyRole("CUSTOMER", "STAFF")
+
+                        .requestMatchers("POST", "/api/orders").hasRole("CUSTOMER")
+
+                        .anyRequest().authenticated());
 
         return http.build();
     }

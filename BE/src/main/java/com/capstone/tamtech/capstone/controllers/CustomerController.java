@@ -20,29 +20,29 @@ public class CustomerController {
 
     @PostMapping("/{customerId}/informations")
     public ResponseEntity<Information> addInformation(@PathVariable int customerId,
-                                                      @RequestBody InformationRequest request) {
+            @RequestBody InformationRequest request) {
         Information created = informationService.addInformation(customerId, request);
         return ResponseEntity.ok(created);
     }
 
     @PutMapping("/{customerId}/informations/{informationId}")
     public ResponseEntity<Information> updateInformation(@PathVariable int customerId,
-                                                         @PathVariable int informationId,
-                                                         @RequestBody InformationRequest request) {
+            @PathVariable int informationId,
+            @RequestBody InformationRequest request) {
         Information updated = informationService.updateInformation(customerId, informationId, request);
         return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{customerId}/informations/{informationId}")
     public ResponseEntity<Void> deleteInformation(@PathVariable int customerId,
-                                                  @PathVariable int informationId) {
+            @PathVariable int informationId) {
         informationService.deleteInformation(customerId, informationId);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{customerId}/informations/{informationId}")
     public ResponseEntity<?> getInformation(@PathVariable int customerId,
-                                                      @PathVariable int informationId) {
+            @PathVariable int informationId) {
         InformationDTO info = informationService.getInformation(customerId, informationId);
         ResponseData responseData = new ResponseData();
         responseData.setData(info);
@@ -58,5 +58,3 @@ public class CustomerController {
         return ResponseEntity.ok(responseData);
     }
 }
-
-
