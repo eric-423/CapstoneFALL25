@@ -49,7 +49,7 @@ public class CustomerController {
         return ResponseEntity.ok(responseData);
     }
 
-    @GetMapping
+    @GetMapping("/{customerId}/informations")
     public ResponseEntity<?> getAllInformations(@PathVariable int customerId) {
         List<InformationDTO> infos = informationService.getAllInformations(customerId);
         ResponseData responseData = new ResponseData();

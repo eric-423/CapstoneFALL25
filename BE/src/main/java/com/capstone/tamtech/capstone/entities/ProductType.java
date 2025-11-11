@@ -18,4 +18,7 @@ public class ProductType {
 
     @Column(name = "name")
     private String name;
+
+    @Column(name = "image_url" )
+    private String imageUrl;
 }
