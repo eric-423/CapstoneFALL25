@@ -9,7 +9,7 @@ import { Text, View, StyleSheet, Image } from "react-native";
 import footerFrame from "@/assets/frame_footer.png";
 import logo from "@/assets/logo.png";
 import { FONTS, typography } from "@/theme/typography";
-import { CustomersSignupAPI, SendOTP } from "@/utils/api";
+import { CustomersSignup, SendOTP } from "@/utils/api";
 import Toast from "react-native-root-toast";
 const styles = StyleSheet.create({
   itemContainer: {
@@ -24,7 +24,7 @@ const handleSignUp = async (
   dateOfBirth: string
 ) => {
   try {
-    await CustomersSignupAPI(fullName, phoneNumber, password, dateOfBirth);
+    await CustomersSignup(fullName, phoneNumber, password, dateOfBirth);
     const channel = "zalo";
     let otpSent = true;
     try {

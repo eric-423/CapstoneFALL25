@@ -18,7 +18,7 @@ import { Formik } from "formik";
 import ShareInput from "@/components/input/share.input";
 import { CustomerSignInSchema } from "@/utils/validate.schema";
 import { Link, router } from "expo-router";
-import { ForgotPasswordAPI, LoginCustomers } from "@/utils/api";
+import { ForgotPassword, LoginCustomers } from "@/utils/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Toast from "react-native-root-toast";
 
@@ -70,7 +70,7 @@ const WelcomePage = () => {
   );
   const handleForgotPassword = async (phoneNumber: string) => {
     try {
-      const res = await ForgotPasswordAPI(phoneNumber);
+      const res = await ForgotPassword(phoneNumber);
       if (res) {
         Toast.show("Đã gửi mã OTP khôi phục mật khẩu", {
           duration: Toast.durations.LONG,

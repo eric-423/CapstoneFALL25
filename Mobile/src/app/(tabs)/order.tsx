@@ -1,5 +1,5 @@
-import React from "react";
-import { ScrollView, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { ScrollView } from "react-native";
 import { APP_COLOR } from "@/utils/constant";
 import HeaderHome from "@/components/home/header.home";
 import TopListMenu from "@/components/menu/top.list.menu";
@@ -7,15 +7,21 @@ import CollectionMenu, {
   ModalProvider,
 } from "@/components/menu/collection.menu";
 import { useCurrentApp } from "@/context/app.context";
-
-const MENU_SECTIONS = [
-  { name: "Món ăn được yêu thích", id: 1 },
-  { name: "Đồ uống giải khát", id: 2 },
-  { name: "Món thêm hấp dẫn", id: 3 },
-];
-
+import { GetProductType } from "@/utils/api";
+interface IProductType {
+  id: number;
+  name: string;
+}
 const OrderScreen = () => {
   const { branchId } = useCurrentApp();
+  const [productType, setProductType] = useState<IProductType[]>([]);
+  useEffect(() => {
+    const fetchProductType = async () => {
+      const res = await GetProductType();
+      setProductType(res.data.data);
+    };
+    fetchProductType();
+  }, []);
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: APP_COLOR.BACKGROUND_ORANGE }}
@@ -23,7 +29,7 @@ const OrderScreen = () => {
       <HeaderHome pageName="orderPage" />
       <TopListMenu />
       <ModalProvider>
-        {MENU_SECTIONS.map((s) => (
+        {productType.map((s) => (
           <CollectionMenu
             key={s.id}
             name={s.name}

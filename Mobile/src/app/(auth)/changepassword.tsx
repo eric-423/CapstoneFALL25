@@ -16,7 +16,7 @@ import Toast from "react-native-root-toast";
 import logo from "@/assets/logo.png";
 import footerFrame from "@/assets/frame_footer.png";
 import { router, useLocalSearchParams } from "expo-router";
-import { ChangePasswordAPI } from "@/utils/api";
+import { ChangePassword } from "@/utils/api";
 const ChangePasswordPage = () => {
   const formikRef = useRef<FormikProps<any>>(null);
   const { phoneNumber, inputOtp } = useLocalSearchParams();
@@ -24,7 +24,7 @@ const ChangePasswordPage = () => {
     try {
       console.log(inputOtp, phoneNumber, newPassword);
 
-      const res = await ChangePasswordAPI(
+      const res = await ChangePassword(
         inputOtp as string,
         phoneNumber as string,
         newPassword

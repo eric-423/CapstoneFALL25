@@ -1,7 +1,7 @@
 import axios from "axios";
-import { BASE_URL } from "./constant";
+import { BASE_URL, GOOGLE_API_KEY } from "./constant";
 
-export const CustomersSignupAPI = async (
+export const CustomersSignup = async (
   fullName: string,
   phoneNumber: string,
   password: string,
@@ -40,7 +40,7 @@ export const SendOTP = async (channel: string, indentifier: string) => {
   );
 };
 
-export const TTLOtpAPI = async (channel: string, identifier: string) => {
+export const TTLOtp = async (channel: string, identifier: string) => {
   return axios.get(
     `${BASE_URL}/auth/otp/ttl?channel=${channel}&identifier=${identifier}`,
     {
@@ -89,7 +89,7 @@ export const LoginCustomers = async (phoneNumber: string, password: string) => {
   );
 };
 
-export const ForgotPasswordAPI = async (phoneNumber: string) => {
+export const ForgotPassword = async (phoneNumber: string) => {
   return axios.post(
     `${BASE_URL}/auth/customer/forgot-password`,
     {
@@ -104,7 +104,7 @@ export const ForgotPasswordAPI = async (phoneNumber: string) => {
   );
 };
 
-export const ChangePasswordAPI = async (
+export const ChangePassword = async (
   otp: string,
   phoneNumber: string,
   newPassword: string
@@ -113,5 +113,53 @@ export const ChangePasswordAPI = async (
     otp,
     phoneNumber,
     newPassword,
+  });
+};
+
+export const ReverseGeocodeGoogle = async (
+  latitude: number,
+  longitude: number
+) => {
+  try {
+    const response = await axios.get(
+      `https://maps.googleapis.com/maps/api/geocode/json`,
+      {
+        params: {
+          latlng: `${latitude},${longitude}`,
+          key: GOOGLE_API_KEY,
+          language: "vi",
+        },
+      }
+    );
+
+    if (response.data.status === "OK" && response.data.results.length > 0) {
+      return response.data.results[0].formatted_address;
+    } else {
+      throw new Error(response.data.status || "Không tìm thấy địa chỉ");
+    }
+  } catch (error) {
+    console.error("Google Geocoding API error:", error);
+    throw error;
+  }
+};
+
+export const GetBranchNearLocation = async (realLocation: string) => {
+  return axios.get(
+    `${BASE_URL}/branches/nearby?address=${realLocation}&limit=5`,
+    {
+      headers: {
+        accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    }
+  );
+};
+
+export const GetProductType = () => {
+  return axios.get(`${BASE_URL}/product-types`, {
+    headers: {
+      accept: "application/json",
+      "Content-Type": "application/json",
+    },
   });
 };
