@@ -150,11 +150,11 @@ VALUES ('Nguyễn Văn An', '123 Nguyễn Huệ, Q1, TP.HCM', '0900000001', 'ana
 
 
 INSERT INTO branch (name, address, phone_number, is_parent)
-VALUES ('Chi nhánh chính', 'Vinhomes Grand Park Quận 9 TP HCM', '0901234567', true),
-       ('Chi nhánh 1 - Quận 1', '123 Lê Lợi, Quận 1, TP.HCM', '0901234567', false),
-       ('Chi nhánh 2 - Quận 3', '456 Nguyễn Đình Chiểu, Quận 3, TP.HCM', '0901234568', false),
-       ('Chi nhánh 3 - Quận 7', '789 Nguyễn Thái Sơn, Quận 7, TP.HCM', '0901234569', false),
-       ('Chi nhánh 4 - Quận 5', '321 Nguyễn Trãi, Quận 5, TP.HCM', '0901234570', false);
+VALUES ('Chi nhánh chính', 'Vinhomes Grand Park, Phường Long Thạnh Mỹ, Quận 9, Thành phố Hồ Chí Minh, Vietnam', '0901234567', true),
+       ('Chi nhánh 1 - Quận 1', '123 Lê Lợi, Phường Bến Thành, Quận 1, Thành phố Hồ Chí Minh, Vietnam', '0901234567', false),
+       ('Chi nhánh 2 - Quận 3', '456 Nguyễn Đình Chiểu, Phường Võ Thị Sáu, Quận 3, Thành phố Hồ Chí Minh, Vietnam', '0901234568', false),
+       ('Chi nhánh 3 - Quận 7', '789 Nguyễn Thái Sơn, Phường Tân Quy, Quận 7, Thành phố Hồ Chí Minh, Vietnam', '0901234569', false),
+       ('Chi nhánh 4 - Quận 5', '321 Nguyễn Trãi, Phường Nguyễn Cư Trinh, Quận 5, Thành phố Hồ Chí Minh, Vietnam', '0901234570', false);
 
 
 

@@ -1,11 +1,15 @@
 package com.capstone.tamtech.capstone.controllers;
 
+import com.capstone.tamtech.capstone.dto.InformationDTO;
 import com.capstone.tamtech.capstone.entities.Information;
+import com.capstone.tamtech.capstone.payload.ResponseData;
 import com.capstone.tamtech.capstone.payload.request.InformationRequest;
 import com.capstone.tamtech.capstone.services.impl.InformationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/customers")
@@ -34,6 +38,24 @@ public class CustomerController {
                                                   @PathVariable int informationId) {
         informationService.deleteInformation(customerId, informationId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{customerId}/informations/{informationId}")
+    public ResponseEntity<?> getInformation(@PathVariable int customerId,
+                                                      @PathVariable int informationId) {
+        InformationDTO info = informationService.getInformation(customerId, informationId);
+        ResponseData responseData = new ResponseData();
+        responseData.setData(info);
+        return ResponseEntity.ok(responseData);
+    }
+
+    @GetMapping
+    public ResponseEntity<?> getAllInformations(@PathVariable int customerId) {
+        List<InformationDTO> infos = informationService.getAllInformations(customerId);
+        ResponseData responseData = new ResponseData();
+        responseData.setData(infos);
+
+        return ResponseEntity.ok(responseData);
     }
 }
 
