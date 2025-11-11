@@ -163,3 +163,18 @@ export const GetProductType = () => {
     },
   });
 };
+
+export const GetProductByProductType = (
+  brandId: number,
+  productTypeId: number
+) => {
+  return axios.get(
+    `${BASE_URL}/products/search?branchId=${brandId}&productTypeId=${productTypeId}&isActive=true&minPrice=0&page=0&size=100&sortBy=name&sortDirection=ASC`,
+    {
+      headers: {
+        accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    }
+  );
+};

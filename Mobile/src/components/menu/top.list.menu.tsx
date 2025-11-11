@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
 } from "react-native";
-import BannerHome from "@/components/home/banner.home";
 import { APP_COLOR } from "@/utils/constant";
 import { FONTS } from "@/theme/typography";
 import { router, useRouter } from "expo-router";
@@ -69,9 +68,6 @@ const TopListMenu = () => {
       <View style={{ paddingHorizontal: 10 }}>
         <View style={styles.header}>
           <Text style={styles.title}>Danh mục</Text>
-          <TouchableOpacity onPress={() => console.log("Xem thêm")}>
-            <Text style={styles.seeMoreText}>Xem tất cả &gt;</Text>
-          </TouchableOpacity>
         </View>
         <ScrollView
           horizontal

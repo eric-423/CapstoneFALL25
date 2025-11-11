@@ -18,15 +18,17 @@ import {
 } from "@/utils/cart";
 import React from "react";
 import { FONTS } from "@/theme/typography";
+import { GetProductByProductType } from "@/utils/api";
 const { width: sWidth } = Dimensions.get("window");
 
 interface IProps {
   name: string;
   id: number;
-  branchId: number | null;
+  branchId: number;
 }
 
 interface IPropsProduct {
+  productDescription: string;
   ProductType: {
     name: string;
     productTypeId: number;
@@ -166,129 +168,53 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 const CollectionMenu = (props: IProps) => {
-  const { name, id } = props;
+  const { name, id, branchId } = props;
   const { cart, restaurant, setRestaurant } = useCurrentApp();
   const { handleQuantityChange } = useModal();
-  const [restaurants, setRestaurants] = useState([]);
+  const [restaurants, setRestaurants] = useState<IPropsProduct[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const mockRestaurant = {
     _id: "mock_restaurant_1",
     name: "Số món đã đặt",
     menu: [],
   };
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     try {
-  //       setLoading(true);
-  //       const res = await axios.get(`${API_URL}/api/products/type/${props.id}`);
-  //       console.log(res);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const res = await GetProductByProductType(branchId, id);
+        const mapped: IPropsProduct[] = (res?.data?.content || []).map(
+          (p: any) => ({
+            ProductType: {
+              name: p.productType,
+              productTypeId: p.productTypeId,
+            },
+            productDescription: p.productDescription,
+            name: p.productName,
+            productId: String(p.productId),
+            image: p.productImage,
+            description: p.productDescription,
+            price: p.productPrice,
+            averageRating: 5,
+          })
+        );
+        setRestaurants(mapped);
+      } catch (error) {
+        console.error("Lỗi khi lấy dữ liệu:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  //       setRestaurants(res.data.products);
-  //     } catch (error) {
-  //       console.error("Lỗi khi lấy dữ liệu:", error);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   fetchData();
-  // }, [id, branchId]);
+    fetchData();
+  }, [id, branchId]);
 
   useEffect(() => {
     if (!restaurant) {
       setRestaurant(mockRestaurant);
     }
   }, [restaurant, setRestaurant]);
-  const MOCK_BY_TYPE: Record<number, IPropsProduct[]> = {
-    1: [
-      {
-        ProductType: { name: "Đồ ăn", productTypeId: 1 },
-        name: "Cơm tấm sườn bì chả",
-        productId: "food_1",
-        image: require("@/assets/icons/com-tam.png"),
-        description: "Cơm tấm sườn bì chả",
-        price: 45000,
-        averageRating: 4.6,
-      },
-      {
-        ProductType: { name: "Đồ ăn", productTypeId: 1 },
-        name: "Bún bò Huế",
-        productId: "food_2",
-        image: require("@/assets/icons/com-tam.png"),
-        description: "Bún bò Huế",
-        price: 42000,
-        averageRating: 4.3,
-      },
-      {
-        ProductType: { name: "Đồ ăn", productTypeId: 1 },
-        name: "Phở bò tái",
-        productId: "food_3",
-        image: require("@/assets/icons/com-tam.png"),
-        description: "Phở bò tái",
-        price: 40000,
-        averageRating: 4.7,
-      },
-    ],
-    2: [
-      {
-        ProductType: { name: "Đồ uống", productTypeId: 2 },
-        name: "Cà phê sữa đá",
-        productId: "drink_1",
-        image: require("@/assets/icons/com-tam.png"),
-        description: "Cà phê sữa đá",
-        price: 25000,
-        averageRating: 4.5,
-      },
-      {
-        ProductType: { name: "Đồ uống", productTypeId: 2 },
-        name: "Trà sữa trân châu",
-        productId: "drink_2",
-        image: require("@/assets/icons/com-tam.png"),
-        description: "Trà sữa trân châu",
-        price: 35000,
-        averageRating: 4.1,
-      },
-      {
-        ProductType: { name: "Đồ uống", productTypeId: 2 },
-        name: "Nước cam",
-        productId: "drink_3",
-        image: require("@/assets/icons/com-tam.png"),
-        description: "Nước cam",
-        price: 28000,
-        averageRating: 4.2,
-      },
-    ],
-    3: [
-      {
-        ProductType: { name: "Món thêm", productTypeId: 3 },
-        name: "Trứng ốp la",
-        productId: "extra_1",
-        image: require("@/assets/icons/com-tam.png"),
-        description: "Trứng ốp la",
-        price: 10000,
-        averageRating: 4.0,
-      },
-      {
-        ProductType: { name: "Món thêm", productTypeId: 3 },
-        name: "Chả lụa",
-        productId: "extra_2",
-        image: require("@/assets/icons/com-tam.png"),
-        description: "Chả lụa",
-        price: 8000,
-        averageRating: 4.1,
-      },
-    ],
-  };
 
-  useEffect(() => {
-    setLoading(true);
-    const timer = setTimeout(() => {
-      const list = MOCK_BY_TYPE[id] || [];
-      setRestaurants(list as unknown as never[]);
-      setLoading(false);
-    }, 250);
-    return () => clearTimeout(timer);
-  }, [id]);
   const getItemQuantity = (itemId: string) =>
     getItemQuantityUtil(cart, restaurant?._id, itemId);
 
@@ -299,14 +225,48 @@ const CollectionMenu = (props: IProps) => {
         <ContentLoader
           speed={2}
           width={sWidth}
-          height={230}
+          height={360}
           backgroundColor="#f3f3f3"
           foregroundColor="#ecebeb"
           style={styles.loader}
         >
-          <Rect x="10" y="10" rx="5" ry="5" width={150} height="200" />
-          <Rect x="170" y="10" rx="5" ry="5" width={150} height="200" />
-          <Rect x="330" y="10" rx="5" ry="5" width={150} height="200" />
+          <Rect x="5" y="5" rx="10" ry="10" width="370" height="110" />
+
+          <Rect x="10" y="10" rx="10" ry="10" width="100" height="100" />
+
+          <Rect x="120" y="15" rx="6" ry="6" width="230" height="18" />
+          <Rect x="120" y="40" rx="6" ry="6" width="200" height="14" />
+
+          <Rect x="120" y="82" rx="6" ry="6" width="110" height="20" />
+          <Rect x="235" y="86" rx="6" ry="6" width="90" height="12" />
+
+          <Rect x="345" y="0" rx="10" ry="10" width="30" height="20" />
+
+          <Rect x="285" y="80" rx="12" ry="12" width="26" height="26" />
+          <Rect x="315" y="80" rx="12" ry="12" width="28" height="26" />
+          <Rect x="345" y="80" rx="12" ry="12" width="26" height="26" />
+
+          <Rect x="5" y="125" rx="10" ry="10" width="370" height="110" />
+          <Rect x="10" y="130" rx="10" ry="10" width="100" height="100" />
+          <Rect x="120" y="135" rx="6" ry="6" width="230" height="18" />
+          <Rect x="120" y="160" rx="6" ry="6" width="200" height="14" />
+          <Rect x="120" y="202" rx="6" ry="6" width="110" height="20" />
+          <Rect x="235" y="206" rx="6" ry="6" width="90" height="12" />
+          <Rect x="345" y="120" rx="10" ry="10" width="30" height="20" />
+          <Rect x="285" y="200" rx="12" ry="12" width="26" height="26" />
+          <Rect x="315" y="200" rx="12" ry="12" width="28" height="26" />
+          <Rect x="345" y="200" rx="12" ry="12" width="26" height="26" />
+
+          <Rect x="5" y="245" rx="10" ry="10" width="370" height="110" />
+          <Rect x="10" y="250" rx="10" ry="10" width="100" height="100" />
+          <Rect x="120" y="255" rx="6" ry="6" width="230" height="18" />
+          <Rect x="120" y="280" rx="6" ry="6" width="200" height="14" />
+          <Rect x="120" y="322" rx="6" ry="6" width="110" height="20" />
+          <Rect x="235" y="326" rx="6" ry="6" width="90" height="12" />
+          <Rect x="345" y="240" rx="10" ry="10" width="30" height="20" />
+          <Rect x="285" y="320" rx="12" ry="12" width="26" height="26" />
+          <Rect x="315" y="320" rx="12" ry="12" width="28" height="26" />
+          <Rect x="345" y="320" rx="12" ry="12" width="26" height="26" />
         </ContentLoader>
       ) : (
         <View style={styles.container}>
@@ -339,7 +299,6 @@ const CollectionMenu = (props: IProps) => {
               item: IPropsProduct;
               index: number;
             }) => {
-              const quantity = getItemQuantity(item.productId);
               const isLastItem = index === restaurants.length - 1;
               return (
                 <Pressable>
@@ -370,20 +329,11 @@ const CollectionMenu = (props: IProps) => {
                     <View style={styles.itemTextContainer}>
                       <View style={{ height: 50 }}>
                         <Text
-                          style={[styles.itemName]}
+                          style={[styles.itemName, { width: "55%" }]}
                           numberOfLines={2}
                           ellipsizeMode="tail"
                         >
                           {item.description}
-                        </Text>
-                        <Text
-                          style={{
-                            fontFamily: FONTS.regular,
-                            fontSize: 13,
-                            color: APP_COLOR.BROWN,
-                          }}
-                        >
-                          - Cơm Tấm Sườn Chả
                         </Text>
                       </View>
                       <View
@@ -404,7 +354,7 @@ const CollectionMenu = (props: IProps) => {
                               fontSize: 13,
                               color: APP_COLOR.BROWN,
                               position: "relative",
-                              bottom: -10,
+                              bottom: -20,
                             },
                           ]}
                         >
@@ -549,8 +499,6 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.semiBold,
     fontSize: 15,
     color: APP_COLOR.BROWN,
-    marginBottom: 5,
-    textAlign: "center",
   },
   itemPrice: {
     color: APP_COLOR.ORANGE,

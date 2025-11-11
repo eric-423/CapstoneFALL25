@@ -114,7 +114,6 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
   const [branchInfo, setBranchInfo] = useState<any[]>([]);
   const [isBranchDropdownOpen, setIsBranchDropdownOpen] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState<any>(null);
-
   const removePlusCode = (address: string): string => {
     if (!address) return address;
     const plusCodePattern = /^[A-Z0-9]{2,}\+[A-Z0-9]{2,}(\s*,\s*|\s+)/i;
@@ -179,8 +178,8 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
 
   const handleSelectBranch = (branch: any) => {
     setSelectedBranch(branch);
-    if (branch.id) {
-      setBranchId(branch.id);
+    if (branch.branchId) {
+      setBranchId(branch.branchId);
     }
     setIsBranchDropdownOpen(false);
   };
@@ -313,7 +312,9 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
                   Thực đơn
                 </Text>
                 <Pressable
-                  onPress={() => setIsBranchDropdownOpen(!isBranchDropdownOpen)}
+                  onPress={() => {
+                    setIsBranchDropdownOpen(!isBranchDropdownOpen);
+                  }}
                   style={{ flexDirection: "row", gap: 5 }}
                 >
                   <Text
