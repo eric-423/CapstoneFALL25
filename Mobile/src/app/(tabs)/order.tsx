@@ -34,7 +34,7 @@ const OrderScreen = () => {
             key={s.id}
             name={s.name}
             id={s.id}
-            branchId={branchId}
+            branchId={branchId || 0}
           />
         ))}
       </ModalProvider>

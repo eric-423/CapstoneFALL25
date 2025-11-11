@@ -117,7 +117,7 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
           ...item,
           basePrice: item.price,
           title: item.name,
-        } as ICartItem,
+        },
         quantity: 0,
       };
     }
@@ -136,7 +136,7 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
           ...item,
           basePrice: item.price,
           title: item.name,
-        } as ICartItem,
+        },
         quantity: currentQuantity,
       };
     }
@@ -169,7 +169,8 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
 
 const CollectionMenu = (props: IProps) => {
   const { name, id, branchId } = props;
-  const { cart, restaurant, setRestaurant } = useCurrentApp();
+  const { cart, restaurant, setRestaurant, selectedProductTypeId } =
+    useCurrentApp();
   const { handleQuantityChange } = useModal();
   const [restaurants, setRestaurants] = useState<IPropsProduct[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -221,7 +222,8 @@ const CollectionMenu = (props: IProps) => {
   return (
     <>
       <View style={styles.spacer} />
-      {loading ? (
+      {selectedProductTypeId !== null &&
+      selectedProductTypeId !== id ? null : loading ? (
         <ContentLoader
           speed={2}
           width={sWidth}
@@ -419,7 +421,7 @@ const CollectionMenu = (props: IProps) => {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 10,
+    paddingHorizontal: 10,
   },
   spacer: {
     height: 10,

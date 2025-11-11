@@ -8,61 +8,54 @@ import {
 } from "react-native";
 import { APP_COLOR } from "@/utils/constant";
 import { FONTS } from "@/theme/typography";
-import { router, useRouter } from "expo-router";
-const icon = [
-  {
-    key: 1,
-    name: "Tất cả",
-    source: require("@/assets/icons/com-tam.png"),
-    targetScreen: "bestseller",
-  },
-  {
-    key: 2,
-    name: "Combo",
-    source: require("@/assets/icons/cua-hang.png"),
-    targetScreen: "store",
-  },
-  {
-    key: 3,
-    name: "Cơm Tấm",
-    source: require("@/assets/icons/qua-tang.png"),
-    targetScreen: "voucher",
-  },
-  {
-    key: 4,
-    name: "Ăn Kèm",
-    source: require("@/assets/icons/don-hang.png"),
-    targetScreen: "order",
-  },
-  {
-    key: 5,
-    name: "Nước giải khát",
-    source: require("@/assets/icons/thong-tin.png"),
-    targetScreen: "account",
-  },
-];
+import { GetProductByProductType, GetProductType } from "@/utils/api";
+import { useEffect, useState } from "react";
+import { useCurrentApp } from "@/context/app.context";
+
+interface IProductType {
+  productId: number;
+  name: string;
+}
 const IconItem = ({ item }: any) => {
-  const router = useRouter();
-  const handlePress = () => {
-    router.push(item.targetScreen);
+  const { branchId, setSelectedProductTypeId } = useCurrentApp();
+  const handlePress = async (name: string, branchId: number) => {
+    if (name === "Tất cả") {
+      setSelectedProductTypeId(null);
+    } else {
+      setSelectedProductTypeId(item.productId);
+    }
   };
   return (
-    <TouchableOpacity style={styles.iconWrapper} onPress={handlePress}>
-      <TouchableOpacity style={styles.iconWrapper} onPress={handlePress}>
-        <View style={styles.iconCircle}>
-          <Image source={item.source} style={styles.iconImage} />
-        </View>
-        <Text style={styles.iconText} numberOfLines={1}>
-          {item.name}
-        </Text>
-      </TouchableOpacity>
+    <TouchableOpacity
+      style={styles.iconWrapper}
+      onPress={() => handlePress(item.name, branchId || 0)}
+    >
+      <View style={styles.iconCircle}>
+        <Image source={item.source} style={styles.iconImage} />
+      </View>
+      <Text style={styles.iconText} numberOfLines={1}>
+        {item.name}
+      </Text>
     </TouchableOpacity>
   );
 };
 
 const TopListMenu = () => {
-  const topRowData = icon.filter((_, index) => index % 2 === 0);
-  const bottomRowData = icon.filter((_, index) => index % 2 !== 0);
+  const [productType, setProductType] = useState<IProductType[]>([]);
+  useEffect(() => {
+    const fetchProductType = async () => {
+      const res = await GetProductType();
+      const apiData = (res?.data?.data ?? []) as any[];
+      const normalized: IProductType[] = apiData.map((item) => ({
+        productId: item?.productId ?? item?.id,
+        name: item?.name,
+      }));
+      setProductType([{ productId: 0, name: "Tất cả" }, ...normalized]);
+    };
+    fetchProductType();
+  }, []);
+  const topRowData = productType.filter((_, index) => index % 2 === 0);
+  const bottomRowData = productType.filter((_, index) => index % 2 !== 0);
   return (
     <View>
       <View style={{ paddingHorizontal: 10 }}>
@@ -77,12 +70,12 @@ const TopListMenu = () => {
           <View>
             <View style={[styles.row, { marginBottom: 10 }]}>
               {topRowData.map((item) => (
-                <IconItem key={item.key} item={item} />
+                <IconItem key={`top-${item.productId}`} item={item} />
               ))}
             </View>
             <View style={styles.row}>
               {bottomRowData.map((item) => (
-                <IconItem key={item.key} item={item} />
+                <IconItem key={`bottom-${item.productId}`} item={item} />
               ))}
             </View>
           </View>

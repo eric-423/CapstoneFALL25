@@ -164,12 +164,24 @@ export const GetProductType = () => {
   });
 };
 
-export const GetProductByProductType = (
+export const GetProductByProductType = async (
   brandId: number,
   productTypeId: number
 ) => {
   return axios.get(
     `${BASE_URL}/products/search?branchId=${brandId}&productTypeId=${productTypeId}&isActive=true&minPrice=0&page=0&size=100&sortBy=name&sortDirection=ASC`,
+    {
+      headers: {
+        accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    }
+  );
+};
+
+export const GetAllProduct = async (branchId: number) => {
+  return axios.get(
+    `${BASE_URL}/products/search?branchId=${branchId}&isActive=true&minPrice=0&maxPrice=500000&page=0&size=100&sortBy=name&sortDirection=ASC`,
     {
       headers: {
         accept: "application/json",
