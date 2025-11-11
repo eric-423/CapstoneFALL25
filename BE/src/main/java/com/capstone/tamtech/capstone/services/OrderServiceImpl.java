@@ -78,6 +78,7 @@ public class OrderServiceImpl implements OrderService {
         order.setDiscountValue(orderRequest.getDiscountValue());
         order.setPickUp(false);
         order.setCreatedAt(new Date());
+        order.setBranch(branchRepository.findById(orderRequest.getBranchId()).orElse(null));
 
         if (orderRequest.getCustomerId() > 0) {
             usersRepository.findById(orderRequest.getCustomerId()).ifPresent(order::setCustomer);

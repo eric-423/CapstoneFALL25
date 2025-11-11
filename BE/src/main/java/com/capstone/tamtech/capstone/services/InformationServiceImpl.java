@@ -1,5 +1,6 @@
 package com.capstone.tamtech.capstone.services;
 
+import com.capstone.tamtech.capstone.dto.InformationDTO;
 import com.capstone.tamtech.capstone.entities.Information;
 import com.capstone.tamtech.capstone.entities.Users;
 import com.capstone.tamtech.capstone.exception.ResourceNotFoundException;
@@ -123,6 +124,35 @@ public class InformationServiceImpl implements InformationService {
             throw new IllegalArgumentException("Thông tin không thuộc về khách hàng này");
         }
         informationRepository.delete(info);
+    }
+
+    @Override
+    public InformationDTO getInformation(int customerId, int informationId) {
+        ensureSameUser(customerId);
+        Information info = informationRepository.findById(informationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thông tin"));
+        if (info.getUser() != null && info.getUser().getId() == customerId) {
+            return toDTO(info);
+        }
+        return null;
+    }
+
+    @Override
+    public List<InformationDTO> getAllInformations(int customerId) {
+        List<Information> infos = informationRepository.findByUserId(customerId);
+        return infos.stream()
+                .map(this::toDTO)
+                .toList();
+    }
+
+    private InformationDTO toDTO(Information information){
+        InformationDTO dto = new InformationDTO();
+        dto.setInformationId(information.getId());
+        dto.setFullName(information.getName());
+        dto.setAddress(information.getAddress());
+        dto.setPhone(information.getPhoneNumber());
+        dto.setIsDefault(information.isDefault());
+        return dto;
     }
 }
 
