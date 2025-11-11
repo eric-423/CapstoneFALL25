@@ -45,9 +45,6 @@ public class OrderServiceImpl implements OrderService {
     private OrderItemRepository orderItemRepository;
 
     @Autowired
-    private PromotionRepository promotionRepository;
-
-    @Autowired
     private PaymentService paymentService;
 
     @Autowired
@@ -64,6 +61,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private PaymentMethodRepository paymentMethodRepository;
+
+    @Autowired
+    private com.capstone.tamtech.capstone.services.impl.PromotionService promotionService;
 
     @Override
     public OrderDTO createOrderForShipping(OrderRequest orderRequest) throws BadRequestException {
@@ -122,39 +122,24 @@ public class OrderServiceImpl implements OrderService {
 
         String promotionCode = orderRequest.getPromotionCode();
         boolean hasPromotionCode = promotionCode != null && !promotionCode.isBlank();
-        if (hasPromotionCode) {
-            Optional<Promotion> promotionOptional = promotionRepository.findByNameIgnoreCase(promotionCode.trim());
-            if (promotionOptional.isPresent()) {
-                Promotion promotion = promotionOptional.get();
-                boolean promotionIsActive = promotion.isStatus();
-                boolean meetsMinimum = subTotal >= (promotion.getMinimumOrderValue());
+        if (hasPromotionCode && orderRequest.getCustomerId() > 0) {
+            com.capstone.tamtech.capstone.dto.PromotionValidationResult validationResult = promotionService
+                    .validateAndApplyPromotion(
+                            orderRequest.getCustomerId(),
+                            promotionCode,
+                            subTotal);
 
-                if (promotionIsActive && meetsMinimum) {
-                    String promotionTypeName = promotion.getPromotionType() != null
-                            ? promotion.getPromotionType().getName()
-                            : null;
+            if (validationResult.isValid()) {
+                discountPercent = validationResult.getDiscountPercent();
+                discountValue += validationResult.getDiscountValue();
 
-                    boolean isPercentType = promotionTypeName != null
-                            && promotionTypeName.equalsIgnoreCase("Giảm giá theo %");
-                    boolean isFixedType = promotionTypeName != null
-                            && promotionTypeName.equalsIgnoreCase("Giảm giá cố định");
-                    boolean isFreeShipType = promotionTypeName != null
-                            && promotionTypeName.equalsIgnoreCase("Miễn phí vận chuyển");
-
-                    if (isPercentType) {
-                        int percent = Math.max(0, promotion.getValue());
-                        discountPercent = percent;
-                    }
-
-                    if (isFixedType) {
-                        double value = Math.max(0, promotion.getValue());
-                        discountValue += value;
-                    }
-
-                    if (isFreeShipType) {
-                        order.setShippingFee(0.0);
-                    }
+                if (validationResult.isFreeShipping()) {
+                    order.setShippingFee(0.0);
                 }
+
+                order.setPromotion(validationResult.getPromotion());
+            } else {
+                throw new BadRequestException(validationResult.getErrorMessage());
             }
         }
         order.setDiscountPercent(discountPercent);
@@ -273,33 +258,20 @@ public class OrderServiceImpl implements OrderService {
 
         String promotionCode = orderRequest.getPromotionCode();
         boolean hasPromotionCode = promotionCode != null && !promotionCode.isBlank();
-        if (hasPromotionCode) {
-            Optional<Promotion> promotionOptional = promotionRepository.findByNameIgnoreCase(promotionCode.trim());
-            if (promotionOptional.isPresent()) {
-                Promotion promotion = promotionOptional.get();
-                boolean promotionIsActive = promotion.isStatus();
-                boolean meetsMinimum = subTotal >= (promotion.getMinimumOrderValue());
+        if (hasPromotionCode && orderRequest.getCustomerId() > 0) {
+            com.capstone.tamtech.capstone.dto.PromotionValidationResult validationResult = promotionService
+                    .validateAndApplyPromotion(
+                            orderRequest.getCustomerId(),
+                            promotionCode,
+                            subTotal);
 
-                if (promotionIsActive && meetsMinimum) {
-                    String promotionTypeName = promotion.getPromotionType() != null
-                            ? promotion.getPromotionType().getName()
-                            : null;
+            if (validationResult.isValid()) {
+                discountPercent = validationResult.getDiscountPercent();
+                discountValue += validationResult.getDiscountValue();
 
-                    boolean isPercentType = promotionTypeName != null
-                            && promotionTypeName.equalsIgnoreCase("Giảm giá theo %");
-                    boolean isFixedType = promotionTypeName != null
-                            && promotionTypeName.equalsIgnoreCase("Giảm giá cố định");
-
-                    if (isPercentType) {
-                        int percent = Math.max(0, promotion.getValue());
-                        discountPercent = percent;
-                    }
-
-                    if (isFixedType) {
-                        double value = Math.max(0, promotion.getValue());
-                        discountValue += value;
-                    }
-                }
+                order.setPromotion(validationResult.getPromotion());
+            } else {
+                throw new BadRequestException(validationResult.getErrorMessage());
             }
         }
         order.setDiscountPercent(discountPercent);
@@ -536,7 +508,6 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findById(waiterConfirmOrderRequest.getOrderId())
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
         List<OrderItem> orderItems = order.getOrderItems();
-        Date now = new Date();
 
         if (waiterConfirmOrderRequest.getOrderItems() != null) {
             for (OrderItem incoming : waiterConfirmOrderRequest.getOrderItems()) {
@@ -566,6 +537,13 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
         Integer branchId = order.getBranch() != null ? order.getBranch().getId() : null;
         inventoryService.restoreMaterialsForOrderItems(order.getOrderItems(), branchId);
+
+        if (order.getPromotion() != null && order.getCustomer() != null && order.getPaymentTime() != null) {
+            promotionService.rollbackPromotionUsage(
+                    order.getCustomer().getId(),
+                    order.getPromotion().getId());
+        }
+
         order.setStatus(orderStatusRepository.findByName("CANCEL")
                 .orElseThrow(() -> new RuntimeException("OrderStatus CANCEL not found")));
         order.setPaymentUrl(null);
@@ -577,6 +555,12 @@ public class OrderServiceImpl implements OrderService {
     public void markOrderPaidSuccess(int orderId) {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
         order.setPaymentTime(new Date());
+
+        if (order.getPromotion() != null && order.getCustomer() != null) {
+            promotionService.markPromotionAsUsed(
+                    order.getCustomer().getId(),
+                    order.getPromotion().getId());
+        }
 
         boolean isDiningTable = order.getIsTable() != null && order.getIsTable();
         boolean isPickup = order.isPickUp();
@@ -898,33 +882,20 @@ public class OrderServiceImpl implements OrderService {
         String promotionCode = paymentRequest.getPromotionCode();
         boolean hasPromotionCode = promotionCode != null && !promotionCode.isBlank();
 
-        if (hasPromotionCode) {
-            Optional<Promotion> promotionOptional = promotionRepository.findByNameIgnoreCase(promotionCode.trim());
-            if (promotionOptional.isPresent()) {
-                Promotion promotion = promotionOptional.get();
-                boolean promotionIsActive = promotion.isStatus();
-                boolean meetsMinimum = subTotal >= (promotion.getMinimumOrderValue());
+        if (hasPromotionCode && order.getCustomer() != null) {
+            com.capstone.tamtech.capstone.dto.PromotionValidationResult validationResult = promotionService
+                    .validateAndApplyPromotion(
+                            order.getCustomer().getId(),
+                            promotionCode,
+                            subTotal);
 
-                if (promotionIsActive && meetsMinimum) {
-                    String promotionTypeName = promotion.getPromotionType() != null
-                            ? promotion.getPromotionType().getName()
-                            : null;
+            if (validationResult.isValid()) {
+                discountPercent = validationResult.getDiscountPercent();
+                discountValue += validationResult.getDiscountValue();
 
-                    boolean isPercentType = promotionTypeName != null
-                            && promotionTypeName.equalsIgnoreCase("Giảm giá theo %");
-                    boolean isFixedType = promotionTypeName != null
-                            && promotionTypeName.equalsIgnoreCase("Giảm giá cố định");
-
-                    if (isPercentType) {
-                        int percent = Math.max(0, promotion.getValue());
-                        discountPercent = percent;
-                    }
-
-                    if (isFixedType) {
-                        double value = Math.max(0, promotion.getValue());
-                        discountValue += value;
-                    }
-                }
+                order.setPromotion(validationResult.getPromotion());
+            } else {
+                throw new BadRequestException(validationResult.getErrorMessage());
             }
         }
         order.setDiscountPercent(discountPercent);
@@ -965,6 +936,12 @@ public class OrderServiceImpl implements OrderService {
                     .orElseThrow(() -> new ResourceNotFoundException("OrderStatus COMPLETED not found"));
             order.setStatus(completedStatus);
 
+            if (order.getPromotion() != null && order.getCustomer() != null) {
+                promotionService.markPromotionAsUsed(
+                        order.getCustomer().getId(),
+                        order.getPromotion().getId());
+            }
+
             if (order.getCustomer() != null) {
                 Users customer = order.getCustomer();
                 int pointsEarned = (int) (order.getAmount() / 1000);
@@ -1001,6 +978,12 @@ public class OrderServiceImpl implements OrderService {
         OrderStatus completedStatus = orderStatusRepository.findByName("COMPLETED")
                 .orElseThrow(() -> new RuntimeException("OrderStatus COMPLETED not found"));
         order.setStatus(completedStatus);
+
+        if (order.getPromotion() != null && order.getCustomer() != null) {
+            promotionService.markPromotionAsUsed(
+                    order.getCustomer().getId(),
+                    order.getPromotion().getId());
+        }
 
         if (order.getCustomer() != null) {
             Users customer = order.getCustomer();

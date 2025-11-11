@@ -45,9 +45,11 @@ public class OtpServiceImpl implements OtpService {
     private String otpKey(String channel, String id) {
         return "otp:%s:%s".formatted(channel, id);
     }
+
     private String sendLockKey(String channel, String id) {
         return "otp:send_lock:%s:%s".formatted(channel, id);
     }
+
     private String failKey(String channel, String id) {
         return "otp:fail:%s:%s".formatted(channel, id);
     }
@@ -86,19 +88,17 @@ public class OtpServiceImpl implements OtpService {
         String key = otpKey(channel, identifier);
         String stored = ops.get(key);
 
-        if (stored == null) return false;
-
         if (stored.equals(inputOtp)) {
             redis.delete(key);
             redis.delete(failKey(channel, identifier));
 
-            if(channel.equals("zalo")){
+            if (channel.equals("zalo")) {
                 Users user = userRepository.findByPhoneNumber(identifier)
                         .orElseThrow(() -> new ResourceNotFoundException("Số điện thoại không tồn tại trong hệ thống"));
                 user.setPhoneVerified(true);
                 userRepository.save(user);
 
-            } else if(channel.equals("email")){
+            } else if (channel.equals("email")) {
                 Users user = userRepository.findByEmail(identifier)
                         .orElseThrow(() -> new ResourceNotFoundException("Email không tồn tại trong hệ thống"));
                 user.setEmailVerified(true);
@@ -118,17 +118,20 @@ public class OtpServiceImpl implements OtpService {
         }
     }
 
+
     @Override
-    public boolean verifyOtpForForgotPassword(String channel, String identifier, String inputOtp) {
+    public boolean verifyOtpForForgotPassword(String channel, String identifier, String inputOtp, boolean isDelete) {
         ValueOperations<String, String> ops = redis.opsForValue();
         String key = otpKey(channel, identifier);
         String stored = ops.get(key);
 
-        if (stored == null) return false;
-
         if (stored.equals(inputOtp)) {
-            redis.delete(key);
-            redis.delete(failKey(channel, identifier));
+
+            if (isDelete) {
+                redis.delete(key);
+                redis.delete(failKey(channel, identifier));
+            }
+
 
             return true;
         } else {
@@ -149,12 +152,12 @@ public class OtpServiceImpl implements OtpService {
     public boolean sendOtp(String channel, String identifier) throws Exception {
         String otp = createAndStoreOtp(channel, identifier);
 
-        if(channel.equals("zalo")){
+        if (channel.equals("zalo")) {
             Users user = userRepository.findByPhoneNumber(identifier)
                     .orElseThrow(() -> new ResourceNotFoundException("Số điện thoại không tồn tại trong hệ thống"));
             return zaloOtpService.sendOtp(otp, identifier);
 
-        } else if(channel.equals("email")){
+        } else if (channel.equals("email")) {
             Users user = userRepository.findByEmail(identifier)
                     .orElseThrow(() -> new ResourceNotFoundException("Email không tồn tại trong hệ thống"));
             return mailService.sendOtpEmail(identifier, otp);
