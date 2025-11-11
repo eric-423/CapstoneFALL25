@@ -30,6 +30,7 @@ public class ProductTypeServiceImpl implements ProductTypeService {
         ProductTypeDTO dto = new ProductTypeDTO();
         dto.setId(productType.getId());
         dto.setName(productType.getName());
+        dto.setImageUrl(productType.getImageUrl());
         return dto;
     }
 

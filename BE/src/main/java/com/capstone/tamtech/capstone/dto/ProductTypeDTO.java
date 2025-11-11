@@ -8,4 +8,5 @@ import java.io.Serializable;
 public class ProductTypeDTO implements Serializable {
     private Integer id;
     private String name;
+    private String imageUrl;
 }
