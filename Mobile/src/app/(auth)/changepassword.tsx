@@ -15,37 +15,40 @@ import {
 import Toast from "react-native-root-toast";
 import logo from "@/assets/logo.png";
 import footerFrame from "@/assets/frame_footer.png";
-import axios from "axios";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-const UserPassword = () => {
+import { router, useLocalSearchParams } from "expo-router";
+import { ChangePasswordAPI } from "@/utils/api";
+const ChangePasswordPage = () => {
   const formikRef = useRef<FormikProps<any>>(null);
-  const handleUpdatePassword = async (
-    currentPassword: string,
-    newPassword: string
-  ) => {
+  const { phoneNumber, inputOtp } = useLocalSearchParams();
+  const handleUpdatePassword = async (newPassword: string) => {
     try {
-      const token = await AsyncStorage.getItem("access_token");
-      if (!token) {
-        Toast.show("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.", {
+      console.log(inputOtp, phoneNumber, newPassword);
+
+      const res = await ChangePasswordAPI(
+        inputOtp as string,
+        phoneNumber as string,
+        newPassword
+      );
+      console.log("Change password response:", res);
+      if (res?.data || res?.status === 200) {
+        Toast.show("Thay đổi mật khẩu thành công", {
           duration: Toast.durations.LONG,
           textColor: "white",
-          backgroundColor: APP_COLOR.CANCEL,
+          backgroundColor: APP_COLOR.ORANGE,
           opacity: 1,
         });
-        return;
+        router.replace("/(auth)/welcome");
       }
-    } catch (error) {
-      let errorMessage = "Đã có lỗi xảy ra. Vui lòng thử lại.";
-      if (axios.isAxiosError(error)) {
-        if (error.response?.status === 401) {
-          errorMessage = "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.";
-        } else if (error.response?.data?.message) {
-          errorMessage = Array.isArray(error.response.data.message)
-            ? error.response.data.message[0]
-            : error.response.data.message;
-        }
-      }
-
+    } catch (error: any) {
+      console.log("Change password error:", {
+        status: error?.response?.status,
+        data: error?.response?.data,
+        message: error?.message,
+      });
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Thay đổi mật khẩu thất bại. Vui lòng thử lại.";
       Toast.show(errorMessage, {
         duration: Toast.durations.LONG,
         textColor: "white",
@@ -59,16 +62,10 @@ const UserPassword = () => {
       innerRef={formikRef}
       validationSchema={UpdateUserPasswordSchema}
       initialValues={{
-        currentPassword: "",
         newPassword: "",
         confirmNewPassword: "",
       }}
-      onSubmit={(values) =>
-        handleUpdatePassword(
-          values?.currentPassword ?? "",
-          values?.newPassword ?? ""
-        )
-      }
+      onSubmit={(values) => handleUpdatePassword(values?.newPassword ?? "")}
     >
       {({
         handleChange,
@@ -91,18 +88,7 @@ const UserPassword = () => {
                 <Image source={logo} style={styles.logo} />
                 <Text style={styles.title}>Thay đổi mật khẩu của bạn</Text>
               </View>
-
               <View style={styles.formContainer}>
-                <ShareInput
-                  title="Mật khẩu hiện tại"
-                  secureTextEntry={true}
-                  onChangeText={handleChange("currentPassword")}
-                  onBlur={handleBlur("currentPassword")}
-                  value={values.currentPassword}
-                  error={errors.currentPassword}
-                  touched={touched.currentPassword}
-                />
-
                 <ShareInput
                   title="Mật khẩu mới"
                   secureTextEntry={true}
@@ -112,7 +98,6 @@ const UserPassword = () => {
                   error={errors.newPassword}
                   touched={touched.newPassword}
                 />
-
                 <ShareInput
                   title="Xác nhận mật khẩu mới"
                   secureTextEntry={true}
@@ -140,7 +125,9 @@ const UserPassword = () => {
                 ]}
               >
                 <Text style={styles.saveButtonText}>
-                  {isValid && dirty ? "Lưu thay đổi" : "Không thể lưu"}
+                  {isValid && dirty
+                    ? "Thay đổi mật khẩu"
+                    : "Không thể thay đổi"}
                 </Text>
               </Pressable>
             </View>
@@ -223,4 +210,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default UserPassword;
+export default ChangePasswordPage;

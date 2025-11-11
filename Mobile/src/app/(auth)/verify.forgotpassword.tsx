@@ -67,7 +67,7 @@ const formatCountdown = (seconds: number): string => {
     .padStart(2, "0")}`;
 };
 
-const VerifyPage = () => {
+const VerifyForgotPassword = () => {
   const [isSubmit, setIsSubmit] = useState<boolean>(false);
   const [countdown, setCountdown] = useState<number>(0);
   const otpRef = useRef<OTPTextView>(null);
@@ -110,14 +110,17 @@ const VerifyPage = () => {
       const verifyRes = await VeryfyOTP(channel, identifier, inputOtp);
       setIsSubmit(false);
       if (verifyRes) {
-        Toast.show("Xác thực tài khoản thành công", {
+        Toast.show("Xác thực mã OTP thành công", {
           duration: Toast.durations.LONG,
           textColor: "white",
           backgroundColor: APP_COLOR.ORANGE,
           opacity: 1,
           position: -35,
         });
-        router.replace("/(auth)/welcome");
+        router.replace({
+          pathname: "/(auth)/changepassword",
+          params: { phoneNumber, inputOtp },
+        });
       } else {
         Toast.show("Mã OTP không hợp lệ", {
           duration: Toast.durations.LONG,
@@ -160,7 +163,7 @@ const VerifyPage = () => {
     <View style={styles.container}>
       <View style={styles.welcomeText}>
         <Image style={styles.imgLogo} source={logo} />
-        <Text style={styles.headerText}>Chào mừng bạn đến với Tấm Tắc</Text>
+        <Text style={styles.headerText}>Xác nhận mã OTP</Text>
         {countdown <= 0 ? (
           <Text
             style={{
@@ -252,4 +255,4 @@ const VerifyPage = () => {
   );
 };
 
-export default VerifyPage;
+export default VerifyForgotPassword;
