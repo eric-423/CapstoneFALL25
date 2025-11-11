@@ -78,8 +78,9 @@ declare global {
     token: string;
   }
   interface IProductType {
-    id: number;
-    name: string;
+    productId: number;
+    productName: string;
+    productPrice: number;
   }
 }
 

@@ -19,6 +19,7 @@ import {
 import React from "react";
 import { FONTS } from "@/theme/typography";
 import { GetProductByProductType } from "@/utils/api";
+import { router } from "expo-router";
 const { width: sWidth } = Dimensions.get("window");
 
 interface IProps {
@@ -42,8 +43,6 @@ interface IPropsProduct {
 }
 
 interface ModalContextType {
-  showProductModal: (item: IPropsProduct) => void;
-  hideProductModal: () => void;
   handleQuantityChange: (item: IPropsProduct, action: "MINUS" | "PLUS") => void;
 }
 
@@ -58,9 +57,6 @@ export const useModal = () => {
 };
 
 export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<IPropsProduct | null>(null);
-  const [typeProducts, setTypeProducts] = useState([]);
   const { cart, setCart, restaurant, setRestaurant } = useCurrentApp();
 
   const mockRestaurant = {
@@ -75,22 +71,18 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [restaurant, setRestaurant]);
 
-  const showProductModal = (item: IPropsProduct) => {
-    setSelectedItem(item);
-    setModalVisible(true);
-  };
-
-  const hideProductModal = () => {
-    setModalVisible(false);
-    setSelectedItem(null);
-  };
-
   const handleQuantityChange = (
     item: IPropsProduct,
     action: "MINUS" | "PLUS"
   ) => {
     if (action === "PLUS" && item.ProductType.productTypeId === 1) {
-      showProductModal(item);
+      router.navigate({
+        pathname: "/order/add.extra.food",
+        params: {
+          productName: item.name,
+          productTypeId: item.ProductType.productTypeId,
+        },
+      });
     }
 
     if (!restaurant?._id) return;
@@ -143,25 +135,8 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
     setCart(newCart);
   };
 
-  const getItemQuantity = (itemId: string) =>
-    getItemQuantityUtil(cart, restaurant?._id, itemId);
-
-  // useEffect(() => {
-  //   const fetchTypeProducts = async () => {
-  //     try {
-  //       const typePro = await axios.get(`${API_URL}/api/products/type/3`);
-  //       setTypeProducts(typePro.data.products);
-  //     } catch (error) {
-  //       console.error("Error fetching product types:", error);
-  //     }
-  //   };
-  //   fetchTypeProducts();
-  // }, []);
-
   return (
-    <ModalContext.Provider
-      value={{ showProductModal, hideProductModal, handleQuantityChange }}
-    >
+    <ModalContext.Provider value={{ handleQuantityChange }}>
       {children}
     </ModalContext.Provider>
   );
@@ -294,6 +269,26 @@ const CollectionMenu = (props: IProps) => {
             showsVerticalScrollIndicator={false}
             showsHorizontalScrollIndicator={false}
             scrollEnabled={false}
+            ListEmptyComponent={() => (
+              <View
+                style={{
+                  paddingVertical: 10,
+                  height: 100,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Text
+                  style={{
+                    color: APP_COLOR.BROWN,
+                    fontFamily: FONTS.regular,
+                    textAlign: "center",
+                  }}
+                >
+                  Không có sản phẩm.
+                </Text>
+              </View>
+            )}
             renderItem={({
               item,
               index,
@@ -331,11 +326,11 @@ const CollectionMenu = (props: IProps) => {
                     <View style={styles.itemTextContainer}>
                       <View style={{ height: 50 }}>
                         <Text
-                          style={[styles.itemName, { width: "55%" }]}
+                          style={[styles.itemName]}
                           numberOfLines={2}
                           ellipsizeMode="tail"
                         >
-                          {item.description}
+                          {item.name}
                         </Text>
                       </View>
                       <View
