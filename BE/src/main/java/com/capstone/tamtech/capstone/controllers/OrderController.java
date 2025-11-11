@@ -86,32 +86,32 @@ public class OrderController {
         }
     }
 
-    @GetMapping("/manager/assign/cheff")
-    public ResponseEntity<?> assignOrderToCheff(@RequestParam int orderId) {
+    @PutMapping("/manager/assign/cheff/{orderId}")
+    public ResponseEntity<?> assignOrderToCheff(@PathVariable int orderId) {
         boolean result = orderService.assignOrderToCheff(orderId);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
-    @GetMapping("/cheff/cooked")
-    public ResponseEntity<?> markAsCooked(@RequestParam int orderId) {
+    @PutMapping("/cheff/cooked/{orderId}")
+    public ResponseEntity<?> markAsCooked(@PathVariable int orderId) {
         boolean result = orderService.markAsCooked(orderId);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
-    @GetMapping("/manager/assign/shipper")
-    public ResponseEntity<?> assignToShipper(@RequestParam int orderId) {
+    @PutMapping("/manager/assign/shipper/{orderId}")
+    public ResponseEntity<?> assignToShipper(@PathVariable int orderId) {
         boolean result = orderService.assignToShipper(orderId);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
-    @GetMapping("/shipper/delivered")
-    public ResponseEntity<?> deliveredOrder(@RequestParam int orderId) {
+    @PutMapping("/shipper/delivered/{orderId}")
+    public ResponseEntity<?> deliveredOrder(@PathVariable int orderId) {
         boolean result = orderService.deliveredOrder(orderId);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
-    @GetMapping("/customer/comleted")
-    public ResponseEntity<?> completeOrder(@RequestBody int orderId) {
+    @PutMapping("/customer/comleted/{orderId}")
+    public ResponseEntity<?> completeOrder(@PathVariable int orderId) {
         boolean result = orderService.completeOrder(orderId);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
@@ -147,8 +147,8 @@ public class OrderController {
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
 
-    @GetMapping("/customer/pickup")
-    public ResponseEntity<?> customerPickupOrder(@RequestParam int orderId) {
+    @PutMapping("/customer/pickup/{orderId}")
+    public ResponseEntity<?> customerPickupOrder(@PathVariable int orderId) {
         ResponseData responseData = new ResponseData();
         responseData.setData(orderService.customerPickedUpOrder(orderId));
         return new ResponseEntity<>(responseData, HttpStatus.OK);
