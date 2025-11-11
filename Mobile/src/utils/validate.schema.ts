@@ -33,15 +33,10 @@ export const ChangePasswordSchema = Yup.object().shape({
     .oneOf([Yup.ref("password")], "Mật khẩu xác nhận không khớp"),
 });
 export const UpdateUserPasswordSchema = Yup.object().shape({
-  currentPassword: Yup.string()
-    .min(6, "Mật khẩu hiện tại cần tối thiểu 6 ký tự")
-    .max(50, "Mật khẩu hiện tại tối đa 50 ký tự")
-    .required("Mật khẩu hiện tại không được để trống"),
   newPassword: Yup.string()
     .min(6, "Mật khẩu mới cần tối thiểu 6 ký tự")
     .max(50, "Mật khẩu mới tối đa 50 ký tự")
     .required("Mật khẩu mới không được để trống"),
-
   confirmNewPassword: Yup.string()
     .required("Mật khẩu xác nhận không được để trống")
     .oneOf([Yup.ref("newPassword")], "Không trùng với mật khẩu"),

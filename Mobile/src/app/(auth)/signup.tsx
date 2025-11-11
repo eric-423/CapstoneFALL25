@@ -120,6 +120,7 @@ const CustomerSignUpPage = () => {
                   value={values.fullName}
                   error={errors.fullName}
                   touched={touched.fullName}
+                  keyboardType="ascii-capable"
                 />
                 <ShareInput
                   placeholder="Số điện thoại"

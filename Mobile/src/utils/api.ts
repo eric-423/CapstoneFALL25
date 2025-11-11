@@ -88,3 +88,30 @@ export const LoginCustomers = async (phoneNumber: string, password: string) => {
     }
   );
 };
+
+export const ForgotPasswordAPI = async (phoneNumber: string) => {
+  return axios.post(
+    `${BASE_URL}/auth/customer/forgot-password`,
+    {
+      phoneNumber,
+    },
+    {
+      headers: {
+        accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    }
+  );
+};
+
+export const ChangePasswordAPI = async (
+  otp: string,
+  phoneNumber: string,
+  newPassword: string
+) => {
+  return axios.post(`${BASE_URL}/auth/customer/reset-password`, {
+    otp,
+    phoneNumber,
+    newPassword,
+  });
+};
