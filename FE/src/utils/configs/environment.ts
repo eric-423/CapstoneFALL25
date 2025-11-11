@@ -7,8 +7,8 @@ export const useSampleData = process.env.NEXT_PUBLIC_USE_SAMPLE_DATA === 'true' 
 export const useMockAPI = process.env.NEXT_PUBLIC_USE_MOCK_API === 'true' || isDevelopment;
 
 // API URLs
-export const apiBaseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-export const baseURL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+export const apiBaseURL = process.env.NEXT_PUBLIC_API_URL;
+export const baseURL = process.env.NEXT_PUBLIC_BASE_URL;
 
 // Analytics
 export const gaId = process.env.NEXT_PUBLIC_GA_ID;
