@@ -1,4 +1,5 @@
 import configs from '@/utils/configs';
+import { apiBaseURL } from '@/utils/configs/environment';
 
 import axios, { AxiosError, AxiosInstance } from 'axios';
 
@@ -24,16 +25,15 @@ class Http {
   constructor() {
     this.accessToken = getAccessToken();
     this.refreshToken = getRefreshToken();
+    
     this.instance = axios.create({
-      baseURL: process.env.NEXT_PUBLIC_BASE_URL,
+      baseURL: apiBaseURL,
       timeout: 10000,
       headers: {
         'Content-Type': 'application/json',
       },
     });
 
-    // Always setup mock interceptor to allow mock accounts to login
-    // regardless of NEXT_PUBLIC_USE_MOCK setting
     setupMockInterceptor(this.instance, process.env.NEXT_PUBLIC_USE_MOCK === 'true');
 
     this.instance.interceptors.request.use(

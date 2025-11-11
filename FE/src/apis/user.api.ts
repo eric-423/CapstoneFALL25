@@ -109,7 +109,6 @@ export const refetchUserData = (token: string) => {
   });
 };
 
-export const getMe = (userId: number) => http.get(`/customer/profile/${userId}`);
 
 // ADMIN USER CRUD
 export const getAllUsers = async (page = 0, size = 10000, isActive = true, roleId?: number) => {
@@ -174,28 +173,63 @@ export const unbanUser = async (userId: number) => {
 
 
 // login 
-export const loginCustomer = (data: { phoneNumber: string; password: string }) =>
-  http.post('/api/auth/customer/login', data);
+
+export const loginCustomerViaApiRoute = async (data: { phoneNumber: string; password: string }) => {
+  const response = await fetch('/api/auth/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw {
+      response: {
+        data: errorData,
+        status: response.status,
+      },
+    };
+  }
+
+  const responseData = await response.json();
+
+  return {
+    status: response.status,
+    data: responseData,
+  };
+};
 
 
+// login customer
+// export const loginCustomer = (data: { phoneNumber: string; password: string }) =>
+//   http.post('/auth/customer/login', data);
+
+// Gọi qua Next.js API route (mới - tự động set cookies httpOnly)
 
 export const registerCustomer = (data: { fullName: string; phoneNumber: string; password: string; dateOfBirth: string }) =>
-  http.post('/api/auth/customer/register', data);
-
+  http.post('/auth/customer/register', data);
 
 export const sendOtp = (channel: 'email' | 'zalo', indentifier: string) =>
-  http.post('/api/auth/otp/send', { channel, indentifier });
-
+  http.post('/auth/otp/send', { channel, indentifier });
 
 export const verifyOTP = (channel: 'email' | 'zalo', identifier: string, inputOtp: string) =>
-  http.post(`/api/auth/otp/verify`, { channel, identifier, inputOtp });
-
+  http.post(`/auth/otp/verify`, { channel, identifier, inputOtp });
 
 export const getTimeResendOtp = (channel: 'email' | 'zalo', identifier: string) =>
-  http.get(`/api/auth/otp/ttl?channel=${channel}&identifier=${identifier}`);
+  http.get(`/auth/otp/ttl?channel=${channel}&identifier=${identifier}`);
+
+
+
+// lấy thông tin 
+export const getMe = (userId: number) => http.get(`/customer/profile/${userId}`);
 
 
 // =====================================  employee ================================
 
+
+
 export const loginEmployee = (data: { email: string; password: string }) =>
-  http.post('/api/auth/employee/login', data);
+  http.post('/auth/employee/login', data);

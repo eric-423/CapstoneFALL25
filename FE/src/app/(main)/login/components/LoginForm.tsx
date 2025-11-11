@@ -1,7 +1,7 @@
 'use client';
 
 import { GuestLayout } from '@/components/layouts/GuestLayout';
-import { loginCustomer } from '@/apis/user.api';
+import { loginCustomerViaApiRoute } from '@/apis/user.api';
 import { Input } from '@/components/ui/input';
 import { useAuthContext } from '@/utils/contexts/AuthContext';
 import Link from 'next/link';
@@ -34,11 +34,10 @@ export default function LoginForm() {
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
-
         e.preventDefault();
-
         setErrors({});
 
+        // Client-side validation để cải thiện UX
         if (!validatePhone(phone)) {
             setErrors(prev => ({ ...prev, phone: 'Số điện thoại không hợp lệ (cần 10 số)' }));
             return;
@@ -47,44 +46,32 @@ export default function LoginForm() {
         setLoading(true);
 
         try {
-            const response = await loginCustomer({ phoneNumber: phone, password });
-            if (response.status === 200) {
+            const response = await loginCustomerViaApiRoute({ phoneNumber: phone, password });
+
+            if (response.status === 200 && response.data?.token) {
 
 
                 if (rememberMe) {
-
                     localStorage.setItem('rememberedPhone', phone);
                     localStorage.setItem('rememberMe', 'true');
                 } else {
-
                     localStorage.removeItem('rememberedPhone');
                     localStorage.setItem('rememberMe', 'false');
                 }
 
+
+                localStorage.setItem('access_token', response.data.token);
+
+
+                const role = response.data.userInfo?.role || 'CUSTOMER';
                 toast.success('Đăng nhập thành công!');
-
-                const token = response.data.token;
-
-                localStorage.setItem('tok', token);
-
-                const decoded = JSON.parse(atob(token.split('.')[1]));
-
-
-                redirectAfterLogin(decoded.role);
+                redirectAfterLogin(role);
             }
-
-
         } catch (error: unknown) {
+            const errorData = (error as { response?: { data?: { error?: string } } })?.response?.data;
+            const errorMessage = errorData?.error || 'Đăng nhập thất bại. Vui lòng thử lại.';
 
-            const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
-
-            if (errorMessage?.toLowerCase().includes('phone number') || errorMessage?.toLowerCase().includes('số điện thoại')) {
-                setErrors(prev => ({ ...prev, phone: 'Số điện thoại không hợp lệ (cần 10 số)' }));
-            } else if (errorMessage?.toLowerCase().includes('password') || errorMessage?.toLowerCase().includes('mật khẩu')) {
-                setErrors(prev => ({ ...prev, password: 'Mật khẩu không hợp lệ' }));
-            } else {
-                toast.error(errorMessage);
-            }
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }

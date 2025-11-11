@@ -13,44 +13,51 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Forward to external API
-    const response = await http.post('/auth/sign-in', {
+    const response = await http.post('/auth/customer/login', {
       phoneNumber,
       password,
     });
 
-    // Set cookies for authentication
     const responseData = NextResponse.json(response.data);
-    
-    if (response.data.data.access_token) {
-      responseData.cookies.set('access_token', response.data.data.access_token, {
+
+    if (response.data?.token) {
+
+      const maxAgeInSeconds = Math.floor(response.data.expiresIn / 1000);
+
+      responseData.cookies.set('token', response.data.token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: 60 * 60 * 24, // 24 hours
+        maxAge: maxAgeInSeconds,
       });
 
-      responseData.cookies.set('refresh_token', response.data.data.refresh_token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 60 * 60 * 24 * 7, // 7 days
-      });
 
-      responseData.cookies.set('userRole', response.data.data.user.role, {
-        httpOnly: false,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 60 * 60 * 24, // 24 hours
-      });
+      if (response.data.userInfo?.role) {
+        responseData.cookies.set('role', response.data.userInfo.role, {
+          httpOnly: false,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'strict',
+          maxAge: maxAgeInSeconds,
+        });
+      }
     }
 
     return responseData;
-  } catch (error) {
+
+  } catch (error: unknown) {
     console.error('Login API Error:', error);
+
+    const errorMessage = (error as { response?: { data?: { message?: string; error?: string } } })?.response?.data?.message
+      || (error as { response?: { data?: { message?: string; error?: string } } })?.response?.data?.error
+      || 'Đăng nhập thất bại. Vui lòng thử lại.';
+
+    const statusCode = (error as { response?: { status?: number } })?.response?.status || 401;
+
     return NextResponse.json(
-      { error: 'Invalid credentials' },
-      { status: 401 }
+      { error: errorMessage },
+      { status: statusCode }
     );
+
+
   }
 }
