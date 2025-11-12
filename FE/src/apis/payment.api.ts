@@ -1,5 +1,3 @@
-import http from '@/utils/http';
-
 export interface PaymentMethod {
     id: number;
     name: string;
@@ -12,6 +10,12 @@ export interface PaymentMethodResponse {
 }
 
 export const getPaymentMethods = async (): Promise<PaymentMethod[]> => {
-    const { data } = await http.get<PaymentMethodResponse>('/payment-method');
+    const response = await fetch('/api/payment-method');
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch payment methods');
+    }
+
+    const data: PaymentMethodResponse = await response.json();
     return data.data;
 };

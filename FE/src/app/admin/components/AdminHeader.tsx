@@ -14,6 +14,7 @@ import {
     Command as CommandIcon,
 } from 'lucide-react';
 import { useAdminContext } from '@/utils/contexts/AdminContext';
+import { useAuthContext } from '@/utils/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -35,6 +36,7 @@ const timePeriodLabels = {
 export function AdminHeader() {
     const pathname = usePathname();
     const router = useRouter();
+    const { logout } = useAuthContext();
     const {
         selectedBranch,
         setSelectedBranch,
@@ -113,95 +115,21 @@ export function AdminHeader() {
                     ))}
                 </div>
 
-                <div className="flex-1" />
-
-                {/* Global Search Trigger */}
-                <Button
-                    variant="outline"
-                    className="relative h-9 w-full max-w-sm justify-start text-sm text-gray-400 border-gray-700 bg-slate-800/50 hover:bg-slate-800 hover:text-gray-200 sm:pr-12"
-                    onClick={openSearch}
-                >
-                    <Search className="mr-2 h-4 w-4" />
-                    <span className="hidden lg:inline-flex">Tìm người dùng, đơn hàng, công thức...</span>
-                    <span className="inline-flex lg:hidden">Tìm kiếm...</span>
-                    <kbd className="pointer-events-none absolute right-1.5 top-1.5 hidden h-6 select-none items-center gap-1 rounded border border-gray-700 bg-slate-800 px-1.5 font-mono text-xs font-medium text-gray-400 opacity-100 sm:flex">
-                        <CommandIcon className="h-3 w-3" />K
-                    </kbd>
-                </Button>
-
-                {/* Time Period Selector */}
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm" className="h-9 gap-2 border-gray-700 bg-slate-800/50 text-gray-300 hover:bg-slate-800 hover:text-white">
-                            <Calendar className="h-4 w-4" />
-                            <span className="hidden sm:inline-flex">{timePeriodLabels[timePeriod]}</span>
-                            <ChevronDown className="h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
-                        <DropdownMenuLabel>Thời gian</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => handleTimePeriodChange('today')}>
-                            <span className={timePeriod === 'today' ? 'font-semibold' : ''}>Hôm nay</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleTimePeriodChange('7d')}>
-                            <span className={timePeriod === '7d' ? 'font-semibold' : ''}>7 ngày qua</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleTimePeriodChange('30d')}>
-                            <span className={timePeriod === '30d' ? 'font-semibold' : ''}>30 ngày qua</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleTimePeriodChange('custom')}>
-                            <span className={timePeriod === 'custom' ? 'font-semibold' : ''}>Tùy chỉnh</span>
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-
-                {/* Branch Switcher */}
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm" className="h-9 gap-2 border-gray-700 bg-slate-800/50 text-gray-300 hover:bg-slate-800 hover:text-white">
-                            <MapPin className="h-4 w-4" />
-                            <span className="hidden sm:inline-flex">
-                                {selectedBranch ? selectedBranch.name : 'All Branches'}
-                            </span>
-                            <ChevronDown className="h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56">
-                        <DropdownMenuLabel>Chọn chi nhánh</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => handleBranchChange(null)}>
-                            <MapPin className="mr-2 h-4 w-4" />
-                            <div className="flex flex-col">
-                                <span className={!selectedBranch ? 'font-semibold' : ''}>Tất cả chi nhánh</span>
-                                <span className="text-xs text-gray-500">Xem dữ liệu tổng hợp</span>
-                            </div>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        {branches.length === 0 ? (
-                            <div className="px-2 py-4 text-center text-sm text-gray-500">
-                                Không có chi nhánh nào
-                            </div>
-                        ) : (
-                            branches.map((branch) => (
-                                <DropdownMenuItem
-                                    key={branch.id}
-                                    onClick={() => handleBranchChange(branch)}
-                                >
-                                    <MapPin className="mr-2 h-4 w-4" />
-                                    <div className="flex flex-col">
-                                        <span className={selectedBranch?.id === branch.id ? 'font-semibold' : ''}>
-                                            {branch.name}
-                                        </span>
-                                        {branch.code && (
-                                            <span className="text-xs text-gray-500">{branch.code}</span>
-                                        )}
-                                    </div>
-                                </DropdownMenuItem>
-                            ))
-                        )}
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                <div className="flex-1 flex justify-center">
+                    {/* Global Search Trigger - Centered */}
+                    <Button
+                        variant="outline"
+                        className="relative h-9 w-full max-w-md justify-start text-sm text-gray-400 border-gray-700 bg-slate-800/50 hover:bg-slate-800 hover:text-gray-200 sm:pr-12"
+                        onClick={openSearch}
+                    >
+                        <Search className="mr-2 h-4 w-4" />
+                        <span className="hidden lg:inline-flex">Tìm người dùng, đơn hàng, công thức...</span>
+                        <span className="inline-flex lg:hidden">Tìm kiếm...</span>
+                        <kbd className="pointer-events-none absolute right-1.5 top-1.5 hidden h-6 select-none items-center gap-1 rounded border border-gray-700 bg-slate-800 px-1.5 font-mono text-xs font-medium text-gray-400 opacity-100 sm:flex">
+                            <CommandIcon className="h-3 w-3" />K
+                        </kbd>
+                    </Button>
+                </div>
 
                 {/* Notifications */}
                 <Button variant="ghost" size="icon" className="relative h-9 w-9 text-gray-300 hover:text-white hover:bg-slate-800">
@@ -246,10 +174,7 @@ export function AdminHeader() {
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                             className="text-red-600"
-                            onClick={() => {
-                                localStorage.clear();
-                                router.push('/inside/login');
-                            }}
+                            onClick={logout}
                         >
                             <LogOut className="mr-2 h-4 w-4" />
                             Đăng xuất

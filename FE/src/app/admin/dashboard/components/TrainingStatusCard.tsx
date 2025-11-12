@@ -19,7 +19,7 @@ interface TrainingStatusCardProps {
 
 export function TrainingStatusCard({ data }: TrainingStatusCardProps) {
     return (
-        <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow border border-gray-100">
+        <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow border border-gray-100 h-full flex flex-col">
             <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-800">Trạng thái đào tạo</h3>
                 <Link

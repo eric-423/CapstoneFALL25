@@ -29,7 +29,7 @@ export default function TableProductCard({ product, onAddToCart }: TableProductC
                     <div className='relative h-36 sm:h-40 md:h-48 w-full overflow-hidden rounded-t-lg bg-gradient-to-br from-gray-50 to-gray-100'>
                         {product.productImage ? (
                             <Image
-                                src={product.productImage}
+                                src={`${product.productImage}`}
                                 alt={product.productName}
                                 fill
                                 className='object-cover group-hover:scale-105 transition-transform duration-300'
