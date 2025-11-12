@@ -190,3 +190,18 @@ export const GetAllProduct = async (branchId: number) => {
     }
   );
 };
+
+export const GetShippingFee = async (
+  customerAddress: string,
+  branchAddress: string
+) => {
+  return axios.get(
+    `${BASE_URL}/orders/shipping/fee?customerAddress=${customerAddress}&branchAddress=${branchAddress}`,
+    {
+      headers: {
+        accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    }
+  );
+};

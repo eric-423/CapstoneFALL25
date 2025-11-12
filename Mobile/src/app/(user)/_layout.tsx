@@ -43,6 +43,12 @@ export default function UserLayout() {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="order/address.create"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }

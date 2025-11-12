@@ -25,6 +25,7 @@ import HeaderHome from "@/components/home/header.home";
 import { AntDesign } from "@expo/vector-icons";
 import DropDown from "@/components/order/item.dropdown";
 import { router } from "expo-router";
+import { GetShippingFee } from "@/utils/api";
 
 interface IOrderItem {
   title: string;
@@ -34,68 +35,43 @@ interface IOrderItem {
   productId: number;
 }
 
-const sampleOrderItems: IOrderItem[] = [
-  {
-    title: "Pizza Margherita",
-    option: "Size L",
-    price: 250000,
-    quantity: 2,
-    productId: 1,
-  },
-  {
-    title: "Spaghetti Carbonara",
-    option: "Thêm phô mai",
-    price: 180000,
-    quantity: 1,
-    productId: 2,
-  },
-  {
-    title: "Caesar Salad",
-    option: "",
-    price: 120000,
-    quantity: 1,
-    productId: 3,
-  },
-  {
-    title: "Coca Cola",
-    option: "Size M",
-    price: 25000,
-    quantity: 3,
-    productId: 4,
-  },
-];
-
 const PlaceOrderPage = () => {
-  const { restaurant, cart } = useCurrentApp();
-  const [orderItems, setOrderItems] = useState<IOrderItem[]>(sampleOrderItems);
-  const [decodeToken, setDecodeToken] = useState<any>("");
+  const { restaurant, cart, locationReal } = useCurrentApp();
+  const orderItems: IOrderItem[] =
+    restaurant?._id && cart?.[restaurant._id]?.items
+      ? Object.values(cart[restaurant._id].items).map((item) => ({
+          title: item.data.title || item.data.name || "",
+          option: "",
+          price: (item.data.basePrice || item.data.price) * item.quantity,
+          quantity: item.quantity,
+          productId: Number(item.data.productId) || 0,
+        }))
+      : [];
   const [modalVisible, setModalVisible] = useState(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [cusAddress, setCusAddress] = useState("123 Đường ABC, Quận 1, TP.HCM");
   const [cusPhone, setCusPhone] = useState("0901234567");
-  const { branchId } = useCurrentApp();
-  const [selectedOption, setSelectedOption] = useState<string | null>("1");
+  const { branchId, branchName } = useCurrentApp();
   const [shippingFee, setShippingFee] = useState<number>(15000);
-  const dropdownItems = [
-    { id: "1", title: "COD" },
-    { id: "4", title: "PAYOS" },
-  ];
+  useEffect(() => {
+    const fetchShippingFee = async () => {
+      const res = await GetShippingFee(locationReal || "", branchName || "");
+      setShippingFee(res.data.data);
+    };
+    fetchShippingFee();
+  }, [locationReal, branchName]);
   const [addresses, setAddresses] = useState<string[]>([
     "123 Đường ABC, Quận 1, TP.HCM",
     "456 Đường XYZ, Quận 2, TP.HCM",
     "789 Đường DEF, Quận 3, TP.HCM",
   ]);
-  const [selectedAddress, setSelectedAddress] = useState<string>(
-    "123 Đường ABC, Quận 1, TP.HCM"
-  );
-  const [orderDetails, setOrderDetails] = useState<
-    { productId: number; quantity: number }[]
-  >([
-    { productId: 1, quantity: 2 },
-    { productId: 2, quantity: 1 },
-    { productId: 3, quantity: 1 },
-    { productId: 4, quantity: 3 },
-  ]);
+  const orderDetails: { productId: number; quantity: number }[] =
+    restaurant?._id && cart?.[restaurant._id]?.items
+      ? Object.values(cart[restaurant._id].items).map((item) => ({
+          productId: Number(item.data.productId) || 0,
+          quantity: item.quantity,
+        }))
+      : [];
   const [couponStatus, setCouponStatus] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
@@ -103,7 +79,6 @@ const PlaceOrderPage = () => {
   const [discountAmount, setDiscountAmount] = useState<number>(0);
   const [availablePromotions, setAvailablePromotions] = useState<any[]>([]);
   const [showPromotions, setShowPromotions] = useState(false);
-
   return (
     <View
       style={{
@@ -132,7 +107,11 @@ const PlaceOrderPage = () => {
           >
             Giao hàng
           </Text>
-          <AntDesign name="edit" size={24} color={APP_COLOR.BROWN} />
+          <Pressable
+            onPress={() => router.navigate("/(user)/order/address.create")}
+          >
+            <AntDesign name="edit" size={20} color={APP_COLOR.BROWN} />
+          </Pressable>
         </View>
         <View
           style={{
@@ -149,7 +128,7 @@ const PlaceOrderPage = () => {
               marginTop: 5,
             }}
           >
-            85 Cô Giang, Q1, TP.HCM
+            {locationReal || "Chưa có địa chỉ"}
           </Text>
           <View style={{ marginHorizontal: 10 }}>
             <TextInput
@@ -183,7 +162,7 @@ const PlaceOrderPage = () => {
                 fontStyle: "italic",
               }}
             >
-              * Chỉ hỗ trợ giao hàng tại TP.HCM
+              * Chỉ hỗ trợ giao hàng tại TP.HCM và không quá 5km
             </Text>
           </View>
           <View
@@ -194,8 +173,7 @@ const PlaceOrderPage = () => {
               paddingBottom: 10,
             }}
           >
-            <DropDown title="Cửa hàng tiếp nhận" value="Tấm Tắc Cô Giang" />
-            <DropDown title="Thời gian giao" value="9:00 am" />
+            <DropDown title="Cửa hàng tiếp nhận" value={branchName || ""} />
           </View>
         </View>
 
@@ -565,60 +543,7 @@ const PlaceOrderPage = () => {
                     />
                   </View>
                 )}
-                <View style={styles.dropdownContainer}>
-                  <Text style={[styles.textInputText]}>
-                    Phương thức thanh toán
-                  </Text>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      gap: 10,
-                      justifyContent: "space-around",
-                    }}
-                  >
-                    {dropdownItems.map((item, index) => (
-                      <View
-                        key={`${item.id}-${index}`}
-                        style={styles.dropdownItemContainer}
-                      >
-                        <Pressable
-                          style={[
-                            styles.checkbox,
-                            selectedOption === item.id &&
-                              styles.selectedCheckbox,
-                          ]}
-                          onPress={() => {
-                            setSelectedOption(item.id);
-                            setFieldValue("paymentMethodId", parseInt(item.id));
-                          }}
-                        >
-                          {selectedOption === item.id && (
-                            <AntDesign
-                              name="check"
-                              size={16}
-                              color={APP_COLOR.WHITE}
-                            />
-                          )}
-                        </Pressable>
-                        <Text
-                          style={[
-                            styles.dropdownText,
-                            selectedOption === item.id &&
-                              styles.selectedDropdownText,
-                          ]}
-                        >
-                          {item.title}
-                        </Text>
-                      </View>
-                    ))}
-                  </View>
-                  {errors.paymentMethodId && touched.paymentMethodId && (
-                    <Text style={styles.errorText}>
-                      {errors.paymentMethodId}
-                    </Text>
-                  )}
-                </View>
-                <CustomerInforInput
+                {/* <CustomerInforInput
                   title="Đặt hàng hộ"
                   value={values.pickUp}
                   setValue={(v) => setFieldValue("pickUp", v)}
@@ -646,7 +571,7 @@ const PlaceOrderPage = () => {
                       keyboardType="phone-pad"
                     />
                   </View>
-                )}
+                )} */}
                 <CustomerInforInput
                   onChangeText={handleChange("note")}
                   onBlur={handleBlur("note")}

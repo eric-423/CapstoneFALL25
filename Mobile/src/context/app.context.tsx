@@ -15,6 +15,8 @@ interface AppContextType {
   setSelectedProductTypeId: (v: number | null) => void;
   locationReal: string;
   setLocationReal: (v: any) => void;
+  branchName: string | null;
+  setBranchName: (v: string | null) => void;
 }
 const AppContext = createContext<AppContextType | null>(null);
 
@@ -32,6 +34,7 @@ const AppProvider = (props: IProps) => {
     number | null
   >(null);
   const [locationReal, setLocationReal] = useState("");
+  const [branchName, setBranchName] = useState<string | null>(null);
   return (
     <AppContext.Provider
       value={{
@@ -49,6 +52,8 @@ const AppProvider = (props: IProps) => {
         setSelectedProductTypeId,
         locationReal,
         setLocationReal,
+        branchName,
+        setBranchName,
       }}
     >
       {props.children}

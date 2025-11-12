@@ -64,12 +64,12 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.regular,
     fontSize: 14,
     color: APP_COLOR.BROWN,
-    marginBottom: 4,
   },
   branchDistance: {
     fontFamily: FONTS.regular,
     fontSize: 12,
     color: APP_COLOR.ORANGE,
+    marginBottom: 4,
   },
   checkIcon: {
     position: "absolute",
@@ -109,8 +109,14 @@ const styles = StyleSheet.create({
 
 const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
   const [location, setLocation] = useState<string | null>(null);
-  const { cart, locationReal, setLocationReal, branchId, setBranchId } =
-    useCurrentApp();
+  const {
+    cart,
+    locationReal,
+    setLocationReal,
+    branchId,
+    setBranchId,
+    setBranchName,
+  } = useCurrentApp();
   const [branchInfo, setBranchInfo] = useState<any[]>([]);
   const [isBranchDropdownOpen, setIsBranchDropdownOpen] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState<any>(null);
@@ -180,6 +186,7 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
     setSelectedBranch(branch);
     if (branch.branchId) {
       setBranchId(branch.branchId);
+      setBranchName(branch.name);
     }
     setIsBranchDropdownOpen(false);
   };
@@ -412,9 +419,10 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
                             {item.address}
                           </Text>
                         )}
-                        {item?.distance && (
+                        {item?.distanceInMeters && (
                           <Text style={styles.branchDistance}>
-                            Khoảng cách: {item.distance}
+                            Khoảng cách:{" "}
+                            {(item.distanceInMeters / 1000).toFixed(1)} km
                           </Text>
                         )}
                       </TouchableOpacity>

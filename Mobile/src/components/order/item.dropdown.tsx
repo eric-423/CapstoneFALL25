@@ -30,13 +30,12 @@ const DropDown = (props: IDropDown) => {
         <Text
           style={{
             fontFamily: FONTS.regular,
-            fontSize: 17,
+            fontSize: 16,
             color: APP_COLOR.BROWN,
           }}
         >
           {value}
         </Text>
-        <AntDesign name="caret-down" size={20} color={APP_COLOR.BROWN} />
       </View>
     </View>
   );

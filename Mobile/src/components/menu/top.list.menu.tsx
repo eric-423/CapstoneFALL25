@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { APP_COLOR } from "@/utils/constant";
 import { FONTS } from "@/theme/typography";
-import { GetProductByProductType, GetProductType } from "@/utils/api";
+import { GetProductType } from "@/utils/api";
 import { useEffect, useState } from "react";
 import { useCurrentApp } from "@/context/app.context";
 
