@@ -1,14 +1,13 @@
 package com.capstone.tamtech.capstone.services;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.maps.DistanceMatrixApi;
+import com.google.maps.GeoApiContext;
+import com.google.maps.model.DistanceMatrix;
+import com.google.maps.model.DistanceMatrixElement;
+import com.google.maps.model.TravelMode;
+import com.google.maps.model.Unit;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriUtils;
-
-import java.nio.charset.StandardCharsets;
 
 @Service
 public class GoogleMapsDistanceService implements DistanceService {
@@ -16,61 +15,70 @@ public class GoogleMapsDistanceService implements DistanceService {
     @Value("${google.map.key:}")
     private String googleApiKey;
 
-    @Value("${google.map.api:https://maps.googleapis.com/maps/api}")
-    private String googleApiBase;
-
-    private final RestTemplate restTemplate = new RestTemplate();
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private GeoApiContext context;
 
     @Override
     public long getDistanceInMeters(String originAddress, String destinationAddress) {
-        if (originAddress == null || destinationAddress == null || originAddress.isBlank() || destinationAddress.isBlank()) {
+        System.out.println("=== Google Maps Distance Matrix (Official Library) ===");
+        System.out.println("Origin: " + originAddress);
+        System.out.println("Destination: " + destinationAddress);
+
+        if (originAddress == null || destinationAddress == null || originAddress.isBlank()
+                || destinationAddress.isBlank()) {
+            System.out.println("ERROR: Address is null or blank");
             return -1;
         }
 
         if (googleApiKey == null || googleApiKey.isBlank()) {
+            System.out.println("ERROR: Google API key is null or blank");
             return -1;
         }
 
         try {
-            String origins = UriUtils.encode(originAddress, StandardCharsets.UTF_8);
-            String destinations = UriUtils.encode(destinationAddress, StandardCharsets.UTF_8);
-            String url = googleApiBase + "/distancematrix/json?units=metric&mode=driving"
-                    + "&origins=" + origins
-                    + "&destinations=" + destinations
-                    + "&key=" + googleApiKey;
-
-            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-            if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-                return -1;
+            if (context == null) {
+                context = new GeoApiContext.Builder()
+                        .apiKey(googleApiKey)
+                        .build();
+                System.out.println("GeoApiContext initialized with API key");
             }
 
-            JsonNode root = objectMapper.readTree(response.getBody());
-            String status = root.path("status").asText("");
-            if (!"OK".equalsIgnoreCase(status)) {
-                return -1;
-            }
+            DistanceMatrix matrix = DistanceMatrixApi.newRequest(context)
+                    .origins(originAddress)
+                    .destinations(destinationAddress)
+                    .mode(TravelMode.DRIVING)
+                    .units(Unit.METRIC)
+                    .language("vi")
+                    .await();
 
-            JsonNode rows = root.path("rows");
-            if (!rows.isArray() || rows.isEmpty()) {
-                return -1;
-            }
-            JsonNode elements = rows.get(0).path("elements");
-            if (!elements.isArray() || elements.isEmpty()) {
-                return -1;
-            }
-            JsonNode element = elements.get(0);
-            String elementStatus = element.path("status").asText("");
-            if (!"OK".equalsIgnoreCase(elementStatus)) {
+            System.out.println("API Response Status: " + matrix.rows.length + " rows");
+            System.out.println("Origin Address from API: "
+                    + (matrix.originAddresses.length > 0 ? matrix.originAddresses[0] : "N/A"));
+            System.out.println("Destination Address from API: "
+                    + (matrix.destinationAddresses.length > 0 ? matrix.destinationAddresses[0] : "N/A"));
+
+            if (matrix.rows.length == 0) {
+                System.out.println("ERROR: No rows in response");
                 return -1;
             }
 
-            long meters = element.path("distance").path("value").asLong(-1);
+            DistanceMatrixElement element = matrix.rows[0].elements[0];
+            System.out.println("Element Status: " + element.status);
+
+            if (element.status != com.google.maps.model.DistanceMatrixElementStatus.OK) {
+                System.out.println("ERROR: Element status is not OK: " + element.status);
+                return -1;
+            }
+
+            long meters = element.distance.inMeters;
+            System.out.println("✅ Distance: " + meters + " meters (" + element.distance.humanReadable + ")");
+            System.out.println("✅ Duration: " + element.duration.humanReadable);
+            System.out.println("=== SUCCESS ===");
+
             return meters;
         } catch (Exception e) {
+            System.out.println("ERROR: Exception occurred: " + e.getMessage());
+            e.printStackTrace();
             return -1;
         }
     }
 }
-
-

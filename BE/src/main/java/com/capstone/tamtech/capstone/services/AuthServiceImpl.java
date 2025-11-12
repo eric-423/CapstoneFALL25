@@ -145,8 +145,8 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public Boolean resetPasswordForCustomer(CustomerResetPasswordRequest customerResetPasswordRequest) {
-        boolean isValid = otpService.verifyOtp("zalo", customerResetPasswordRequest.getPhoneNumber(),
-                customerResetPasswordRequest.getOtp());
+        boolean isValid = otpService.verifyOtpForForgotPassword("zalo", customerResetPasswordRequest.getPhoneNumber(),
+                customerResetPasswordRequest.getOtp(), true);
 
         if (isValid) {
             Users users = usersRepository.findByPhoneNumber(customerResetPasswordRequest.getPhoneNumber())

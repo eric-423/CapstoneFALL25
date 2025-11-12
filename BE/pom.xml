@@ -145,6 +145,13 @@
             <artifactId>payos-java</artifactId>
             <version>2.0.1</version>
         </dependency>
+
+		<!-- Google Maps Services (Official) -->
+		<dependency>
+			<groupId>com.google.maps</groupId>
+			<artifactId>google-maps-services</artifactId>
+			<version>2.2.0</version>
+		</dependency>
 	</dependencies>
 
 	<build>

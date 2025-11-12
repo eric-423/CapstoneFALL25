@@ -150,11 +150,11 @@ VALUES ('Nguyễn Văn An', '123 Nguyễn Huệ, Q1, TP.HCM', '0900000001', 'ana
 
 
 INSERT INTO branch (name, address, phone_number, is_parent)
-VALUES ('Chi nhánh chính', 'Vinhomes Grand Park Quận 9 TP HCM', '0901234567', true),
-       ('Chi nhánh 1 - Quận 1', '123 Lê Lợi, Quận 1, TP.HCM', '0901234567', false),
-       ('Chi nhánh 2 - Quận 3', '456 Nguyễn Đình Chiểu, Quận 3, TP.HCM', '0901234568', false),
-       ('Chi nhánh 3 - Quận 7', '789 Nguyễn Thái Sơn, Quận 7, TP.HCM', '0901234569', false),
-       ('Chi nhánh 4 - Quận 5', '321 Nguyễn Trãi, Quận 5, TP.HCM', '0901234570', false);
+VALUES ('Chi nhánh chính', 'Vinhomes Grand Park, Phường Long Thạnh Mỹ, Quận 9, Thành phố Hồ Chí Minh, Vietnam', '0901234567', true),
+       ('Chi nhánh 1 - Quận 1', '123 Lê Lợi, Phường Bến Thành, Quận 1, Thành phố Hồ Chí Minh, Vietnam', '0901234567', false),
+       ('Chi nhánh 2 - Quận 3', '456 Nguyễn Đình Chiểu, Phường Võ Thị Sáu, Quận 3, Thành phố Hồ Chí Minh, Vietnam', '0901234568', false),
+       ('Chi nhánh 3 - Quận 7', '789 Nguyễn Thái Sơn, Phường Tân Quy, Quận 7, Thành phố Hồ Chí Minh, Vietnam', '0901234569', false),
+       ('Chi nhánh 4 - Quận 5', '321 Nguyễn Trãi, Phường Nguyễn Cư Trinh, Quận 5, Thành phố Hồ Chí Minh, Vietnam', '0901234570', false);
 
 
 
@@ -301,7 +301,7 @@ VALUES ('Cơm tấm sườn nướng', 'Cơm tấm với sườn heo nướng th
         'https://scvanwhslmgejfwcmlzx.supabase.co/storage/v1/object/public/images_tamtech/sua-tuoi.jpg',
         '2025-11-10 05:32:18', '2025-11-10 05:32:18', true, 2),
        ('Cà phê đá', 'Cà phê phin truyền thống', 20000,
-        'https://scvanwhslmgejfwcmlzx.supabase.co/storage/v1/object/public/images_tamtech/ca-phe-da.jpg',
+        'https://scvanwhslmgejfwcmlzx.supabase.co/storage/v1/object/public/images_tamtech/ca-phe-da1.jpg',
         '2025-11-10 05:32:18', '2025-11-10 05:32:18', true, 2),
        ('Trà đá', 'Trà đá mát lạnh', 10000,
         'https://scvanwhslmgejfwcmlzx.supabase.co/storage/v1/object/public/images_tamtech/tra-da.jpg',
@@ -946,25 +946,25 @@ VALUES (80000, NULL, 0, 0, 80000, 0, NULL, 'Lấy lúc 18h', NULL, NULL, '091000
 
 
 
-INSERT INTO order_item (order_id, product_id, quantity, price, note, is_confirm, confirm_at)
-VALUES (1, 1, 2, 50000, NULL, true, DATE_SUB(NOW(), INTERVAL 5 DAY)),
-       (1, 9, 2, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 5 DAY)),
-       (1, 16, 1, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 5 DAY)),
-       (2, 6, 2, 65000, NULL, true, DATE_SUB(NOW(), INTERVAL 3 DAY)),
-       (2, 9, 2, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 3 DAY)),
-       (3, 3, 1, 55000, NULL, false, NULL),
-       (3, 4, 1, 50000, NULL, false, NULL);
+INSERT INTO order_item (order_id, product_id, quantity, price, note, is_confirm, confirm_at, created_at)
+VALUES (1, 1, 2, 50000, NULL, true, DATE_SUB(NOW(), INTERVAL 5 DAY), DATE_SUB(NOW(), INTERVAL 5 DAY)),
+       (1, 9, 2, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 5 DAY), DATE_SUB(NOW(), INTERVAL 5 DAY)),
+       (1, 16, 1, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 5 DAY), DATE_SUB(NOW(), INTERVAL 5 DAY)),
+       (2, 6, 2, 65000, NULL, true, DATE_SUB(NOW(), INTERVAL 3 DAY), DATE_SUB(NOW(), INTERVAL 3 DAY)),
+       (2, 9, 2, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 3 DAY), DATE_SUB(NOW(), INTERVAL 3 DAY)),
+       (3, 3, 1, 55000, NULL, false, NULL, DATE_SUB(NOW(), INTERVAL 2 DAY)),
+       (3, 4, 1, 50000, NULL, false, NULL, DATE_SUB(NOW(), INTERVAL 2 DAY));
 
 
 
-INSERT INTO order_item (order_id, product_id, quantity, price, note, is_confirm, confirm_at, is_delivered)
-VALUES (4, 1, 2, 50000, 'Không cay', true, DATE_SUB(NOW(), INTERVAL 2 HOUR), true),
-       (4, 9, 2, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 2 HOUR), true),
-       (5, 6, 2, 65000, 'Thêm nước mắm', true, DATE_SUB(NOW(), INTERVAL 1 HOUR), false),
-       (5, 10, 2, 20000, NULL, true, DATE_SUB(NOW(), INTERVAL 1 HOUR), false);
+INSERT INTO order_item (order_id, product_id, quantity, price, note, is_confirm, confirm_at, is_delivered, created_at)
+VALUES (4, 1, 2, 50000, 'Không cay', true, DATE_SUB(NOW(), INTERVAL 2 HOUR), true, DATE_SUB(NOW(), INTERVAL 2 HOUR)),
+       (4, 9, 2, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 2 HOUR), true, DATE_SUB(NOW(), INTERVAL 2 HOUR)),
+       (5, 6, 2, 65000, 'Thêm nước mắm', true, DATE_SUB(NOW(), INTERVAL 1 HOUR), false, DATE_SUB(NOW(), INTERVAL 1 HOUR)),
+       (5, 10, 2, 20000, NULL, true, DATE_SUB(NOW(), INTERVAL 1 HOUR), false, DATE_SUB(NOW(), INTERVAL 1 HOUR));
 
 
 
-INSERT INTO order_item (order_id, product_id, quantity, price, note, is_confirm, confirm_at)
-VALUES (6, 1, 1, 50000, NULL, true, DATE_SUB(NOW(), INTERVAL 1 DAY)),
-       (6, 9, 2, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 1 DAY));
+INSERT INTO order_item (order_id, product_id, quantity, price, note, is_confirm, confirm_at, created_at)
+VALUES (6, 1, 1, 50000, NULL, true, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 1 DAY)),
+       (6, 9, 2, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 1 DAY));

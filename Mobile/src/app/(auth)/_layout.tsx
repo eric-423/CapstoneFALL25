@@ -43,6 +43,18 @@ export default function AuthLayout() {
         }}
       />
       <Stack.Screen name="order.success" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="verify.forgotpassword"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="changepassword"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }

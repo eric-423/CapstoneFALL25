@@ -18,7 +18,7 @@ import { Formik } from "formik";
 import ShareInput from "@/components/input/share.input";
 import { CustomerSignInSchema } from "@/utils/validate.schema";
 import { Link, router } from "expo-router";
-import { LoginCustomers } from "@/utils/api";
+import { ForgotPasswordAPI, LoginCustomers } from "@/utils/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Toast from "react-native-root-toast";
 
@@ -28,7 +28,6 @@ const WelcomePage = () => {
   const [fogotPasword, setFogotPassword] = useState(false);
   const handleLogin = useCallback(
     async (phoneNumber: string, password: string, resetForm: any) => {
-      console.log("handleLogin được gọi với:", { phoneNumber, password });
       try {
         setLoading(true);
         const res = await LoginCustomers(phoneNumber, password);
@@ -70,26 +69,30 @@ const WelcomePage = () => {
     [setAppState]
   );
   const handleForgotPassword = async (phoneNumber: string) => {
-    // try {
-    //   const res = await forgotPasswordAPI(email);
-    //   if (res.data) {
-    //     Toast.show("Đã gửi email khôi phục mật khẩu", {
-    //       duration: Toast.durations.LONG,
-    //       textColor: "white",
-    //       backgroundColor: APP_COLOR.ORANGE,
-    //       opacity: 1,
-    //       position: -50,
-    //     });
-    //   }
-    // } catch (error) {
-    //   Toast.show("Người dùng không tồn tại!!!", {
-    //     duration: Toast.durations.LONG,
-    //     textColor: "white",
-    //     backgroundColor: APP_COLOR.CANCEL,
-    //     opacity: 1,
-    //     position: -50,
-    //   });
-    // }
+    try {
+      const res = await ForgotPasswordAPI(phoneNumber);
+      if (res) {
+        Toast.show("Đã gửi mã OTP khôi phục mật khẩu", {
+          duration: Toast.durations.LONG,
+          textColor: "white",
+          backgroundColor: APP_COLOR.ORANGE,
+          opacity: 1,
+          position: -50,
+        });
+        router.replace({
+          pathname: "/(auth)/verify.forgotpassword",
+          params: { phoneNumber },
+        });
+      }
+    } catch (error) {
+      Toast.show("Người dùng không tồn tại!!!", {
+        duration: Toast.durations.LONG,
+        textColor: "white",
+        backgroundColor: APP_COLOR.CANCEL,
+        opacity: 1,
+        position: -50,
+      });
+    }
   };
 
   return (
