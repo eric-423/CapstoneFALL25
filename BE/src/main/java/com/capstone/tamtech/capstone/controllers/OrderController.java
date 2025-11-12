@@ -163,4 +163,12 @@ public class OrderController {
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
 
+    @GetMapping("/test/order/{orderId}")
+    public ResponseEntity<?> testOrder(@PathVariable int orderId) {
+        ResponseData responseData = new ResponseData();
+        orderService.markOrderPaidSuccess(orderId);
+        responseData.setData(orderId);
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
+
 }
