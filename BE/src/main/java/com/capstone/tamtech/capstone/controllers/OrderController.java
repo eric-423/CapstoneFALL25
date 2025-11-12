@@ -76,6 +76,7 @@ public class OrderController {
             int orderId = data.getOrderCode().intValue();
 
             if ("00".equalsIgnoreCase(code)) {
+                System.out.println("Payment successful for order ID: " + orderId);
                 orderService.markOrderPaidSuccess(orderId);
             } else {
                 orderService.cancelOrder(orderId);
