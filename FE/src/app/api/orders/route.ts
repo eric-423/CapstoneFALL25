@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import http from '@/utils/http';
-import { getToken } from '@/utils/cookies';
 
 export async function GET(request: NextRequest) {
   try {
@@ -27,26 +26,34 @@ export async function GET(request: NextRequest) {
 
 
 
+
 export async function POST(request: NextRequest) {
   try {
+    const token = request.cookies.get('token')?.value;
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
 
-    const response = await http.post('/orders', body, {
+    const backendRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders`, {
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${getToken()}`
+        Authorization: `Bearer ${token}`,
       },
-      
+      body: JSON.stringify(body),
     });
 
+    if (!backendRes.ok) {
+      const errorBody = await backendRes.json().catch(() => ({}));
+      return NextResponse.json(errorBody, { status: backendRes.status });
+    }
 
-    return NextResponse.json(response.data);
-
+    const data = await backendRes.json();
+    return NextResponse.json(data);
   } catch (error) {
     console.error('Create Order API Error:', error);
-    return NextResponse.json(
-      { error: 'Failed to create order' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to create order' }, { status: 500 });
   }
 }
