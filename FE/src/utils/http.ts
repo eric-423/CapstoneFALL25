@@ -11,6 +11,9 @@ import {
   removeRefreshToken,
   setAccessToken,
   setRefreshToken,
+  getToken,
+  setToken,
+  removeToken,
 } from './cookies';
 
 import { setupMockInterceptor } from '@/utils/mocks/interceptor';
@@ -23,7 +26,7 @@ class Http {
   instance: AxiosInstance;
 
   constructor() {
-    this.accessToken = getAccessToken();
+    this.accessToken = getToken() || getAccessToken();
     this.refreshToken = getRefreshToken();
     
     this.instance = axios.create({
@@ -55,19 +58,20 @@ class Http {
           if (response.data.access_token) {
             this.accessToken = response.data.access_token;
             this.refreshToken = response.data.refresh_token;
-            setAccessToken(this.accessToken);
+            setToken(this.accessToken);
             setRefreshToken(this.refreshToken);
           }
         } else if (method === 'post' && url?.includes('sign-in')) {
           if (response.data.data.access_token) {
             this.accessToken = response.data.data.access_token;
             this.refreshToken = response.data.data.refresh_token;
-            setAccessToken(this.accessToken);
+            setToken(this.accessToken);
             setRefreshToken(this.refreshToken);
           }
         } else if (url === configs.routes.logout) {
           this.accessToken = '';
           this.refreshToken = '';
+          removeToken();
           removeAccessToken();
           removeRefreshToken();
         }
@@ -75,6 +79,7 @@ class Http {
       },
       (error: AxiosError) => {
         if (error.response?.status === HTTP_STATUS.UNAUTHORIZED) {
+          removeToken();
           removeAccessToken();
           removeRefreshToken();
         }

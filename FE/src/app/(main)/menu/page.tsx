@@ -49,7 +49,27 @@ export default function MenuPage() {
     useEffect(() => {
 
         if (branches && !selectedBranch) {
-            setSelectedBranch(branches[0]);
+            // Kiểm tra localStorage trước, nếu không có thì chọn branch đầu tiên
+            const savedBranch = localStorage.getItem('selectedBranch');
+            if (savedBranch) {
+                try {
+                    const parsedBranch = JSON.parse(savedBranch);
+                    // Kiểm tra branch có tồn tại trong danh sách không
+                    const branchExists = branches.find(b => b.branchId === parsedBranch.branchId);
+                    if (branchExists) {
+                        setSelectedBranch(parsedBranch);
+                    } else {
+                        setSelectedBranch(branches[0]);
+                        localStorage.setItem('selectedBranch', JSON.stringify(branches[0]));
+                    }
+                } catch {
+                    setSelectedBranch(branches[0]);
+                    localStorage.setItem('selectedBranch', JSON.stringify(branches[0]));
+                }
+            } else {
+                setSelectedBranch(branches[0]);
+                localStorage.setItem('selectedBranch', JSON.stringify(branches[0]));
+            }
         }
 
         // eslint-disable-next-line react-hooks/exhaustive-deps

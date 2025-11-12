@@ -9,9 +9,9 @@ import {
     removeAccessToken,
     removeRefreshToken,
     setUserRole,
-    setAuthToken,
+    setToken,
     removeUserRole,
-    removeAuthToken
+    removeToken
 } from '@/utils/cookies';
 
 import JwtDecode from '@/utils/jwtDecode';
@@ -26,23 +26,30 @@ const useAuth = () => {
 
 
     const [authState, setAuthState] = useState<{
+
         user: UserAuthData | null;
         isAuthenticated: boolean;
         isInitialized: boolean;
+
     }>({
+
         user: null,
         isAuthenticated: false,
         isInitialized: false,
+
     });
 
 
     const lastTokenRef = useRef<string | null>(null);
 
 
-    const [cookies] = useCookies([configs.cookies.accessToken, configs.cookies.refreshToken]);
-    const accessToken = (typeof window !== 'undefined' ? localStorage.getItem('access_token') : null) || cookies[configs.cookies.accessToken];
-    const refreshToken = cookies[configs.cookies.refreshToken];
+    const [cookies] = useCookies([configs.cookies.accessToken, configs.cookies.refreshToken, 'token']);
+    const accessToken = (typeof window !== 'undefined' ? localStorage.getItem('access_token') : null)
 
+        || cookies['token']
+        || cookies[configs.cookies.accessToken];
+
+    const refreshToken = cookies[configs.cookies.refreshToken];
 
 
     const isMountedRef = useRef(true);
@@ -57,6 +64,7 @@ const useAuth = () => {
                 const userData: UserAuthData = {
                     id: decodedData.id,
                     phoneNumber: decodedData.phoneNumber,
+                    fullName: decodedData.fullName || decodedData.name || '',
                     role: decodedData.role,
                     isNewUser: getCookie(configs.cookies.isNew) === 'true',
                 };
@@ -67,16 +75,18 @@ const useAuth = () => {
                     isAuthenticated: true,
                 }));
 
-                setAuthToken(data.data.access_token);
+                setToken(data.data.access_token);
                 setUserRole(userData.role);
             }
         },
+
         onError: (error) => {
+
             if (!isMountedRef.current) return;
             console.error('Token refresh failed:', error);
             removeAccessToken();
             removeRefreshToken();
-            removeAuthToken();
+            removeToken();
             removeUserRole();
 
             setAuthState((prev) => ({
@@ -86,11 +96,15 @@ const useAuth = () => {
             }));
 
             router.refresh();
+
         },
     });
 
+
+
     const processToken = useCallback(
         (token: string | undefined) => {
+
             if (!token) {
                 setAuthState((prev) => ({
                     ...prev,
@@ -99,9 +113,11 @@ const useAuth = () => {
                     isInitialized: true,
                 }));
                 return;
+
             }
 
             try {
+
                 const decodedToken = JwtDecode(token);
 
                 if (!decodedToken || decodedToken.exp < Date.now() / 1000) {
@@ -115,28 +131,38 @@ const useAuth = () => {
                             isInitialized: true,
                         }));
                     }
+
                     return;
+
                 }
 
                 const userData: UserAuthData = {
+
                     id: decodedToken.id,
                     phoneNumber: decodedToken.phoneNumber,
+                    fullName: decodedToken.fullName || decodedToken.name || '',
                     role: decodedToken.role,
                     isNewUser: getCookie(configs.cookies.isNew) === 'true',
+
                 };
 
                 setAuthState((prev) => ({
+
                     ...prev,
                     user: userData,
                     isAuthenticated: true,
                     isInitialized: true,
+
                 }));
 
                 if (token) {
-                    setAuthToken(token);
+
+                    setToken(token);
                     setUserRole(userData.role);
+
                 }
             } catch (error) {
+
                 console.error('Error processing token:', error);
                 setAuthState((prev) => ({
                     ...prev,
@@ -144,16 +170,19 @@ const useAuth = () => {
                     isAuthenticated: false,
                     isInitialized: true,
                 }));
+
             }
         },
         [refreshToken, refreshTokenMutation],
     );
 
     useEffect(() => {
+
         if (lastTokenRef.current === accessToken) return;
 
         lastTokenRef.current = accessToken;
         processToken(accessToken);
+
     }, [accessToken, processToken]);
 
     useEffect(() => {
@@ -191,7 +220,7 @@ const useAuth = () => {
 
         removeAccessToken();
         removeRefreshToken();
-        removeAuthToken();
+        removeToken();
         removeUserRole();
 
         if (typeof document !== 'undefined') {

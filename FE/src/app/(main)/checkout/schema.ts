@@ -12,7 +12,6 @@ export const checkoutSchema = z
             .min(2, 'Tên không hợp lệ')
             .max(50, 'Tên không hợp lệ'),
         customerPhone: phoneSchema,
-        customerEmail: z.string().email('Email không hợp lệ').max(100, 'Email không hợp lệ').optional(),
         receiveTime: z.date().optional(),
         deliveryAddress: z
             .string()
