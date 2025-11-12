@@ -75,7 +75,6 @@ export interface CreateOrderPayload {
   shippingPhoneNumber?: string;
   orderItemList: CreateOrderItem[];
   mode: OrderMode | string;
-  diningTableId?: number | null;
   branchId: number;
 }
 

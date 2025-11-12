@@ -7,6 +7,7 @@ type Branch = {
     address: string;
     phone: string;
     isActive: boolean;
+    distanceText?: string;
 };
 
 type BranchListProps = {
@@ -41,6 +42,9 @@ const BranchList = ({ branches, selectedBranch, setSelectedBranch, resetAndRefet
                         <div className="font-medium text-sm">{branch.branchName}</div>
                         <div className="text-xs text-gray-500 mt-1">{branch.address}</div>
                         <div className="text-xs text-gray-500">{branch.phone}</div>
+                        {branch.distanceText && (
+                            <div className='text-xs text-gray-500 italic mt-1'>Khoảng cách: {branch.distanceText}</div>
+                        )}
                     </div>
                 </Button>
             ))}

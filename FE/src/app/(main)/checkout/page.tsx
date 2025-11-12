@@ -67,7 +67,7 @@ import {
     User,
     Wallet,
 } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { z } from 'zod';
@@ -82,9 +82,17 @@ export default function CheckoutPage() {
     const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
     const router = useRouter();
     const tokenFullName = user?.fullName?.trim();
+    const isMountedRef = useRef(false);
+    const skipAutoSelectRef = useRef(false);
+
+    useEffect(() => {
+        isMountedRef.current = true;
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [timeRestriction, setTimeRestriction] = useState<number[]>([0, 15, 30]);
     const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
     const [selectedInfoId, setSelectedInfoId] = useState<number | 'new' | null>(null);
 
@@ -146,7 +154,9 @@ export default function CheckoutPage() {
         onSuccess: (response) => {
             setIsSubmitting(false);
 
-            const paymentUrl = response?.data?.payment_url || response?.payment_url;
+            const paymentUrl = response?.data?.paymentUrl;
+
+            // console.log(response.data.paymentUrl);
 
             if (paymentUrl) {
                 toast.success('Đặt hàng thành công! Chuyển hướng đến thanh toán...');
@@ -157,7 +167,6 @@ export default function CheckoutPage() {
                 return;
             }
 
-            toast.success('Đặt hàng thành công!');
         },
         onError: () => {
             toast.error('Không thể đặt hàng. Vui lòng thử lại sau.');
@@ -175,8 +184,8 @@ export default function CheckoutPage() {
         mode: 'onChange',
         defaultValues: {
             fulfillmentMethod: 'pickup',
-            customerName: tokenFullName || '',
-            customerPhone: user?.phoneNumber,
+            customerName: '',
+            customerPhone: user?.phoneNumber ?? '',
             receiveTime: getDefaultReceiveTime(),
             deliveryAddress: '',
             paymentMethod: 'qr',
@@ -191,7 +200,7 @@ export default function CheckoutPage() {
     }, [form, user?.fullName]);
 
     useEffect(() => {
-        if (!tokenFullName) return;
+        if (!isMountedRef.current || !tokenFullName) return;
         const currentName = form.getValues('customerName')?.trim();
         const matchesAddressLabel = customerInformations.some(
             (info) => info.fullName?.trim().toLowerCase() === currentName?.toLowerCase(),
@@ -202,6 +211,7 @@ export default function CheckoutPage() {
     }, [customerInformations, form, tokenFullName]);
 
     useEffect(() => {
+        if (!isMountedRef.current) return;
         if (!customerInformations.length) {
             if (!form.getValues('customerPhone') && user?.phoneNumber) {
                 form.setValue('customerPhone', user.phoneNumber, { shouldValidate: true });
@@ -228,7 +238,28 @@ export default function CheckoutPage() {
     }, [customerInformations, form, tokenFullName, user?.phoneNumber]);
 
     const fulfillmentMethod = form.watch('fulfillmentMethod');
+    const paymentMethod = form.watch('paymentMethod');
     const isDelivery = fulfillmentMethod === 'delivery';
+
+    useEffect(() => {
+        if (!isMountedRef.current) return;
+        if (!isDelivery) return;
+        if (!customerInformations.length) return;
+
+        const preferredInfo =
+            customerInformations.find((info) => info.isDefault) ||
+            customerInformations.find((info) => info.fullName?.trim().toLowerCase() === 'nhà riêng') ||
+            customerInformations[0];
+
+        if (preferredInfo && selectedInfoId !== preferredInfo.informationId) {
+            const timeout = setTimeout(() => {
+                if (skipAutoSelectRef.current) return;
+                setSelectedInfoId(preferredInfo.informationId);
+                skipAutoSelectRef.current = true;
+            }, 0);
+            return () => clearTimeout(timeout);
+        }
+    }, [customerInformations, isDelivery, selectedInfoId]);
 
     // Đồng bộ danh sách địa chỉ đã lưu
     useEffect(() => {
@@ -241,40 +272,29 @@ export default function CheckoutPage() {
     }, [customerInformations, selectedInfoId]);
 
     useEffect(() => {
-        if (!isDelivery) return;
-        if (!customerInformations.length) return;
-        if (selectedInfoId !== null) return;
-
-        const preferredInfo =
-            customerInformations.find((info) => info.isDefault) ||
-            customerInformations.find((info) => info.fullName?.trim().toLowerCase() === 'nhà riêng');
-        const initialInfo = preferredInfo ?? customerInformations[0];
-        if (initialInfo) {
-            setSelectedInfoId(initialInfo.informationId);
-            form.setValue('deliveryAddress', initialInfo.address || '', { shouldValidate: true });
-            form.setValue('customerPhone', initialInfo.phone || user?.phoneNumber || '', { shouldValidate: true });
-            if (!form.getValues('customerName') && tokenFullName) {
-                form.setValue('customerName', tokenFullName, { shouldValidate: true });
-            }
-        }
-    }, [customerInformations, form, isDelivery, selectedInfoId, tokenFullName, user?.phoneNumber]);
-
-    useEffect(() => {
+        if (!isMountedRef.current) return;
         if (!isDelivery) return;
         if (selectedInfoId === null || selectedInfoId === 'new') return;
 
         const info = customerInformations.find((item) => item.informationId === selectedInfoId);
         if (info) {
-            form.setValue('deliveryAddress', info.address || '', { shouldValidate: true });
-            form.setValue('customerPhone', info.phone || user?.phoneNumber || '', { shouldValidate: true });
-            if (!form.getValues('customerName') && tokenFullName) {
-                form.setValue('customerName', tokenFullName, { shouldValidate: true });
-            }
+            const timeout = setTimeout(() => {
+                form.setValue('deliveryAddress', info.address || '', { shouldValidate: true });
+                form.setValue('customerPhone', info.phone || user?.phoneNumber || '', { shouldValidate: true });
+                if (!form.getValues('customerName') && tokenFullName) {
+                    form.setValue('customerName', tokenFullName, { shouldValidate: true });
+                }
+                skipAutoSelectRef.current = false;
+            }, 0);
+
+            return () => {
+                clearTimeout(timeout);
+            };
         }
     }, [customerInformations, form, isDelivery, selectedInfoId, tokenFullName, user?.phoneNumber]);
 
     useEffect(() => {
-        if (!isDelivery) return;
+        if (!isMountedRef.current) return;
         if (selectedInfoId === 'new') {
             form.setValue('deliveryAddress', '', { shouldValidate: true });
             if (user?.phoneNumber) {
@@ -284,10 +304,14 @@ export default function CheckoutPage() {
                 form.setValue('customerName', tokenFullName, { shouldValidate: true });
             }
         }
+        if (!isDelivery) {
+            skipAutoSelectRef.current = false;
+        }
     }, [form, isDelivery, selectedInfoId, tokenFullName, user?.phoneNumber]);
 
     const handleSelectSavedAddress = useCallback(
         (info: CustomerInformation) => {
+            skipAutoSelectRef.current = true;
             setSelectedInfoId(info.informationId);
             form.setValue('deliveryAddress', info.address || '', { shouldValidate: true });
             form.setValue('customerPhone', info.phone || user?.phoneNumber || '', { shouldValidate: true });
@@ -299,6 +323,7 @@ export default function CheckoutPage() {
     );
 
     const handleAddNewAddress = useCallback(() => {
+        skipAutoSelectRef.current = true;
         setSelectedInfoId('new');
         form.setValue('deliveryAddress', '', { shouldValidate: true });
         if (user?.phoneNumber) {
@@ -325,36 +350,6 @@ export default function CheckoutPage() {
         }
     }, [fulfillmentMethod, form, getDefaultReceiveTime]);
 
-    function handleDateSelect(date: Date | undefined) {
-        if (fulfillmentMethod !== 'pickup' || !date) return;
-
-        const updatedDate = new Date(date);
-        updatedDate.setHours(12, 0, 0, 0);
-        form.setValue('receiveTime', updatedDate, { shouldValidate: true });
-    }
-
-    function handleTimeChange(type: 'hour' | 'minute', value: string) {
-        if (fulfillmentMethod !== 'pickup') return;
-
-        const currentDate = form.getValues('receiveTime') || getDefaultReceiveTime();
-        const newDate = new Date(currentDate);
-
-        if (type === 'hour') {
-            const hour = parseInt(value, 10);
-            newDate.setHours(hour);
-            setTimeRestriction(hour === 11 ? [30, 45] : [0, 15, 30]);
-            const minute = newDate.getMinutes();
-            if (hour === 11 && minute < 30) newDate.setHours(hour, 30);
-            else if (hour === 12 && minute > 30) newDate.setHours(12, 30);
-            else newDate.setHours(hour);
-        } else if (type === 'minute') {
-            const minute = parseInt(value, 10);
-            newDate.setMinutes(minute);
-        }
-
-        form.setValue('receiveTime', newDate, { shouldValidate: true });
-    }
-
     const onSubmit = async (data: CheckoutFormData) => {
         if (form.formState.isValidating || isPlacingOrderPending || isSubmitting) return;
         setIsSubmitting(true);
@@ -370,23 +365,25 @@ export default function CheckoutPage() {
                 shippingAddress,
                 shippingPhoneNumber: data.customerPhone,
                 branchId: selectedBranch?.branchId || 1,
-                diningTableId: null,
-                mode: isPickup ? 'PICKUP' : 'DELIVERY',
+                mode: isPickup ? 'SHIPPING' : 'PICKUP',
                 orderItemList: items.map((item) => ({
                     productId: item.productId,
-                    comboId: null,
                     quantity: item.quantity,
                     price: item.productPrice,
                     note: item.note || '',
                 })),
             };
 
+
             createOrderMutate(payload);
+
         } catch (error) {
             console.error('Order submission error:', error);
             toast.error('Không thể đặt hàng. Vui lòng thử lại sau.');
         }
     };
+
+
 
     const isOrderSubmitting = isSubmitting || isPlacingOrderPending;
     const isOrderButtonDisabled = useMemo(() => {
@@ -394,7 +391,7 @@ export default function CheckoutPage() {
         return items.length === 0 || isOrderSubmitting || !form.formState.isValid || isDeliveryAndLoading;
     }, [form.formState.isValid, isDelivery, isLoadingCustomerInfos, isOrderSubmitting, items.length]);
 
-    // Lấy thông tin chi nhánh với fallback về STORE_INFO
+
     const branchName = selectedBranch?.branchName || STORE_INFO.name;
     const branchAddress = selectedBranch?.address || STORE_INFO.address;
     const branchPhone = selectedBranch?.phone || STORE_INFO.phone;
@@ -419,7 +416,6 @@ export default function CheckoutPage() {
 
 
 
-    // Hiển thị loading khi đang check auth hoặc chưa authenticated
     if (isAuthLoading || (!isAuthenticated && typeof window !== 'undefined')) {
         return (
             <div className='min-h-screen flex items-center justify-center'>
@@ -545,10 +541,8 @@ export default function CheckoutPage() {
                                                                 </FormLabel>
                                                                 <div className='flex'>
                                                                     <ControlledDateTimePicker
-                                                                        field={field.value}
-                                                                        timeRestriction={timeRestriction}
-                                                                        handleDateSelect={handleDateSelect}
-                                                                        handleTimeChange={handleTimeChange}
+                                                                        value={field.value}
+                                                                        onChange={(date) => field.onChange(date)}
                                                                     />
                                                                 </div>
                                                             </div>
@@ -643,9 +637,8 @@ export default function CheckoutPage() {
                                                         </FormItem>
                                                     )}
                                                 ></FormField>
-                                                <p className='text-sm text-muted-foreground'>
-                                                    Nhân viên sẽ liên hệ để xác nhận và thông báo phí vận chuyển (nếu có).
-                                                </p>
+
+
                                             </CheckoutSection>
                                         )}
 
@@ -662,11 +655,7 @@ export default function CheckoutPage() {
                                                 render={({ field }) => (
                                                     <FormItem className='space-y-3'>
                                                         <FormControl>
-                                                            <RadioGroup
-                                                                value={field.value}
-                                                                onValueChange={field.onChange}
-                                                                className='space-y-2'
-                                                            >
+                                                            <RadioGroup value={field.value} onValueChange={field.onChange} className='space-y-2'>
                                                                 <div className='flex items-center space-x-3 p-3 rounded-lg border border-gray-200 bg-white'>
                                                                     <RadioGroupItem value='qr' id='qr' />
                                                                     <Label htmlFor='qr' className='flex items-center cursor-pointer flex-1'>
@@ -676,15 +665,21 @@ export default function CheckoutPage() {
                                                                         <span>Quét mã QR</span>
                                                                     </Label>
                                                                 </div>
-                                                                <div className='flex items-center space-x-3 p-3 rounded-lg border border-gray-200 bg-white'>
-                                                                    <RadioGroupItem value='cash' id='cash' />
+
+                                                                {/* <div className='flex items-center space-x-3 p-3 rounded-lg border border-gray-200 bg-white'>
+                                                                   
+                                                                   <RadioGroupItem value='cash' id='cash' />
+                                                                   
                                                                     <Label htmlFor='cash' className='flex items-center cursor-pointer flex-1'>
                                                                         <div className='h-8 w-8 bg-primary/10 rounded-md flex items-center justify-center mr-3 text-primary'>
                                                                             <Wallet className='h-5 w-5' />
                                                                         </div>
                                                                         <span>Thanh toán tiền mặt</span>
                                                                     </Label>
-                                                                </div>
+
+                                                                </div> */}
+
+
                                                             </RadioGroup>
                                                         </FormControl>
                                                     </FormItem>
@@ -695,9 +690,7 @@ export default function CheckoutPage() {
                                 </Card>
                             </div>
 
-                            {/* Right Column - Order Summary */}
                             <div className='space-y-4'>
-                                {/* Fulfillment Summary */}
                                 {fulfillmentMethod === 'pickup' ? (
                                     <Card>
                                         <CardContent className='p-4 space-y-4'>
@@ -715,8 +708,8 @@ export default function CheckoutPage() {
                                                     <span>{branchPhone}</span>
                                                 </div>
                                                 <p>
-                                                    Nhận món trực tiếp tại cửa hàng <span className='font-medium'>{branchName}</span>.
-                                                    Vui lòng đến quầy thu ngân để thanh toán và nhận món theo thời gian đã chọn.
+                                                    Nhận món trực tiếp tại cửa hàng <span className='font-medium'>{branchName}</span>. Bạn đã chọn{' '}
+                                                    {paymentMethod === 'cash' ? 'thanh toán tiền mặt tại quầy.' : 'thanh toán qua QR ngay sau khi đặt hàng.'}
                                                 </p>
                                             </div>
                                         </CardContent>
@@ -737,7 +730,10 @@ export default function CheckoutPage() {
                                                             : 'Vui lòng nhập địa chỉ giao hàng trong biểu mẫu bên trái.'}
                                                     </span>
                                                 </div>
-                                                <p>Nhân viên sẽ liên hệ qua số điện thoại để xác nhận đơn và phí giao hàng.</p>
+                                                <p>
+                                                    Nhân viên sẽ liên hệ qua số điện thoại để xác nhận đơn, phí giao hàng và hỗ trợ{' '}
+                                                    {paymentMethod === 'cash' ? 'thu tiền mặt khi giao món.' : 'thanh toán QR trước khi giao.'}
+                                                </p>
                                             </div>
                                         </CardContent>
                                     </Card>

@@ -5,12 +5,16 @@ import { LoadingSpinner } from '@/components/common/loading-spinner';
 import StyledHeading from '@/components/common/styled-heading';
 import InfiniteScroll from '@/components/ui/infinite-scroll';
 import useScrollTop from '@/utils/hooks/useScrollTop';
-import { useSampleProductTypes, useSampleBranches } from '@/utils/hooks/useSampleData';
 import useGetProductSearch from '@/utils/hooks/useGetProductSearch';
 import { ProductType } from '@/apis/product.api';
+import { getCustomerInformation } from '@/apis/user.api';
+import { getNearbyBranches } from '@/apis/branch.api';
+import { useAuth } from '@/utils/hooks';
+import { useSampleProductTypes, useSampleBranches } from '@/utils/hooks/useSampleData';
 
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 import BranchList from './components/branch-list';
 import FeaturedProduct from './components/featured-product';
@@ -23,12 +27,70 @@ type Branch = {
     address: string;
     phone: string;
     isActive: boolean;
+    distanceText?: string;
 };
 
 export default function MenuPage() {
     useScrollTop();
+    const { user } = useAuth();
     const [productType, setProductType] = useState<ProductType>({ id: 0, name: 'Tất cả' });
     const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
+
+    const { productTypes, isLoading: isLoadingProductTypes } = useSampleProductTypes();
+    const { branches: sampleBranches, isLoading: isLoadingSampleBranches } = useSampleBranches();
+
+    const { data: customerInformationData = [], isLoading: isLoadingCustomerInfos } = useQuery({
+        queryKey: ['customer-informations', user?.id],
+        queryFn: () => getCustomerInformation(user?.id || 0),
+        enabled: Boolean(user?.id),
+        refetchOnMount: false,
+        refetchOnWindowFocus: false,
+    });
+
+    const customerInformations = useMemo(() => {
+        if (Array.isArray(customerInformationData?.data)) return customerInformationData.data;
+        if (Array.isArray(customerInformationData)) return customerInformationData;
+        return [];
+    }, [customerInformationData]);
+
+    const primaryAddress = useMemo(() => {
+        if (!customerInformations.length) return '';
+        const defaultInfo = customerInformations.find((info: any) => info.isDefault);
+        return (defaultInfo ?? customerInformations[0])?.address || '';
+    }, [customerInformations]);
+
+    const { data: nearbyBranchesData = [], isLoading: isLoadingNearbyBranches } = useQuery({
+        queryKey: ['nearby-branches', primaryAddress],
+        queryFn: () => getNearbyBranches(primaryAddress, 20),
+        enabled: Boolean(primaryAddress),
+        refetchOnMount: false,
+        refetchOnWindowFocus: false,
+    });
+
+    const nearbyBranches = useMemo(() => {
+        if (!Array.isArray(nearbyBranchesData)) return [];
+        return nearbyBranchesData.map((branch: any) => ({
+            branchId: branch.branchId,
+            branchName: branch.name,
+            address: branch.address,
+            phone: branch.phoneNumber,
+            isActive: true,
+            distanceText: branch.distanceText,
+        } as Branch));
+    }, [nearbyBranchesData]);
+
+    const displayBranches = useMemo(() => {
+        if (nearbyBranches.length) {
+            return nearbyBranches;
+        }
+        return (sampleBranches || []).map((branch: any) => ({
+            branchId: branch.branchId,
+            branchName: branch.branchName,
+            address: branch.address,
+            phone: branch.phone ?? branch.phoneNumber ?? '',
+            isActive: branch.isActive,
+        })) as Branch[];
+    }, [nearbyBranches, sampleBranches]);
 
     const {
         products: productList,
@@ -43,37 +105,23 @@ export default function MenuPage() {
         isActive: true,
     });
 
-    const { productTypes, isLoading: isLoadingProductTypes } = useSampleProductTypes();
-    const { branches, isLoading: isLoadingBranches } = useSampleBranches();
+    const isLoadingBranches = isLoadingSampleBranches || isLoadingProductTypes || isLoadingCustomerInfos || isLoadingNearbyBranches;
 
     useEffect(() => {
+        if (isLoadingBranches) return;
+        if (!displayBranches.length) return;
 
-        if (branches && !selectedBranch) {
-            // Kiểm tra localStorage trước, nếu không có thì chọn branch đầu tiên
-            const savedBranch = localStorage.getItem('selectedBranch');
-            if (savedBranch) {
-                try {
-                    const parsedBranch = JSON.parse(savedBranch);
-                    // Kiểm tra branch có tồn tại trong danh sách không
-                    const branchExists = branches.find(b => b.branchId === parsedBranch.branchId);
-                    if (branchExists) {
-                        setSelectedBranch(parsedBranch);
-                    } else {
-                        setSelectedBranch(branches[0]);
-                        localStorage.setItem('selectedBranch', JSON.stringify(branches[0]));
-                    }
-                } catch {
-                    setSelectedBranch(branches[0]);
-                    localStorage.setItem('selectedBranch', JSON.stringify(branches[0]));
-                }
-            } else {
-                setSelectedBranch(branches[0]);
-                localStorage.setItem('selectedBranch', JSON.stringify(branches[0]));
+        setSelectedBranch((prev) => {
+            if (prev && displayBranches.some((branch) => branch.branchId === prev.branchId)) {
+                return prev;
             }
-        }
-
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [branches]);
+            const firstBranch = displayBranches[0];
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('selectedBranch', JSON.stringify(firstBranch));
+            }
+            return firstBranch;
+        });
+    }, [displayBranches, isLoadingBranches]);
 
     useEffect(() => {
         document.getElementById('hero-section')?.scrollIntoView({ behavior: 'smooth' });
@@ -81,9 +129,7 @@ export default function MenuPage() {
 
     return (
         <div className='min-h-screen'>
-
-
-            {isLoadingBranches || isLoadingProductTypes ? (
+            {isLoadingBranches ? (
                 <div className='flex items-center justify-center min-h-screen'>
                     <LoadingSpinner />
                 </div>
@@ -106,25 +152,20 @@ export default function MenuPage() {
                     </div>
                     <div className='container mx-auto px-10 md:px-10 pt-8 py-20'>
                         <div className='flex flex-col lg:flex-row gap-8'>
-
                             <div className='lg:w-1/4'>
                                 <div className='bg-white rounded-xl shadow-sm p-6 sticky top-24'>
                                     <h2 className='text-xl font-bold mb-6'>Danh mục</h2>
-
                                     <div className='space-y-6'>
-
                                         <ProductTypeList
                                             productTypes={productTypes || []}
                                             productType={productType}
                                             setProductType={setProductType}
                                             resetAndRefetch={resetAndRefetch}
                                         />
-
-
                                         <div>
                                             <h3 className='text-sm uppercase text-gray-500 font-medium mb-3'>Cửa hàng</h3>
                                             <BranchList
-                                                branches={branches || []}
+                                                branches={displayBranches}
                                                 selectedBranch={selectedBranch}
                                                 setSelectedBranch={setSelectedBranch}
                                                 resetAndRefetch={resetAndRefetch}
@@ -133,8 +174,6 @@ export default function MenuPage() {
                                     </div>
                                 </div>
                             </div>
-
-
                             <div className='lg:w-3/4' id='menu-content'>
                                 {productList?.length > 0 && productType.id === 0 && <FeaturedProduct product={productList[0]} />}
                                 <div>
@@ -149,7 +188,6 @@ export default function MenuPage() {
                                             )}
                                         </h2>
                                     </div>
-
                                     {isLoadingProducts ? (
                                         <div className='flex items-center justify-center'>
                                             <LoadingSpinner className='my-10 h-8 w-8 animate-spin' />
@@ -173,3 +211,4 @@ export default function MenuPage() {
         </div>
     );
 }
+
