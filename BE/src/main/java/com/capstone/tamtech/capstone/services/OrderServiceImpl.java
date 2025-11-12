@@ -717,7 +717,8 @@ public class OrderServiceImpl implements OrderService {
         if (meters >= 0 && meters <= 3000) {
             return 0.0;
         } else {
-            shippingFee = Math.ceil(shippingFee / 1000.0) / 1000.0;
+            double kmOver = Math.ceil((meters - 3000) / 1000.0);
+            shippingFee = kmOver * 10000;
         }
         return shippingFee;
     }
