@@ -19,7 +19,7 @@ import ProfileInfoSection from './sections/profile-info-section';
 
 export default function ProfileContent() {
     const [activeTab, setActiveTab] = useState('profile');
-    const { user } = useAuth();
+    const { user, isLoading: isAuthLoading } = useAuth();
     useDocumentTitle('Tấm Tắc | Thông tin cá nhân');
     useScrollTop();
 
@@ -32,6 +32,9 @@ export default function ProfileContent() {
     //     refetchOnMount: false,
     //     refetchOnWindowFocus: false,
     // });
+
+    const userData = user;
+    const isLoadingUserData = isAuthLoading;
 
     return (
         <div className='py-8 px-4'>
@@ -114,7 +117,13 @@ export default function ProfileContent() {
 
                     {/* Profile Information Tab */}
                     <TabsContent value='profile'>
-                        <ProfileInfoSection isLoading={isLoadingUserData} user={userData} totalOrders={orders.length} />
+                        {userData ? (
+                            <ProfileInfoSection isLoading={isLoadingUserData} user={userData} totalOrders={orders.length} />
+                        ) : (
+                            <div className='p-4 text-center'>
+                                <p>Vui lòng đăng nhập để xem thông tin cá nhân</p>
+                            </div>
+                        )}
                     </TabsContent>
 
                     {/* Change Password Tab */}

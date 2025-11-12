@@ -28,6 +28,12 @@ import { useCookies } from 'react-cookie';
 import { getReceiveTime } from '@/utils/getReceiveTime';
 import { STORE_INFO } from '@/utils/mockupData';
 
+
+// auto complete 
+import { AddressAutocomplete } from '@/components/common/address-autocomplete';
+
+
+
 type Branch = {
     branchId: number;
     branchName: string;
@@ -112,7 +118,10 @@ export default function CheckoutPage() {
     const [shippingFee, setShippingFee] = useState<number | null>(null);
     const [isFetchingShippingFee, setIsFetchingShippingFee] = useState(false);
 
-    // Đọc chi nhánh đã chọn từ localStorage
+
+
+
+
     useEffect(() => {
         const savedBranch = localStorage.getItem('selectedBranch');
         if (savedBranch) {
@@ -120,13 +129,14 @@ export default function CheckoutPage() {
                 const parsedBranch = JSON.parse(savedBranch);
                 setSelectedBranch(parsedBranch);
             } catch {
-                // Nếu không parse được, dùng STORE_INFO mặc định
+
                 setSelectedBranch(null);
             }
         }
     }, []);
 
-    // Check authentication và redirect nếu chưa đăng nhập
+
+
     useEffect(() => {
         if (isAuthLoading) return;
 
@@ -136,6 +146,7 @@ export default function CheckoutPage() {
             const currentPath = window.location.pathname;
             router.replace(`${configs.routes.login}?callbackUrl=${encodeURIComponent(currentPath)}`);
         }
+
     }, [isAuthLoading, isAuthenticated, router]);
 
 
@@ -266,7 +277,6 @@ export default function CheckoutPage() {
 
 
     const fulfillmentMethod = form.watch('fulfillmentMethod');
-    const paymentMethod = form.watch('paymentMethod');
     const isDelivery = fulfillmentMethod === 'delivery';
 
     useEffect(() => {
@@ -369,13 +379,16 @@ export default function CheckoutPage() {
     });
 
 
+    const SHIPPING_DISTANCE_LIMIT_MESSAGE = 'Chúng tôi chỉ giao hàng trong phạm vi 5km.';
 
-    // lấy tiền shipping 
+    const [errorShippingFee, setErrorShippingFee] = useState<string | null>(null);
+    // lấy tiền shipping
 
     useEffect(() => {
         if (!isDelivery) {
             setShippingFee(null);
             setIsFetchingShippingFee(false);
+            setErrorShippingFee(null);
             return;
         }
 
@@ -385,13 +398,14 @@ export default function CheckoutPage() {
         if (!customerAddress || !branchAddr) {
             setShippingFee(null);
             setIsFetchingShippingFee(false);
+            setErrorShippingFee(null);
             return;
         }
-
 
         if (customerAddress.length < 5) {
             setShippingFee(null);
             setIsFetchingShippingFee(false);
+            setErrorShippingFee('Vui lòng nhập địa chỉ đầy đủ để tính phí giao hàng.');
             return;
         }
 
@@ -399,16 +413,18 @@ export default function CheckoutPage() {
         if (!token) {
             setShippingFee(null);
             setIsFetchingShippingFee(false);
+            setErrorShippingFee('Bạn cần đăng nhập để tính phí giao hàng.');
             return;
         }
 
         const controller = new AbortController();
 
-
         const timeoutId = window.setTimeout(async () => {
             try {
-                setShippingFee(null);
                 setIsFetchingShippingFee(true);
+                setErrorShippingFee(null);
+                setShippingFee(null);
+
                 const params = new URLSearchParams({
                     customerAddress,
                     branchAddress: branchAddr,
@@ -422,16 +438,36 @@ export default function CheckoutPage() {
                     signal: controller.signal,
                 });
 
-                if (!response.ok) {
-                    throw new Error('Failed to fetch shipping fee');
+                let responseBody: unknown = null;
+
+                try {
+                    responseBody = await response.json();
+                } catch {
+                    responseBody = null;
                 }
 
-                const data = await response.json();
-                setShippingFee(typeof data?.data === 'number' ? data.data : null);
+                if (!response.ok) {
+                    setShippingFee(null);
+                    setErrorShippingFee(SHIPPING_DISTANCE_LIMIT_MESSAGE);
+                    return;
+                }
 
+                const fee =
+                    typeof (responseBody as { data?: number } | null)?.data === 'number'
+                        ? (responseBody as { data: number }).data
+                        : null;
+
+                if (fee !== null) {
+                    setShippingFee(fee);
+                    setErrorShippingFee(null);
+                } else {
+                    setShippingFee(null);
+                    setErrorShippingFee('Không thể xác định phí giao hàng cho địa chỉ này.');
+                }
             } catch (error) {
                 if ((error as Error).name === 'AbortError') return;
                 setShippingFee(null);
+                setErrorShippingFee('Không thể tính phí giao hàng. Vui lòng thử lại sau.');
             } finally {
                 setIsFetchingShippingFee(false);
             }
@@ -441,7 +477,7 @@ export default function CheckoutPage() {
             clearTimeout(timeoutId);
             controller.abort();
         };
-    }, [deliveryAddressValue, isDelivery, selectedBranch, getAuthToken]);
+    }, [deliveryAddressValue, getAuthToken, isDelivery, selectedBranch]);
 
     useEffect(() => {
         if (fulfillmentMethod === 'pickup') {
@@ -464,6 +500,8 @@ export default function CheckoutPage() {
         setIsSubmitting(true);
 
         try {
+
+
             const isPickup = data.fulfillmentMethod === 'pickup';
             const branchAddress = selectedBranch?.address || STORE_INFO.address;
             const shippingAddress = isPickup ? branchAddress : (data.deliveryAddress?.trim() || '');
@@ -505,13 +543,13 @@ export default function CheckoutPage() {
     const branchAddress = selectedBranch?.address || STORE_INFO.address;
     const branchPhone = selectedBranch?.phone || STORE_INFO.phone;
     const orderSubtotal = getTotalPrice();
-    const shippingFeeDisplay = !isDelivery
-        ? '0đ'
-        : isFetchingShippingFee
-            ? 'Đang tính...'
-            : shippingFee !== null
-                ? `${shippingFee.toLocaleString()}đ`
-                : '0 đ';
+    const shippingFeeDisplay = useMemo(() => {
+        if (!isDelivery) return '0đ';
+        if (isFetchingShippingFee) return 'Đang tính...';
+        if (errorShippingFee) return '—';
+        if (shippingFee !== null) return `${shippingFee.toLocaleString()}đ`;
+        return '0đ';
+    }, [errorShippingFee, isDelivery, isFetchingShippingFee, shippingFee]);
     const totalWithShipping = isDelivery && shippingFee !== null ? orderSubtotal + shippingFee : orderSubtotal;
 
     if (!items.length) {
@@ -728,29 +766,30 @@ export default function CheckoutPage() {
                                                                             + Thêm địa chỉ mới
                                                                         </Button>
                                                                     </div>
-                                                                    <Textarea
-                                                                        id='deliveryAddress'
-                                                                        placeholder='Ví dụ: Số nhà, đường, phường/xã, quận/huyện, thành phố'
-                                                                        rows={3}
-                                                                        {...field}
+
+
+
+                                                                    {/* dùng auto chỗ nài nè  */}
+
+                                                                    <AddressAutocomplete
                                                                         value={field.value ?? ''}
-                                                                        onChange={(e) => {
-                                                                            const nextValue = e.target.value;
-                                                                            field.onChange(nextValue);
+                                                                        onChange={(address) => {
+                                                                            field.onChange(address);
                                                                             if (selectedInfoId !== 'new') {
                                                                                 setSelectedInfoId('new');
                                                                             }
-                                                                            if (nextValue.trim().length === 0) {
+                                                                            if (address.trim().length === 0) {
                                                                                 setShippingFee(null);
                                                                             }
                                                                         }}
-                                                                        onBlur={(e) => {
-                                                                            const nextValue = e.target.value.trim();
-                                                                            if (nextValue && nextValue !== field.value) {
-                                                                                field.onChange(nextValue);
-                                                                            }
-                                                                        }}
+                                                                        placeholder='Ví dụ: Số nhà, đường, phường/xã, quận/huyện, thành phố'
+                                                                        rows={3}
                                                                     />
+
+
+
+
+
                                                                 </>
                                                             ) : (
                                                                 <p className='text-sm text-muted-foreground'>
@@ -887,20 +926,37 @@ export default function CheckoutPage() {
                                                                 )}
                                                             </p>
                                                         </div>
+
+
                                                         <div className='text-right text-sm'>
                                                             <div className='text-primary font-medium'>{item.productPrice.toLocaleString()}đ</div>x{' '}
                                                             {item.quantity}
                                                         </div>
+
                                                     </div>
                                                 </div>
                                             ))}
                                         </div>
+
+
                                         {isDelivery && (
                                             <div className='flex items-center justify-between px-3 py-2 text-sm'>
                                                 <span>Phí giao hàng dự kiến</span>
-                                                <span className='font-medium text-primary'>{shippingFeeDisplay}</span>
+                                                <span
+                                                    className={cn(
+                                                        'font-medium',
+                                                        errorShippingFee ? 'text-red-500' : 'text-primary',
+                                                    )}
+                                                >
+                                                    {shippingFeeDisplay}
+                                                </span>
                                             </div>
                                         )}
+
+                                        {isDelivery && errorShippingFee && (
+                                            <p className='px-3 pb-2 text-sm text-red-500'>{errorShippingFee}</p>
+                                        )}
+
                                     </CardContent>
                                 </Card>
                                 <Card className='p-4 gap-2'>
@@ -930,18 +986,31 @@ export default function CheckoutPage() {
                                             <span>Tạm tính</span>
                                             <span>{orderSubtotal.toLocaleString()}đ</span>
                                         </div>
+
                                         {isDelivery && (
                                             <div className='flex justify-between text-sm text-muted-foreground'>
                                                 <span>Phí giao hàng</span>
-                                                <span>{shippingFeeDisplay}</span>
+                                                <span className={cn('font-medium', errorShippingFee ? 'text-red-500' : 'text-primary')}>
+                                                    {shippingFeeDisplay}
+                                                </span>
                                             </div>
                                         )}
+
+                                        {isDelivery && errorShippingFee && (
+                                            <p className='text-xs text-red-500'>{errorShippingFee}</p>
+                                        )}
+
+
+
                                         <div className='flex justify-between font-medium pt-1'>
                                             <span>TỔNG CỘNG</span>
                                             <span className='text-xl text-primary font-bold'>
                                                 {totalWithShipping.toLocaleString()}đ
                                             </span>
                                         </div>
+                                        {isDelivery && errorShippingFee && (
+                                            <p className='text-xs text-muted-foreground'>Tổng chưa bao gồm phí giao hàng.</p>
+                                        )}
                                     </CardContent>
                                     <CardFooter className='px-4 py-0'>
                                         <Button
@@ -964,7 +1033,7 @@ export default function CheckoutPage() {
                         </form>
                     </Form>
                 </div>
-            </div>
+            </div >
         </>
     );
 }
