@@ -1,6 +1,6 @@
 'use client';
 
-import { GET_ME_QUERY_KEY, getMe } from '@/apis/user.api';
+// import { GET_ME_QUERY_KEY, getMe } from '@/apis/user.api';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/utils/hooks';
@@ -15,7 +15,7 @@ import OrderHistorySection from './sections/order-history-section';
 import PasswordChangeSection from './sections/password-change-section';
 import ProfileInfoSection from './sections/profile-info-section';
 
-import { useQuery } from '@tanstack/react-query';
+// import { useQuery } from '@tanstack/react-query';
 
 export default function ProfileContent() {
     const [activeTab, setActiveTab] = useState('profile');
@@ -25,13 +25,13 @@ export default function ProfileContent() {
 
     const { orders, isLoadingOrders } = useCustomerOrders();
 
-    const { data: userData, isLoading: isLoadingUserData } = useQuery({
-        queryKey: [GET_ME_QUERY_KEY],
-        queryFn: () => getMe(user?.id || 0),
-        select: (data) => data.data.data,
-        refetchOnMount: false,
-        refetchOnWindowFocus: false,
-    });
+    // const { data: userData, isLoading: isLoadingUserData } = useQuery({
+    //     queryKey: [GET_ME_QUERY_KEY],
+    //     queryFn: () => getMe(user?.id || 0),
+    //     select: (data) => data.data.data,
+    //     refetchOnMount: false,
+    //     refetchOnWindowFocus: false,
+    // });
 
     return (
         <div className='py-8 px-4'>

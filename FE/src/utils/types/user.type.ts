@@ -28,6 +28,7 @@ export type VerifyTokenForgotPasswordResponse = SuccessResponse<{
 export type UserAuthData = {
   id: number;
   phoneNumber: string;
+  fullName?: string;
   role: string;
   isNewUser?: boolean;
 };

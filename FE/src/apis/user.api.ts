@@ -209,6 +209,8 @@ export const loginCustomerViaApiRoute = async (data: { phoneNumber: string; pass
 
 // Gọi qua Next.js API route (mới - tự động set cookies httpOnly)
 
+
+
 export const registerCustomer = (data: { fullName: string; phoneNumber: string; password: string; dateOfBirth: string }) =>
   http.post('/auth/customer/register', data);
 
@@ -224,7 +226,28 @@ export const getTimeResendOtp = (channel: 'email' | 'zalo', identifier: string) 
 
 
 // lấy thông tin 
-export const getMe = (userId: number) => http.get(`/customer/profile/${userId}`);
+// get info
+
+// customers/42/informations
+export const getCustomerInformation = async (userId: number) => {
+  const response = await fetch(`/api/customer/infomation?userId=${userId}`, {
+    method: 'GET',
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw {
+      response: {
+        data: errorBody,
+        status: response.status,
+      },
+    };
+  }
+
+  return response.json();
+};
+
 
 
 // =====================================  employee ================================

@@ -19,6 +19,8 @@ type BranchListProps = {
 const BranchList = ({ branches, selectedBranch, setSelectedBranch, resetAndRefetch }: BranchListProps) => {
     const handleBranchClick = (branch: Branch) => {
         setSelectedBranch(branch);
+        // Lưu chi nhánh đã chọn vào localStorage để đồng bộ với checkout
+        localStorage.setItem('selectedBranch', JSON.stringify(branch));
         setTimeout(() => {
             resetAndRefetch();
         }, 0);

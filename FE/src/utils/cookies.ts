@@ -16,6 +16,19 @@ export const removeCookie = (name: string) => {
   cookies.remove(name);
 };
 
+// Token (main authentication token)
+export const getToken = () => {
+  return getCookie('token');
+};
+
+export const setToken = (token: string, expires?: Date) => {
+  setCookie('token', token, expires);
+};
+
+export const removeToken = () => {
+  removeCookie('token');
+};
+
 // Access token
 export const getAccessToken = () => {
   return getCookie(config.cookies.accessToken);
@@ -56,14 +69,15 @@ export const removeUserRole = () => {
 };
 
 // Auth token for middleware (separate from access token)
+// DEPRECATED: Use getToken/setToken instead
 export const setAuthToken = (token: string) => {
-  setCookie('authToken', token);
+  setCookie('token', token);
 };
 
 export const getAuthToken = () => {
-  return getCookie('authToken');
+  return getCookie('token');
 };
 
 export const removeAuthToken = () => {
-  removeCookie('authToken');
+  removeCookie('token');
 };

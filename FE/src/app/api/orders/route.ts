@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import http from '@/utils/http';
+import { getToken } from '@/utils/cookies';
 
 export async function GET(request: NextRequest) {
   try {
@@ -8,10 +9,10 @@ export async function GET(request: NextRequest) {
     const size = searchParams.get('size') || '20';
     const status = searchParams.get('status');
 
-    const params: any = { page, size };
+    const params: Record<string, string> = { page, size };
     if (status) params.status = status;
 
-    // Forward to external API
+
     const response = await http.get('/orders', { params });
 
     return NextResponse.json(response.data);
@@ -24,14 +25,23 @@ export async function GET(request: NextRequest) {
   }
 }
 
+
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    // Forward to external API
-    const response = await http.post('/orders', body);
+    const response = await http.post('/orders', body, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getToken()}`
+      },
+      
+    });
+
 
     return NextResponse.json(response.data);
+
   } catch (error) {
     console.error('Create Order API Error:', error);
     return NextResponse.json(
