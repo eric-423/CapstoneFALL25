@@ -3,8 +3,10 @@
 import { AdminGuard } from '@/components/guards';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { MOCK_ORDERS } from '@/utils/mocks/data/orders.mock';
 import { ShoppingBag, FileText, Eye, CheckCircle, Clock, XCircle, CreditCard, Banknote } from 'lucide-react';
+
+// Temporary empty array until API is implemented
+const MOCK_ORDERS: any[] = [];
 
 export default function OrdersPage() {
     return (

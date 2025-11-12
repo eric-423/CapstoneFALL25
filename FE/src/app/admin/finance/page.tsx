@@ -4,12 +4,26 @@ import { useState } from 'react';
 import { AdminGuard } from '@/components/guards';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { MOCK_DASHBOARD_STATS } from '@/utils/mocks/data/dashboard.mock';
+// import { MOCK_DASHBOARD_STATS } from '@/utils/mocks/data/dashboard.mock';
 import { DollarSign, FileText, TrendingUp, TrendingDown, Building2, BarChart3 } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { TimePeriodSelector } from './components/TimePeriodSelector';
 import { ExpenseBreakdownChart } from './components/ExpenseBreakdownChart';
 import { generateRevenueData, expenseBreakdownData } from './mockData';
+
+// Temporary empty stats until API is implemented
+const MOCK_DASHBOARD_STATS = {
+    totalRevenue: 0,
+    totalOrders: 0,
+    totalProducts: 0,
+    totalCustomers: 0,
+    revenue: {
+        monthly: 0,
+        growth: { monthly: 0 }
+    },
+    topBranches: [] as any[],
+    revenueChart: [] as any[]
+};
 
 export default function FinancePage() {
     const stats = MOCK_DASHBOARD_STATS;

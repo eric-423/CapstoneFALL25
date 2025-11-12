@@ -2,10 +2,11 @@
 
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import useScrollTop from '@/utils/hooks/useScrollTop';
-import { ProductType, Product, searchProducts, getProductType } from '@/apis/product.api';
+import { ProductType, Product, getProduct, getProductType } from '@/apis/product.api';
 import { Combo, searchCombos } from '@/apis/combo.api';
 import { createDiningOrder, payDiningTableOrder, updateDiningTableOrder, DiningOrderRequest, DiningTablePaymentRequest, UpdateDiningTableOrderRequest } from '@/apis/order.api';
 import { PaymentMethod, getPaymentMethods } from '@/apis/payment.api';
+import { TableData, getTableById, CurrentOrder, OrderItem } from '@/apis/table.api';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ShoppingCart, CheckCircle, ChevronUp, ChevronDown, Menu, X, Receipt, CreditCard } from 'lucide-react';
@@ -16,7 +17,6 @@ import TableComboCard from '../components/table-combo-card';
 import StyledHeading from '@/components/common/styled-heading';
 import image from '@/assets/images/Home - Banner.jpg';
 import Image from 'next/image';
-import http from '@/utils/http';
 
 interface CartItem {
     productId: number;
@@ -27,87 +27,6 @@ interface CartItem {
     productImage?: string;
     isCombo?: boolean;
     note?: string;
-}
-
-interface OrderItem {
-    productId: number;
-    productName: string;
-    orderId: number;
-    quantity: number;
-    price: number;
-    note: string | null;
-    feedback: string | null;
-    feedbackPoint: number;
-    expiredFeedbackTime: string | null;
-    productImg: string;
-    comboDTO: {
-        id: number;
-        name: string;
-        description: string;
-        price: number;
-        startDate: string;
-        endDate: string;
-        branchId: number;
-        comboItems: Array<{
-            productId: number;
-            comboId: number;
-            quantity: number;
-            note: string;
-        }>;
-        active: boolean;
-    } | null;
-    isConfirmed: boolean;
-    isDelivered: boolean;
-    feedBackYet: boolean;
-}
-
-interface CurrentOrder {
-    id: number;
-    subTotal: number;
-    promotionCode: string | null;
-    discountValue: number | null;
-    discountPercent: number | null;
-    amount: number;
-    shippingFee: number | null;
-    isPickUp: boolean;
-    isTable: boolean;
-    delivery_at: string | null;
-    orderStatus: string;
-    note: string;
-    payment_code: string | null;
-    address: string;
-    phone: string;
-    pointUsed: number;
-    pointEarned: number;
-    createdAt: string;
-    orderItems: OrderItem[];
-    customerDTO: {
-        id: number;
-        fullName: string;
-        email: string | null;
-        phone: string | null;
-        address: string | null;
-        isActive: boolean | null;
-        dateOfBirth: string | null;
-        createdAt: string | null;
-        memberPoint: number | null;
-        memberRank: string | null;
-    };
-    pickupTime: string | null;
-    customerName: string;
-    status: string;
-    paymentUrl: string | null;
-}
-
-interface TableData {
-    id: number;
-    name: string;
-    isActive: boolean;
-    seat: number;
-    note: string;
-    branchId: number;
-    currentOrder: CurrentOrder | null;
-    orders: CurrentOrder[];
 }
 
 export default function OrderTablePage() {
@@ -142,8 +61,8 @@ export default function OrderTablePage() {
             if (!tableId) return;
 
             try {
-                const response = await http.get(`/table/${tableId}`);
-                setTableData(response.data);
+                const data = await getTableById(tableId);
+                setTableData(data);
             } catch (error) {
                 console.error('Error fetching table data:', error);
             }
@@ -193,14 +112,19 @@ export default function OrderTablePage() {
             if (!tableData?.branchId) return;
 
             try {
-                const response = await searchProducts({
-                    branchId: tableData.branchId,
-                    isActive: true,
-                    productTypeId: productType.id === 0 ? undefined : productType.id,
-                    page: 0,
-                    size: 100,
-                });
-                setProductList(response.content);
+                const response = await getProduct(
+                    tableData.branchId,
+                    '', // keyword
+                    true, // isActive
+                    0, // minPrice
+                    999999999, // maxPrice
+                    0, // page
+                    100, // size
+                    'name', // sortBy
+                    'ASC', // sortDirection
+                    productType.id === 0 ? undefined : productType.id // productTypeId
+                );
+                setProductList(response.data.content);
             } catch (error) {
                 console.error('Error fetching products:', error);
             }
@@ -380,8 +304,8 @@ export default function OrderTablePage() {
             }
 
             // Reload table data to get updated order
-            const tableResponse = await http.get(`/table/${tableId}`);
-            setTableData(tableResponse.data);
+            const updatedTableData = await getTableById(tableId);
+            setTableData(updatedTableData);
 
             setTimeout(() => {
                 setIsOrderConfirmed(false);
@@ -441,8 +365,8 @@ export default function OrderTablePage() {
             }
 
             // Reload table data to get updated payment status
-            const tableResponse = await http.get(`/table/${tableId}`);
-            setTableData(tableResponse.data);
+            const updatedTableData = await getTableById(tableId);
+            setTableData(updatedTableData);
         } catch (error) {
             console.error('Error processing payment:', error);
             alert('Có lỗi xảy ra khi thanh toán. Vui lòng thử lại!');

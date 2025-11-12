@@ -3,11 +3,13 @@
 import { AdminGuard } from '@/components/guards';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { MOCK_FEEDBACK } from '@/utils/mocks/data/feedback.mock';
 import { MessageSquare, Star, Reply, CheckCircle, Clock, Filter } from 'lucide-react';
 import { useState } from 'react';
 
 type FilterType = 'ALL' | 'PENDING' | 'RESOLVED';
+
+// Temporary empty array until API is implemented
+const MOCK_FEEDBACK: any[] = [];
 
 export default function FeedbackPage() {
     const [activeFilter, setActiveFilter] = useState<FilterType>('ALL');
