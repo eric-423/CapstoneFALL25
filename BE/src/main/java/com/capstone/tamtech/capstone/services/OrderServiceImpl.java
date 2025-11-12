@@ -10,6 +10,7 @@ import com.capstone.tamtech.capstone.payload.request.WaiterConfirmOrderRequest;
 import com.capstone.tamtech.capstone.repositories.*;
 import com.capstone.tamtech.capstone.services.impl.OrderService;
 import com.capstone.tamtech.capstone.services.impl.PaymentService;
+import com.capstone.tamtech.capstone.services.impl.PromotionService;
 import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -63,7 +64,7 @@ public class OrderServiceImpl implements OrderService {
     private PaymentMethodRepository paymentMethodRepository;
 
     @Autowired
-    private com.capstone.tamtech.capstone.services.impl.PromotionService promotionService;
+    private PromotionService promotionService;
 
     @Override
     public OrderDTO createOrderForShipping(OrderRequest orderRequest) throws BadRequestException {
@@ -123,7 +124,7 @@ public class OrderServiceImpl implements OrderService {
         String promotionCode = orderRequest.getPromotionCode();
         boolean hasPromotionCode = promotionCode != null && !promotionCode.isBlank();
         if (hasPromotionCode && orderRequest.getCustomerId() > 0) {
-            com.capstone.tamtech.capstone.dto.PromotionValidationResult validationResult = promotionService
+            PromotionValidationResult validationResult = promotionService
                     .validateAndApplyPromotion(
                             orderRequest.getCustomerId(),
                             promotionCode,

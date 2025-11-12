@@ -1,9 +1,11 @@
 package com.capstone.tamtech.capstone.services.impl;
 
+import com.capstone.tamtech.capstone.dto.PromotionDTO;
 import com.capstone.tamtech.capstone.dto.PromotionValidationResult;
-import com.capstone.tamtech.capstone.entities.Promotion;
-import com.capstone.tamtech.capstone.entities.UserPromotion;
+import com.capstone.tamtech.capstone.payload.request.AssignPromotionRequest;
+import com.capstone.tamtech.capstone.payload.request.CreatePromotionRequest;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface PromotionService {
@@ -16,4 +18,20 @@ public interface PromotionService {
     void markPromotionAsUsed(int userId, UUID promotionId);
 
     void rollbackPromotionUsage(int userId, UUID promotionId);
+
+    PromotionDTO createPromotion(CreatePromotionRequest request, String createdByEmail);
+
+    int assignPromotionToUsers(AssignPromotionRequest request);
+
+    List<PromotionDTO> getCustomerPromotions(String customerEmail);
+
+    List<PromotionDTO> getAvailablePromotions(String customerEmail);
+
+    List<PromotionDTO> getAllPromotions();
+
+    PromotionDTO getPromotionByCode(String promotionCode);
+
+    void updatePromotionStatus(String promotionCode, boolean status);
+
+    boolean validatePromotionForCustomer(String customerEmail, String promotionCode, double orderValue);
 }
