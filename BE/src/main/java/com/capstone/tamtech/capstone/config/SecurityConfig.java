@@ -56,7 +56,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/payment-method").permitAll()
                         .requestMatchers("/api/orders/shipping/fee").permitAll()
                         .requestMatchers("/api/orders/payment/webhook").permitAll()
-                        
+                        .requestMatchers("/api/orders/dining-table/create").permitAll()
+
                         // Public statistics for customers
                         .requestMatchers("/api/statistics/top-selling").permitAll()
                         .requestMatchers("/api/statistics/item-sales").permitAll()

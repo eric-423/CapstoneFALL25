@@ -63,6 +63,13 @@ public class OrderController {
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
 
+    @PostMapping("/dining-table/create")
+    public ResponseEntity<?> createDiningTableOrder(@RequestBody OrderRequest orderRequest) {
+        ResponseData responseData = new ResponseData();
+        responseData.setData(orderService.createOrderForDining(orderRequest));
+        return new ResponseEntity<>(responseData, HttpStatus.CREATED);
+    }
+
 
     @PostMapping("/payment/webhook")
     public ResponseEntity<String> paymentWebhook(@RequestBody Object body)
