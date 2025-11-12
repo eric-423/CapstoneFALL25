@@ -1,11 +1,19 @@
 package com.capstone.tamtech.capstone.services;
 
+import com.capstone.tamtech.capstone.dto.PromotionDTO;
 import com.capstone.tamtech.capstone.dto.PromotionValidationResult;
 import com.capstone.tamtech.capstone.entities.Promotion;
+import com.capstone.tamtech.capstone.entities.PromotionType;
 import com.capstone.tamtech.capstone.entities.UserPromotion;
+import com.capstone.tamtech.capstone.entities.Users;
 import com.capstone.tamtech.capstone.entities.keys.UserPromotionKey;
+import com.capstone.tamtech.capstone.exception.ResourceNotFoundException;
+import com.capstone.tamtech.capstone.payload.request.AssignPromotionRequest;
+import com.capstone.tamtech.capstone.payload.request.CreatePromotionRequest;
 import com.capstone.tamtech.capstone.repositories.PromotionRepository;
+import com.capstone.tamtech.capstone.repositories.PromotionTypeRepository;
 import com.capstone.tamtech.capstone.repositories.UserPromotionRepository;
+import com.capstone.tamtech.capstone.repositories.UsersRepository;
 import com.capstone.tamtech.capstone.services.impl.PromotionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,7 +21,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -25,6 +35,12 @@ public class PromotionServiceImpl implements PromotionService {
 
     @Autowired
     private UserPromotionRepository userPromotionRepository;
+
+    @Autowired
+    private UsersRepository usersRepository;
+
+    @Autowired
+    private PromotionTypeRepository promotionTypeRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -164,5 +180,192 @@ public class PromotionServiceImpl implements PromotionService {
         } catch (ParseException e) {
             return false;
         }
+    }
+
+    @Override
+    @Transactional
+    public PromotionDTO createPromotion(CreatePromotionRequest request, String createdByEmail) {
+        Optional<Promotion> existingPromotion = promotionRepository.findByNameIgnoreCase(request.getName());
+        if (existingPromotion.isPresent()) {
+            throw new RuntimeException("Promotion code already exists");
+        }
+
+        Users createdBy = usersRepository.findByEmail(createdByEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        PromotionType promotionType = promotionTypeRepository.findById(request.getPromotionTypeId())
+                .orElseThrow(() -> new ResourceNotFoundException("Promotion type not found"));
+
+        Promotion promotion = new Promotion();
+        promotion.setName(request.getName());
+        promotion.setDescription(request.getDescription());
+        promotion.setValue(request.getValue());
+        promotion.setMinimumOrderValue(request.getMinimumOrderValue());
+        promotion.setStartDate(request.getStartDate());
+        promotion.setEndDate(request.getEndDate());
+        promotion.setStatus(request.isStatus());
+        promotion.setCreatedAt(new Date());
+        promotion.setPromotionType(promotionType);
+        promotion.setCreatedBy(createdBy);
+
+        Promotion saved = promotionRepository.save(promotion);
+        return convertToDTO(saved, null);
+    }
+
+    @Override
+    @Transactional
+    public int assignPromotionToUsers(AssignPromotionRequest request) {
+        Promotion promotion = promotionRepository.findByNameIgnoreCase(request.getPromotionCode())
+                .orElseThrow(() -> new ResourceNotFoundException("Promotion not found"));
+
+        int assignedCount = 0;
+        List<AssignPromotionRequest.UserPromotionAssignment> assignments = request.getUserAssignments();
+
+        for (int i = 0; i < assignments.size(); i++) {
+            AssignPromotionRequest.UserPromotionAssignment assignment = assignments.get(i);
+
+            Optional<Users> userOptional = usersRepository.findById(assignment.getUserId());
+            if (userOptional.isEmpty()) {
+                continue;
+            }
+
+            Users user = userOptional.get();
+
+            UserPromotionKey key = new UserPromotionKey(user.getId(), promotion.getId());
+            Optional<UserPromotion> existingOptional = userPromotionRepository.findById(key);
+
+            if (existingOptional.isPresent()) {
+                UserPromotion existing = existingOptional.get();
+                existing.setUsageCount(existing.getUsageCount() + assignment.getUsageCount());
+                userPromotionRepository.save(existing);
+            } else {
+                UserPromotion userPromotion = new UserPromotion();
+                userPromotion.setId(key);
+                userPromotion.setUser(user);
+                userPromotion.setPromotion(promotion);
+                userPromotion.setReceivedDate(new Date());
+                userPromotion.setStatus(UserPromotion.UserPromotionStatus.AVAILABLE);
+                userPromotion.setUsageCount(assignment.getUsageCount());
+                userPromotionRepository.save(userPromotion);
+            }
+
+            assignedCount++;
+        }
+
+        return assignedCount;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PromotionDTO> getCustomerPromotions(String customerEmail) {
+        Users customer = usersRepository.findByEmail(customerEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+
+        List<UserPromotion> userPromotions = userPromotionRepository.findByIdUserId(customer.getId());
+        List<PromotionDTO> result = new ArrayList<>();
+
+        for (int i = 0; i < userPromotions.size(); i++) {
+            UserPromotion up = userPromotions.get(i);
+            PromotionDTO dto = convertToDTO(up.getPromotion(), up);
+            result.add(dto);
+        }
+
+        return result;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PromotionDTO> getAvailablePromotions(String customerEmail) {
+        Users customer = usersRepository.findByEmail(customerEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+
+        List<UserPromotion> userPromotions = userPromotionRepository.findAvailablePromotionsByUserId(customer.getId());
+        List<PromotionDTO> result = new ArrayList<>();
+
+        for (int i = 0; i < userPromotions.size(); i++) {
+            UserPromotion up = userPromotions.get(i);
+            if (up.getPromotion().isStatus() && isPromotionDateValid(up.getPromotion())) {
+                PromotionDTO dto = convertToDTO(up.getPromotion(), up);
+                result.add(dto);
+            }
+        }
+
+        return result;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PromotionDTO> getAllPromotions() {
+        List<Promotion> promotions = promotionRepository.findAll();
+        List<PromotionDTO> result = new ArrayList<>();
+
+        for (int i = 0; i < promotions.size(); i++) {
+            Promotion promotion = promotions.get(i);
+            PromotionDTO dto = convertToDTO(promotion, null);
+            result.add(dto);
+        }
+
+        return result;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PromotionDTO getPromotionByCode(String promotionCode) {
+        Promotion promotion = promotionRepository.findByNameIgnoreCase(promotionCode)
+                .orElseThrow(() -> new ResourceNotFoundException("Promotion not found"));
+        return convertToDTO(promotion, null);
+    }
+
+    @Override
+    @Transactional
+    public void updatePromotionStatus(String promotionCode, boolean status) {
+        Promotion promotion = promotionRepository.findByNameIgnoreCase(promotionCode)
+                .orElseThrow(() -> new ResourceNotFoundException("Promotion not found"));
+        promotion.setStatus(status);
+        promotionRepository.save(promotion);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean validatePromotionForCustomer(String customerEmail, String promotionCode, double orderValue) {
+        Users customer = usersRepository.findByEmail(customerEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+
+        PromotionValidationResult result = validateAndApplyPromotion(
+                customer.getId(),
+                promotionCode,
+                orderValue);
+
+        return result.isValid();
+    }
+
+    private PromotionDTO convertToDTO(Promotion promotion, UserPromotion userPromotion) {
+        PromotionDTO dto = new PromotionDTO();
+        dto.setId(promotion.getId());
+        dto.setName(promotion.getName());
+        dto.setDescription(promotion.getDescription());
+        dto.setValue(promotion.getValue());
+        dto.setMinimumOrderValue(promotion.getMinimumOrderValue());
+        dto.setStartDate(promotion.getStartDate());
+        dto.setEndDate(promotion.getEndDate());
+        dto.setStatus(promotion.isStatus());
+        dto.setCreatedAt(promotion.getCreatedAt());
+
+        if (promotion.getPromotionType() != null) {
+            dto.setPromotionTypeName(promotion.getPromotionType().getName());
+        }
+
+        if (promotion.getCreatedBy() != null) {
+            dto.setCreatedByName(promotion.getCreatedBy().getFullName());
+        }
+
+        if (userPromotion != null) {
+            dto.setReceivedDate(userPromotion.getReceivedDate());
+            dto.setUsedDate(userPromotion.getUsedDate());
+            dto.setUserPromotionStatus(userPromotion.getStatus().toString());
+            dto.setUsageCount(userPromotion.getUsageCount());
+        }
+
+        return dto;
     }
 }

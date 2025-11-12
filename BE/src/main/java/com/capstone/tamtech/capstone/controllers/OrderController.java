@@ -45,10 +45,7 @@ public class OrderController {
 
         ResponseData responseData = new ResponseData();
         if (orderRequest.getMode().toUpperCase().equals("SHIPPING")) {
-            HashMap<String, Object> value = new HashMap<>();
             responseData.setData(orderService.createOrderForShipping(orderRequest));
-        } else if (orderRequest.getMode().toUpperCase().equals("DINING")) {
-            responseData.setData(orderService.createOrderForDining(orderRequest));
         } else if (orderRequest.getMode().toUpperCase().equals("PICKUP")) {
             responseData.setData(orderService.createOrderForPickup(orderRequest));
         }

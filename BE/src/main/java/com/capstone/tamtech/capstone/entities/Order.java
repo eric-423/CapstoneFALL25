@@ -34,7 +34,7 @@ public class Order {
     private double amount;
 
     @Column(name = "order_shiping_fee")
-    private double shippingFee;
+    private Double shippingFee;
 
     @Column(name = "order_delivery_at")
     private Date deliveryAtt;
@@ -86,6 +86,15 @@ public class Order {
 
     @Column(name = "customer_email")
     private String customerEmail;
+
+    @Column(name = "shipper_latitude")
+    private Double shipperLatitude;
+
+    @Column(name = "shipper_longitude")
+    private Double shipperLongitude;
+
+    @Column(name = "location_updated_at")
+    private Date locationUpdatedAt;
 
     @ManyToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH })
     @JoinColumn(name = "customer_id")
