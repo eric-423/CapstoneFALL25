@@ -58,8 +58,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                     SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                    System.out.println(
-                            "✅ JWT Auth Success - User: " + principal + ", Role: " + role + ", UserId: " + userId);
                 }
             } catch (Exception e) {
                 System.out.println("❌ JWT Auth Failed: " + e.getMessage());

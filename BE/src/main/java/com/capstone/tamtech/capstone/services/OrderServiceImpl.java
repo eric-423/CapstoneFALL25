@@ -564,7 +564,6 @@ public class OrderServiceImpl implements OrderService {
 
         boolean isDiningTable = order.getIsTable() != null && order.getIsTable();
         boolean isPickup = order.isPickUp();
-
         if (isDiningTable) {
             OrderStatus completedStatus = orderStatusRepository.findByName("PAID")
                     .orElseThrow(() -> new RuntimeException("PAID COMPLETED not found"));
@@ -584,10 +583,10 @@ public class OrderServiceImpl implements OrderService {
                 diningTableRepository.save(table);
             }
         } else if (isPickup) {
-            order.setStatus(orderStatusRepository.findByName("IN PROCESS")
+            order.setStatus(orderStatusRepository.findByName("IN_PROCESS")
                     .orElseThrow(() -> new RuntimeException("OrderStatus IN_PROCESS not found")));
         } else {
-            order.setStatus(orderStatusRepository.findByName("IN PROCESS")
+            order.setStatus(orderStatusRepository.findByName("IN_PROCESS")
                     .orElseThrow(() -> new RuntimeException("OrderStatus IN_PROCESS not found")));
         }
 
@@ -718,7 +717,8 @@ public class OrderServiceImpl implements OrderService {
         if (meters >= 0 && meters <= 3000) {
             return 0.0;
         } else {
-            shippingFee = (meters - 3000) * 10000;
+            double kmOver = Math.ceil((meters - 3000) / 1000.0);
+            shippingFee = kmOver * 10000;
         }
         return shippingFee;
     }
@@ -921,7 +921,7 @@ public class OrderServiceImpl implements OrderService {
             orderRepository.save(order);
             String paymentUrl = paymentService.createPaymentLink(order.getId());
             order.setPaymentUrl(paymentUrl);
-            OrderStatus pendingPaymentStatus = orderStatusRepository.findByName("IN PROCESS")
+            OrderStatus pendingPaymentStatus = orderStatusRepository.findByName("IN_PROCESS")
                     .orElse(orderStatusRepository.findByName("CREATED").orElse(null));
             if (pendingPaymentStatus != null) {
                 order.setStatus(pendingPaymentStatus);

@@ -158,10 +158,10 @@ class OrderServiceImplTest {
         // Arrange
         OrderStatus inProcessStatus = new OrderStatus();
         inProcessStatus.setId(2);
-        inProcessStatus.setName("IN PROCESS");
+        inProcessStatus.setName("IN_PROCESS");
         
         when(orderRepository.findById(1)).thenReturn(Optional.of(mockOrder));
-        when(orderStatusRepository.findByName("IN PROCESS")).thenReturn(Optional.of(inProcessStatus));
+        when(orderStatusRepository.findByName("IN_PROCESS")).thenReturn(Optional.of(inProcessStatus));
 
         // Act
         orderService.markOrderPaidSuccess(1);

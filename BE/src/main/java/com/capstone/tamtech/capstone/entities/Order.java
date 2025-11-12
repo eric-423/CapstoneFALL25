@@ -33,7 +33,7 @@ public class Order {
     @Column(name = "order_amount")
     private double amount;
 
-    @Column(name = "order_shiping_free")
+    @Column(name = "order_shiping_fee")
     private double shippingFee;
 
     @Column(name = "order_delivery_at")

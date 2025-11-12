@@ -63,6 +63,13 @@ public class OrderController {
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
 
+    @PostMapping("/dining-table/create")
+    public ResponseEntity<?> createDiningTableOrder(@RequestBody OrderRequest orderRequest) {
+        ResponseData responseData = new ResponseData();
+        responseData.setData(orderService.createOrderForDining(orderRequest));
+        return new ResponseEntity<>(responseData, HttpStatus.CREATED);
+    }
+
 
     @PostMapping("/payment/webhook")
     public ResponseEntity<String> paymentWebhook(@RequestBody Object body)
@@ -76,6 +83,7 @@ public class OrderController {
             int orderId = data.getOrderCode().intValue();
 
             if ("00".equalsIgnoreCase(code)) {
+                System.out.println("Payment successful for order ID: " + orderId);
                 orderService.markOrderPaidSuccess(orderId);
             } else {
                 orderService.cancelOrder(orderId);
@@ -152,6 +160,14 @@ public class OrderController {
     public ResponseEntity<?> customerPickupOrder(@PathVariable int orderId) {
         ResponseData responseData = new ResponseData();
         responseData.setData(orderService.customerPickedUpOrder(orderId));
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
+
+    @GetMapping("/test/order/{orderId}")
+    public ResponseEntity<?> testOrder(@PathVariable int orderId) {
+        ResponseData responseData = new ResponseData();
+        orderService.markOrderPaidSuccess(orderId);
+        responseData.setData(orderId);
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
 
