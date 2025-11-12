@@ -22,7 +22,8 @@ import useScrollTop from '@/utils/hooks/useScrollTop';
 import { cn } from '@/utils/lib/utils';
 
 import configs from '@/utils/configs';
-import { setCookie, getToken } from '@/utils/cookies';
+import { setCookie, getToken, getAccessToken } from '@/utils/cookies';
+import { useCookies } from 'react-cookie';
 
 import { getReceiveTime } from '@/utils/getReceiveTime';
 import { STORE_INFO } from '@/utils/mockupData';
@@ -65,10 +66,11 @@ import {
     Store,
     Truck,
     User,
-    Wallet,
 } from 'lucide-react';
+
+
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { z } from 'zod';
 import { useRouter } from 'next/navigation';
@@ -85,6 +87,18 @@ export default function CheckoutPage() {
     const isMountedRef = useRef(false);
     const skipAutoSelectRef = useRef(false);
 
+    // Lấy token từ nhiều nguồn giống như useAuth hook
+    const [cookies] = useCookies([configs.cookies.accessToken, configs.cookies.refreshToken, 'token']);
+    const getAuthToken = useCallback(() => {
+        // Thử lấy từ localStorage trước
+        if (typeof window !== 'undefined') {
+            const localStorageToken = localStorage.getItem('access_token');
+            if (localStorageToken) return localStorageToken;
+        }
+        // Thử lấy từ cookies
+        return cookies['token'] || cookies[configs.cookies.accessToken] || getToken() || getAccessToken();
+    }, [cookies]);
+
     useEffect(() => {
         isMountedRef.current = true;
         return () => {
@@ -95,6 +109,8 @@ export default function CheckoutPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
     const [selectedInfoId, setSelectedInfoId] = useState<number | 'new' | null>(null);
+    const [shippingFee, setShippingFee] = useState<number | null>(null);
+    const [isFetchingShippingFee, setIsFetchingShippingFee] = useState(false);
 
     // Đọc chi nhánh đã chọn từ localStorage
     useEffect(() => {
@@ -149,6 +165,7 @@ export default function CheckoutPage() {
         [customerInformationData],
     );
 
+
     const { mutate: createOrderMutate, isPending: isPlacingOrderPending } = useMutation({
         mutationFn: (payload: CreateOrderPayload) => createOrderApiRoute(payload),
         onSuccess: (response) => {
@@ -158,7 +175,7 @@ export default function CheckoutPage() {
 
             // console.log(response.data.paymentUrl);
 
-            if (paymentUrl) {
+            if (paymentUrl && response?.data?.address) {
                 toast.success('Đặt hàng thành công! Chuyển hướng đến thanh toán...');
                 setCookie('is_paying', 'true');
                 setTimeout(() => {
@@ -168,16 +185,21 @@ export default function CheckoutPage() {
             }
 
         },
+
         onError: () => {
             toast.error('Không thể đặt hàng. Vui lòng thử lại sau.');
             setIsSubmitting(false);
         },
+
     });
+
+
 
     const getDefaultReceiveTime = useCallback(() => {
         const nextTime = getReceiveTime();
         return z.date().safeParse(nextTime).success ? nextTime : new Date();
     }, []);
+
 
     const form = useForm<CheckoutFormData>({
         resolver: zodResolver(checkoutSchema),
@@ -193,11 +215,13 @@ export default function CheckoutPage() {
         },
     });
 
+
     useEffect(() => {
         if (user?.fullName) {
             form.setValue('customerName', user.fullName, { shouldValidate: true });
         }
     }, [form, user?.fullName]);
+
 
     useEffect(() => {
         if (!isMountedRef.current || !tokenFullName) return;
@@ -209,6 +233,7 @@ export default function CheckoutPage() {
             form.setValue('customerName', tokenFullName, { shouldValidate: true });
         }
     }, [customerInformations, form, tokenFullName]);
+
 
     useEffect(() => {
         if (!isMountedRef.current) return;
@@ -227,6 +252,7 @@ export default function CheckoutPage() {
             customerInformations.find((info) => info.fullName?.trim().toLowerCase() === 'nhà riêng') ||
             customerInformations[0];
 
+
         if (preferredInfo) {
             if (!form.getValues('customerPhone')) {
                 form.setValue('customerPhone', preferredInfo.phone || user?.phoneNumber || '', { shouldValidate: true });
@@ -236,6 +262,8 @@ export default function CheckoutPage() {
             }
         }
     }, [customerInformations, form, tokenFullName, user?.phoneNumber]);
+
+
 
     const fulfillmentMethod = form.watch('fulfillmentMethod');
     const paymentMethod = form.watch('paymentMethod');
@@ -330,9 +358,90 @@ export default function CheckoutPage() {
             form.setValue('customerPhone', user.phoneNumber, { shouldValidate: true });
         }
         form.setValue('customerName', user?.fullName || '', { shouldValidate: true });
+        setShippingFee(null);
     }, [form, user?.phoneNumber, user?.fullName]);
 
-    const deliveryAddressValue = form.watch('deliveryAddress');
+
+
+    const deliveryAddressValue = useWatch({
+        control: form.control,
+        name: 'deliveryAddress',
+    });
+
+
+
+    // lấy tiền shipping 
+
+    useEffect(() => {
+        if (!isDelivery) {
+            setShippingFee(null);
+            setIsFetchingShippingFee(false);
+            return;
+        }
+
+        const customerAddress = deliveryAddressValue?.trim();
+        const branchAddr = (selectedBranch?.address || STORE_INFO.address || '').trim();
+
+        if (!customerAddress || !branchAddr) {
+            setShippingFee(null);
+            setIsFetchingShippingFee(false);
+            return;
+        }
+
+
+        if (customerAddress.length < 5) {
+            setShippingFee(null);
+            setIsFetchingShippingFee(false);
+            return;
+        }
+
+        const token = getAuthToken();
+        if (!token) {
+            setShippingFee(null);
+            setIsFetchingShippingFee(false);
+            return;
+        }
+
+        const controller = new AbortController();
+
+
+        const timeoutId = window.setTimeout(async () => {
+            try {
+                setShippingFee(null);
+                setIsFetchingShippingFee(true);
+                const params = new URLSearchParams({
+                    customerAddress,
+                    branchAddress: branchAddr,
+                });
+
+                const response = await fetch(`https://tam-tac.com/api/orders/shipping/fee?${params.toString()}`, {
+                    headers: {
+                        accept: '*/*',
+                        Authorization: `Bearer ${token}`,
+                    },
+                    signal: controller.signal,
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch shipping fee');
+                }
+
+                const data = await response.json();
+                setShippingFee(typeof data?.data === 'number' ? data.data : null);
+
+            } catch (error) {
+                if ((error as Error).name === 'AbortError') return;
+                setShippingFee(null);
+            } finally {
+                setIsFetchingShippingFee(false);
+            }
+        }, 800);
+
+        return () => {
+            clearTimeout(timeoutId);
+            controller.abort();
+        };
+    }, [deliveryAddressValue, isDelivery, selectedBranch, getAuthToken]);
 
     useEffect(() => {
         if (fulfillmentMethod === 'pickup') {
@@ -365,7 +474,7 @@ export default function CheckoutPage() {
                 shippingAddress,
                 shippingPhoneNumber: data.customerPhone,
                 branchId: selectedBranch?.branchId || 1,
-                mode: isPickup ? 'SHIPPING' : 'PICKUP',
+                mode: isPickup ? 'PICKUP' : 'SHIPPING',
                 orderItemList: items.map((item) => ({
                     productId: item.productId,
                     quantity: item.quantity,
@@ -395,6 +504,15 @@ export default function CheckoutPage() {
     const branchName = selectedBranch?.branchName || STORE_INFO.name;
     const branchAddress = selectedBranch?.address || STORE_INFO.address;
     const branchPhone = selectedBranch?.phone || STORE_INFO.phone;
+    const orderSubtotal = getTotalPrice();
+    const shippingFeeDisplay = !isDelivery
+        ? '0đ'
+        : isFetchingShippingFee
+            ? 'Đang tính...'
+            : shippingFee !== null
+                ? `${shippingFee.toLocaleString()}đ`
+                : '0 đ';
+    const totalWithShipping = isDelivery && shippingFee !== null ? orderSubtotal + shippingFee : orderSubtotal;
 
     if (!items.length) {
         return (
@@ -451,6 +569,7 @@ export default function CheckoutPage() {
                                                 <FormField
                                                     control={form.control}
                                                     name='customerName'
+
                                                     render={({ field }) => (
                                                         <FormItem className='space-y-2'>
                                                             <FormLabel htmlFor='customerName'>Tên khách hàng</FormLabel>
@@ -460,6 +579,7 @@ export default function CheckoutPage() {
                                                             )}
                                                         </FormItem>
                                                     )}
+
                                                 ></FormField>
                                                 <FormField
                                                     control={form.control}
@@ -549,7 +669,7 @@ export default function CheckoutPage() {
                                                             <div className='flex items-start text-sm text-medium ml-3 mt-2'>
                                                                 <MapPin className='h-4 w-4 mr-2 mt-0.5 flex-shrink-0' />
                                                                 <span className='font-medium'>
-                                                                    {branchName} (gần Trà sữa BeTea)
+                                                                    {branchName}
                                                                     <p className='font-normal'>Cổng trước {branchAddress}</p>
                                                                 </span>
                                                             </div>
@@ -574,20 +694,9 @@ export default function CheckoutPage() {
                                                     render={({ field }) => (
                                                         <FormItem className='space-y-3'>
                                                             <div className='flex flex-wrap items-center justify-between gap-2'>
-                                                                <FormLabel htmlFor='deliveryAddress' className='m-0'>
-                                                                    Địa chỉ giao hàng
+                                                                <FormLabel htmlFor='deliveryAddress' className='m-0 space-y-1'>
+                                                                    <span className='block text-xs text-muted-foreground ps-2'>{branchName} – {branchAddress}</span>
                                                                 </FormLabel>
-                                                                {customerInformations.length > 0 && (
-                                                                    <Button
-                                                                        type='button'
-                                                                        size='sm'
-                                                                        variant='ghost'
-                                                                        className='text-primary px-3'
-                                                                        onClick={handleAddNewAddress}
-                                                                    >
-                                                                        + Thêm địa chỉ mới
-                                                                    </Button>
-                                                                )}
                                                             </div>
 
                                                             {isLoadingCustomerInfos ? (
@@ -595,40 +704,59 @@ export default function CheckoutPage() {
                                                                     Đang tải địa chỉ giao hàng của bạn...
                                                                 </p>
                                                             ) : customerInformations.length > 0 ? (
-                                                                <div className='flex flex-wrap gap-2'>
-                                                                    {customerInformations.map((info) => (
+                                                                <>
+                                                                    <div className='flex flex-wrap gap-2 items-center'>
+                                                                        {customerInformations.map((info) => (
+                                                                            <Button
+                                                                                key={info.informationId}
+                                                                                type='button'
+                                                                                variant={
+                                                                                    selectedInfoId === info.informationId ? 'default' : 'outline'
+                                                                                }
+                                                                                className='rounded-full text-xs md:text-sm'
+                                                                                onClick={() => handleSelectSavedAddress(info)}
+                                                                            >
+                                                                                {info.fullName || `Địa chỉ ${info.informationId}`}
+                                                                            </Button>
+                                                                        ))}
                                                                         <Button
-                                                                            key={info.informationId}
                                                                             type='button'
-                                                                            variant={
-                                                                                selectedInfoId === info.informationId ? 'default' : 'outline'
-                                                                            }
-                                                                            className='rounded-full text-xs md:text-sm'
-                                                                            onClick={() => handleSelectSavedAddress(info)}
+                                                                            variant='ghost'
+                                                                            className='text-primary px-3'
+                                                                            onClick={handleAddNewAddress}
                                                                         >
-                                                                            {info.fullName || `Địa chỉ ${info.informationId}`}
+                                                                            + Thêm địa chỉ mới
                                                                         </Button>
-                                                                    ))}
-                                                                </div>
+                                                                    </div>
+                                                                    <Textarea
+                                                                        id='deliveryAddress'
+                                                                        placeholder='Ví dụ: Số nhà, đường, phường/xã, quận/huyện, thành phố'
+                                                                        rows={3}
+                                                                        {...field}
+                                                                        value={field.value ?? ''}
+                                                                        onChange={(e) => {
+                                                                            const nextValue = e.target.value;
+                                                                            field.onChange(nextValue);
+                                                                            if (selectedInfoId !== 'new') {
+                                                                                setSelectedInfoId('new');
+                                                                            }
+                                                                            if (nextValue.trim().length === 0) {
+                                                                                setShippingFee(null);
+                                                                            }
+                                                                        }}
+                                                                        onBlur={(e) => {
+                                                                            const nextValue = e.target.value.trim();
+                                                                            if (nextValue && nextValue !== field.value) {
+                                                                                field.onChange(nextValue);
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                </>
                                                             ) : (
                                                                 <p className='text-sm text-muted-foreground'>
                                                                     Bạn chưa có địa chỉ đã lưu. Vui lòng nhập địa chỉ giao hàng mới.
                                                                 </p>
                                                             )}
-
-                                                            <Textarea
-                                                                id='deliveryAddress'
-                                                                placeholder='Ví dụ: Số nhà, đường, phường/xã, quận/huyện, thành phố'
-                                                                rows={3}
-                                                                {...field}
-                                                                value={field.value ?? ''}
-                                                                onChange={(e) => {
-                                                                    field.onChange(e);
-                                                                    if (selectedInfoId !== 'new') {
-                                                                        setSelectedInfoId('new');
-                                                                    }
-                                                                }}
-                                                            />
                                                             {form.getFieldState(field.name).error && (
                                                                 <p className='text-red-500 text-sm'>
                                                                     {form.getFieldState(field.name).error?.message}
@@ -707,10 +835,10 @@ export default function CheckoutPage() {
                                                     <Phone className='h-4 w-4 text-primary' />
                                                     <span>{branchPhone}</span>
                                                 </div>
-                                                <p>
+                                                {/* <p>
                                                     Nhận món trực tiếp tại cửa hàng <span className='font-medium'>{branchName}</span>. Bạn đã chọn{' '}
                                                     {paymentMethod === 'cash' ? 'thanh toán tiền mặt tại quầy.' : 'thanh toán qua QR ngay sau khi đặt hàng.'}
-                                                </p>
+                                                </p> */}
                                             </div>
                                         </CardContent>
                                     </Card>
@@ -730,10 +858,10 @@ export default function CheckoutPage() {
                                                             : 'Vui lòng nhập địa chỉ giao hàng trong biểu mẫu bên trái.'}
                                                     </span>
                                                 </div>
-                                                <p>
+                                                {/* <p>
                                                     Nhân viên sẽ liên hệ qua số điện thoại để xác nhận đơn, phí giao hàng và hỗ trợ{' '}
                                                     {paymentMethod === 'cash' ? 'thu tiền mặt khi giao món.' : 'thanh toán QR trước khi giao.'}
-                                                </p>
+                                                </p> */}
                                             </div>
                                         </CardContent>
                                     </Card>
@@ -742,7 +870,7 @@ export default function CheckoutPage() {
                                 {/* Order Items */}
                                 <Card className='p-4 gap-2'>
                                     <CardTitle className='m-2 mb-0'>Thông tin đơn hàng</CardTitle>
-                                    <CardContent className='p-0'>
+                                    <CardContent className='p-0 space-y-2'>
                                         <div className='divide-y'>
                                             {items.map((item) => (
                                                 <div key={item.productId} className='p-2 border-foreground/20'>
@@ -767,6 +895,12 @@ export default function CheckoutPage() {
                                                 </div>
                                             ))}
                                         </div>
+                                        {isDelivery && (
+                                            <div className='flex items-center justify-between px-3 py-2 text-sm'>
+                                                <span>Phí giao hàng dự kiến</span>
+                                                <span className='font-medium text-primary'>{shippingFeeDisplay}</span>
+                                            </div>
+                                        )}
                                     </CardContent>
                                 </Card>
                                 <Card className='p-4 gap-2'>
@@ -792,9 +926,21 @@ export default function CheckoutPage() {
                                 {/* Order Summary */}
                                 <Card>
                                     <CardContent className='p-4 py-0 space-y-3'>
-                                        <div className='flex justify-between font-medium'>
+                                        <div className='flex justify-between text-sm text-muted-foreground'>
+                                            <span>Tạm tính</span>
+                                            <span>{orderSubtotal.toLocaleString()}đ</span>
+                                        </div>
+                                        {isDelivery && (
+                                            <div className='flex justify-between text-sm text-muted-foreground'>
+                                                <span>Phí giao hàng</span>
+                                                <span>{shippingFeeDisplay}</span>
+                                            </div>
+                                        )}
+                                        <div className='flex justify-between font-medium pt-1'>
                                             <span>TỔNG CỘNG</span>
-                                            <span className='text-xl text-primary font-bold'>{getTotalPrice().toLocaleString()}đ</span>
+                                            <span className='text-xl text-primary font-bold'>
+                                                {totalWithShipping.toLocaleString()}đ
+                                            </span>
                                         </div>
                                     </CardContent>
                                     <CardFooter className='px-4 py-0'>
