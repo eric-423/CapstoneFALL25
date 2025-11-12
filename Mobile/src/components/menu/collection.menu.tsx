@@ -81,6 +81,8 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
         params: {
           productName: item.name,
           productTypeId: item.ProductType.productTypeId,
+          productId: item.productId,
+          productPrice: String(item.price),
         },
       });
     }

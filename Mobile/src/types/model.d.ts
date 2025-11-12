@@ -66,14 +66,11 @@ declare global {
     title?: string;
   }
   interface IUserLogin {
-    user: {
-      email: string;
-      _id: string;
-      name: string;
-      role: string;
-      address: any;
-      avatar: string;
-      phone: string;
+    userInfo: {
+      id: number;
+      fullName: string;
+      phoneNumber: string;
+      address: string;
     };
     token: string;
   }

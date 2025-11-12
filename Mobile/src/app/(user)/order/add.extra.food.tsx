@@ -11,7 +11,13 @@ import {
 import { FONTS } from "@/theme/typography";
 import ItemExtra from "@/components/order/item.extra";
 import { useCurrentApp } from "@/context/app.context";
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { GetProductType } from "@/utils/api";
 import {
   currencyFormatter,
@@ -121,7 +127,8 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 const AddExtraFoodContent = () => {
-  const { productName, productTypeId, productId } = useLocalSearchParams();
+  const { productName, productTypeId, productId, productPrice } =
+    useLocalSearchParams();
   const { branchId, cart, restaurant } = useCurrentApp();
   const { handleQuantityChange } = useModal();
   const [productTypes, setProductTypes] = useState<
@@ -157,6 +164,27 @@ const AddExtraFoodContent = () => {
       ? Number(productTypeId[0])
       : 0;
 
+  const productPriceValue = useMemo(() => {
+    if (productPrice) {
+      const priceFromParams =
+        typeof productPrice === "string"
+          ? Number(productPrice)
+          : Array.isArray(productPrice)
+          ? Number(productPrice[0])
+          : 0;
+      if (priceFromParams > 0) return priceFromParams;
+    }
+    if (
+      restaurant?._id &&
+      productIdStr &&
+      cart[restaurant._id]?.items[productIdStr]
+    ) {
+      const cartItem = cart[restaurant._id].items[productIdStr];
+      return cartItem.data.price || cartItem.data.basePrice || 0;
+    }
+    return 0;
+  }, [productPrice, productIdStr, cart, restaurant]);
+
   const item: IPropsProduct = {
     productId: productIdStr,
     name:
@@ -165,7 +193,7 @@ const AddExtraFoodContent = () => {
         : Array.isArray(productName)
         ? productName[0]
         : "",
-    price: 0,
+    price: productPriceValue,
     ProductType: {
       name: "",
       productTypeId: productIdNum,
@@ -260,26 +288,22 @@ const AddExtraFoodContent = () => {
               onPress={() => handleQuantityChange(item, "MINUS")}
               style={({ pressed }) => ({
                 opacity:
-                  getItemQuantity(item.productId) > 0
-                    ? pressed
-                      ? 0.5
-                      : 1
-                    : 0.3,
+                  getItemQuantity(productIdStr) > 0 ? (pressed ? 0.5 : 1) : 0.3,
               })}
-              disabled={getItemQuantity(item.productId) === 0}
+              disabled={getItemQuantity(productIdStr) === 0}
             >
               <AntDesign
                 name="minus-circle"
                 size={30}
                 color={
-                  getItemQuantity(item.productId) > 0
+                  getItemQuantity(productIdStr) > 0
                     ? APP_COLOR.BUTTON_YELLOW
                     : APP_COLOR.BROWN
                 }
               />
             </Pressable>
             <Text style={styles.quantityText}>
-              {getItemQuantity(item.productId)}
+              {getItemQuantity(productIdStr)}
             </Text>
             <Pressable
               onPress={() => handleQuantityChange(item, "PLUS")}

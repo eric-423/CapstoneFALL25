@@ -485,12 +485,11 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
               style={{
                 width: "87%",
                 flexDirection: "row",
-                alignItems: "center",
               }}
             >
               <SimpleLineIcons
                 name="handbag"
-                size={40}
+                size={30}
                 color={APP_COLOR.BROWN}
               />
               <View style={{ width: "55%" }}>

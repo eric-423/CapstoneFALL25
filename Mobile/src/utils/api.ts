@@ -1,4 +1,5 @@
 import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL, GOOGLE_API_KEY } from "./constant";
 
 export const CustomersSignup = async (
@@ -204,4 +205,15 @@ export const GetShippingFee = async (
       },
     }
   );
+};
+
+export const GetCustomerInformation = async (id: number) => {
+  const token = await AsyncStorage.getItem("access_token");
+  return axios.get(`${BASE_URL}/customers/${id}/informations`, {
+    headers: {
+      accept: "application/json",
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+  });
 };
