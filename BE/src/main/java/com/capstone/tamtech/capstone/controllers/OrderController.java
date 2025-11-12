@@ -71,6 +71,7 @@ public class OrderController {
         PayOS payOS = new PayOS(clientId, apiKey, checksumKey);
         try {
             WebhookData data = payOS.webhooks().verify(body);
+            System.out.println("Verified webhook data: " + data.toString());
             String code = data.getCode();
             int orderId = data.getOrderCode().intValue();
 
