@@ -500,6 +500,8 @@ export default function CheckoutPage() {
         setIsSubmitting(true);
 
         try {
+
+
             const isPickup = data.fulfillmentMethod === 'pickup';
             const branchAddress = selectedBranch?.address || STORE_INFO.address;
             const shippingAddress = isPickup ? branchAddress : (data.deliveryAddress?.trim() || '');

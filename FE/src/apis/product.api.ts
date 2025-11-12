@@ -207,3 +207,46 @@ export const getProduct = async (
   };
 }
 
+// Wrapper function để tìm kiếm sản phẩm với ProductSearchParams
+export const searchProducts = async (
+  params: ProductSearchParams
+): Promise<ProductSearchResponse> => {
+  const {
+    branchId,
+    isActive = true,
+    keyword = '',
+    productTypeId,
+    minPrice = 0,
+    maxPrice = 1000000000,
+    sortBy = 'name',
+    sortDirection = 'ASC',
+    page = 0,
+    size = 100,
+  } = params;
+
+  const response = await getProduct(
+    branchId,
+    keyword,
+    isActive,
+    minPrice,
+    maxPrice,
+    page,
+    size,
+    sortBy as SortBy,
+    sortDirection,
+    productTypeId
+  );
+
+  // Convert ProductResponse về ProductSearchResponse format
+  return {
+    content: response.data.content,
+    pageNumber: response.data.number,
+    pageSize: response.data.size,
+    totalElements: response.data.totalElements,
+    totalPages: response.data.totalPages,
+    last: response.data.last,
+    first: response.data.number === 0,
+    empty: response.data.content.length === 0,
+  };
+}
+
