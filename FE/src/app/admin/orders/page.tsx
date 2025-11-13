@@ -6,9 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ShoppingBag, FileText, Eye, CheckCircle, Clock, Printer, Package, Truck, XCircle, MapPin, Phone, User, Calendar, DollarSign, CreditCard } from 'lucide-react';
-import { getOrderStatuses, getBranchOrders, BranchOrderResponse } from '@/apis/order.api';
+import { getOrderStatuses, getBranchOrders, assignShipperToOrder, BranchOrderResponse } from '@/apis/order.api';
 import { AdminPageLayout, AdminPageHeader, AdminStatsCard, AdminStatsGrid } from '../components/AdminPageLayout';
 import { printBillAction } from '@/app/actions/printBill';
+import { toast } from 'react-toastify';
 
 const getKioskMode = (): boolean => {
     if (typeof window === 'undefined') return false;
@@ -329,6 +330,7 @@ export default function OrdersPage() {
     const [orders, setOrders] = useState<BranchOrderResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const [loadingOrders, setLoadingOrders] = useState(false);
+    const [assigningShipper, setAssigningShipper] = useState<Set<number>>(new Set());
 
     useEffect(() => {
         const fetchStatuses = async () => {
@@ -377,6 +379,37 @@ export default function OrdersPage() {
         };
         fetchOrders();
     }, [selectedStatus]);
+
+    const handleAssignShipper = async (orderId: number) => {
+        if (assigningShipper.has(orderId)) {
+            return;
+        }
+
+        setAssigningShipper(prev => new Set(prev).add(orderId));
+
+        try {
+            const result = await assignShipperToOrder(orderId);
+
+            if (result.success) {
+                const status = selectedStatus === 'ALL' ? undefined : selectedStatus;
+                const response = await getBranchOrders(status);
+                if (response && response.status === 0 && response.data && Array.isArray(response.data)) {
+                    setOrders(response.data);
+                }
+            } else {
+                toast.error('Không thể assign shipper. Vui lòng thử lại.');
+            }
+        } catch (error) {
+            console.error('Error assigning shipper:', error);
+            toast.error('Lỗi khi chuyển cho shipper. Vui lòng thử lại.');
+        } finally {
+            setAssigningShipper(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(orderId);
+                return newSet;
+            });
+        }
+    };
 
     const stats = useMemo(() => {
         const total = orders.length;
@@ -571,24 +604,38 @@ export default function OrdersPage() {
                                                     </div>
                                                 )}
                                             </div>
-                                            <div className="flex gap-2 w-full lg:w-auto">
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => handlePrintInvoice(order)}
-                                                    className="flex-1 lg:flex-none border-2 border-[#EC6426] text-[#EC6426] hover:bg-[#EC6426] hover:text-white transition-all duration-300 rounded-xl font-semibold"
-                                                >
-                                                    <Printer size={16} className="mr-1" strokeWidth={2.5} />
-                                                    In hóa đơn
-                                                </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="flex-1 lg:flex-none border-2 border-gray-300 text-gray-700 hover:bg-gray-100 transition-all duration-300 rounded-xl font-semibold"
-                                                >
-                                                    <Eye size={16} className="mr-1" strokeWidth={2.5} />
-                                                    Chi tiết
-                                                </Button>
+                                            <div className="flex flex-col gap-2 w-full lg:w-auto">
+                                                <div className="flex gap-2 w-full lg:w-auto">
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => handlePrintInvoice(order)}
+                                                        className="flex-1 lg:flex-none border-2 border-[#EC6426] text-[#EC6426] hover:bg-[#EC6426] hover:text-white transition-all duration-300 rounded-xl font-semibold"
+                                                    >
+                                                        <Printer size={16} className="mr-1" strokeWidth={2.5} />
+                                                        In hóa đơn
+                                                    </Button>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="flex-1 lg:flex-none border-2 border-gray-300 text-gray-700 hover:bg-gray-100 transition-all duration-300 rounded-xl font-semibold"
+                                                    >
+                                                        <Eye size={16} className="mr-1" strokeWidth={2.5} />
+                                                        Chi tiết
+                                                    </Button>
+                                                </div>
+                                                {order.orderStatus === 'COOKED' && (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => handleAssignShipper(order.id)}
+                                                        disabled={assigningShipper.has(order.id)}
+                                                        className="w-full lg:w-auto border-2 border-green-500 text-green-600 hover:bg-green-500 hover:text-white transition-all duration-300 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    >
+                                                        <Truck size={16} className="mr-1" strokeWidth={2.5} />
+                                                        {assigningShipper.has(order.id) ? 'Đang xử lý...' : 'Giao hàng ngay'}
+                                                    </Button>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
