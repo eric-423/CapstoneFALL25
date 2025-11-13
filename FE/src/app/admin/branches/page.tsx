@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Store, MapPin, Phone, User, Edit, Trash2, CheckCircle, XCircle } from 'lucide-react';
 import { AddBranchDialog } from './components/AddBranchDialog';
+import { AdminPageLayout, AdminPageHeader, AdminStatsCard, AdminStatsGrid } from '../components/AdminPageLayout';
 
 // Temporary empty array until API is implemented
 const MOCK_BRANCHES: any[] = [];
@@ -12,79 +13,46 @@ const MOCK_BRANCHES: any[] = [];
 export default function BranchesPage() {
     return (
         <AdminGuard>
-            <div className="min-h-screen bg-[#f9fafb] py-8">
-                <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-                    {/* Header */}
-                    <div className="flex justify-between items-center mb-10">
-                        <div>
-                            <h1 className="text-4xl font-bold text-gray-900 mb-3 tracking-tight flex items-center gap-3">
-                                <Store className="text-primary" size={36} />
-                                Quản Lý Chi Nhánh
-                            </h1>
-                        </div>
-                        <AddBranchDialog />
-                    </div>
+            <AdminPageLayout>
+                {/* Header */}
+                <AdminPageHeader
+                    title="Quản Lý Chi Nhánh"
+                    icon={Store}
+                    actions={<AddBranchDialog />}
+                />
 
-                    {/* Stats */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                        <Card className="relative overflow-hidden p-6 bg-white border-0 shadow-sm hover:shadow-xl transition-all duration-300 rounded-2xl group">
-                            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                            <div className="relative flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">Tổng chi nhánh</p>
-                                    <p className="text-4xl font-bold text-gray-900 group-hover:text-primary transition-colors">{MOCK_BRANCHES.length}</p>
-                                </div>
-                                <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all">
-                                    <Store size={32} className="text-white" strokeWidth={2.5} />
-                                </div>
-                            </div>
-                        </Card>
-                        <Card className="relative overflow-hidden p-6 bg-white border-0 shadow-sm hover:shadow-xl transition-all duration-300 rounded-2xl group">
-                            <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                            <div className="relative flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">Đang hoạt động</p>
-                                    <p className="text-4xl font-bold text-green-600">
-                                        {MOCK_BRANCHES.filter(b => b.isActive === true).length}
-                                    </p>
-                                </div>
-                                <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all">
-                                    <CheckCircle size={32} className="text-white" strokeWidth={2.5} />
-                                </div>
-                            </div>
-                        </Card>
-                        <Card className="relative overflow-hidden p-6 bg-white border-0 shadow-sm hover:shadow-xl transition-all duration-300 rounded-2xl group">
-                            <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                            <div className="relative flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">Tạm ngưng</p>
-                                    <p className="text-4xl font-bold text-red-600">
-                                        {MOCK_BRANCHES.filter(b => b.isActive === false).length}
-                                    </p>
-                                </div>
-                                <div className="w-16 h-16 bg-gradient-to-br from-red-400 to-red-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all">
-                                    <XCircle size={32} className="text-white" strokeWidth={2.5} />
-                                </div>
-                            </div>
-                        </Card>
-                        <Card className="relative overflow-hidden p-6 bg-white border-0 shadow-sm hover:shadow-xl transition-all duration-300 rounded-2xl group">
-                            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                            <div className="relative flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">Chi nhánh chính</p>
-                                    <p className="text-4xl font-bold text-blue-600">
-                                        {MOCK_BRANCHES.filter(b => b.isParent === true).length}
-                                    </p>
-                                </div>
-                                <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all">
-                                    <Store size={32} className="text-white" strokeWidth={2.5} />
-                                </div>
-                            </div>
-                        </Card>
-                    </div>
+                {/* Stats */}
+                <AdminStatsGrid>
+                    <AdminStatsCard
+                        title="Tổng chi nhánh"
+                        value={MOCK_BRANCHES.length}
+                        icon={Store}
+                    />
+                    <AdminStatsCard
+                        title="Đang hoạt động"
+                        value={MOCK_BRANCHES.filter(b => b.isActive === true).length}
+                        icon={CheckCircle}
+                        className="border-green-200"
+                        iconClassName="from-green-400 to-green-600"
+                    />
+                    <AdminStatsCard
+                        title="Tạm ngưng"
+                        value={MOCK_BRANCHES.filter(b => b.isActive === false).length}
+                        icon={XCircle}
+                        className="border-red-200"
+                        iconClassName="from-red-400 to-red-600"
+                    />
+                    <AdminStatsCard
+                        title="Chi nhánh chính"
+                        value={MOCK_BRANCHES.filter(b => b.isParent === true).length}
+                        icon={Store}
+                        className="border-blue-200"
+                        iconClassName="from-blue-400 to-blue-600"
+                    />
+                </AdminStatsGrid>
 
-                    {/* Branches Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+                {/* Branches Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {MOCK_BRANCHES.map(branch => (
                             <Card key={branch.id} className="relative overflow-hidden p-8 bg-white border-0 shadow-sm hover:shadow-2xl transition-all duration-500 group rounded-2xl">
                                 {/* Gradient overlay on hover */}
@@ -163,9 +131,8 @@ export default function BranchesPage() {
                                 </div>
                             </Card>
                         ))}
-                    </div>
                 </div>
-            </div>
+            </AdminPageLayout>
         </AdminGuard>
     );
 }

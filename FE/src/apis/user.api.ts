@@ -252,13 +252,6 @@ export const getCustomerInformation = async (userId: number) => {
 
 // =====================================  employee ================================
 
-
-
-export const loginEmployee = (data: { email: string; password: string }) =>
-  http.post('/auth/employee/login', data);
-
-
-
 export const loginEmployeeViaApiRoute = async (data: { email: string; password: string }) => {
   const response = await fetch('/api/auth/employee/login', {
     method: 'POST',

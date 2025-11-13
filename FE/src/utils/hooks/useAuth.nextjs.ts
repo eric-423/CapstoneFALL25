@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { UserAuthData } from '@/utils/types/user.type';
+import { removeToken, removeAccessToken, removeRefreshToken, removeUserRole, removeAuthToken } from '@/utils/cookies';
 
 type AuthState = {
   user: UserAuthData | null;
@@ -70,35 +71,79 @@ const useAuth = () => {
   }, [fetchCurrentUser]);
 
   const logout = useCallback(async () => {
+    // Lưu role hiện tại trước khi reset state để xác định redirect path
+    const currentRole = authState.user?.role?.toUpperCase();
+    const isEmployee = currentRole && ['ADMIN', 'MANAGER', 'BRANCH_MANAGER', 'CHEF', 'WAITER', 'SHIPPER'].includes(currentRole);
+    const redirectPath = isEmployee ? '/inside/login' : '/login';
+
     try {
+      // Gọi API logout để clear cookies ở server
       await fetch('/api/auth/logout', {
         method: 'POST',
         credentials: 'include',
       });
     } catch (error) {
-      console.error('Logout failed:', error);
-    } finally {
-      try {
-        localStorage.clear();
-      } catch (error) {
-        console.error('Failed to clear localStorage during logout:', error);
-      }
-
-      try {
-        sessionStorage.clear();
-      } catch (error) {
-        console.error('Failed to clear sessionStorage during logout:', error);
-      }
-
-      setAuthState({
-        user: null,
-        isAuthenticated: false,
-        isInitialized: true,
-      });
-
-      router.push('/login');
+      console.error('[useAuth] Logout API failed:', error);
+      // Tiếp tục clear ở client dù API có lỗi
     }
-  }, [router]);
+
+    // Clear tất cả cookies ở client
+    try {
+      removeToken();
+      removeAccessToken();
+      removeRefreshToken();
+      removeUserRole();
+      removeAuthToken();
+
+      // Clear cookie 'role' và các cookie khác nếu có
+      if (typeof document !== 'undefined') {
+        document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;';
+        document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;';
+        document.cookie = 'refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;';
+        document.cookie = 'userRole=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;';
+        document.cookie = 'role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;';
+      }
+    } catch (error) {
+      console.error('[useAuth] Failed to clear cookies during logout:', error);
+    }
+
+    // Clear localStorage và sessionStorage
+    try {
+      // Lưu lại một số giá trị cần thiết trước khi clear (nếu có)
+      const insideRememberedEmail = localStorage.getItem('insideRememberedEmail');
+      const insideRememberMe = localStorage.getItem('insideRememberMe');
+
+      localStorage.clear();
+
+      // Khôi phục lại giá trị cần thiết (nếu có)
+      if (insideRememberedEmail && insideRememberMe === 'true') {
+        localStorage.setItem('insideRememberedEmail', insideRememberedEmail);
+        localStorage.setItem('insideRememberMe', 'true');
+      }
+    } catch (error) {
+      console.error('[useAuth] Failed to clear localStorage during logout:', error);
+    }
+
+    try {
+      sessionStorage.clear();
+    } catch (error) {
+      console.error('[useAuth] Failed to clear sessionStorage during logout:', error);
+    }
+
+    // Reset auth state
+    setAuthState({
+      user: null,
+      isAuthenticated: false,
+      isInitialized: true,
+    });
+
+    // Sử dụng window.location.href để đảm bảo reload hoàn toàn và clear tất cả state
+    if (typeof window !== 'undefined') {
+      window.location.href = redirectPath;
+    } else {
+      router.push(redirectPath);
+    }
+  }, [router, authState.user?.role]);
 
   const redirectAfterLogin = useCallback(
     (userRole: string) => {
@@ -118,7 +163,10 @@ const useAuth = () => {
           break;
         case 'MANAGER':
         case 'BRANCH_MANAGER':
-          router.push('/manager');
+          // router.push('/manager');
+
+          router.push('/admin');
+
           break;
         case 'CHEF':
           router.push('/chef');

@@ -21,7 +21,7 @@ export default function Home() {
     refetchOnWindowFocus: false,
   });
 
-  const { data: branches, isLoading: isLoadingBranches } = useQuery({
+  const { data: branches = [], isLoading: isLoadingBranches } = useQuery({
     queryKey: [GET_BRANCHES_QUERY_KEY],
     queryFn: () => getBranches(),
     staleTime: GET_BRANCHES_STALE_TIME,

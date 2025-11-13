@@ -197,7 +197,9 @@ export default function CheckoutPage() {
             console.log(response.data.paymentUrl);
 
             if (paymentUrl && response?.data?.address) {
-                toast.success('Đặt hàng thành công! Chuyển hướng đến thanh toán...');
+
+                // toast.success('Đặt hàng thành công! Chuyển hướng đến thanh toán...');
+
                 setCookie('is_paying', 'true');
                 setTimeout(() => {
                     window.location.href = paymentUrl;

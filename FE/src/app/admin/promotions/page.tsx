@@ -7,6 +7,7 @@ import { Gift, Edit, Trash2, CheckCircle, XCircle, Percent, Tag, Calendar, Users
 import { AddPromotionDialog } from './components/AddPromotionDialog';
 import { useEffect, useState } from 'react';
 import { getAllPromotions, type Promotion } from '@/apis/promotion.api';
+import { AdminPageLayout, AdminPageHeader, AdminStatsCard, AdminStatsGrid } from '../components/AdminPageLayout';
 
 export default function PromotionsPage() {
     const [promotions, setPromotions] = useState<Promotion[]>([]);
@@ -33,63 +34,56 @@ export default function PromotionsPage() {
 
     return (
         <AdminGuard>
-            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-                <div className="max-w-[1800px] mx-auto space-y-4">
-                    {/* Header - Compact */}
-                    <div className="flex justify-between items-center">
-                        <div>
-                            <h1 className="text-2xl font-bold bg-gradient-to-r from-[#EC6426] to-[#F8A91F] bg-clip-text text-transparent mb-1 flex items-center gap-2">
-                                <Gift className="text-[#EC6426]" size={24} />
-                                Quản Lý Khuyến Mãi
-                            </h1>
-                            <p className="text-gray-600 text-sm">Tạo và quản lý mã giảm giá</p>
-                        </div>
-                        <AddPromotionDialog />
-                    </div>
+            <AdminPageLayout>
+                {/* Header */}
+                <AdminPageHeader
+                    title="Quản Lý Khuyến Mãi"
+                    description="Tạo và quản lý mã giảm giá"
+                    icon={Gift}
+                    actions={<AddPromotionDialog />}
+                />
 
-                    {/* Stats - Compact */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        <Card className="relative overflow-hidden p-3 bg-white border-0 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl group">
-                            <div className="absolute inset-0 bg-gradient-to-br from-[#EC6426]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                            <div className="relative">
-                                <p className="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Tổng KM</p>
-                                <p className="text-2xl font-bold text-gray-900 group-hover:text-[#EC6426] transition-colors">{promotions.length}</p>
-                            </div>
-                        </Card>
-                        <Card className="relative overflow-hidden p-3 bg-white border-0 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl group">
-                            <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                            <div className="relative">
-                                <p className="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Hoạt động</p>
-                                <p className="text-2xl font-bold text-green-600">{activePromotions.length}</p>
-                            </div>
-                        </Card>
-                        <Card className="relative overflow-hidden p-3 bg-white border-0 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl group">
-                            <div className="absolute inset-0 bg-gradient-to-br from-gray-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                            <div className="relative">
-                                <p className="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Kết thúc</p>
-                                <p className="text-2xl font-bold text-gray-600">{promotions.length - activePromotions.length}</p>
-                            </div>
-                        </Card>
-                        <Card className="relative overflow-hidden p-3 bg-white border-0 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl group">
-                            <div className="absolute inset-0 bg-gradient-to-br from-[#F8A91F]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                            <div className="relative">
-                                <p className="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Tổng lượt dùng</p>
-                                <p className="text-2xl font-bold bg-gradient-to-r from-[#EC6426] to-[#F8A91F] bg-clip-text text-transparent">{totalUsage}</p>
-                            </div>
-                        </Card>
-                    </div>
+                {/* Stats */}
+                <AdminStatsGrid>
+                    <AdminStatsCard
+                        title="Tổng KM"
+                        value={promotions.length}
+                        icon={Gift}
+                    />
+                    <AdminStatsCard
+                        title="Hoạt động"
+                        value={activePromotions.length}
+                        icon={CheckCircle}
+                        className="border-green-200"
+                        iconClassName="from-green-400 to-green-600"
+                    />
+                    <AdminStatsCard
+                        title="Kết thúc"
+                        value={promotions.length - activePromotions.length}
+                        icon={XCircle}
+                        className="border-gray-200"
+                        iconClassName="from-gray-400 to-gray-600"
+                    />
+                    <AdminStatsCard
+                        title="Tổng lượt dùng"
+                        value={totalUsage}
+                        icon={Gift}
+                        className="border-[#F8A91F]/20"
+                        iconClassName="from-[#EC6426] to-[#F8A91F]"
+                    />
+                </AdminStatsGrid>
 
-                    {/* Promotions Grid - Compact */}
-                    {isLoading ? (
-                        <div className="text-center py-10">
-                            <p className="text-gray-500">Đang tải...</p>
-                        </div>
-                    ) : promotions.length === 0 ? (
-                        <div className="text-center py-10">
-                            <p className="text-gray-500">Chưa có khuyến mãi nào</p>
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {/* Promotions Grid */}
+                {isLoading ? (
+                    <div className="text-center py-10">
+                        <p className="text-gray-500">Đang tải...</p>
+                    </div>
+                ) : promotions.length === 0 ? (
+                    <div className="text-center py-10">
+                        <p className="text-gray-500">Chưa có khuyến mãi nào</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                             {promotions.map((promo, index) => {
                                 // Assign vivid accent colors based on promotion type
                                 const accentColors = [
@@ -213,10 +207,9 @@ export default function PromotionsPage() {
                                     </Card>
                                 );
                             })}
-                        </div>
-                    )}
-                </div>
-            </div>
+                    </div>
+                )}
+            </AdminPageLayout>
         </AdminGuard>
     );
 }

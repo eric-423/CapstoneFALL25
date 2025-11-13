@@ -171,3 +171,92 @@ export const updateDiningTableOrder = async (orderId: number, updateRequest: Upd
   return data;
 };
 
+export interface OrderStatusesResponse {
+  status: number;
+  desc: string;
+  data: string[];
+}
+
+export interface BranchOrderResponse {
+  id: number;
+  orderStatus: string;
+  orderDate: string;
+  paymentTime: string | null;
+  deliveryAt: string | null;
+  customerName: string;
+  customerPhone: string;
+  address: string | null;
+  branchName: string;
+  branchAddress: string;
+  subTotal: number;
+  shippingFee: number;
+  discountValue: number;
+  amount: number;
+  promotionCode: string | null;
+  pointUsed: number;
+  pointEarned: number;
+  shipperName: string | null;
+  waiterName: string | null;
+  chefName: string | null;
+  itemCount: number;
+  table: boolean;
+  pickUp: boolean;
+}
+
+export interface BranchOrdersApiResponse {
+  status: number;
+  desc: string;
+  data: BranchOrderResponse[];
+}
+
+export const getOrderStatuses = async (): Promise<OrderStatusesResponse> => {
+  try {
+    const response = await fetch('/api/orders/statuses', {
+      method: 'GET',
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
+      const error = new Error(`Failed to fetch order statuses: ${response.status} ${response.statusText}`);
+      (error as any).response = {
+        data: errorBody,
+        status: response.status,
+      };
+      throw error;
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('getOrderStatuses error:', error);
+    throw error;
+  }
+};
+
+export const getBranchOrders = async (status?: string): Promise<BranchOrdersApiResponse> => {
+  try {
+    const params = status ? `?status=${status}` : '';
+    const response = await fetch(`/api/orders/branch/my-branch${params}`, {
+      method: 'GET',
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
+      const error = new Error(`Failed to fetch branch orders: ${response.status} ${response.statusText}`);
+      (error as any).response = {
+        data: errorBody,
+        status: response.status,
+      };
+      throw error;
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('getBranchOrders error:', error);
+    throw error;
+  }
+};
+

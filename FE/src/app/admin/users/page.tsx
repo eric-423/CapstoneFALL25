@@ -22,6 +22,7 @@ import { RoleHistory, TrainingStats, UserRole, UserTraining } from '@/utils/type
 // import { MOCK_USERS } from '@/utils/mocks/data/users.mock';
 import type { UserWithUiExtras } from './components/UserDetailDialog';
 import { UserDetailDialog } from './components/UserDetailDialog';
+import { AdminPageLayout, AdminPageHeader, AdminStatsCard, AdminStatsGrid } from '../components/AdminPageLayout';
 
 // Temporary empty array until API is implemented
 const MOCK_USERS: any[] = [];
@@ -380,62 +381,51 @@ export default function UsersManagementPage() {
     );
 
     return (
-        <div className="space-y-6 w-full max-w-full overflow-x-hidden">
-            <div className="flex items-center justify-between flex-wrap gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                        <Users className="text-orange-600" size={32} />
-                        Quản lý người dùng
-                    </h1>
-                    <p className="text-gray-600 mt-2">
-                        Quản lý tài khoản, phân quyền và theo dõi tiến độ đào tạo
-                    </p>
-                </div>
-                <Button className="bg-gradient-to-r from-orange-500 to-orange-600 flex-shrink-0">
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Thêm người dùng
-                </Button>
-            </div>
+        <AdminPageLayout>
+            {/* Header */}
+            <AdminPageHeader
+                title="Quản lý người dùng"
+                description="Quản lý tài khoản, phân quyền và theo dõi tiến độ đào tạo"
+                icon={Users}
+                actions={
+                    <Button className="bg-gradient-to-r from-[#EC6426] to-[#F8A91F] hover:from-[#EC6426]/90 hover:to-[#F8A91F]/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold text-sm sm:text-base flex-shrink-0">
+                        <UserPlus className="h-4 w-4 mr-2" />
+                        Thêm người dùng
+                    </Button>
+                }
+            />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
-                <Card className="p-4 bg-gradient-to-br from-orange-50 to-white border-orange-200 min-w-0">
-                    <div className="flex items-center justify-between">
-                        <div className="min-w-0 flex-1">
-                            <p className="text-sm text-gray-600 font-medium truncate">Tổng người dùng</p>
-                            <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-                        </div>
-                        <Users className="w-10 h-10 text-orange-500 opacity-80 flex-shrink-0" />
-                    </div>
-                </Card>
-                <Card className="p-4 bg-gradient-to-br from-green-50 to-white border-green-200 min-w-0">
-                    <div className="flex items-center justify-between">
-                        <div className="min-w-0 flex-1">
-                            <p className="text-sm text-gray-600 font-medium truncate">Đang hoạt động</p>
-                            <p className="text-2xl font-bold text-green-600">{stats.active}</p>
-                        </div>
-                        <CheckCircle className="w-10 h-10 text-green-500 opacity-80 flex-shrink-0" />
-                    </div>
-                </Card>
-                <Card className="p-4 bg-gradient-to-br from-blue-50 to-white border-blue-200 min-w-0">
-                    <div className="flex items-center justify-between">
-                        <div className="min-w-0 flex-1">
-                            <p className="text-sm text-gray-600 font-medium truncate">Bật 2FA</p>
-                            <p className="text-2xl font-bold text-blue-600">{stats.with2FA}</p>
-                        </div>
-                        <Shield className="w-10 h-10 text-blue-500 opacity-80 flex-shrink-0" />
-                    </div>
-                </Card>
-                <Card className="p-4 bg-gradient-to-br from-red-50 to-white border-red-200 min-w-0">
-                    <div className="flex items-center justify-between">
-                        <div className="min-w-0 flex-1">
-                            <p className="text-sm text-gray-600 font-medium truncate">Đã khóa</p>
-                            <p className="text-2xl font-bold text-red-600">{stats.banned}</p>
-                        </div>
-                        <Lock className="w-10 h-10 text-red-500 opacity-80 flex-shrink-0" />
-                    </div>
-                </Card>
-            </div>
+            {/* Stats */}
+            <AdminStatsGrid>
+                <AdminStatsCard
+                    title="Tổng người dùng"
+                    value={stats.total}
+                    icon={Users}
+                />
+                <AdminStatsCard
+                    title="Đang hoạt động"
+                    value={stats.active}
+                    icon={CheckCircle}
+                    className="border-green-200"
+                    iconClassName="from-green-400 to-green-600"
+                />
+                <AdminStatsCard
+                    title="Bật 2FA"
+                    value={stats.with2FA}
+                    icon={Shield}
+                    className="border-blue-200"
+                    iconClassName="from-blue-400 to-blue-600"
+                />
+                <AdminStatsCard
+                    title="Đã khóa"
+                    value={stats.banned}
+                    icon={Lock}
+                    className="border-red-200"
+                    iconClassName="from-red-400 to-red-600"
+                />
+            </AdminStatsGrid>
 
+            {/* FilterBar */}
             <div className="w-full">
                 <FilterBar
                     searchPlaceholder="Tìm kiếm theo tên, email, số điện thoại..."
@@ -597,6 +587,7 @@ export default function UsersManagementPage() {
                 />
             </div>
 
+            {/* Detail Dialog */}
             {detailUser && (
                 <UserDetailDialog
                     user={detailUser}
@@ -610,6 +601,6 @@ export default function UsersManagementPage() {
                     onSave={handleUpdateUser}
                 />
             )}
-        </div>
+        </AdminPageLayout>
     );
 }

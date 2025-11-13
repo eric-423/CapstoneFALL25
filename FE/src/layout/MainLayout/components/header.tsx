@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import configs from '@/utils/configs';
 import { useAuth } from '@/utils/hooks';
 import { useOutsideClicked } from '@/utils/hooks/useOutsideClicked';
-import { removeAccessToken, removeRefreshToken } from '@/utils/cookies';
 
 import { LogOut, Menu, User, X } from 'lucide-react';
 import { useState } from 'react';
@@ -112,13 +111,14 @@ function ActionButtons({
   onClick: () => void;
 }) {
   const url = usePathname();
-  const handleLogout = () => {
-    removeAccessToken();
-    removeRefreshToken();
-    localStorage.removeItem('token');
-    localStorage.removeItem('userRole');
+  const { logout } = useAuth();
+  
+  const handleLogout = async () => {
+    // Đóng menu mobile nếu đang mở
     if (onClick) onClick();
-    window.location.href = '/login';
+    
+    // Gọi hàm logout từ useAuth để xử lý đầy đủ
+    await logout();
   };
 
   return (

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo, useCallback, memo } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import {
     Search,
@@ -33,7 +33,7 @@ const timePeriodLabels = {
     custom: 'Tùy chỉnh',
 };
 
-export function AdminHeader() {
+export const AdminHeader = memo(function AdminHeader() {
     const pathname = usePathname();
     const router = useRouter();
     const { logout } = useAuthContext();
@@ -46,8 +46,8 @@ export function AdminHeader() {
         openSearch,
     } = useAdminContext();
 
-    // Generate breadcrumbs from pathname
-    const generateBreadcrumbs = () => {
+    // Memoize breadcrumbs generation
+    const breadcrumbs = useMemo(() => {
         const paths = pathname.split('/').filter(Boolean);
         const breadcrumbs = [];
 
@@ -68,27 +68,33 @@ export function AdminHeader() {
         }
 
         return breadcrumbs;
-    };
-
-    const breadcrumbs = generateBreadcrumbs();
+    }, [pathname]);
 
     // Mock user data - replace with real auth
-    const user = {
+    const user = useMemo(() => ({
         name: 'Quản trị viên',
         email: 'admin@tamtac.com',
         role: 'Quản trị hệ thống',
         avatar: '/avatars/admin.jpg',
-    };
+    }), []);
 
-    const handleBranchChange = (branch: typeof selectedBranch) => {
+    const handleBranchChange = useCallback((branch: typeof selectedBranch) => {
         setSelectedBranch(branch);
         // TODO: Trigger data refresh across all components
-    };
+    }, [setSelectedBranch]);
 
-    const handleTimePeriodChange = (period: typeof timePeriod) => {
+    const handleTimePeriodChange = useCallback((period: typeof timePeriod) => {
         setTimePeriod(period);
         // TODO: Trigger data refresh
-    };
+    }, [setTimePeriod]);
+
+    const handleProfileClick = useCallback(() => {
+        router.push('/admin/profile');
+    }, [router]);
+
+    const handleSettingsClick = useCallback(() => {
+        router.push('/admin/settings');
+    }, [router]);
 
     return (
         <header className="sticky top-0 z-40 w-full border-b border-gray-700/50 bg-slate-900">
@@ -163,11 +169,11 @@ export function AdminHeader() {
                             </div>
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => router.push('/admin/profile')}>
+                        <DropdownMenuItem onClick={handleProfileClick}>
                             <User className="mr-2 h-4 w-4" />
                             Hồ sơ
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => router.push('/admin/settings')}>
+                        <DropdownMenuItem onClick={handleSettingsClick}>
                             <Settings className="mr-2 h-4 w-4" />
                             Cài đặt
                         </DropdownMenuItem>
@@ -184,4 +190,4 @@ export function AdminHeader() {
             </div>
         </header>
     );
-}
+});

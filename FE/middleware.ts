@@ -81,7 +81,9 @@ export async function middleware(request: NextRequest) {
     // Redirect authenticated users away from guest-only routes
     if (isAuthenticated && guestOnlyRoutes.some(route => pathname.startsWith(route))) {
         const dashboardUrl = payload?.role === 'ADMIN' ? '/admin' :
-            payload?.role === 'MANAGER' ? '/manager' : '/';
+            // payload?.role === 'MANAGER' ? '/manager' : '/';
+            payload?.role === 'MANAGER' ? '/admin' : '/';
+
         return NextResponse.redirect(new URL(dashboardUrl, request.url));
     }
 
@@ -96,9 +98,9 @@ export async function middleware(request: NextRequest) {
 
     // Check role-based access
     if (isAuthenticated && payload) {
-        // Admin routes - only admin can access
+        // Admin routes - admin and manager can access
         if (adminRoutes.some(route => pathname.startsWith(route)) &&
-            payload.role !== 'ADMIN' && userRole !== 'Admin') {
+            !['ADMIN', 'MANAGER', 'Admin', 'Manager'].includes(payload.role || userRole || '')) {
             return NextResponse.redirect(new URL('/403', request.url));
         }
 
