@@ -315,11 +315,13 @@ export const GetCombo = async (branchId: number) => {
   );
 };
 
-export const GetAllOrder = () => {
+export const GetAllOrder = async () => {
+  const token = await AsyncStorage.getItem("access_token");
   return axios.get(`${BASE_URL}/orders/customer/my-orders?status=ALL`, {
     headers: {
-      accept: "application/json",
+      accept: "*/*",
       "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
     },
   });
 };
