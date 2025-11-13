@@ -193,6 +193,8 @@ const AddressCreatePage = () => {
               cusPhone={item.phone}
               cusAddress={item.address}
               isDefault={item.isDefault}
+              informationId={item.informationId}
+              onDeleted={fetchCustomerInformation}
             />
           ))}
         <Pressable

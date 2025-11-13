@@ -2,17 +2,14 @@ import { useCurrentApp } from "@/context/app.context";
 import { FONTS } from "@/theme/typography";
 import { currencyFormatter } from "@/utils/cart";
 import { calculateTotalPrice } from "@/utils/cart";
-import { APP_COLOR } from "@/utils/constant";
-import { useEffect, useState } from "react";
+import { APP_COLOR, BASE_URL } from "@/utils/constant";
+import { useEffect, useState, useCallback } from "react";
 import {
-  Image,
   Pressable,
   ScrollView,
   Text,
   View,
   StyleSheet,
-  Modal,
-  TextInput,
   FlatList,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -24,47 +21,73 @@ import ShareButton from "@/components/button/share.button";
 import HeaderHome from "@/components/home/header.home";
 import { AntDesign } from "@expo/vector-icons";
 import DropDown from "@/components/order/item.dropdown";
-import { router } from "expo-router";
-import { GetShippingFee } from "@/utils/api";
+import { router, useFocusEffect } from "expo-router";
+import {
+  GetCustomerInformation,
+  GetShippingFee,
+  CreateOrder,
+  GetBranchInfo,
+} from "@/utils/api";
 
 interface IOrderItem {
   title: string;
-  option: string;
   price: number;
   quantity: number;
   productId: number;
 }
 
 const PlaceOrderPage = () => {
-  const { restaurant, cart, locationReal } = useCurrentApp();
+  const { restaurant, cart, appState } = useCurrentApp();
   const orderItems: IOrderItem[] =
     restaurant?._id && cart?.[restaurant._id]?.items
       ? Object.values(cart[restaurant._id].items).map((item) => ({
           title: item.data.title || item.data.name || "",
-          option: "",
           price: (item.data.basePrice || item.data.price) * item.quantity,
           quantity: item.quantity,
           productId: Number(item.data.productId) || 0,
         }))
       : [];
-  const [modalVisible, setModalVisible] = useState(false);
   const [loading, setLoading] = useState<boolean>(false);
-  const [cusAddress, setCusAddress] = useState("123 Đường ABC, Quận 1, TP.HCM");
-  const [cusPhone, setCusPhone] = useState("0901234567");
+  const [branchAddress, setBranchAddress] = useState("");
   const { branchId, branchName } = useCurrentApp();
-  const [shippingFee, setShippingFee] = useState<number>(15000);
+  const [shippingFee, setShippingFee] = useState<number>(0);
+  const [couponStatus, setCouponStatus] = useState(false);
+  const [discountAmount, setDiscountAmount] = useState<number>(0);
+  const [availablePromotions, setAvailablePromotions] = useState<any[]>([]);
+  const [showPromotions, setShowPromotions] = useState(false);
+  const [customerInformation, setCustomerInformation] = useState<any>(null);
+  const [canShip, setCanShip] = useState(false);
+  const [orderMode, setOrderMode] = useState<"SHIPPING" | "PICKUP">("SHIPPING");
   useEffect(() => {
+    const fetchBranchInfo = async () => {
+      if (!branchId) {
+        return;
+      }
+      const res = await GetBranchInfo(branchId);
+      setBranchAddress(res?.data?.address);
+    };
+    fetchBranchInfo();
     const fetchShippingFee = async () => {
-      const res = await GetShippingFee(locationReal || "", branchName || "");
-      setShippingFee(res.data.data);
+      if (orderMode === "PICKUP") {
+        setShippingFee(0);
+        return;
+      }
+      if (!customerInformation?.address || !branchAddress) {
+        return;
+      }
+      try {
+        const res = await GetShippingFee(
+          customerInformation.address,
+          branchAddress
+        );
+        setShippingFee(res.data.data);
+      } catch (error) {
+        setCanShip(false);
+        setShippingFee(0);
+      }
     };
     fetchShippingFee();
-  }, [locationReal, branchName]);
-  const [addresses, setAddresses] = useState<string[]>([
-    "123 Đường ABC, Quận 1, TP.HCM",
-    "456 Đường XYZ, Quận 2, TP.HCM",
-    "789 Đường DEF, Quận 3, TP.HCM",
-  ]);
+  }, [customerInformation?.address, branchName, orderMode]);
   const orderDetails: { productId: number; quantity: number }[] =
     restaurant?._id && cart?.[restaurant._id]?.items
       ? Object.values(cart[restaurant._id].items).map((item) => ({
@@ -72,13 +95,22 @@ const PlaceOrderPage = () => {
           quantity: item.quantity,
         }))
       : [];
-  const [couponStatus, setCouponStatus] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [discountAmount, setDiscountAmount] = useState<number>(0);
-  const [availablePromotions, setAvailablePromotions] = useState<any[]>([]);
-  const [showPromotions, setShowPromotions] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      const fetchCustomerInformation = async () => {
+        if (!appState?.userInfo?.id) {
+          return;
+        }
+        const res = await GetCustomerInformation(appState.userInfo.id);
+        const filteredData = Array.isArray(res.data.data)
+          ? res.data.data.filter((item: any) => item.isDefault === true)
+          : res.data.data;
+        setCustomerInformation(filteredData[0] || null);
+      };
+      fetchCustomerInformation();
+    }, [appState?.userInfo?.id])
+  );
   return (
     <View
       style={{
@@ -105,14 +137,18 @@ const PlaceOrderPage = () => {
               top: 5,
             }}
           >
-            Giao hàng
+            {orderMode === "SHIPPING" ? "Giao hàng" : "Tự lấy"}
           </Text>
-          <Pressable
-            onPress={() => router.navigate("/(user)/order/address.create")}
-          >
-            <AntDesign name="edit" size={20} color={APP_COLOR.BROWN} />
-          </Pressable>
+          {orderMode === "SHIPPING" && (
+            <Pressable
+              style={{ marginRight: 10 }}
+              onPress={() => router.navigate("/(user)/order/address.create")}
+            >
+              <AntDesign name="edit" size={25} color={APP_COLOR.BROWN} />
+            </Pressable>
+          )}
         </View>
+
         <View
           style={{
             position: "relative",
@@ -120,54 +156,121 @@ const PlaceOrderPage = () => {
             flex: 1,
           }}
         >
-          <Text
-            style={{
-              fontFamily: FONTS.regular,
-              fontSize: 15,
-              color: APP_COLOR.BROWN,
-              marginTop: 5,
-            }}
-          >
-            {locationReal || "Chưa có địa chỉ"}
-          </Text>
-          <View style={{ marginHorizontal: 10 }}>
-            <TextInput
-              placeholder="Tên người nhận"
-              value={searchTerm}
-              onFocus={() => setShowSuggestions(true)}
-              onChangeText={(text) => {
-                setSearchTerm(text);
-                setShowSuggestions(true);
-              }}
-              style={styles.textInput}
-              placeholderTextColor={APP_COLOR.BROWN}
-            />
-            <TextInput
-              placeholder="Số điện thoại"
-              value={searchTerm}
-              onFocus={() => setShowSuggestions(true)}
-              onChangeText={(text) => {
-                setSearchTerm(text);
-                setShowSuggestions(true);
-              }}
-              style={styles.textInput}
-              placeholderTextColor={APP_COLOR.BROWN}
-            />
-            <Text
+          {orderMode === "SHIPPING" && (
+            <View style={{ marginVertical: 10 }}>
+              <View
+                style={{ flexDirection: "row", gap: 5, alignItems: "center" }}
+              >
+                <Text
+                  style={{
+                    fontFamily: FONTS.regular,
+                    fontSize: 18,
+                    color: APP_COLOR.BROWN,
+                  }}
+                >
+                  {customerInformation?.fullName}
+                </Text>
+                <Text style={{ fontSize: 18, color: APP_COLOR.GRAY }}>|</Text>
+                <Text
+                  style={{
+                    fontSize: 18,
+                    color: APP_COLOR.BROWN,
+                    fontFamily: FONTS.regular,
+                  }}
+                >
+                  {customerInformation?.phone}
+                </Text>
+              </View>
+              <Text
+                style={{
+                  fontFamily: FONTS.regular,
+                  fontSize: 16,
+                  color: APP_COLOR.BROWN,
+                }}
+              >
+                {customerInformation?.address}
+              </Text>
+            </View>
+          )}
+          <View style={{ marginVertical: 10, flexDirection: "row", gap: 20 }}>
+            <Pressable
+              onPress={() => setOrderMode("SHIPPING")}
               style={{
-                fontFamily: FONTS.regular,
-                fontSize: 12,
-                color: APP_COLOR.BROWN,
-                marginBottom: 5,
-                fontStyle: "italic",
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 8,
               }}
             >
-              * Chỉ hỗ trợ giao hàng tại TP.HCM và không quá 5km
-            </Text>
+              <View
+                style={{
+                  width: 20,
+                  height: 20,
+                  borderRadius: 10,
+                  borderWidth: 2,
+                  borderColor:
+                    orderMode === "SHIPPING"
+                      ? APP_COLOR.ORANGE
+                      : APP_COLOR.GRAY,
+                  backgroundColor:
+                    orderMode === "SHIPPING" ? APP_COLOR.ORANGE : "transparent",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                {orderMode === "SHIPPING" && (
+                  <AntDesign name="check" size={12} color={APP_COLOR.WHITE} />
+                )}
+              </View>
+              <Text
+                style={{
+                  fontFamily: FONTS.regular,
+                  fontSize: 16,
+                  color: APP_COLOR.BROWN,
+                }}
+              >
+                Giao hàng
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setOrderMode("PICKUP")}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
+              <View
+                style={{
+                  width: 20,
+                  height: 20,
+                  borderRadius: 10,
+                  borderWidth: 2,
+                  borderColor:
+                    orderMode === "PICKUP" ? APP_COLOR.ORANGE : APP_COLOR.GRAY,
+                  backgroundColor:
+                    orderMode === "PICKUP" ? APP_COLOR.ORANGE : "transparent",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                {orderMode === "PICKUP" && (
+                  <AntDesign name="check" size={12} color={APP_COLOR.WHITE} />
+                )}
+              </View>
+              <Text
+                style={{
+                  fontFamily: FONTS.regular,
+                  fontSize: 16,
+                  color: APP_COLOR.BROWN,
+                }}
+              >
+                Tự lấy
+              </Text>
+            </Pressable>
           </View>
           <View
             style={{
-              marginVertical: 15,
+              marginVertical: 10,
               borderBottomWidth: 0.5,
               borderBottomColor: APP_COLOR.BROWN,
               paddingBottom: 10,
@@ -238,32 +341,27 @@ const PlaceOrderPage = () => {
             branchId: 0,
             pointUsed: 0,
             pointEarned: 0,
-            paymentMethodId: 0,
             orderItems: [
               {
                 productId: 0,
                 quantity: 0,
               },
             ],
-            pickUp: false,
-            proxyName: "",
-            proxyPhone: "",
           }}
           onSubmit={() => {}}
         >
           {({
             handleChange,
             handleBlur,
-            handleSubmit,
             values,
             errors,
             touched,
             setFieldValue,
           }) => {
             useEffect(() => {
-              if (cusAddress || cusPhone) {
-                setFieldValue("address", cusAddress);
-                setFieldValue("phoneNumber", cusPhone);
+              if (customerInformation?.address || customerInformation?.phone) {
+                setFieldValue("address", customerInformation?.address);
+                setFieldValue("phoneNumber", customerInformation?.phone);
               }
               if (orderDetails) {
                 setFieldValue("orderItems", orderDetails);
@@ -279,8 +377,8 @@ const PlaceOrderPage = () => {
                 setFieldValue("pointUsed", currentPointUsed);
               }
             }, [
-              cusAddress,
-              cusPhone,
+              customerInformation?.address,
+              customerInformation?.phone,
               orderDetails,
               restaurant,
               cart,
@@ -292,7 +390,7 @@ const PlaceOrderPage = () => {
                   try {
                     const token = await AsyncStorage.getItem("access_token");
                     const res = await axios.get(
-                      `https://wdp301-su25.space/api/promotions/code/${values.promotionCode}`,
+                      `${BASE_URL}/promotions/code/${values.promotionCode}`,
                       {
                         headers: {
                           Authorization: `Bearer ${token}`,
@@ -314,6 +412,77 @@ const PlaceOrderPage = () => {
               };
               fetchPromotion();
             }, [values.promotionCode]);
+            const handleCreateOrder = async () => {
+              if (!appState?.userInfo?.id) {
+                console.error("Customer ID không tồn tại");
+                return;
+              }
+              if (!branchId) {
+                console.error("Branch ID không tồn tại");
+                return;
+              }
+              if (orderMode === "SHIPPING") {
+                if (!customerInformation?.address) {
+                  console.error("Địa chỉ giao hàng không tồn tại");
+                  return;
+                }
+                if (!customerInformation?.phone) {
+                  console.error("Số điện thoại không tồn tại");
+                  return;
+                }
+              }
+              if (!restaurant?._id || !cart?.[restaurant._id]?.items) {
+                console.error("Giỏ hàng trống");
+                return;
+              }
+              try {
+                setLoading(true);
+                const orderItemList = Object.values(
+                  cart[restaurant._id].items
+                ).map((item) => ({
+                  productId: Number(item.data.productId) || 0,
+                  comboId: 0,
+                  quantity: item.quantity,
+                  price:
+                    (item.data.basePrice || item.data.price) * item.quantity,
+                  note: "",
+                }));
+                const payload = {
+                  customerId: appState.userInfo.id,
+                  promotionCode: values.promotionCode || "",
+                  discountValue: discountAmount,
+                  shippingAddress:
+                    orderMode === "SHIPPING"
+                      ? customerInformation.address
+                      : branchAddress || "",
+                  shippingPhoneNumber:
+                    orderMode === "SHIPPING"
+                      ? customerInformation.phone
+                      : appState?.userInfo?.phoneNumber || "",
+                  orderItemList,
+                  mode: orderMode === "SHIPPING" ? "SHIPPING" : "PICKUP",
+                  diningTableId: 0,
+                  branchId: branchId,
+                };
+                const res = await CreateOrder(payload);
+                if (res.data?.data?.paymentUrl) {
+                  router.replace({
+                    pathname: "/(user)/order/payment.webview",
+                    params: { paymentUrl: res.data.data.paymentUrl },
+                  });
+                } else {
+                  router.replace("/(auth)/order.success");
+                }
+              } catch (error: any) {
+                console.error("Error creating order:", error);
+                if (error.response) {
+                  console.error("Error response:", error.response.data);
+                }
+              } finally {
+                setLoading(false);
+              }
+            };
+
             return (
               <View style={styles.container}>
                 {orderItems?.length > 0 && (
@@ -389,25 +558,40 @@ const PlaceOrderPage = () => {
                         )}
                       </Text>
                     </View>
-                    <View style={styles.textInputView}>
-                      <Text
-                        style={[
-                          styles.textInputText,
-                          { fontFamily: FONTS.regular, fontSize: 17 },
-                        ]}
-                      >
-                        Phí giao hàng
-                      </Text>
+                    {orderMode === "SHIPPING" && (
+                      <View style={styles.textInputView}>
+                        <Text
+                          style={[
+                            styles.textInputText,
+                            { fontFamily: FONTS.regular, fontSize: 17 },
+                          ]}
+                        >
+                          Phí giao hàng
+                        </Text>
+                        <Text
+                          style={{
+                            fontFamily: FONTS.regular,
+                            fontSize: 17,
+                            color: APP_COLOR.BROWN,
+                          }}
+                        >
+                          {currencyFormatter(shippingFee)}
+                        </Text>
+                      </View>
+                    )}
+                    {canShip && (
                       <Text
                         style={{
                           fontFamily: FONTS.regular,
-                          fontSize: 17,
-                          color: APP_COLOR.BROWN,
+                          fontSize: 12,
+                          color: APP_COLOR.CANCEL,
+                          marginBottom: 5,
+                          fontStyle: "italic",
                         }}
                       >
-                        {currencyFormatter(shippingFee)}
+                        * Chỉ hỗ trợ giao hàng tại TP.HCM và không quá 5km
                       </Text>
-                    </View>
+                    )}
                     <View style={styles.textInputView}>
                       <Text
                         style={[
@@ -543,35 +727,6 @@ const PlaceOrderPage = () => {
                     />
                   </View>
                 )}
-                {/* <CustomerInforInput
-                  title="Đặt hàng hộ"
-                  value={values.pickUp}
-                  setValue={(v) => setFieldValue("pickUp", v)}
-                  isBoolean={true}
-                />
-                {values.pickUp && (
-                  <View style={{ marginBottom: 10 }}>
-                    <CustomerInforInput
-                      title="Tên người nhận hộ"
-                      onChangeText={handleChange("proxyName")}
-                      onBlur={handleBlur("proxyName ")}
-                      value={values.proxyName}
-                      error={errors.proxyName}
-                      touched={touched.proxyName}
-                      placeholder="Nhập tên người nhận hộ"
-                    />
-                    <CustomerInforInput
-                      title="Số điện thoại người nhận hộ"
-                      onChangeText={handleChange("proxyPhone")}
-                      onBlur={handleBlur("proxyPhone")}
-                      value={values.proxyPhone}
-                      error={errors.proxyPhone}
-                      touched={touched.proxyPhone}
-                      placeholder="Nhập số điện thoại người nhận hộ"
-                      keyboardType="phone-pad"
-                    />
-                  </View>
-                )} */}
                 <CustomerInforInput
                   onChangeText={handleChange("note")}
                   onBlur={handleBlur("note")}
@@ -579,11 +734,12 @@ const PlaceOrderPage = () => {
                   error={errors.note}
                   touched={touched.note}
                   placeholder="Ghi chú"
+                  placeholderTextColor={APP_COLOR.ORANGE}
                 />
                 <ShareButton
                   loading={loading}
                   title="Tạo đơn hàng"
-                  onPress={() => router.navigate("/(auth)/order.success")}
+                  onPress={handleCreateOrder}
                   textStyle={{
                     textTransform: "uppercase",
                     color: APP_COLOR.WHITE,
@@ -607,78 +763,12 @@ const PlaceOrderPage = () => {
           }}
         </Formik>
       </ScrollView>
-      <Modal
-        visible={modalVisible}
-        animationType="fade"
-        transparent={true}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text
-              style={{
-                fontFamily: FONTS.regular,
-                fontSize: 20,
-                marginBottom: 10,
-              }}
-            >
-              Địa chỉ giao hàng
-            </Text>
-            <ScrollView>
-              {addresses.map((address: string, index: number) => (
-                <Pressable
-                  key={`${address}-${index}`}
-                  onPress={() => {}}
-                  style={styles.addressItem}
-                >
-                  <View>
-                    <Text style={styles.textNameInfor}>{address}</Text>
-                  </View>
-                </Pressable>
-              ))}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 };
 const styles = StyleSheet.create({
   container: {
     gap: 3,
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
-  },
-  modalContent: {
-    backgroundColor: "white",
-    padding: 20,
-    borderRadius: 10,
-    width: "80%",
-  },
-  textInput: {
-    borderWidth: 1,
-    borderColor: APP_COLOR.BROWN,
-    borderRadius: 10,
-    paddingVertical: 10,
-    color: APP_COLOR.BROWN,
-    backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
-    marginVertical: 10,
-    minWidth: 200,
-  },
-  addressItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    padding: 10,
-    borderBottomColor: "#eee",
-    borderBottomWidth: 1,
-  },
-  textNameInfor: {
-    fontFamily: FONTS.regular,
-    fontSize: 17,
   },
   textInputView: {
     flexDirection: "row",
@@ -689,59 +779,6 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bold,
     fontSize: 20,
     marginVertical: "auto",
-  },
-  dropdownContainer: {
-    marginBottom: 10,
-  },
-  dropdownLabel: {
-    fontFamily: FONTS.regular,
-    fontSize: 17,
-    marginBottom: 8,
-    color: APP_COLOR.BROWN,
-  },
-  dropdown: {
-    gap: 9,
-  },
-  dropdownItemContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 8,
-  },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 50,
-    borderWidth: 2,
-    borderColor: APP_COLOR.BROWN,
-    marginRight: 12,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  selectedCheckbox: {
-    backgroundColor: APP_COLOR.BROWN,
-  },
-  dropdownItem: {
-    flex: 1,
-    padding: 6,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: APP_COLOR.BROWN,
-  },
-  selectedDropdownItem: {
-    backgroundColor: APP_COLOR.BROWN,
-  },
-  dropdownText: {
-    fontFamily: FONTS.regular,
-    fontSize: 17,
-    color: APP_COLOR.BROWN,
-  },
-  selectedDropdownText: {
-    color: APP_COLOR.ORANGE,
-  },
-  errorText: {
-    color: "red",
-    fontSize: 12,
-    marginTop: 4,
   },
 });
 export default PlaceOrderPage;

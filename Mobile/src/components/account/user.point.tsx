@@ -6,7 +6,6 @@ import { FONTS } from "@/theme/typography";
 interface ICustomerPointProps {
   fullName: string;
   phoneNumber: string;
-  email: string;
 }
 const CustomerPoint = (props: ICustomerPointProps) => {
   return (
@@ -29,10 +28,6 @@ const CustomerPoint = (props: ICustomerPointProps) => {
         <CusInfoText
           title="SĐT"
           info={props.phoneNumber ? props.phoneNumber : "Chưa có thông tin"}
-        />
-        <CusInfoText
-          title="Email"
-          info={props.email ? props.email : "Chưa có thông tin"}
         />
       </View>
       <Pressable

@@ -249,3 +249,77 @@ export const AddNewCustomerInformation = async (
     },
   });
 };
+
+export const DeleteCustomerInformation = async (
+  CusId: number,
+  InforId: number
+) => {
+  const token = await AsyncStorage.getItem("access_token");
+  return axios.delete(
+    `${BASE_URL}/customers/${CusId}/informations/${InforId}`,
+    {
+      headers: {
+        accept: "application/json",
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    }
+  );
+};
+
+export const GetBranchInfo = async (branchId: number) => {
+  return axios.get(`${BASE_URL}/branches/${branchId}`, {
+    headers: {
+      accept: "application/json",
+      "Content-Type": "application/json",
+    },
+  });
+};
+
+export const CreateOrder = async (payload: {
+  customerId: number;
+  promotionCode: string;
+  discountValue: number;
+  shippingAddress: string;
+  shippingPhoneNumber: string;
+  orderItemList: {
+    productId: number;
+    comboId: number;
+    quantity: number;
+    price: number;
+    note: string;
+  }[];
+  mode: string;
+  diningTableId: number;
+  branchId: number;
+}) => {
+  const token = await AsyncStorage.getItem("access_token");
+  return axios.post(`${BASE_URL}/orders`, payload, {
+    headers: {
+      accept: "*/*",
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+  });
+};
+
+export const GetCombo = async (branchId: number) => {
+  return axios.get(
+    `${BASE_URL}/combos/search?branchId=${branchId}&isActive=true&minPrice=0&maxPrice=1000000&page=0&size=100&sortBy=name&sortDirection=ASC`,
+    {
+      headers: {
+        accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    }
+  );
+};
+
+export const GetAllOrder = () => {
+  return axios.get(`${BASE_URL}/orders/customer/my-orders?status=ALL`, {
+    headers: {
+      accept: "application/json",
+      "Content-Type": "application/json",
+    },
+  });
+};

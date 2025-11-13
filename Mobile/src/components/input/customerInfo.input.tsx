@@ -82,6 +82,7 @@ interface IProps {
   isBoolean?: boolean;
   placeholder?: string;
   dropdownItems?: { id: string; title: string }[];
+  placeholderTextColor?: string;
 }
 
 const CustomerInforInput = (props: IProps) => {
@@ -103,6 +104,7 @@ const CustomerInforInput = (props: IProps) => {
     isBoolean = false,
     dropdownItems,
     placeholder,
+    placeholderTextColor,
   } = props;
 
   useEffect(() => {
@@ -177,7 +179,7 @@ const CustomerInforInput = (props: IProps) => {
               setIsFocus(false);
             }}
             placeholder={placeholder}
-            placeholderTextColor={APP_COLOR.BROWN}
+            placeholderTextColor={placeholderTextColor || APP_COLOR.ORANGE}
             keyboardType={keyboardType}
             style={[
               styles.input,
