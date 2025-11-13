@@ -219,7 +219,7 @@ export const getOrderStatuses = async (): Promise<OrderStatusesResponse> => {
     if (!response.ok) {
       const errorBody = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
       const error = new Error(`Failed to fetch order statuses: ${response.status} ${response.statusText}`);
-      (error as any).response = {
+      (error as Error & { response?: { data: unknown; status: number } }).response = {
         data: errorBody,
         status: response.status,
       };
@@ -245,7 +245,7 @@ export const getBranchOrders = async (status?: string): Promise<BranchOrdersApiR
     if (!response.ok) {
       const errorBody = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
       const error = new Error(`Failed to fetch branch orders: ${response.status} ${response.statusText}`);
-      (error as any).response = {
+      (error as Error & { response?: { data: unknown; status: number } }).response = {
         data: errorBody,
         status: response.status,
       };
@@ -256,6 +256,36 @@ export const getBranchOrders = async (status?: string): Promise<BranchOrdersApiR
     return data;
   } catch (error) {
     console.error('getBranchOrders error:', error);
+    throw error;
+  }
+};
+
+export interface AssignChefResponse {
+  success: boolean;
+  message?: string;
+}
+
+export const assignChefToOrder = async (orderId: number): Promise<AssignChefResponse> => {
+  try {
+    const response = await fetch(`/api/orders/manager/assign/cheff/${orderId}`, {
+      method: 'PUT',
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
+      const error = new Error(`Failed to assign chef: ${response.status} ${response.statusText}`);
+      (error as Error & { response?: { data: unknown; status: number } }).response = {
+        data: errorBody,
+        status: response.status,
+      };
+      throw error;
+    }
+
+    const data = await response.json();
+    return { success: data === true || data === 'true' || data.success === true };
+  } catch (error) {
+    console.error('assignChefToOrder error:', error);
     throw error;
   }
 };

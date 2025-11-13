@@ -8,6 +8,7 @@ import { AdminHeader } from './components/AdminHeader';
 import { GlobalSearchCommand } from './components/GlobalSearchCommand';
 import { GlobalSearchKeyboardHandler } from './components/GlobalSearchKeyboardHandler';
 import { BranchesLoader } from './components/BranchesLoader';
+import { useBarcodeScanner } from '@/utils/hooks/useBarcodeScanner';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect, useMemo, memo, useCallback } from 'react';
@@ -125,6 +126,20 @@ export default function AdminLayout({
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [sidebarOpen]);
+
+    // Global barcode scanner - hoạt động ở mọi trang admin
+    useBarcodeScanner({
+        enabled: true,
+        onSuccess: (orderId) => {
+            console.log('✅ Assign chef thành công cho order:', orderId);
+        },
+        onError: (error) => {
+            console.error('❌ Lỗi khi assign chef:', error);
+        },
+        onChefBusy: (orderId) => {
+            console.warn('⚠️ Chef đang bận cho order:', orderId);
+        },
+    });
 
     return (
         <AdminProvider>
