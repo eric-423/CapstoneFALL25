@@ -23,6 +23,7 @@ import { RoleHistory, TrainingStats, UserRole, UserTraining } from '@/utils/type
 import type { UserWithUiExtras } from './components/UserDetailDialog';
 import { UserDetailDialog } from './components/UserDetailDialog';
 import { AdminPageLayout, AdminPageHeader, AdminStatsCard, AdminStatsGrid } from '../components/AdminPageLayout';
+import Link from 'next/link';
 
 // Temporary empty array until API is implemented
 const MOCK_USERS: any[] = [];
@@ -388,10 +389,21 @@ export default function UsersManagementPage() {
                 description="Quản lý tài khoản, phân quyền và theo dõi tiến độ đào tạo"
                 icon={Users}
                 actions={
-                    <Button className="bg-gradient-to-r from-[#EC6426] to-[#F8A91F] hover:from-[#EC6426]/90 hover:to-[#F8A91F]/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold text-sm sm:text-base flex-shrink-0">
-                        <UserPlus className="h-4 w-4 mr-2" />
-                        Thêm người dùng
-                    </Button>
+                    <div className="flex gap-2">
+                        <Link href="/admin/users/roles">
+                            <Button
+                                variant="outline"
+                                className="border-2 border-[#EC6426] text-[#EC6426] hover:bg-[#EC6426] hover:text-white shadow-md hover:shadow-lg transition-all duration-300 px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold text-sm sm:text-base flex-shrink-0"
+                            >
+                                <Shield className="h-4 w-4 mr-2" />
+                                Quản lý vai trò
+                            </Button>
+                        </Link>
+                        <Button className="bg-gradient-to-r from-[#EC6426] to-[#F8A91F] hover:from-[#EC6426]/90 hover:to-[#F8A91F]/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold text-sm sm:text-base flex-shrink-0">
+                            <UserPlus className="h-4 w-4 mr-2" />
+                            Thêm người dùng
+                        </Button>
+                    </div>
                 }
             />
 
@@ -456,9 +468,9 @@ export default function UsersManagementPage() {
             </div>
 
             {showAdvanced && (
-                <Card className="p-4 bg-white w-full">
-                    <h3 className="font-bold mb-4 text-gray-950">Bộ lọc nâng cao</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+                <Card className="p-3 bg-white w-full">
+                    <h3 className="font-bold mb-3 text-sm text-gray-950">Bộ lọc nâng cao</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 w-full">
                         <div>
                             <label className="text-sm font-bold mb-2 block text-gray-950">Vai trò</label>
                             <select
