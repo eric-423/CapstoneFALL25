@@ -12,4 +12,7 @@ public interface BranchRepository extends JpaRepository<Branch, Integer> {
 
     Optional<Branch> findByName(String name);
 
+    List<Branch> findByIsActiveTrue();
+
+
 }

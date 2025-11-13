@@ -49,7 +49,16 @@ public class SecurityConfig {
 
                         .requestMatchers("/api/auth/**").permitAll()
 
-                        .requestMatchers("/api/branches/nearby").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/branches/nearby").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/branches/{id}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/branches").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/branches").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.PUT, "/api/branches/{id}").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.PUT, "/api/branches/{id}/activate").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.PUT, "/api/branches/{id}/deactivate").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.PUT, "/api/branches/add-product/{id}")
+                        .hasAnyRole("ADMIN", "MANAGER")
+
                         .requestMatchers("/api/combos/search").permitAll()
                         .requestMatchers("/api/products/search").permitAll()
                         .requestMatchers("/api/product-types", "/api/product-types/{id}").permitAll()
