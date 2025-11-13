@@ -1082,7 +1082,20 @@ public class OrderServiceImpl implements OrderService {
         } else {
             orders = orderRepository.findByBranchId(branchId);
         }
+        return convertToOrderListDTO(orders);
+    }
 
+    @Override
+    public OrderDTO getOrderById(int orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+
+        return toDTO(order);
+    }
+
+    @Override
+    public List<OrderListDTO> getOrdersByChefId(int chefId, String status) {
+        List<Order> orders = orderRepository.findByWorker_IdAndStatus_NameOrderByCreatedAtDesc(chefId, status);
         return convertToOrderListDTO(orders);
     }
 

@@ -12,6 +12,9 @@ public class MaterialWarehouseDTO {
     private String materialName;
     private String materialTypeName;
     private double quantity;
+    private Double caloriesPerUnit;
+    private String unit;
+    private Double threshold;
     private int warehouseId;
     private String warehouseAddress;
 }
