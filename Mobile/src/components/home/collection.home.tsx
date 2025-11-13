@@ -23,6 +23,7 @@ import React from "react";
 import Animated, { FadeIn, SlideInDown } from "react-native-reanimated";
 import { FONTS } from "@/theme/typography";
 import axios from "axios";
+import { TopSellingProduct } from "@/utils/api";
 
 const { width: sWidth } = Dimensions.get("window");
 
@@ -33,16 +34,11 @@ interface IProps {
 }
 
 interface IPropsProduct {
-  ProductType: {
-    name: string;
-    productTypeId: number;
-  };
+  id: number;
   name: string;
-  productId: string;
-  image: any;
-  description: string;
-  price: number;
-  averageRating: number;
+  quantitySold: number;
+  revenue: number;
+  type: string;
 }
 
 interface ModalContextType {
@@ -89,65 +85,6 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
     setSelectedItem(null);
   };
 
-  const handleQuantityChange = (
-    item: IPropsProduct,
-    action: "MINUS" | "PLUS"
-  ) => {
-    if (action === "PLUS" && item.ProductType.productTypeId === 1) {
-      showProductModal(item);
-    }
-
-    if (!restaurant?._id) return;
-
-    const total = action === "MINUS" ? -1 : 1;
-    const priceChange = total * item.price;
-
-    const newCart = { ...cart };
-    if (!newCart[restaurant._id]) {
-      newCart[restaurant._id] = {
-        sum: 0,
-        quantity: 0,
-        items: {},
-      };
-    }
-    newCart[restaurant._id].sum =
-      (newCart[restaurant._id].sum || 0) + priceChange;
-    newCart[restaurant._id].quantity =
-      (newCart[restaurant._id].quantity || 0) + total;
-
-    if (!newCart[restaurant._id].items[item.productId]) {
-      newCart[restaurant._id].items[item.productId] = {
-        data: {
-          ...item,
-          basePrice: item.price,
-          title: item.name,
-        } as ICartItem,
-        quantity: 0,
-      };
-    }
-
-    const currentQuantity =
-      (newCart[restaurant._id].items[item.productId].quantity || 0) + total;
-
-    if (currentQuantity <= 0) {
-      delete newCart[restaurant._id].items[item.productId];
-      if (Object.keys(newCart[restaurant._id].items).length === 0) {
-        delete newCart[restaurant._id];
-      }
-    } else {
-      newCart[restaurant._id].items[item.productId] = {
-        data: {
-          ...item,
-          basePrice: item.price,
-          title: item.name,
-        } as ICartItem,
-        quantity: currentQuantity,
-      };
-    }
-
-    setCart(newCart);
-  };
-
   const getItemQuantity = (itemId: string) =>
     getItemQuantityUtil(cart, restaurant?._id, itemId);
 
@@ -164,18 +101,15 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
   // }, []);
 
   return (
-    <ModalContext.Provider
-      value={{ showProductModal, hideProductModal, handleQuantityChange }}
-    >
+    <ModalContext.Provider value={{ showProductModal, hideProductModal }}>
       {children}
     </ModalContext.Provider>
   );
 };
 
 const CollectionHome = (props: IProps) => {
-  const { name, id, branchId } = props;
-  const { cart, restaurant, setRestaurant } = useCurrentApp();
-  const { showProductModal, handleQuantityChange } = useModal();
+  const { name } = props;
+  const { cart, restaurant, setRestaurant, branchId } = useCurrentApp();
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState<boolean>(true);
   const mockRestaurant = {
@@ -207,99 +141,19 @@ const CollectionHome = (props: IProps) => {
     }
   }, [restaurant, setRestaurant]);
 
-  const MOCK_BY_TYPE: Record<number, IPropsProduct[]> = {
-    1: [
-      {
-        ProductType: { name: "Đồ ăn", productTypeId: 1 },
-        name: "Cơm tấm sườn bì chả",
-        productId: "food_1",
-        image: require("@/assets/icons/com-tam.png"),
-        description: "Cơm tấm sườn bì chả",
-        price: 45000,
-        averageRating: 4.6,
-      },
-      {
-        ProductType: { name: "Đồ ăn", productTypeId: 1 },
-        name: "Bún bò Huế",
-        productId: "food_2",
-        image: require("@/assets/icons/com-tam.png"),
-        description: "Bún bò Huế",
-        price: 42000,
-        averageRating: 4.3,
-      },
-      {
-        ProductType: { name: "Đồ ăn", productTypeId: 1 },
-        name: "Phở bò tái",
-        productId: "food_3",
-        image: require("@/assets/icons/com-tam.png"),
-        description: "Phở bò tái",
-        price: 40000,
-        averageRating: 4.7,
-      },
-    ],
-    2: [
-      {
-        ProductType: { name: "Đồ uống", productTypeId: 2 },
-        name: "Cà phê sữa đá",
-        productId: "drink_1",
-        image: "https://picsum.photos/seed/caphesua/500/350",
-        description: "Cà phê sữa đá",
-        price: 25000,
-        averageRating: 4.5,
-      },
-      {
-        ProductType: { name: "Đồ uống", productTypeId: 2 },
-        name: "Trà sữa trân châu",
-        productId: "drink_2",
-        image: "https://picsum.photos/seed/trasua/500/350",
-        description: "Trà sữa trân châu",
-        price: 35000,
-        averageRating: 4.1,
-      },
-      {
-        ProductType: { name: "Đồ uống", productTypeId: 2 },
-        name: "Nước cam",
-        productId: "drink_3",
-        image: "https://picsum.photos/seed/nuoccam/500/350",
-        description: "Nước cam",
-        price: 28000,
-        averageRating: 4.2,
-      },
-    ],
-    3: [
-      {
-        ProductType: { name: "Món thêm", productTypeId: 3 },
-        name: "Trứng ốp la",
-        productId: "extra_1",
-        image: "https://picsum.photos/seed/trungop/500/350",
-        description: "Trứng ốp la",
-        price: 10000,
-        averageRating: 4.0,
-      },
-      {
-        ProductType: { name: "Món thêm", productTypeId: 3 },
-        name: "Chả lụa",
-        productId: "extra_2",
-        image: "https://picsum.photos/seed/chalua/500/350",
-        description: "Chả lụa",
-        price: 8000,
-        averageRating: 4.1,
-      },
-    ],
-  };
-
   useEffect(() => {
-    setLoading(true);
-    const timer = setTimeout(() => {
-      const list = MOCK_BY_TYPE[id] || [];
-      setRestaurants(list as unknown as never[]);
-      setLoading(false);
-    }, 250);
-    return () => clearTimeout(timer);
-  }, [id]);
-  const getItemQuantity = (itemId: string) =>
-    getItemQuantityUtil(cart, restaurant?._id, itemId);
-
+    const fetchData = async () => {
+      const res = await TopSellingProduct(branchId as number);
+      console.log("res", res.data.data.topItems);
+      setRestaurants(res.data.data.topItems as unknown as never[]);
+      setLoading(true);
+      const timer = setTimeout(() => {
+        setLoading(false);
+      }, 250);
+      return () => clearTimeout(timer);
+    };
+    fetchData();
+  }, [branchId]);
   return (
     <>
       <View style={styles.spacer} />
@@ -347,7 +201,6 @@ const CollectionHome = (props: IProps) => {
               item: IPropsProduct;
               index: number;
             }) => {
-              const quantity = getItemQuantity(item.productId);
               const isLastItem = index === restaurants.length - 1;
               return (
                 <Pressable>
@@ -382,26 +235,13 @@ const CollectionHome = (props: IProps) => {
                           numberOfLines={2}
                           ellipsizeMode="tail"
                         >
-                          {item.description}
+                          {item.name}
                         </Text>
                       </View>
-                      <View style={{ alignItems: "center" }}>
-                        <Text style={styles.itemPrice}>
-                          {currencyFormatter(item.price)}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.itemPrice,
-                            {
-                              textDecorationLine: "line-through",
-                              fontSize: 13,
-                              color: APP_COLOR.BROWN,
-                            },
-                          ]}
-                        >
-                          {currencyFormatter(item.price - 3000)}
-                        </Text>
-                      </View>
+
+                      <Text style={styles.itemQuantitySold}>
+                        Đã bán {item.quantitySold} món
+                      </Text>
                     </View>
                   </View>
                 </Pressable>
@@ -499,12 +339,13 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     textAlign: "center",
   },
-  itemPrice: {
+  itemQuantitySold: {
     color: APP_COLOR.ORANGE,
-    fontFamily: FONTS.bold,
-    fontSize: 17,
+    fontFamily: FONTS.semiBold,
+    fontSize: 15,
     position: "relative",
     bottom: 10,
+    textAlign: "center",
   },
   quantityContainer: {
     flexDirection: "row",

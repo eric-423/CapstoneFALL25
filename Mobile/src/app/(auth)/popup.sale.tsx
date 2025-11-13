@@ -12,7 +12,7 @@ export const PopupSale = ({ onClose }: { onClose: () => void }) => {
     <Pressable
       style={{
         position: "absolute",
-        top: 0,
+        top: -250,
         left: 0,
         right: 0,
         bottom: 0,
@@ -43,7 +43,7 @@ export const PopupSale = ({ onClose }: { onClose: () => void }) => {
               justifyContent: "center",
               alignItems: "center",
               position: "relative",
-              right: -135,
+              right: -125,
               top: 35,
               zIndex: 9999,
             }}
@@ -59,8 +59,8 @@ export const PopupSale = ({ onClose }: { onClose: () => void }) => {
           <Image
             source={bannerImg}
             style={{
-              height: screenHeight * 0.85,
-              width: screenWidth * 0.85,
+              height: screenHeight * 0.8,
+              width: screenWidth * 0.8,
               borderRadius: 30,
             }}
           />

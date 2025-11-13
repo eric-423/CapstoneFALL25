@@ -217,3 +217,35 @@ export const GetCustomerInformation = async (id: number) => {
     },
   });
 };
+
+export const TopSellingProduct = async (branchId: number) => {
+  return axios.get(
+    `${BASE_URL}/statistics/top-selling?branchId=${branchId}&limit=5`,
+    {
+      headers: {
+        accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    }
+  );
+};
+
+export const AddNewCustomerInformation = async (
+  id: number,
+  payload: {
+    name: string;
+    address: string;
+    phoneNumber: string;
+    isDefault: boolean;
+  }
+) => {
+  const token = await AsyncStorage.getItem("access_token");
+
+  return axios.post(`${BASE_URL}/customers/${id}/informations`, payload, {
+    headers: {
+      accept: "application/json",
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+  });
+};
