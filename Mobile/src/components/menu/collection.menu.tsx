@@ -18,15 +18,19 @@ import {
 } from "@/utils/cart";
 import React from "react";
 import { FONTS } from "@/theme/typography";
+import { GetProductByProductType, GetCombo } from "@/utils/api";
+import { router } from "expo-router";
 const { width: sWidth } = Dimensions.get("window");
 
 interface IProps {
-  name: string;
-  id: number;
-  branchId: number | null;
+  part?: "product" | "combo";
+  name?: string;
+  id?: number;
+  branchId: number;
 }
 
 interface IPropsProduct {
+  productDescription: string;
   ProductType: {
     name: string;
     productTypeId: number;
@@ -40,8 +44,6 @@ interface IPropsProduct {
 }
 
 interface ModalContextType {
-  showProductModal: (item: IPropsProduct) => void;
-  hideProductModal: () => void;
   handleQuantityChange: (item: IPropsProduct, action: "MINUS" | "PLUS") => void;
 }
 
@@ -56,9 +58,6 @@ export const useModal = () => {
 };
 
 export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<IPropsProduct | null>(null);
-  const [typeProducts, setTypeProducts] = useState([]);
   const { cart, setCart, restaurant, setRestaurant } = useCurrentApp();
 
   const mockRestaurant = {
@@ -73,22 +72,20 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [restaurant, setRestaurant]);
 
-  const showProductModal = (item: IPropsProduct) => {
-    setSelectedItem(item);
-    setModalVisible(true);
-  };
-
-  const hideProductModal = () => {
-    setModalVisible(false);
-    setSelectedItem(null);
-  };
-
   const handleQuantityChange = (
     item: IPropsProduct,
     action: "MINUS" | "PLUS"
   ) => {
     if (action === "PLUS" && item.ProductType.productTypeId === 1) {
-      showProductModal(item);
+      router.navigate({
+        pathname: "/order/add.extra.food",
+        params: {
+          productName: item.name,
+          productTypeId: item.ProductType.productTypeId,
+          productId: item.productId,
+          productPrice: String(item.price),
+        },
+      });
     }
 
     if (!restaurant?._id) return;
@@ -115,7 +112,7 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
           ...item,
           basePrice: item.price,
           title: item.name,
-        } as ICartItem,
+        },
         quantity: 0,
       };
     }
@@ -134,179 +131,327 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
           ...item,
           basePrice: item.price,
           title: item.name,
-        } as ICartItem,
+        },
         quantity: currentQuantity,
       };
     }
     setCart(newCart);
   };
 
-  const getItemQuantity = (itemId: string) =>
-    getItemQuantityUtil(cart, restaurant?._id, itemId);
-
-  // useEffect(() => {
-  //   const fetchTypeProducts = async () => {
-  //     try {
-  //       const typePro = await axios.get(`${API_URL}/api/products/type/3`);
-  //       setTypeProducts(typePro.data.products);
-  //     } catch (error) {
-  //       console.error("Error fetching product types:", error);
-  //     }
-  //   };
-  //   fetchTypeProducts();
-  // }, []);
-
   return (
-    <ModalContext.Provider
-      value={{ showProductModal, hideProductModal, handleQuantityChange }}
-    >
+    <ModalContext.Provider value={{ handleQuantityChange }}>
       {children}
     </ModalContext.Provider>
   );
 };
 
 const CollectionMenu = (props: IProps) => {
-  const { name, id } = props;
-  const { cart, restaurant, setRestaurant } = useCurrentApp();
+  const { name, id, branchId, part = "product" } = props;
+  const { cart, restaurant, setRestaurant, selectedProductTypeId } =
+    useCurrentApp();
   const { handleQuantityChange } = useModal();
-  const [restaurants, setRestaurants] = useState([]);
+  const [restaurants, setRestaurants] = useState<IPropsProduct[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const mockRestaurant = {
     _id: "mock_restaurant_1",
     name: "Số món đã đặt",
     menu: [],
   };
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     try {
-  //       setLoading(true);
-  //       const res = await axios.get(`${API_URL}/api/products/type/${props.id}`);
-  //       console.log(res);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        if (part === "combo") {
+          const res = await GetCombo(branchId);
+          console.log(res.data.content);
+          setRestaurants(res.data.content);
+        } else {
+          const res = await GetProductByProductType(branchId, id || 0);
+          const mapped: IPropsProduct[] = (res?.data?.content || []).map(
+            (p: any) => ({
+              ProductType: {
+                name: p.productType,
+                productTypeId: p.productTypeId,
+              },
+              productDescription: p.productDescription,
+              name: p.productName,
+              productId: String(p.productId),
+              image: p.productImage,
+              description: p.productDescription,
+              price: p.productPrice,
+              averageRating: 5,
+            })
+          );
+          setRestaurants(mapped);
+        }
+      } catch (error) {
+        console.error("Lỗi khi lấy dữ liệu:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  //       setRestaurants(res.data.products);
-  //     } catch (error) {
-  //       console.error("Lỗi khi lấy dữ liệu:", error);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   fetchData();
-  // }, [id, branchId]);
+    fetchData();
+  }, [id, branchId, part]);
 
   useEffect(() => {
     if (!restaurant) {
       setRestaurant(mockRestaurant);
     }
   }, [restaurant, setRestaurant]);
-  const MOCK_BY_TYPE: Record<number, IPropsProduct[]> = {
-    1: [
-      {
-        ProductType: { name: "Đồ ăn", productTypeId: 1 },
-        name: "Cơm tấm sườn bì chả",
-        productId: "food_1",
-        image: require("@/assets/icons/com-tam.png"),
-        description: "Cơm tấm sườn bì chả",
-        price: 45000,
-        averageRating: 4.6,
-      },
-      {
-        ProductType: { name: "Đồ ăn", productTypeId: 1 },
-        name: "Bún bò Huế",
-        productId: "food_2",
-        image: require("@/assets/icons/com-tam.png"),
-        description: "Bún bò Huế",
-        price: 42000,
-        averageRating: 4.3,
-      },
-      {
-        ProductType: { name: "Đồ ăn", productTypeId: 1 },
-        name: "Phở bò tái",
-        productId: "food_3",
-        image: require("@/assets/icons/com-tam.png"),
-        description: "Phở bò tái",
-        price: 40000,
-        averageRating: 4.7,
-      },
-    ],
-    2: [
-      {
-        ProductType: { name: "Đồ uống", productTypeId: 2 },
-        name: "Cà phê sữa đá",
-        productId: "drink_1",
-        image: require("@/assets/icons/com-tam.png"),
-        description: "Cà phê sữa đá",
-        price: 25000,
-        averageRating: 4.5,
-      },
-      {
-        ProductType: { name: "Đồ uống", productTypeId: 2 },
-        name: "Trà sữa trân châu",
-        productId: "drink_2",
-        image: require("@/assets/icons/com-tam.png"),
-        description: "Trà sữa trân châu",
-        price: 35000,
-        averageRating: 4.1,
-      },
-      {
-        ProductType: { name: "Đồ uống", productTypeId: 2 },
-        name: "Nước cam",
-        productId: "drink_3",
-        image: require("@/assets/icons/com-tam.png"),
-        description: "Nước cam",
-        price: 28000,
-        averageRating: 4.2,
-      },
-    ],
-    3: [
-      {
-        ProductType: { name: "Món thêm", productTypeId: 3 },
-        name: "Trứng ốp la",
-        productId: "extra_1",
-        image: require("@/assets/icons/com-tam.png"),
-        description: "Trứng ốp la",
-        price: 10000,
-        averageRating: 4.0,
-      },
-      {
-        ProductType: { name: "Món thêm", productTypeId: 3 },
-        name: "Chả lụa",
-        productId: "extra_2",
-        image: require("@/assets/icons/com-tam.png"),
-        description: "Chả lụa",
-        price: 8000,
-        averageRating: 4.1,
-      },
-    ],
-  };
 
-  useEffect(() => {
-    setLoading(true);
-    const timer = setTimeout(() => {
-      const list = MOCK_BY_TYPE[id] || [];
-      setRestaurants(list as unknown as never[]);
-      setLoading(false);
-    }, 250);
-    return () => clearTimeout(timer);
-  }, [id]);
   const getItemQuantity = (itemId: string) =>
     getItemQuantityUtil(cart, restaurant?._id, itemId);
 
   return (
     <>
       <View style={styles.spacer} />
-      {loading ? (
+      {part === "combo" ? (
+        loading ? (
+          <ContentLoader
+            speed={2}
+            width={sWidth}
+            height={360}
+            backgroundColor="#f3f3f3"
+            foregroundColor="#ecebeb"
+            style={styles.loader}
+          >
+            <Rect x="5" y="5" rx="10" ry="10" width="370" height="110" />
+            <Rect x="10" y="10" rx="10" ry="10" width="100" height="100" />
+            <Rect x="120" y="15" rx="6" ry="6" width="230" height="18" />
+            <Rect x="120" y="40" rx="6" ry="6" width="200" height="14" />
+            <Rect x="120" y="82" rx="6" ry="6" width="110" height="20" />
+            <Rect x="235" y="86" rx="6" ry="6" width="90" height="12" />
+            <Rect x="345" y="0" rx="10" ry="10" width="30" height="20" />
+            <Rect x="285" y="80" rx="12" ry="12" width="26" height="26" />
+            <Rect x="315" y="80" rx="12" ry="12" width="28" height="26" />
+            <Rect x="345" y="80" rx="12" ry="12" width="26" height="26" />
+            <Rect x="5" y="125" rx="10" ry="10" width="370" height="110" />
+            <Rect x="10" y="130" rx="10" ry="10" width="100" height="100" />
+            <Rect x="120" y="135" rx="6" ry="6" width="230" height="18" />
+            <Rect x="120" y="160" rx="6" ry="6" width="200" height="14" />
+            <Rect x="120" y="202" rx="6" ry="6" width="110" height="20" />
+            <Rect x="235" y="206" rx="6" ry="6" width="90" height="12" />
+            <Rect x="345" y="120" rx="10" ry="10" width="30" height="20" />
+            <Rect x="285" y="200" rx="12" ry="12" width="26" height="26" />
+            <Rect x="315" y="200" rx="12" ry="12" width="28" height="26" />
+            <Rect x="345" y="200" rx="12" ry="12" width="26" height="26" />
+            <Rect x="5" y="245" rx="10" ry="10" width="370" height="110" />
+            <Rect x="10" y="250" rx="10" ry="10" width="100" height="100" />
+            <Rect x="120" y="255" rx="6" ry="6" width="230" height="18" />
+            <Rect x="120" y="280" rx="6" ry="6" width="200" height="14" />
+            <Rect x="120" y="322" rx="6" ry="6" width="110" height="20" />
+            <Rect x="235" y="326" rx="6" ry="6" width="90" height="12" />
+            <Rect x="345" y="240" rx="10" ry="10" width="30" height="20" />
+            <Rect x="285" y="320" rx="12" ry="12" width="26" height="26" />
+            <Rect x="315" y="320" rx="12" ry="12" width="28" height="26" />
+            <Rect x="345" y="320" rx="12" ry="12" width="26" height="26" />
+          </ContentLoader>
+        ) : (
+          <View style={styles.container}>
+            <Pressable
+              onPress={() => console.log("hihi")}
+              style={styles.headerContainer}
+            >
+              <Text style={styles.headerText}>{name || "Combo"}</Text>
+              <View style={styles.viewAllContainer}>
+                <Text style={styles.viewAllText}>Xem tất cả &gt;</Text>
+              </View>
+            </Pressable>
+            <FlatList
+              data={restaurants}
+              contentContainerStyle={styles.flatListContent}
+              showsVerticalScrollIndicator={false}
+              showsHorizontalScrollIndicator={false}
+              scrollEnabled={false}
+              ListEmptyComponent={() => (
+                <View
+                  style={{
+                    paddingVertical: 10,
+                    height: 100,
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: APP_COLOR.BROWN,
+                      fontFamily: FONTS.regular,
+                      textAlign: "center",
+                    }}
+                  >
+                    Không có combo.
+                  </Text>
+                </View>
+              )}
+              renderItem={({
+                item,
+                index,
+              }: {
+                item: IPropsProduct;
+                index: number;
+              }) => {
+                const isLastItem = index === restaurants.length - 1;
+                return (
+                  <Pressable>
+                    <View
+                      style={[
+                        styles.itemContainer,
+                        { marginRight: isLastItem ? 10 : 5 },
+                      ]}
+                    >
+                      <Image
+                        style={styles.itemImage}
+                        source={
+                          typeof item.image === "string"
+                            ? { uri: item.image }
+                            : (item.image as any)
+                        }
+                      />
+                      <View style={styles.ratingContainer}>
+                        <Text style={styles.ratingText}>
+                          {item.averageRating}
+                        </Text>
+                        <AntDesign
+                          name="star"
+                          size={15}
+                          color={APP_COLOR.ORANGE}
+                        />
+                      </View>
+                      <View style={styles.itemTextContainer}>
+                        <View style={{ height: 50 }}>
+                          <Text
+                            style={[styles.itemName]}
+                            numberOfLines={2}
+                            ellipsizeMode="tail"
+                          >
+                            {item.name}
+                          </Text>
+                        </View>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            gap: 10,
+                          }}
+                        >
+                          <Text style={styles.itemPrice}>
+                            {currencyFormatter(item.price)}
+                          </Text>
+                          <Text
+                            style={[
+                              styles.itemPrice,
+                              {
+                                textDecorationLine: "line-through",
+                                fontFamily: FONTS.regular,
+                                fontSize: 13,
+                                color: APP_COLOR.BROWN,
+                                position: "relative",
+                                bottom: -20,
+                              },
+                            ]}
+                          >
+                            {currencyFormatter(item.price - 3000)}
+                          </Text>
+                        </View>
+                      </View>
+                      <View
+                        style={[
+                          styles.quantityContainer,
+                          { marginHorizontal: 10, marginVertical: 10 },
+                        ]}
+                      >
+                        <Pressable
+                          onPress={() => handleQuantityChange(item, "MINUS")}
+                          style={({ pressed }) => ({
+                            opacity:
+                              getItemQuantity(item.productId) > 0
+                                ? pressed
+                                  ? 0.5
+                                  : 1
+                                : 0.3,
+                          })}
+                          disabled={getItemQuantity(item.productId) === 0}
+                        >
+                          <AntDesign
+                            name="minus-circle"
+                            size={24}
+                            color={
+                              getItemQuantity(item.productId) > 0
+                                ? APP_COLOR.BUTTON_YELLOW
+                                : APP_COLOR.BROWN
+                            }
+                          />
+                        </Pressable>
+                        <Text style={styles.quantityText}>
+                          {getItemQuantity(item.productId)}
+                        </Text>
+                        <Pressable
+                          onPress={() => handleQuantityChange(item, "PLUS")}
+                          style={({ pressed }) => ({
+                            opacity: pressed ? 0.5 : 1,
+                          })}
+                        >
+                          <AntDesign
+                            name="plus-circle"
+                            size={24}
+                            color={APP_COLOR.BUTTON_YELLOW}
+                          />
+                        </Pressable>
+                      </View>
+                    </View>
+                  </Pressable>
+                );
+              }}
+            />
+          </View>
+        )
+      ) : selectedProductTypeId !== null &&
+        selectedProductTypeId !== id ? null : loading ? (
         <ContentLoader
           speed={2}
           width={sWidth}
-          height={230}
+          height={360}
           backgroundColor="#f3f3f3"
           foregroundColor="#ecebeb"
           style={styles.loader}
         >
-          <Rect x="10" y="10" rx="5" ry="5" width={150} height="200" />
-          <Rect x="170" y="10" rx="5" ry="5" width={150} height="200" />
-          <Rect x="330" y="10" rx="5" ry="5" width={150} height="200" />
+          <Rect x="5" y="5" rx="10" ry="10" width="370" height="110" />
+
+          <Rect x="10" y="10" rx="10" ry="10" width="100" height="100" />
+
+          <Rect x="120" y="15" rx="6" ry="6" width="230" height="18" />
+          <Rect x="120" y="40" rx="6" ry="6" width="200" height="14" />
+
+          <Rect x="120" y="82" rx="6" ry="6" width="110" height="20" />
+          <Rect x="235" y="86" rx="6" ry="6" width="90" height="12" />
+
+          <Rect x="345" y="0" rx="10" ry="10" width="30" height="20" />
+
+          <Rect x="285" y="80" rx="12" ry="12" width="26" height="26" />
+          <Rect x="315" y="80" rx="12" ry="12" width="28" height="26" />
+          <Rect x="345" y="80" rx="12" ry="12" width="26" height="26" />
+
+          <Rect x="5" y="125" rx="10" ry="10" width="370" height="110" />
+          <Rect x="10" y="130" rx="10" ry="10" width="100" height="100" />
+          <Rect x="120" y="135" rx="6" ry="6" width="230" height="18" />
+          <Rect x="120" y="160" rx="6" ry="6" width="200" height="14" />
+          <Rect x="120" y="202" rx="6" ry="6" width="110" height="20" />
+          <Rect x="235" y="206" rx="6" ry="6" width="90" height="12" />
+          <Rect x="345" y="120" rx="10" ry="10" width="30" height="20" />
+          <Rect x="285" y="200" rx="12" ry="12" width="26" height="26" />
+          <Rect x="315" y="200" rx="12" ry="12" width="28" height="26" />
+          <Rect x="345" y="200" rx="12" ry="12" width="26" height="26" />
+
+          <Rect x="5" y="245" rx="10" ry="10" width="370" height="110" />
+          <Rect x="10" y="250" rx="10" ry="10" width="100" height="100" />
+          <Rect x="120" y="255" rx="6" ry="6" width="230" height="18" />
+          <Rect x="120" y="280" rx="6" ry="6" width="200" height="14" />
+          <Rect x="120" y="322" rx="6" ry="6" width="110" height="20" />
+          <Rect x="235" y="326" rx="6" ry="6" width="90" height="12" />
+          <Rect x="345" y="240" rx="10" ry="10" width="30" height="20" />
+          <Rect x="285" y="320" rx="12" ry="12" width="26" height="26" />
+          <Rect x="315" y="320" rx="12" ry="12" width="28" height="26" />
+          <Rect x="345" y="320" rx="12" ry="12" width="26" height="26" />
         </ContentLoader>
       ) : (
         <View style={styles.container}>
@@ -332,6 +477,26 @@ const CollectionMenu = (props: IProps) => {
             showsVerticalScrollIndicator={false}
             showsHorizontalScrollIndicator={false}
             scrollEnabled={false}
+            ListEmptyComponent={() => (
+              <View
+                style={{
+                  paddingVertical: 10,
+                  height: 100,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Text
+                  style={{
+                    color: APP_COLOR.BROWN,
+                    fontFamily: FONTS.regular,
+                    textAlign: "center",
+                  }}
+                >
+                  Không có sản phẩm.
+                </Text>
+              </View>
+            )}
             renderItem={({
               item,
               index,
@@ -339,7 +504,6 @@ const CollectionMenu = (props: IProps) => {
               item: IPropsProduct;
               index: number;
             }) => {
-              const quantity = getItemQuantity(item.productId);
               const isLastItem = index === restaurants.length - 1;
               return (
                 <Pressable>
@@ -374,16 +538,7 @@ const CollectionMenu = (props: IProps) => {
                           numberOfLines={2}
                           ellipsizeMode="tail"
                         >
-                          {item.description}
-                        </Text>
-                        <Text
-                          style={{
-                            fontFamily: FONTS.regular,
-                            fontSize: 13,
-                            color: APP_COLOR.BROWN,
-                          }}
-                        >
-                          - Cơm Tấm Sườn Chả
+                          {item.name}
                         </Text>
                       </View>
                       <View
@@ -404,7 +559,7 @@ const CollectionMenu = (props: IProps) => {
                               fontSize: 13,
                               color: APP_COLOR.BROWN,
                               position: "relative",
-                              bottom: -10,
+                              bottom: -20,
                             },
                           ]}
                         >
@@ -469,7 +624,7 @@ const CollectionMenu = (props: IProps) => {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 10,
+    paddingHorizontal: 10,
   },
   spacer: {
     height: 10,
@@ -549,8 +704,6 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.semiBold,
     fontSize: 15,
     color: APP_COLOR.BROWN,
-    marginBottom: 5,
-    textAlign: "center",
   },
   itemPrice: {
     color: APP_COLOR.ORANGE,

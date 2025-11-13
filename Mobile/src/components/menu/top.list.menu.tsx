@@ -5,93 +5,115 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
+  Pressable,
 } from "react-native";
-import BannerHome from "@/components/home/banner.home";
 import { APP_COLOR } from "@/utils/constant";
 import { FONTS } from "@/theme/typography";
-import { router, useRouter } from "expo-router";
-const icon = [
-  {
-    key: 1,
-    name: "Tất cả",
-    source: require("@/assets/icons/com-tam.png"),
-    targetScreen: "bestseller",
-  },
-  {
-    key: 2,
-    name: "Combo",
-    source: require("@/assets/icons/cua-hang.png"),
-    targetScreen: "store",
-  },
-  {
-    key: 3,
-    name: "Cơm Tấm",
-    source: require("@/assets/icons/qua-tang.png"),
-    targetScreen: "voucher",
-  },
-  {
-    key: 4,
-    name: "Ăn Kèm",
-    source: require("@/assets/icons/don-hang.png"),
-    targetScreen: "order",
-  },
-  {
-    key: 5,
-    name: "Nước giải khát",
-    source: require("@/assets/icons/thong-tin.png"),
-    targetScreen: "account",
-  },
-];
+import { GetProductType } from "@/utils/api";
+import { useEffect, useState } from "react";
+import { useCurrentApp } from "@/context/app.context";
+
+interface IProductType {
+  productId: number;
+  name: string;
+}
 const IconItem = ({ item }: any) => {
-  const router = useRouter();
-  const handlePress = () => {
-    router.push(item.targetScreen);
+  const { setSelectedProductTypeId } = useCurrentApp();
+  const handlePress = async (name: string) => {
+    if (name === "Tất cả") {
+      setSelectedProductTypeId(null);
+    } else {
+      setSelectedProductTypeId(item.productId);
+    }
   };
   return (
-    <TouchableOpacity style={styles.iconWrapper} onPress={handlePress}>
-      <TouchableOpacity style={styles.iconWrapper} onPress={handlePress}>
-        <View style={styles.iconCircle}>
-          <Image source={item.source} style={styles.iconImage} />
-        </View>
-        <Text style={styles.iconText} numberOfLines={1}>
-          {item.name}
-        </Text>
-      </TouchableOpacity>
+    <TouchableOpacity
+      style={styles.iconWrapper}
+      onPress={() => handlePress(item.name)}
+    >
+      <View style={styles.iconCircle}>
+        <Image source={item.source} style={styles.iconImage} />
+      </View>
+      <Text style={styles.iconText} numberOfLines={1}>
+        {item.name}
+      </Text>
     </TouchableOpacity>
   );
 };
 
-const TopListMenu = () => {
-  const topRowData = icon.filter((_, index) => index % 2 === 0);
-  const bottomRowData = icon.filter((_, index) => index % 2 !== 0);
+interface TopListMenuProps {
+  activeTab: "Danh mục" | "Combo";
+  setActiveTab: (tab: "Danh mục" | "Combo") => void;
+}
+
+const TopListMenu = ({ activeTab, setActiveTab }: TopListMenuProps) => {
+  const [productType, setProductType] = useState<IProductType[]>([]);
+  const [comboData, setComboData] = useState<IProductType[]>([]);
+  useEffect(() => {
+    const fetchProductType = async () => {
+      const res = await GetProductType();
+      const apiData = (res?.data?.data ?? []) as any[];
+      const normalized: IProductType[] = apiData.map((item) => ({
+        productId: item?.productId ?? item?.id,
+        name: item?.name,
+      }));
+      setProductType([{ productId: 0, name: "Tất cả" }, ...normalized]);
+    };
+    fetchProductType();
+  }, []);
+  const displayData = activeTab === "Danh mục" ? productType : comboData;
+  const topRowData = displayData.filter((_, index) => index % 2 === 0);
+  const bottomRowData = displayData.filter((_, index) => index % 2 !== 0);
   return (
-    <View>
-      <View style={{ paddingHorizontal: 10 }}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Danh mục</Text>
-          <TouchableOpacity onPress={() => console.log("Xem thêm")}>
-            <Text style={styles.seeMoreText}>Xem tất cả &gt;</Text>
-          </TouchableOpacity>
+    <View style={{ paddingHorizontal: 10 }}>
+      <View style={styles.header}>
+        <View style={styles.tabContainer}>
+          <Pressable
+            onPress={() => setActiveTab("Danh mục")}
+            style={[
+              styles.tab,
+              { borderRightWidth: 1, borderRightColor: APP_COLOR.BROWN },
+            ]}
+          >
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === "Danh mục" && styles.activeTabText,
+              ]}
+            >
+              Danh mục
+            </Text>
+          </Pressable>
+          <Pressable onPress={() => setActiveTab("Combo")} style={[styles.tab]}>
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === "Combo" && styles.activeTabText,
+              ]}
+            >
+              Combo
+            </Text>
+          </Pressable>
         </View>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.container}
-        >
-          <View>
-            <View style={[styles.row, { marginBottom: 10 }]}>
-              {topRowData.map((item) => (
-                <IconItem key={item.key} item={item} />
-              ))}
-            </View>
-            <View style={styles.row}>
-              {bottomRowData.map((item) => (
-                <IconItem key={item.key} item={item} />
-              ))}
-            </View>
-          </View>
-        </ScrollView>
       </View>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.container}
+      >
+        <View>
+          <View style={[styles.row, { marginBottom: 10 }]}>
+            {topRowData.map((item) => (
+              <IconItem key={`top-${item.productId}`} item={item} />
+            ))}
+          </View>
+          <View style={styles.row}>
+            {bottomRowData.map((item) => (
+              <IconItem key={`bottom-${item.productId}`} item={item} />
+            ))}
+          </View>
+        </View>
+      </ScrollView>
     </View>
   );
 };
@@ -143,6 +165,27 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bold,
     fontSize: 18,
     color: APP_COLOR.BROWN,
+  },
+  tabContainer: {
+    flexDirection: "row",
+    backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
+    borderRadius: 8,
+  },
+  tab: {
+    paddingVertical: 8,
+    minWidth: 100,
+    alignItems: "center",
+    paddingHorizontal: 10,
+  },
+  tabText: {
+    fontFamily: FONTS.bold,
+    fontSize: 17,
+    color: APP_COLOR.BROWN,
+  },
+  activeTabText: {
+    fontFamily: FONTS.bold,
+    color: APP_COLOR.ORANGE,
+    textDecorationLine: "underline",
   },
   seeMoreText: {
     color: APP_COLOR.BROWN,

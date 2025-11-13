@@ -37,6 +37,18 @@ export default function UserLayout() {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="order/add.extra.food"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="order/address.create"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }

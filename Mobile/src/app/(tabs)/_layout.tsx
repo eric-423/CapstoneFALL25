@@ -87,9 +87,11 @@ const TabLayout = () => {
           return getIcons(route.name, focused, size);
         },
         headerShown: false,
+        tabBarShowLabel: true,
         tabBarLabelStyle: {
           fontFamily: FONTS.bold,
           fontSize: 12,
+          marginBottom: 5,
         },
         tabBarActiveTintColor: APP_COLOR.ORANGE,
         tabBarInactiveTintColor: APP_COLOR.BROWN,
@@ -97,6 +99,9 @@ const TabLayout = () => {
           borderTopWidth: 0,
           height: 55,
           backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
+          marginBottom: 50,
+          paddingTop: 5,
+          paddingBottom: 10,
         },
         tabBarLabel:
           route.name === "ai"

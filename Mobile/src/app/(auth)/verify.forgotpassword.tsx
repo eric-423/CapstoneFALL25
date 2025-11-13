@@ -15,7 +15,7 @@ import Toast from "react-native-root-toast";
 import { FONTS } from "@/theme/typography";
 import logo from "@/assets/logo.png";
 import footerFrame from "@/assets/frame_footer.png";
-import { SendOTP, TTLOtpAPI, VeryfyOTP } from "@/utils/api";
+import { SendOTP, TTLOtp, VeryfyOTP } from "@/utils/api";
 
 const styles = StyleSheet.create({
   container: {
@@ -79,7 +79,7 @@ const VerifyForgotPassword = () => {
     const channelStr = channel as string;
     const getCountdown = async () => {
       try {
-        const res = await TTLOtpAPI(channelStr, phoneNumber);
+        const res = await TTLOtp(channelStr, phoneNumber);
         setCountdown(res?.data?.ttl ?? res?.data?.data ?? 0);
       } catch (err: any) {
         console.log(
@@ -139,7 +139,7 @@ const VerifyForgotPassword = () => {
     otpRef?.current?.clear();
     try {
       await SendOTP(channel as string, phoneNumber as string);
-      const ttlRes = await TTLOtpAPI(channel as string, phoneNumber as string);
+      const ttlRes = await TTLOtp(channel as string, phoneNumber as string);
       const newTtl = ttlRes?.data?.ttl ?? ttlRes?.data?.data ?? 0;
       setCountdown(newTtl);
       Toast.show("Đã gửi lại mã OTP", {

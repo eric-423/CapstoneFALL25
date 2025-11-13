@@ -1,5 +1,3 @@
-export {};
-
 declare global {
   interface ICart {
     [key: string]: {
@@ -16,6 +14,8 @@ declare global {
       };
     };
   }
+
+  interface IMenu {}
   interface IMenuItem {
     productImage: any;
     productId: number;
@@ -52,7 +52,6 @@ declare global {
     menu: IMenu[];
     isLike: boolean;
   }
-
   interface ICartItem {
     ProductType: {
       name: string;
@@ -67,15 +66,19 @@ declare global {
     title?: string;
   }
   interface IUserLogin {
-    user: {
-      email: string;
-      _id: string;
-      name: string;
-      role: string;
-      address: any;
-      avatar: string;
-      phone: string;
+    userInfo: {
+      id: number;
+      fullName: string;
+      phoneNumber: string;
+      address: string;
     };
     token: string;
   }
+  interface IProductType {
+    productId: number;
+    productName: string;
+    productPrice: number;
+  }
 }
+
+export {};

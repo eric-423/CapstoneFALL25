@@ -5,13 +5,11 @@ import CollectionHome, {
 import HeaderHome from "@/components/home/header.home";
 import SearchHome from "@/components/home/search.home";
 import TopListHome from "@/components/home/top.list.home";
-import TodayOffersSection from "@/components/home/today.offers.home";
 import { useCurrentApp } from "@/context/app.context";
-import { router, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { StyleSheet, Pressable, Text, View, ScrollView } from "react-native";
 import { APP_COLOR } from "@/utils/constant";
-// import { getTypeProductAPI } from "@/utils/api";
 import {
   calculateTotalPrice,
   calculateTotalQuantity,
@@ -67,10 +65,6 @@ const HomePage = () => {
     };
     checkLogin();
   }, []);
-  const handleBranchSelect = (id: any) => {
-    setBranchId(id);
-  };
-  // useEffect(() => {
   //   const fetchData = async () => {
   //     try {
   //       const res = await getTypeProductAPI();
@@ -79,7 +73,6 @@ const HomePage = () => {
   //       console.error("Error fetching type products data:", error);
   //     }
   //   };
-
   //   fetchData();
   // }, []);
   useEffect(() => {
@@ -113,9 +106,9 @@ const HomePage = () => {
     ? Object.values(cart[restaurant._id]?.items || {})
     : [];
   return (
-    <View
-      style={{
-        flex: 1,
+    <ScrollView
+      contentContainerStyle={{
+        flexGrow: 1,
         backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
       }}
     >
@@ -135,17 +128,6 @@ const HomePage = () => {
         StickyElementComponent={<SearchHome />}
         TopListElementComponent={<TopListHome />}
       />
-
-      {restaurant &&
-        restaurant.menu.length > 0 &&
-        restaurant.menu[0].menuItem.length > 0 && (
-          <ItemQuantity
-            restaurant={restaurant}
-            menuItem={restaurant.menu[0].menuItem[0]}
-            isModal={false}
-            onQuantityChange={handleQuantityChange}
-          />
-        )}
 
       {showPriceUpdate && (
         <Animated.View
@@ -262,7 +244,7 @@ const HomePage = () => {
           </Animated.View>
         </Animated.View>
       )}
-    </View>
+    </ScrollView>
   );
 };
 

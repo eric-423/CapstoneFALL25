@@ -20,8 +20,6 @@ import { FONTS, typography } from "@/theme/typography";
 import logo from "@/assets/logo.png";
 import ShareButton from "@/components/button/share.button";
 import icon from "@/assets/icons/loi-chuc.png";
-import CusInfoText from "@/components/account/user.info.text";
-import AntDesign from "@expo/vector-icons/AntDesign";
 import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
 import CustomerPoint from "@/components/account/user.point";
 
@@ -118,7 +116,7 @@ const AccountPage = () => {
                 },
               ]}
             >
-              {decodeToken.fullName ? decodeToken.fullName : "Tấm Tắc"}
+              {decodeToken?.name ? decodeToken?.name : "Tấm Tắc"}
             </Text>
           )}
         </View>
@@ -189,18 +187,6 @@ const AccountPage = () => {
               paddingBottom: 20,
             }}
           >
-            <Text
-              style={[
-                styles.text,
-                {
-                  marginLeft: 10,
-                  color: APP_COLOR.WHITE,
-                  fontFamily: FONTS.medium,
-                },
-              ]}
-            >
-              {decodeToken.fullName}
-            </Text>
             <Image source={icon} style={{ height: 39, width: 80 }} />
           </View>
         </View>
@@ -208,9 +194,8 @@ const AccountPage = () => {
       <View style={styles.buttonContainer}>
         {appState && (
           <CustomerPoint
-            fullName={decodeToken.fullName}
-            phoneNumber={decodeToken.phoneNumber}
-            email={decodeToken.email}
+            fullName={decodeToken.name}
+            phoneNumber={decodeToken.phone}
           />
         )}
         <Pressable

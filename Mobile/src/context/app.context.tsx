@@ -11,8 +11,12 @@ interface AppContextType {
   setRestaurant: (v: any) => void;
   branchId: number | null;
   setBranchId: (v: any) => void;
+  selectedProductTypeId: number | null;
+  setSelectedProductTypeId: (v: number | null) => void;
   locationReal: string;
   setLocationReal: (v: any) => void;
+  branchName: string | null;
+  setBranchName: (v: string | null) => void;
 }
 const AppContext = createContext<AppContextType | null>(null);
 
@@ -26,7 +30,11 @@ const AppProvider = (props: IProps) => {
   const [cart, setCart] = useState<ICart | Record<string, never>>({});
   const [restaurant, setRestaurant] = useState<IRestaurant | null>(null);
   const [branchId, setBranchId] = useState<number | null>(1);
+  const [selectedProductTypeId, setSelectedProductTypeId] = useState<
+    number | null
+  >(null);
   const [locationReal, setLocationReal] = useState("");
+  const [branchName, setBranchName] = useState<string | null>(null);
   return (
     <AppContext.Provider
       value={{
@@ -40,8 +48,12 @@ const AppProvider = (props: IProps) => {
         setRestaurant,
         branchId,
         setBranchId,
+        selectedProductTypeId,
+        setSelectedProductTypeId,
         locationReal,
         setLocationReal,
+        branchName,
+        setBranchName,
       }}
     >
       {props.children}
