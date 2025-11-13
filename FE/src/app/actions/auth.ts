@@ -20,7 +20,7 @@ export async function loginAction(formData: FormData) {
 
     if (response.data.data.access_token) {
       const cookieStore = await cookies();
-      
+
       cookieStore.set('access_token', response.data.data.access_token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
@@ -47,7 +47,9 @@ export async function loginAction(formData: FormData) {
       if (role === 'ADMIN') {
         redirect('/admin');
       } else if (role === 'MANAGER') {
-        redirect('/manager');
+        // redirect('/manager');
+        redirect('/admin');
+
       } else {
         redirect('/');
       }
@@ -63,7 +65,7 @@ export async function loginAction(formData: FormData) {
 export async function logoutAction() {
   try {
     const cookieStore = await cookies();
-    
+
     cookieStore.set('access_token', '', { maxAge: 0 });
     cookieStore.set('refresh_token', '', { maxAge: 0 });
     cookieStore.set('userRole', '', { maxAge: 0 });

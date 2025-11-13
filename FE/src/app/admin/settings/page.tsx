@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Settings, Building2, CreditCard, Receipt, Database, Save, Moon, Sun, Upload, Eye } from 'lucide-react';
 import { useState } from 'react';
 import Image from 'next/image';
+import { AdminPageLayout, AdminPageHeader } from '../components/AdminPageLayout';
 
 export default function SettingsPage() {
     const [appName, setAppName] = useState('Tấm Tắc');
@@ -16,18 +17,13 @@ export default function SettingsPage() {
 
     return (
         <AdminGuard>
-            <div className="min-h-screen bg-[#f9fafb] py-8">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    {/* Header */}
-                    <div className="mb-8">
-                        <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3 mb-2">
-                            <div className="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center shadow-lg">
-                                <Settings className="text-white" size={28} strokeWidth={2.5} />
-                            </div>
-                            Cài Đặt Hệ Thống
-                        </h1>
-                        <p className="text-gray-600 text-lg">Cấu hình các thông số hệ thống</p>
-                    </div>
+            <AdminPageLayout>
+                {/* Header */}
+                <AdminPageHeader
+                    title="Cài Đặt Hệ Thống"
+                    description="Cấu hình các thông số hệ thống"
+                    icon={Settings}
+                />
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         {/* Main Settings */}
@@ -212,8 +208,7 @@ export default function SettingsPage() {
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
+            </AdminPageLayout>
         </AdminGuard>
     );
 }

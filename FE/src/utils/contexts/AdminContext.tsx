@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 
 export type TimePeriod = 'today' | '7d' | '30d' | 'custom';
 
@@ -49,23 +49,33 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     const closeSearch = useCallback(() => setIsSearchOpen(false), []);
     const toggleSearch = useCallback(() => setIsSearchOpen(prev => !prev), []);
 
+    // Memoize context value to prevent unnecessary re-renders
+    const contextValue = useMemo(() => ({
+        selectedBranch,
+        setSelectedBranch,
+        branches,
+        setBranches,
+        timePeriod,
+        setTimePeriod,
+        dateRange,
+        setDateRange,
+        isSearchOpen,
+        openSearch,
+        closeSearch,
+        toggleSearch,
+    }), [
+        selectedBranch,
+        branches,
+        timePeriod,
+        dateRange,
+        isSearchOpen,
+        openSearch,
+        closeSearch,
+        toggleSearch,
+    ]);
+
     return (
-        <AdminContext.Provider
-            value={{
-                selectedBranch,
-                setSelectedBranch,
-                branches,
-                setBranches,
-                timePeriod,
-                setTimePeriod,
-                dateRange,
-                setDateRange,
-                isSearchOpen,
-                openSearch,
-                closeSearch,
-                toggleSearch,
-            }}
-        >
+        <AdminContext.Provider value={contextValue}>
             {children}
         </AdminContext.Provider>
     );

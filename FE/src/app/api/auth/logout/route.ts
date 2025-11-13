@@ -5,37 +5,49 @@ export async function POST() {
     // Clear authentication cookies
     const response = NextResponse.json({ message: 'Logged out successfully' });
     
-    const cookieConfig = {
+    // Config cho httpOnly cookies
+    const httpOnlyCookieConfig = {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict' as const,
       maxAge: 0,
+      path: '/',
     };
 
-    response.cookies.set('token', '', cookieConfig);
-    response.cookies.set('access_token', '', cookieConfig);
-    response.cookies.set('refresh_token', '', cookieConfig);
-
-    response.cookies.set('userRole', '', {
+    // Config cho non-httpOnly cookies
+    const publicCookieConfig = {
       httpOnly: false,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'strict' as const,
       maxAge: 0,
-    });
+      path: '/',
+    };
 
-    response.cookies.set('role', '', {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 0,
-    });
+    // Clear tất cả các cookies liên quan đến authentication
+    // Xóa ở root path để đảm bảo cookies được xóa ở tất cả các path
+    response.cookies.set('token', '', httpOnlyCookieConfig);
+    response.cookies.set('access_token', '', httpOnlyCookieConfig);
+    response.cookies.set('refresh_token', '', httpOnlyCookieConfig);
+    response.cookies.set('userRole', '', publicCookieConfig);
+    response.cookies.set('role', '', publicCookieConfig);
 
     return response;
   } catch (error) {
-    console.error('Logout API Error:', error);
-    return NextResponse.json(
-      { error: 'Failed to logout' },
-      { status: 500 }
-    );
+    console.error('[API /auth/logout] Error:', error);
+    // Vẫn trả về response thành công để client có thể tiếp tục clear ở phía client
+    const response = NextResponse.json({ message: 'Logged out successfully' });
+    
+    // Cố gắng clear cookies dù có lỗi
+    try {
+      response.cookies.set('token', '', { maxAge: 0, path: '/' });
+      response.cookies.set('access_token', '', { maxAge: 0, path: '/' });
+      response.cookies.set('refresh_token', '', { maxAge: 0, path: '/' });
+      response.cookies.set('userRole', '', { maxAge: 0, path: '/' });
+      response.cookies.set('role', '', { maxAge: 0, path: '/' });
+    } catch (cookieError) {
+      console.error('[API /auth/logout] Failed to clear cookies:', cookieError);
+    }
+    
+    return response;
   }
 }

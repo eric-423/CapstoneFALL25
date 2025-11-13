@@ -10,6 +10,7 @@ import { GlobalSearchKeyboardHandler } from './components/GlobalSearchKeyboardHa
 import { BranchesLoader } from './components/BranchesLoader';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useState, useEffect, useMemo, memo, useCallback } from 'react';
 import {
     LayoutDashboard,
     Users,
@@ -24,18 +25,67 @@ import {
     Edit,
     Package,
     BookOpen,
-    GraduationCap
+    GraduationCap,
+    Menu,
+    X
 } from 'lucide-react';
+
+// Memoized Menu Item Component
+const MenuItem = memo(({ 
+    item, 
+    isActive 
+}: { 
+    item: { href: string; label: string; icon: any }; 
+    isActive: boolean;
+}) => {
+    const Icon = item.icon;
+    
+    return (
+        <Link 
+            href={item.href} 
+            prefetch={true}
+            className="block"
+        >
+            <div className={`
+                flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl 
+                transition-all duration-200 relative group
+                ${isActive
+                    ? 'bg-white/20 text-white shadow-lg font-semibold backdrop-blur-sm'
+                    : 'text-white/80 hover:bg-white/10 hover:text-white'
+                }
+            `}>
+                {isActive && (
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#F8A91F] rounded-r-full shadow-lg"></div>
+                )}
+                <Icon 
+                    size={20} 
+                    className={`flex-shrink-0 ${isActive ? 'text-white' : 'text-white/80 group-hover:text-[#F8A91F]'} transition-colors`} 
+                    strokeWidth={isActive ? 2.5 : 2}
+                />
+                <span className={`text-sm sm:text-base ${isActive ? 'font-semibold' : 'font-medium'} truncate`}>
+                    {item.label}
+                </span>
+                {isActive && (
+                    <div className="ml-auto w-2 h-2 bg-[#F8A91F] rounded-full animate-pulse shadow-lg flex-shrink-0"></div>
+                )}
+            </div>
+        </Link>
+    );
+});
+
+MenuItem.displayName = 'MenuItem';
 
 export default function AdminLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
-    const { logout, user } = useAuthContext();
+    const { logout } = useAuthContext();
     const pathname = usePathname();
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
-    const menuItems = [
+    // Memoize menu items to prevent recreation on every render
+    const menuItems = useMemo(() => [
         { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/admin/users', label: 'Người dùng', icon: Users },
         { href: '/admin/branches', label: 'Chi nhánh', icon: Store },
@@ -47,7 +97,34 @@ export default function AdminLayout({
         { href: '/admin/promotions', label: 'Khuyến mãi', icon: Gift },
         { href: '/admin/feedback', label: 'Phản hồi', icon: MessageSquare },
         { href: '/admin/settings', label: 'Cài đặt', icon: Settings },
-    ];
+    ], []);
+
+    // Memoize logout handler
+    const handleLogout = useCallback(() => {
+        logout();
+    }, [logout]);
+
+    // Close sidebar on mobile when route changes
+    useEffect(() => {
+        setSidebarOpen(false);
+    }, [pathname]);
+
+    // Close sidebar when clicking outside on mobile
+    useEffect(() => {
+        if (!sidebarOpen) return;
+        
+        const handleClickOutside = (event: MouseEvent) => {
+            if (window.innerWidth < 1024) {
+                const target = event.target as HTMLElement;
+                if (!target.closest('aside') && !target.closest('button[aria-label="Toggle sidebar"]')) {
+                    setSidebarOpen(false);
+                }
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [sidebarOpen]);
 
     return (
         <AdminProvider>
@@ -55,59 +132,66 @@ export default function AdminLayout({
             <BranchesLoader />
             <div className="min-h-screen bg-[#f9fafb]">
                 <GlobalSearchCommand />
-                <div className="flex">
+                <div className="flex relative">
+                    {/* Mobile Overlay */}
+                    {sidebarOpen && (
+                        <div 
+                            className="fixed inset-0 bg-black/50 z-40 lg:hidden transition-opacity"
+                            onClick={() => setSidebarOpen(false)}
+                        />
+                    )}
+
                     {/* Sidebar */}
-                    <aside className="w-48 bg-gradient-to-b from-[#632713] via-[#1A3F22] to-[#0d1f11] shadow-xl fixed h-screen flex flex-col">
+                    <aside className={`
+                        fixed lg:static top-0 left-0 h-screen z-50
+                        w-64 lg:w-56 xl:w-64
+                        bg-gradient-to-b from-[#EC6426] via-[#EC6426]/95 to-[#EC6426]/90
+                        shadow-xl lg:shadow-none
+                        flex flex-col
+                        transition-transform duration-300 ease-in-out
+                        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+                    `}>
                         {/* Header */}
-                        <div className="p-4 border-b border-white/10 flex-shrink-0">
-                            <h2 className="font-bold text-lg text-white drop-shadow-md text-center">TamTech Admin</h2>
+                        <div className="p-4 sm:p-5 border-b border-white/20 flex-shrink-0 flex items-center justify-between lg:justify-center">
+                            <h2 className="font-bold text-base sm:text-lg lg:text-xl text-white drop-shadow-md text-center flex-1 lg:flex-none">
+                                TamTech Admin
+                            </h2>
+                            <button
+                                onClick={() => setSidebarOpen(false)}
+                                className="lg:hidden p-2 hover:bg-white/10 rounded-lg transition-colors"
+                                aria-label="Close sidebar"
+                            >
+                                <X className="w-5 h-5 text-white" />
+                            </button>
                         </div>
 
                         {/* Navigation Menu - Scrollable */}
-                        <nav className="flex-1 overflow-y-auto p-4">
+                        <nav className="flex-1 overflow-y-auto p-3 sm:p-4 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
                             <div className="space-y-1.5">
-                                {menuItems.map((item) => {
-                                    const Icon = item.icon;
-                                    const isActive = pathname === item.href;
-
-                                    return (
-                                        <Link key={item.href} href={item.href}>
-                                            <div className={`
-                                            flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all relative group
-                                            ${isActive
-                                                    ? 'bg-[#EC6426] text-white shadow-lg font-bold transform scale-[1.02]'
-                                                    : 'text-white/90 hover:bg-[#F8A91F]/20 hover:text-white hover:translate-x-1'
-                                                }
-                                        `}>
-                                                {isActive && (
-                                                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#F8A91F] rounded-r-full shadow-lg"></div>
-                                                )}
-                                                <Icon size={22} className={isActive ? 'text-white' : 'text-white/90 group-hover:text-[#F8A91F]'} />
-                                                <span className={`text-sm ${isActive ? 'font-bold' : 'font-medium'}`}>{item.label}</span>
-                                                {isActive && (
-                                                    <div className="ml-auto w-2 h-2 bg-[#F8A91F] rounded-full animate-pulse shadow-lg"></div>
-                                                )}
-                                            </div>
-                                        </Link>
-                                    );
-                                })}
+                                {menuItems.map((item) => (
+                                    <MenuItem 
+                                        key={item.href} 
+                                        item={item} 
+                                        isActive={pathname === item.href}
+                                    />
+                                ))}
                             </div>
                         </nav>
 
                         {/* Logout Button - Fixed */}
-                        <div className="p-4 flex-shrink-0 border-t border-white/10">
+                        <div className="p-3 sm:p-4 flex-shrink-0 border-t border-white/20">
                             <Button
                                 variant="outline"
-                                className="w-full justify-start gap-3 border-2 border-[#F8A91F]/50 bg-white/10 hover:bg-[#EC6426] hover:text-white hover:border-[#EC6426] text-white font-semibold transition-all hover:scale-[1.02] shadow-lg"
-                                onClick={logout}
+                                className="w-full justify-start gap-3 border-2 border-white/30 bg-white/10 hover:bg-white/20 hover:border-white/50 text-white font-semibold transition-all duration-200 shadow-lg hover:shadow-xl py-2.5 sm:py-3"
+                                onClick={handleLogout}
                             >
-                                <LogOut size={20} />
-                                <span className="font-medium">Đăng xuất</span>
+                                <LogOut size={18} className="flex-shrink-0" />
+                                <span className="text-sm sm:text-base font-semibold">Đăng xuất</span>
                             </Button>
                         </div>
 
                         {/* Footer Info - Fixed */}
-                        <div className="p-4 bg-black/10 backdrop-blur border-t border-white/10 flex-shrink-0">
+                        <div className="p-3 sm:p-4 bg-black/10 backdrop-blur border-t border-white/20 flex-shrink-0">
                             <p className="text-xs text-center text-white/70 font-medium">
                                 © 2025 Tâm Tắc Restaurant
                             </p>
@@ -115,9 +199,23 @@ export default function AdminLayout({
                     </aside>
 
                     {/* Main Content */}
-                    <main className="flex-1 ml-48 bg-[#f9fafb] min-w-0">
+                    <main className="flex-1 w-full bg-[#f9fafb] min-w-0">
+                        {/* Mobile Menu Toggle */}
+                        <div className="lg:hidden sticky top-0 z-30 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 shadow-sm">
+                            <button
+                                onClick={() => setSidebarOpen(true)}
+                                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                aria-label="Toggle sidebar"
+                            >
+                                <Menu className="w-6 h-6 text-gray-700" />
+                            </button>
+                            <div className="flex-1">
+                                <h1 className="text-lg font-bold text-gray-900">TamTech Admin</h1>
+                            </div>
+                        </div>
+                        
                         <AdminHeader />
-                        <div className="p-6 max-w-full overflow-x-hidden">
+                        <div className="p-4 sm:p-6 max-w-full overflow-x-hidden">
                             {children}
                         </div>
                     </main>

@@ -4,6 +4,7 @@ import { AdminGuard } from '@/components/guards';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { UtensilsCrossed, Plus, Edit, Trash2, CheckCircle, XCircle } from 'lucide-react';
+import { AdminPageLayout, AdminPageHeader, AdminStatsCard, AdminStatsGrid } from '../components/AdminPageLayout';
 
 // Temporary empty array until API is implemented
 const MOCK_PRODUCTS: any[] = [];
@@ -11,63 +12,52 @@ const MOCK_PRODUCTS: any[] = [];
 export default function ProductsPage() {
     return (
         <AdminGuard>
-            <div className="min-h-screen bg-[#f9fafb] py-8">
-                <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-                    {/* Header */}
-                    <div className="flex justify-between items-center mb-10">
-                        <div>
-                            <h1 className="text-4xl font-bold text-gray-900 mb-3 tracking-tight flex items-center gap-3">
-                                <UtensilsCrossed className="text-primary" size={36} />
-                                Quản Lý Sản Phẩm
-                            </h1>
-                            <p className="text-gray-600 text-lg">Quản lý menu và giá sản phẩm</p>
-                        </div>
-                        <Button className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-6 rounded-xl font-semibold hover:scale-105">
-                            <Plus size={22} className="mr-2" strokeWidth={2.5} />
+            <AdminPageLayout>
+                {/* Header */}
+                <AdminPageHeader
+                    title="Quản Lý Sản Phẩm"
+                    description="Quản lý menu và giá sản phẩm"
+                    icon={UtensilsCrossed}
+                    actions={
+                        <Button className="bg-gradient-to-r from-[#EC6426] to-[#F8A91F] hover:from-[#EC6426]/90 hover:to-[#F8A91F]/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold text-sm sm:text-base">
+                            <Plus size={18} className="mr-2" strokeWidth={2.5} />
                             Thêm Sản Phẩm
                         </Button>
-                    </div>
+                    }
+                />
 
-                    {/* Stats */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                        <Card className="relative overflow-hidden p-6 bg-white border-0 shadow-sm hover:shadow-xl transition-all duration-300 rounded-2xl group">
-                            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                            <div className="relative">
-                                <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">Tổng sản phẩm</p>
-                                <p className="text-4xl font-bold text-gray-900 group-hover:text-primary transition-colors">{MOCK_PRODUCTS.length}</p>
-                            </div>
-                        </Card>
-                        <Card className="relative overflow-hidden p-6 bg-white border-0 shadow-sm hover:shadow-xl transition-all duration-300 rounded-2xl group">
-                            <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                            <div className="relative">
-                                <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">Còn hàng</p>
-                                <p className="text-4xl font-bold text-green-600">
-                                    {MOCK_PRODUCTS.filter(p => p.status === true).length}
-                                </p>
-                            </div>
-                        </Card>
-                        <Card className="relative overflow-hidden p-6 bg-white border-0 shadow-sm hover:shadow-xl transition-all duration-300 rounded-2xl group">
-                            <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                            <div className="relative">
-                                <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">Hết hàng</p>
-                                <p className="text-4xl font-bold text-red-600">
-                                    {MOCK_PRODUCTS.filter(p => p.status === false).length}
-                                </p>
-                            </div>
-                        </Card>
-                        <Card className="relative overflow-hidden p-6 bg-white border-0 shadow-sm hover:shadow-xl transition-all duration-300 rounded-2xl group">
-                            <div className="absolute inset-0 bg-gradient-to-br from-secondary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                            <div className="relative">
-                                <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">Giá trung bình</p>
-                                <p className="text-4xl font-bold text-secondary">
-                                    {Math.round(MOCK_PRODUCTS.reduce((sum, p) => sum + p.productPrice, 0) / MOCK_PRODUCTS.length / 1000)}k
-                                </p>
-                            </div>
-                        </Card>
-                    </div>
+                {/* Stats */}
+                <AdminStatsGrid>
+                    <AdminStatsCard
+                        title="Tổng sản phẩm"
+                        value={MOCK_PRODUCTS.length}
+                        icon={UtensilsCrossed}
+                    />
+                    <AdminStatsCard
+                        title="Còn hàng"
+                        value={MOCK_PRODUCTS.filter(p => p.status === true).length}
+                        icon={CheckCircle}
+                        className="border-green-200"
+                        iconClassName="from-green-400 to-green-600"
+                    />
+                    <AdminStatsCard
+                        title="Hết hàng"
+                        value={MOCK_PRODUCTS.filter(p => p.status === false).length}
+                        icon={XCircle}
+                        className="border-red-200"
+                        iconClassName="from-red-400 to-red-600"
+                    />
+                    <AdminStatsCard
+                        title="Giá trung bình"
+                        value={MOCK_PRODUCTS.length > 0 ? `${Math.round(MOCK_PRODUCTS.reduce((sum, p) => sum + p.productPrice, 0) / MOCK_PRODUCTS.length / 1000)}k` : '0k'}
+                        icon={UtensilsCrossed}
+                        className="border-[#F8A91F]/20"
+                        iconClassName="from-[#EC6426] to-[#F8A91F]"
+                    />
+                </AdminStatsGrid>
 
-                    {/* Products Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {/* Products Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                         {MOCK_PRODUCTS.map(product => (
                             <Card key={product.productId} className="overflow-hidden bg-white border-0 shadow-sm hover:shadow-2xl transition-all duration-500 group rounded-2xl cursor-pointer">
                                 {/* Product Image */}
@@ -139,18 +129,17 @@ export default function ProductsPage() {
                         ))}
                     </div>
 
-                    {/* Pagination */}
-                    <div className="mt-10 flex justify-center">
-                        <div className="flex gap-2">
-                            <Button variant="outline" size="sm" className="rounded-xl font-semibold">Trước</Button>
-                            <Button variant="outline" size="sm" className="bg-gradient-to-r from-primary to-secondary text-white rounded-xl font-semibold border-0 shadow-md">1</Button>
-                            <Button variant="outline" size="sm" className="rounded-xl font-semibold hover:bg-gray-100">2</Button>
-                            <Button variant="outline" size="sm" className="rounded-xl font-semibold hover:bg-gray-100">3</Button>
-                            <Button variant="outline" size="sm" className="rounded-xl font-semibold">Sau</Button>
-                        </div>
+                {/* Pagination */}
+                <div className="mt-6 sm:mt-10 flex justify-center">
+                    <div className="flex gap-2">
+                        <Button variant="outline" size="sm" className="rounded-xl font-semibold text-xs sm:text-sm">Trước</Button>
+                        <Button variant="outline" size="sm" className="bg-gradient-to-r from-[#EC6426] to-[#F8A91F] text-white rounded-xl font-semibold border-0 shadow-md text-xs sm:text-sm">1</Button>
+                        <Button variant="outline" size="sm" className="rounded-xl font-semibold hover:bg-gray-100 text-xs sm:text-sm">2</Button>
+                        <Button variant="outline" size="sm" className="rounded-xl font-semibold hover:bg-gray-100 text-xs sm:text-sm">3</Button>
+                        <Button variant="outline" size="sm" className="rounded-xl font-semibold text-xs sm:text-sm">Sau</Button>
                     </div>
                 </div>
-            </div>
+            </AdminPageLayout>
         </AdminGuard>
     );
 }

@@ -57,7 +57,7 @@ export default function InsideLoginForm() {
                     localStorage.setItem('insideRememberMe', 'false');
                 }
 
-                localStorage.setItem('token', response.data.token);
+                // localStorage.setItem('token', response.data.token);
 
                 const role = response.data.userInfo?.role;
 

@@ -22,9 +22,33 @@ export interface NearbyBranch {
 export const GET_BRANCHES_QUERY_KEY = 'GET_BRANCHES_QUERY_KEY';
 export const GET_BRANCHES_STALE_TIME = 1000 * 60 * 30;
 
-export const getBranches = async () => {
-  const { data } = await http.get('/branches');
-  return data.data as Branch[];
+export const getBranches = async (): Promise<Branch[]> => {
+  try {
+    const { data } = await http.get('/branches');
+    
+    // Xử lý cả hai trường hợp response structure: data.data hoặc data trực tiếp
+    const branchesData = data?.data ?? data;
+    
+    // Đảm bảo luôn trả về một mảng hợp lệ (không bao giờ undefined)
+    if (Array.isArray(branchesData)) {
+      return branchesData as Branch[];
+    }
+    
+    // Nếu không phải mảng hoặc undefined/null, trả về mảng rỗng
+    // Điều này đảm bảo React Query không bao giờ nhận được undefined
+    if (branchesData === undefined || branchesData === null) {
+      console.warn('[getBranches] Response data is undefined or null');
+      return [];
+    }
+    
+    console.warn('[getBranches] Response is not an array:', branchesData);
+    return [];
+  } catch (error) {
+    console.error('[getBranches] Error fetching branches:', error);
+    // Throw error để React Query có thể xử lý error state
+    // Nhưng đảm bảo trong mọi trường hợp success đều trả về mảng (không undefined)
+    throw error;
+  }
 };
 
 export const getNearbyBranches = async (address: string, limit = 20): Promise<NearbyBranch[]> => {

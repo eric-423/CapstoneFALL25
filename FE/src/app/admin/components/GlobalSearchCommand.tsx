@@ -105,16 +105,21 @@ export function GlobalSearchCommand() {
             return;
         }
 
-        const filtered = navigationItems.filter(
-            (item) =>
-                item.title.toLowerCase().includes(search.toLowerCase()) ||
-                item.subtitle?.toLowerCase().includes(search.toLowerCase())
-        );
+        // Use requestIdleCallback for non-critical filtering
+        const timeoutId = setTimeout(() => {
+            const filtered = navigationItems.filter(
+                (item) =>
+                    item.title.toLowerCase().includes(search.toLowerCase()) ||
+                    item.subtitle?.toLowerCase().includes(search.toLowerCase())
+            );
 
-        // TODO: Add real API calls for other categories
-        // const [users, orders, recipes, ingredients, training, promotions, branches] = await Promise.all([...])
+            // TODO: Add real API calls for other categories
+            // const [users, orders, recipes, ingredients, training, promotions, branches] = await Promise.all([...])
 
-        setResults(filtered);
+            setResults(filtered);
+        }, 100); // Small debounce for better performance
+
+        return () => clearTimeout(timeoutId);
     }, [search]);
 
     const handleSelect = (result: SearchResult) => {

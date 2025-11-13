@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Recipe } from '@/utils/types/recipe.types';
 import { RecipeDetailDialog } from './components/RecipeDetailDialog';
+import { AdminPageLayout, AdminPageHeader, AdminStatsCard, AdminStatsGrid } from '../components/AdminPageLayout';
 
 // Temporary empty array until API is implemented
 const MOCK_RECIPES: Recipe[] = [];
@@ -228,68 +229,53 @@ export default function RecipesPage() {
     };
 
     return (
-        <div className="space-y-6">
+        <AdminPageLayout>
             {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                        <ChefHat className="text-orange-600" size={32} />
-                        Quản lý công thức món ăn
-                    </h1>
-                    <p className="text-gray-600 mt-2">
-                        Quản lý BOM, chi phí, dinh dưỡng và versioning
-                    </p>
-                </div>
-                <Button className="bg-gradient-to-r from-orange-500 to-orange-600">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Tạo công thức mới
-                </Button>
-            </div>
+            <AdminPageHeader
+                title="Quản lý công thức món ăn"
+                description="Quản lý BOM, chi phí, dinh dưỡng và versioning"
+                icon={ChefHat}
+                actions={
+                    <Button className="bg-gradient-to-r from-[#EC6426] to-[#F8A91F] hover:from-[#EC6426]/90 hover:to-[#F8A91F]/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold text-sm sm:text-base">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Tạo công thức mới
+                    </Button>
+                }
+            />
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <Card className="p-4 bg-gradient-to-br from-orange-50 to-white border-orange-200">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm text-gray-600 font-medium">Tổng công thức</p>
-                            <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-                        </div>
-                        <ChefHat className="w-10 h-10 text-orange-500 opacity-80" />
-                    </div>
-                </Card>
-                <Card className="p-4 bg-gradient-to-br from-green-50 to-white border-green-200">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm text-gray-600 font-medium">Đã xuất bản</p>
-                            <p className="text-2xl font-bold text-green-600">{stats.published}</p>
-                        </div>
-                        <BookOpen className="w-10 h-10 text-green-500 opacity-80" />
-                    </div>
-                </Card>
-                <Card className="p-4 bg-gradient-to-br from-yellow-50 to-white border-yellow-200">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm text-gray-600 font-medium">Đang soạn thảo</p>
-                            <p className="text-2xl font-bold text-yellow-600">{stats.draft}</p>
-                        </div>
-                        <FileText className="w-10 h-10 text-yellow-500 opacity-80" />
-                    </div>
-                </Card>
-                <Card className="p-4 bg-gradient-to-br from-blue-50 to-white border-blue-200">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm text-gray-600 font-medium">Chi phí TB</p>
-                            <p className="text-2xl font-bold text-blue-600">
-                                {(stats.avgCost / 1000).toFixed(0)}K
-                            </p>
-                        </div>
-                        <DollarSign className="w-10 h-10 text-blue-500 opacity-80" />
-                    </div>
-                </Card>
-            </div>
+            <AdminStatsGrid>
+                <AdminStatsCard
+                    title="Tổng công thức"
+                    value={stats.total}
+                    icon={ChefHat}
+                />
+                <AdminStatsCard
+                    title="Đã xuất bản"
+                    value={stats.published}
+                    icon={BookOpen}
+                    className="border-green-200"
+                    iconClassName="from-green-400 to-green-600"
+                />
+                <AdminStatsCard
+                    title="Đang soạn thảo"
+                    value={stats.draft}
+                    icon={FileText}
+                    className="border-yellow-200"
+                    iconClassName="from-yellow-400 to-yellow-600"
+                />
+                <AdminStatsCard
+                    title="Chi phí TB"
+                    value={`${(stats.avgCost / 1000).toFixed(0)}K`}
+                    icon={DollarSign}
+                    className="border-blue-200"
+                    iconClassName="from-blue-400 to-blue-600"
+                />
+            </AdminStatsGrid>
 
             {/* FilterBar */}
-            <FilterBar
+            <div className="w-full">
+                <FilterBar
                 searchPlaceholder="Tìm kiếm theo tên, SKU..."
                 searchValue={searchValue}
                 onSearchChange={setSearchValue}
@@ -313,7 +299,8 @@ export default function RecipesPage() {
                         </Button>
                     </>
                 }
-            />
+                />
+            </div>
 
             {/* Advanced Filters */}
             {showAdvanced && (
@@ -431,6 +418,6 @@ export default function RecipesPage() {
                     setSelectedRecipe(null);
                 }}
             />
-        </div>
+        </AdminPageLayout>
     );
 }

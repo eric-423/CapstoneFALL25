@@ -23,6 +23,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { AddTrainingDialog } from '@/app/admin/training/components/AddTrainingDialog';
+import { AdminPageLayout, AdminPageHeader, AdminStatsCard, AdminStatsGrid } from '../components/AdminPageLayout';
 
 // Temporary empty array until API is implemented
 const MOCK_TRAINING_COURSES: TrainingCourse[] = [];
@@ -85,93 +86,48 @@ export default function TrainingPage() {
 
     return (
         <AdminGuard>
-            <div className="min-h-screen bg-[#f9fafb] py-8">
-                <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-                    {/* Header */}
-                    <div className="mb-8">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3 mb-2">
-                                    <div className="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center shadow-lg">
-                                        <GraduationCap className="text-white" size={28} strokeWidth={2.5} />
-                                    </div>
-                                    Quản Lý Khóa Đào Tạo
-                                </h1>
-                                <p className="text-gray-600 text-lg">Tạo và quản lý khóa học cho nhân viên</p>
-                            </div>
-                            <AddTrainingDialog />
-                        </div>
-                    </div>
+            <AdminPageLayout>
+                {/* Header */}
+                <AdminPageHeader
+                    title="Quản Lý Khóa Đào Tạo"
+                    description="Tạo và quản lý khóa học cho nhân viên"
+                    icon={GraduationCap}
+                    actions={<AddTrainingDialog />}
+                />
 
-                    {/* Stats Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                        <Card className="p-6 bg-white border-0 shadow-sm hover:shadow-xl transition-all duration-300 rounded-2xl group">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">
-                                        Tổng khóa học
-                                    </p>
-                                    <p className="text-4xl font-bold text-gray-900 group-hover:text-primary transition-colors">
-                                        {totalCourses}
-                                    </p>
-                                </div>
-                                <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-all">
-                                    <GraduationCap className="text-white" size={26} strokeWidth={2.5} />
-                                </div>
-                            </div>
-                        </Card>
+                {/* Stats Cards */}
+                <AdminStatsGrid>
+                    <AdminStatsCard
+                        title="Tổng khóa học"
+                        value={totalCourses}
+                        icon={GraduationCap}
+                        iconClassName="from-blue-500 to-cyan-500"
+                    />
+                    <AdminStatsCard
+                        title="Đã xuất bản"
+                        value={publishedCourses}
+                        icon={CheckCircle}
+                        className="border-green-200"
+                        iconClassName="from-green-500 to-emerald-500"
+                    />
+                    <AdminStatsCard
+                        title="Học viên"
+                        value={totalEnrolled}
+                        icon={Users}
+                        className="border-purple-200"
+                        iconClassName="from-purple-500 to-indigo-500"
+                    />
+                    <AdminStatsCard
+                        title="Tỷ lệ hoàn thành"
+                        value={`${completionRate}%`}
+                        icon={BookOpen}
+                        className="border-orange-200"
+                        iconClassName="from-orange-500 to-red-500"
+                    />
+                </AdminStatsGrid>
 
-                        <Card className="p-6 bg-white border-0 shadow-sm hover:shadow-xl transition-all duration-300 rounded-2xl group">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">
-                                        Đã xuất bản
-                                    </p>
-                                    <p className="text-4xl font-bold text-green-600 group-hover:scale-105 transition-transform">
-                                        {publishedCourses}
-                                    </p>
-                                </div>
-                                <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-all">
-                                    <CheckCircle className="text-white" size={26} strokeWidth={2.5} />
-                                </div>
-                            </div>
-                        </Card>
-
-                        <Card className="p-6 bg-white border-0 shadow-sm hover:shadow-xl transition-all duration-300 rounded-2xl group">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">
-                                        Học viên
-                                    </p>
-                                    <p className="text-4xl font-bold text-purple-600 group-hover:scale-105 transition-transform">
-                                        {totalEnrolled}
-                                    </p>
-                                </div>
-                                <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-all">
-                                    <Users className="text-white" size={26} strokeWidth={2.5} />
-                                </div>
-                            </div>
-                        </Card>
-
-                        <Card className="p-6 bg-white border-0 shadow-sm hover:shadow-xl transition-all duration-300 rounded-2xl group">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">
-                                        Tỷ lệ hoàn thành
-                                    </p>
-                                    <p className="text-4xl font-bold text-orange-600 group-hover:scale-105 transition-transform">
-                                        {completionRate}%
-                                    </p>
-                                </div>
-                                <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-all">
-                                    <BookOpen className="text-white" size={26} strokeWidth={2.5} />
-                                </div>
-                            </div>
-                        </Card>
-                    </div>
-
-                    {/* Search and Filter */}
-                    <div className="mb-8 flex flex-col lg:flex-row gap-4">
+                {/* Search and Filter */}
+                <div className="flex flex-col lg:flex-row gap-4">
                         <div className="flex-1 relative">
                             <Search
                                 className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
@@ -205,8 +161,8 @@ export default function TrainingPage() {
                         </div>
                     </div>
 
-                    {/* Courses Grid */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Courses Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                         {filteredCourses.map((course) => {
                             const courseCompletionRate =
                                 course.enrolledCount > 0
@@ -352,9 +308,8 @@ export default function TrainingPage() {
                                 </Card>
                             );
                         })}
-                    </div>
                 </div>
-            </div>
+            </AdminPageLayout>
         </AdminGuard>
     );
 }
