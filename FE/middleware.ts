@@ -33,12 +33,9 @@ interface JwtPayload {
 }
 
 function getTokenFromRequest(request: NextRequest): string | null {
-    // Try to get token from cookie first
-    const tokenFromCookie = request.cookies.get('access_token')?.value ||
-        request.cookies.get('authToken')?.value;
+    const tokenFromCookie = request.cookies.get('token')?.value
     if (tokenFromCookie) return tokenFromCookie;
 
-    // Try to get token from Authorization header
     const authHeader = request.headers.get('authorization');
     if (authHeader?.startsWith('Bearer ')) {
         return authHeader.substring(7);
@@ -75,7 +72,7 @@ export async function middleware(request: NextRequest) {
     }
 
     const token = getTokenFromRequest(request);
-    const userRole = request.cookies.get('userRole')?.value;
+    const userRole = request.cookies.get('userRole')?.value ?? request.cookies.get('role')?.value;
 
     // Check authentication status
     const { isValid, payload } = token ? isTokenValid(token) : { isValid: false, payload: null };

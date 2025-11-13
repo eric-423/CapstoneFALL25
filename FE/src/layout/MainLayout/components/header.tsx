@@ -115,8 +115,8 @@ function ActionButtons({
   const handleLogout = () => {
     removeAccessToken();
     removeRefreshToken();
-    localStorage.removeItem('mock_user_id');
-    localStorage.removeItem('access_token');
+    localStorage.removeItem('token');
+    localStorage.removeItem('userRole');
     if (onClick) onClick();
     window.location.href = '/login';
   };
@@ -148,6 +148,7 @@ function ActionButtons({
               {mobile && <span className='ml-2'>Tài khoản</span>}
             </Button>
           </Link>
+
           <Button
             variant='ghost'
             size={mobile ? 'default' : 'icon'}

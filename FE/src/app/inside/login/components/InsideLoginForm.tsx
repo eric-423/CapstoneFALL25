@@ -2,7 +2,7 @@
 
 import { GuestLayout } from '@/components/layouts/GuestLayout';
 import { Input } from '@/components/ui/input';
-import { loginEmployee } from '@/apis/user.api';
+import { loginEmployeeViaApiRoute } from '@/apis/user.api';
 import { useAuthContext } from '@/utils/contexts/AuthContext';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -45,8 +45,10 @@ export default function InsideLoginForm() {
         setLoading(true);
 
         try {
-            const response = await loginEmployee({ email, password });
-            if (response.status === 200) {
+
+            const response = await loginEmployeeViaApiRoute({ email, password });
+            if (response.status === 200 && response.data?.token) {
+
                 if (rememberMe) {
                     localStorage.setItem('insideRememberedEmail', email);
                     localStorage.setItem('insideRememberMe', 'true');
@@ -55,12 +57,14 @@ export default function InsideLoginForm() {
                     localStorage.setItem('insideRememberMe', 'false');
                 }
 
-                toast.success('Đăng nhập nội bộ thành công!');
+                localStorage.setItem('token', response.data.token);
 
-                const token = response.data.data.access_token;
-                const decoded = JSON.parse(atob(token.split('.')[1]));
-                redirectAfterLogin(decoded.role);
+                const role = response.data.userInfo?.role;
+
+                redirectAfterLogin(role);
+
             }
+
         } catch (error: unknown) {
             const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Email hoặc mật khẩu không đúng';
 
@@ -162,7 +166,7 @@ export default function InsideLoginForm() {
                                     >
                                         {showPassword ? 'Ẩn' : 'Hiện'}
                                     </button>
-                                    
+
                                 </div>
                                 {errors.password && (
                                     <p className="mt-1 text-sm text-red-600">{errors.password}</p>

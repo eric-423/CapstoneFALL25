@@ -22,8 +22,7 @@ import useScrollTop from '@/utils/hooks/useScrollTop';
 import { cn } from '@/utils/lib/utils';
 
 import configs from '@/utils/configs';
-import { setCookie, getToken, getAccessToken } from '@/utils/cookies';
-import { useCookies } from 'react-cookie';
+import { setCookie, getToken } from '@/utils/cookies';
 
 import { getReceiveTime } from '@/utils/getReceiveTime';
 import { STORE_INFO } from '@/utils/mockupData';
@@ -84,8 +83,10 @@ import { useRouter } from 'next/navigation';
 import CheckoutSection from './components/checkout-section';
 import { CheckoutFormData, checkoutSchema } from './schema';
 
+
 export default function CheckoutPage() {
     useScrollTop();
+
     const { items, getTotalPrice } = useCart();
     const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
     const router = useRouter();
@@ -93,17 +94,21 @@ export default function CheckoutPage() {
     const isMountedRef = useRef(false);
     const skipAutoSelectRef = useRef(false);
 
-    // Lấy token từ nhiều nguồn giống như useAuth hook
-    const [cookies] = useCookies([configs.cookies.accessToken, configs.cookies.refreshToken, 'token']);
-    const getAuthToken = useCallback(() => {
-        // Thử lấy từ localStorage trước
-        if (typeof window !== 'undefined') {
-            const localStorageToken = localStorage.getItem('access_token');
-            if (localStorageToken) return localStorageToken;
-        }
-        // Thử lấy từ cookies
-        return cookies['token'] || cookies[configs.cookies.accessToken] || getToken() || getAccessToken();
-    }, [cookies]);
+    // const [cookies] = useCookies([configs.cookies.accessToken, configs.cookies.refreshToken, 'token']);
+
+
+    const getAuthToken = useCallback(async () => {
+
+        const response = await fetch('/api/auth/me', {
+            method: 'GET',
+            credentials: 'include',
+        });
+        const data = await response.json();
+        return data.token;
+
+    }, []);
+
+
 
     useEffect(() => {
         isMountedRef.current = true;
@@ -143,8 +148,13 @@ export default function CheckoutPage() {
         const token = getToken();
 
         if (!token && !isAuthenticated) {
-            const currentPath = window.location.pathname;
-            router.replace(`${configs.routes.login}?callbackUrl=${encodeURIComponent(currentPath)}`);
+            setTimeout(() => {
+                const tokenCheck = getToken();
+                if (!tokenCheck && !isAuthenticated) {
+                    const currentPath = window.location.pathname;
+                    router.replace(`${configs.routes.login}?callbackUrl=${encodeURIComponent(currentPath)}`);
+                }
+            }, 100);
         }
 
     }, [isAuthLoading, isAuthenticated, router]);
@@ -184,7 +194,7 @@ export default function CheckoutPage() {
 
             const paymentUrl = response?.data?.paymentUrl;
 
-            // console.log(response.data.paymentUrl);
+            console.log(response.data.paymentUrl);
 
             if (paymentUrl && response?.data?.address) {
                 toast.success('Đặt hàng thành công! Chuyển hướng đến thanh toán...');

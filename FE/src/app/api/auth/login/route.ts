@@ -22,21 +22,35 @@ export async function POST(request: NextRequest) {
 
     if (response.data?.token) {
 
-      const maxAgeInSeconds = Math.floor(response.data.expiresIn / 1000);
+      // Use expiresIn if available, otherwise default to 7 days
+      const expiresIn = response.data.expiresIn || 7 * 24 * 60 * 60 * 1000;
+      const maxAgeInSeconds = Math.floor(expiresIn / 1000);
 
       responseData.cookies.set('token', response.data.token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
+        path: '/',
         maxAge: maxAgeInSeconds,
       });
 
 
       if (response.data.userInfo?.role) {
-        responseData.cookies.set('role', response.data.userInfo.role, {
+        const role = response.data.userInfo.role;
+
+        responseData.cookies.set('role', role, {
           httpOnly: false,
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'strict',
+          path: '/',
+          maxAge: maxAgeInSeconds,
+        });
+
+        responseData.cookies.set('userRole', role, {
+          httpOnly: false,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'strict',
+          path: '/',
           maxAge: maxAgeInSeconds,
         });
       }
