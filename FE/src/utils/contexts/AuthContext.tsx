@@ -10,6 +10,7 @@ interface AuthContextType {
     isLoading: boolean;
     logout: () => void;
     redirectAfterLogin: (userRole: string) => void;
+    refresh: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

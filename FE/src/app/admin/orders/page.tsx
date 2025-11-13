@@ -4,9 +4,10 @@ import { AdminGuard } from '@/components/guards';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ShoppingBag, FileText, Eye, CheckCircle, Clock, XCircle, CreditCard, Banknote } from 'lucide-react';
+import { OrderResponse, OrderStatus } from '@/apis/order.api';
 
 // Temporary empty array until API is implemented
-const MOCK_ORDERS: any[] = [];
+const MOCK_ORDERS: OrderResponse[] = [];
 
 export default function OrdersPage() {
     return (
@@ -42,7 +43,7 @@ export default function OrdersPage() {
                             <div className="relative">
                                 <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">Đang giao</p>
                                 <p className="text-4xl font-bold text-yellow-600">
-                                    {MOCK_ORDERS.filter(o => o.status === 'DELIVERING').length}
+                                    {MOCK_ORDERS.filter(o => o.orderStatus === OrderStatus.IN_DELIVERY).length}
                                 </p>
                             </div>
                         </Card>
@@ -51,7 +52,7 @@ export default function OrdersPage() {
                             <div className="relative">
                                 <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">Hoàn thành</p>
                                 <p className="text-4xl font-bold text-green-600">
-                                    {MOCK_ORDERS.filter(o => o.status === 'COMPLETED').length}
+                                    {MOCK_ORDERS.filter(o => o.orderStatus === OrderStatus.COMPLETED).length}
                                 </p>
                             </div>
                         </Card>
@@ -60,7 +61,7 @@ export default function OrdersPage() {
                             <div className="relative">
                                 <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">Tổng doanh thu</p>
                                 <p className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                                    {(MOCK_ORDERS.reduce((sum, o) => sum + o.amount, 0) / 1000000).toFixed(1)}M
+                                    {(MOCK_ORDERS.reduce((sum, o) => sum + o.subTotal, 0) / 1000000).toFixed(1)}M
                                 </p>
                             </div>
                         </Card>
@@ -93,31 +94,31 @@ export default function OrdersPage() {
                                             </td>
                                             <td className="px-6 py-5 whitespace-nowrap">
                                                 <div>
-                                                    <span className="text-sm font-medium text-gray-700">
+                                                    {/* <span className="text-sm font-medium text-gray-700">
                                                         {new Date(order.createdAt).toLocaleDateString('vi-VN')}
                                                     </span>
                                                     {order.isPickUp ? (
                                                         <p className="text-xs text-blue-600 font-semibold mt-1">Lấy tại quán</p>
                                                     ) : (
                                                         <p className="text-xs text-green-600 font-semibold mt-1">Giao hàng</p>
-                                                    )}
+                                                    )} */}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-5 whitespace-nowrap">
                                                 <div>
-                                                    <span className="text-sm font-bold text-gray-900">
+                                                    {/* <span className="text-sm font-bold text-gray-900">
                                                         {order.amount.toLocaleString()}đ
                                                     </span>
                                                     {order.discountValue > 0 && (
                                                         <p className="text-xs text-green-600 mt-1">
                                                             Giảm: {order.discountValue.toLocaleString()}đ
                                                         </p>
-                                                    )}
+                                                    )} */}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-5 whitespace-nowrap">
                                                 <span className="flex items-center gap-2 text-sm font-semibold">
-                                                    {order.paymentMethod === 'VNPAY' ? (
+                                                    {/* {order.paymentMethod === 'VNPAY' ? (
                                                         <>
                                                             <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                                                                 <CreditCard size={16} className="text-blue-600" strokeWidth={2.5} />
@@ -131,18 +132,18 @@ export default function OrdersPage() {
                                                             </div>
                                                             <span className="text-green-700">{order.paymentMethod}</span>
                                                         </>
-                                                    )}
+                                                    )} */}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-5 whitespace-nowrap">
-                                                <span className={`inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl border-2 ${order.status === 'COMPLETED' ? 'bg-green-50 text-green-700 border-green-200' :
+                                                {/* <span className={`inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl border-2 ${order.status === 'COMPLETED' ? 'bg-green-50 text-green-700 border-green-200' :
                                                     order.status === 'PENDING' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
                                                         'bg-red-50 text-red-700 border-red-200'
                                                     }`}>
                                                     {order.status === 'COMPLETED' ? <CheckCircle size={14} strokeWidth={2.5} /> :
                                                         order.status === 'PENDING' ? <Clock size={14} strokeWidth={2.5} /> : <XCircle size={14} strokeWidth={2.5} />}
                                                     {order.status}
-                                                </span>
+                                                </span> */}
                                             </td>
                                             <td className="px-6 py-5 whitespace-nowrap text-center">
                                                 <Button

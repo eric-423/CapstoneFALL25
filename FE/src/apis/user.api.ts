@@ -256,3 +256,33 @@ export const getCustomerInformation = async (userId: number) => {
 
 export const loginEmployee = (data: { email: string; password: string }) =>
   http.post('/auth/employee/login', data);
+
+
+
+export const loginEmployeeViaApiRoute = async (data: { email: string; password: string }) => {
+  const response = await fetch('/api/auth/employee/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw {
+      response: {
+        data: errorData,
+        status: response.status,
+      },
+    };
+  }
+
+  const responseData = await response.json();
+
+  return {
+    status: response.status,
+    data: responseData,
+  };
+};

@@ -2,7 +2,7 @@
 
 import { GuestLayout } from '@/components/layouts/GuestLayout';
 import { Input } from '@/components/ui/input';
-import { loginEmployee } from '@/apis/user.api';
+import { loginEmployeeViaApiRoute } from '@/apis/user.api';
 import { useAuthContext } from '@/utils/contexts/AuthContext';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -45,10 +45,10 @@ export default function InsideLoginForm() {
         setLoading(true);
 
         try {
-            const response = await loginEmployee({ email, password });
 
-            // Kiểm tra response có token
-            if (response?.data?.token) {
+            const response = await loginEmployeeViaApiRoute({ email, password });
+            if (response.status === 200 && response.data?.token) {
+
                 if (rememberMe) {
                     localStorage.setItem('insideRememberedEmail', email);
                     localStorage.setItem('insideRememberMe', 'true');
@@ -57,42 +57,14 @@ export default function InsideLoginForm() {
                     localStorage.setItem('insideRememberMe', 'false');
                 }
 
-                const token = response.data.token;
-                const decoded = JSON.parse(atob(token.split('.')[1]));
+                localStorage.setItem('token', response.data.token);
 
-                toast.success('Đăng nhập nội bộ thành công!');
+                const role = response.data.userInfo?.role;
 
-                // Redirect trực tiếp theo role
-                const role = decoded.role.toUpperCase();
-                let redirectUrl = '/';
+                redirectAfterLogin(role);
 
-                switch (role) {
-                    case 'ADMIN':
-                        redirectUrl = '/admin/dashboard';
-                        break;
-                    case 'MANAGER':
-                    case 'BRANCH_MANAGER':
-                        redirectUrl = '/manager/dashboard';
-                        break;
-                    case 'CHEF':
-                        redirectUrl = '/chef/dashboard';
-                        break;
-                    case 'WAITER':
-                        redirectUrl = '/waiter/dashboard';
-                        break;
-                    case 'SHIPPER':
-                        redirectUrl = '/shipper/dashboard';
-                        break;
-                    default:
-                        redirectUrl = '/';
-                }
-
-                // Sử dụng window.location để đảm bảo redirect
-                window.location.href = redirectUrl;
-            } else {
-                // Trường hợp response không có token
-                toast.error('Đăng nhập thất bại. Vui lòng thử lại.');
             }
+
         } catch (error: unknown) {
             const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Email hoặc mật khẩu không đúng';
 
@@ -203,7 +175,7 @@ export default function InsideLoginForm() {
 
                             <div className="flex items-center justify-between text-sm">
                                 <label className="inline-flex items-center gap-2 text-slate-600">
-                                    <input
+                                    <Input
                                         type="checkbox"
                                         checked={rememberMe}
                                         onChange={(e) => setRememberMe(e.target.checked)}

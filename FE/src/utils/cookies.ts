@@ -5,7 +5,9 @@ import { Cookies } from 'react-cookie';
 const cookies = new Cookies(null, { path: '/' });
 
 export const getCookie = (name: string) => {
-  return cookies.get(name);
+  const cookie = cookies.get(name);
+  console.log('cookie', cookie);
+  return cookie;
 };
 
 export const setCookie = (name: string, value: string, expires?: Date) => {
@@ -16,9 +18,9 @@ export const removeCookie = (name: string) => {
   cookies.remove(name);
 };
 
-// Token (main authentication token)
 export const getToken = () => {
-  return getCookie('token');
+  const token = getCookie('token');
+  return token;
 };
 
 export const setToken = (token: string, expires?: Date) => {
