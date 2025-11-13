@@ -63,20 +63,20 @@ public class SecurityConfig {
                         .hasAnyRole("ADMIN", "MANAGER")
 
                         .requestMatchers(HttpMethod.GET, "/api/warehouses")
-                        .hasAnyRole("MANAGER", "ADMIN", "CHEF", "WAITER")
+                        .hasAnyRole("MANAGER", "ADMIN", "CHEFF", "WAITER")
                         .requestMatchers(HttpMethod.GET, "/api/warehouses/{id}")
-                        .hasAnyRole("MANAGER", "ADMIN", "CHEF", "WAITER")
+                        .hasAnyRole("MANAGER", "ADMIN", "CHEFF", "WAITER")
                         .requestMatchers(HttpMethod.GET, "/api/warehouses/{id}/materials")
-                        .hasAnyRole("MANAGER", "ADMIN", "CHEF", "WAITER")
+                        .hasAnyRole("MANAGER", "ADMIN", "CHEFF", "WAITER")
                         .requestMatchers(HttpMethod.POST, "/api/warehouses").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(HttpMethod.PUT, "/api/warehouses/{id}").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(HttpMethod.POST, "/api/warehouses/{id}/materials")
-                        .hasAnyRole("ADMIN", "MANAGER", "CHEF")
+                        .hasAnyRole("ADMIN", "MANAGER", "CHEFF")
 
                         .requestMatchers(HttpMethod.GET, "/api/material-types")
-                        .hasAnyRole("MANAGER", "ADMIN", "CHEF", "WAITER")
+                        .hasAnyRole("MANAGER", "ADMIN", "CHEFF", "WAITER")
                         .requestMatchers(HttpMethod.GET, "/api/material-types/{id}")
-                        .hasAnyRole("MANAGER", "ADMIN", "CHEF", "WAITER")
+                        .hasAnyRole("MANAGER", "ADMIN", "CHEFF", "WAITER")
                         .requestMatchers(HttpMethod.POST, "/api/material-types").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(HttpMethod.PUT, "/api/material-types/{id}").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(HttpMethod.DELETE, "/api/material-types/{id}").hasAnyRole("ADMIN", "MANAGER")
@@ -121,13 +121,13 @@ public class SecurityConfig {
                         .requestMatchers("/api/orders/waiter/**").hasRole("WAITER")
                         .requestMatchers("/api/table/**").hasAnyRole("WAITER", "MANAGER", "ADMIN")
 
-                        .requestMatchers("/api/orders/cheff/**").hasRole("CHEF")
+                        .requestMatchers("/api/orders/cheff/**").hasRole("CHEFF")
 
                         .requestMatchers("/api/orders/shipper/**").hasRole("SHIPPER")
                         .requestMatchers("/api/shipper/orders/*/location").hasRole("SHIPPER")
 
                         .requestMatchers("/api/orders/branch/**")
-                        .hasAnyRole("MANAGER", "ADMIN", "WAITER", "CHEF", "SHIPPER")
+                        .hasAnyRole("MANAGER", "ADMIN", "WAITER", "CHEFF", "SHIPPER")
                         .requestMatchers("/api/orders/statuses").permitAll()
 
                         .requestMatchers("/api/orders/customer/pickup").hasAnyRole("CUSTOMER", "STAFF")
