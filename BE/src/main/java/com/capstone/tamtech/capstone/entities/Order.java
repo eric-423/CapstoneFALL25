@@ -96,6 +96,9 @@ public class Order {
     @Column(name = "location_updated_at")
     private Date locationUpdatedAt;
 
+    @Column(name = "bill_pdf_url", length = 1000)
+    private String billPdfUrl;
+
     @ManyToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH })
     @JoinColumn(name = "customer_id")
     private Users customer;
