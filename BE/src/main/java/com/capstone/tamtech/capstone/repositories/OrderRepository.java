@@ -23,5 +23,5 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
 
     List<Order> findByBranch_IdAndStatus_NameOrderByCreatedAtDesc(int id, String name);
 
-
+    boolean existsByStatus_Id(int statusId);
 }
