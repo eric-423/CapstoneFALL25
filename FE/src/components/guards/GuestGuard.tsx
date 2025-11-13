@@ -51,7 +51,7 @@ export function GuestGuard({
                     case 'MANAGER':
                         defaultRedirect = '/manager';
                         break;
-                    case 'CHEF':
+                    case 'CHEFF':
                         defaultRedirect = '/chef';
                         break;
                     case 'WAITER':

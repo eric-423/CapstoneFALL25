@@ -22,6 +22,26 @@ const useAuth = () => {
   const router = useRouter();
   const [authState, setAuthState] = useState<AuthState>(initialState);
 
+  const getRoleBasedRoute = useCallback((role: string): string => {
+    switch (role.toUpperCase()) {
+      case 'ADMIN':
+        return '/admin';
+      case 'MANAGER':
+      case 'BRANCH_MANAGER':
+        return '/admin';
+      case 'CHEFF':
+        return '/chef';
+      case 'WAITER':
+        return '/waiter';
+      case 'SHIPPER':
+        return '/shipper';
+      case 'CUSTOMER':
+        return '/';
+      default:
+        return '/';
+    }
+  }, []);
+
   const fetchCurrentUser = useCallback(async () => {
     try {
       const response = await fetch('/api/auth/me', {
@@ -69,6 +89,57 @@ const useAuth = () => {
   useEffect(() => {
     fetchCurrentUser();
   }, [fetchCurrentUser]);
+
+  useEffect(() => {
+    if (!authState.isInitialized || !authState.isAuthenticated || !authState.user) {
+      return;
+    }
+
+    const currentPath = window.location.pathname;
+    const userRole = authState.user.role?.toUpperCase();
+    const expectedRoute = getRoleBasedRoute(userRole);
+
+    if (!userRole || !expectedRoute) {
+      return;
+    }
+
+    const publicRoutes = ['/login', '/register', '/about', '/menu'];
+    const allowedRoutes = [
+      '/profile',
+      '/checkout',
+      '/payment-success',
+      '/payment-failed',
+      '/order-table',
+      '/my-orders',
+    ];
+
+    const roleBasedRoutes: Record<string, string[]> = {
+      'ADMIN': ['/admin'],
+      'MANAGER': ['/admin', '/manager'],
+      'BRANCH_MANAGER': ['/admin', '/manager'],
+      'CHEFF': ['/chef'],
+      'WAITER': ['/waiter'],
+      'SHIPPER': ['/shipper'],
+      'CUSTOMER': ['/'],
+    };
+
+    const isPublicRoute = publicRoutes.some(route => currentPath === route || currentPath.startsWith(route));
+    const isAllowedRoute = allowedRoutes.some(route => currentPath.startsWith(route));
+    const roleRoutes = roleBasedRoutes[userRole] || [];
+    const isRoleRoute = roleRoutes.some(route => currentPath.startsWith(route));
+
+    if (isPublicRoute || isAllowedRoute || isRoleRoute) {
+      return;
+    }
+
+    if (currentPath !== expectedRoute && !currentPath.startsWith(expectedRoute)) {
+      const timer = setTimeout(() => {
+        router.replace(expectedRoute);
+      }, 100);
+
+      return () => clearTimeout(timer);
+    }
+  }, [authState.isInitialized, authState.isAuthenticated, authState.user, getRoleBasedRoute, router]);
 
   const logout = useCallback(async () => {
     // Lưu role hiện tại trước khi reset state để xác định redirect path
@@ -168,7 +239,7 @@ const useAuth = () => {
           router.push('/admin');
 
           break;
-        case 'CHEF':
+        case 'CHEFF':
           router.push('/chef');
           break;
         case 'WAITER':

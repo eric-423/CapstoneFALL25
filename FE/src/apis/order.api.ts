@@ -254,6 +254,7 @@ export const getBranchOrders = async (status?: string): Promise<BranchOrdersApiR
 
     const data = await response.json();
     return data;
+
   } catch (error) {
     console.error('getBranchOrders error:', error);
     throw error;
@@ -286,6 +287,98 @@ export const assignChefToOrder = async (orderId: number): Promise<AssignChefResp
     return { success: data === true || data === 'true' || data.success === true };
   } catch (error) {
     console.error('assignChefToOrder error:', error);
+    throw error;
+  }
+};
+
+export const getChefOrders = async (chefId: number, status?: string): Promise<BranchOrdersApiResponse> => {
+  try {
+    const params = status ? `?status=${status}` : '';
+    const response = await fetch(`/api/orders/cheff/view/${chefId}${params}`, {
+      method: 'GET',
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
+      const error = new Error(`Failed to fetch chef orders: ${response.status} ${response.statusText}`);
+      (error as Error & { response?: { data: unknown; status: number } }).response = {
+        data: errorBody,
+        status: response.status,
+      };
+      throw error;
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('getChefOrders error:', error);
+    throw error;
+  }
+};
+
+export interface MarkOrderAsCookedResponse {
+  success: boolean;
+  message?: string;
+}
+
+export const markOrderAsCooked = async (orderId: number): Promise<MarkOrderAsCookedResponse> => {
+  try {
+    const response = await fetch(`/api/orders/cheff/cooked/${orderId}`, {
+      method: 'PUT',
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
+      const error = new Error(`Failed to mark order as cooked: ${response.status} ${response.statusText}`);
+      (error as Error & { response?: { data: unknown; status: number } }).response = {
+        data: errorBody,
+        status: response.status,
+      };
+      throw error;
+    }
+
+    const data = await response.json();
+    return {
+      success: data === true || data === 'true' || data.success === true || response.ok,
+      message: data.message || 'Đã đánh dấu đơn hàng là đã nấu xong'
+    };
+  } catch (error) {
+    console.error('markOrderAsCooked error:', error);
+    throw error;
+  }
+};
+
+export interface AssignShipperResponse {
+  success: boolean;
+  message?: string;
+}
+
+export const assignShipperToOrder = async (orderId: number): Promise<AssignShipperResponse> => {
+  try {
+    const response = await fetch(`/api/orders/manager/assign/shipper/${orderId}`, {
+      method: 'PUT',
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
+      const error = new Error(`Failed to assign shipper: ${response.status} ${response.statusText}`);
+      (error as Error & { response?: { data: unknown; status: number } }).response = {
+        data: errorBody,
+        status: response.status,
+      };
+      throw error;
+    }
+
+    const data = await response.json();
+    return {
+      success: data === true || data === 'true' || data.success === true || response.ok,
+      message: data.message || 'Đã assign shipper thành công'
+    };
+  } catch (error) {
+    console.error('assignShipperToOrder error:', error);
     throw error;
   }
 };

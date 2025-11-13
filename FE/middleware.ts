@@ -6,6 +6,7 @@ const protectedRoutes = [
     '/profile',
     '/admin',
     '/manager',
+    '/chef',
     '/checkout',
     '/my-orders',
     '/payment-success',
@@ -18,6 +19,10 @@ const adminRoutes = [
 
 const managerRoutes = [
     '/manager'
+];
+
+const chefRoutes = [
+    '/chef'
 ];
 
 const guestOnlyRoutes = [
@@ -80,9 +85,14 @@ export async function middleware(request: NextRequest) {
 
     // Redirect authenticated users away from guest-only routes
     if (isAuthenticated && guestOnlyRoutes.some(route => pathname.startsWith(route))) {
-        const dashboardUrl = payload?.role === 'ADMIN' ? '/admin' :
-            // payload?.role === 'MANAGER' ? '/manager' : '/';
-            payload?.role === 'MANAGER' ? '/admin' : '/';
+        let dashboardUrl = '/';
+        if (payload?.role === 'ADMIN') {
+            dashboardUrl = '/admin';
+        } else if (payload?.role === 'MANAGER') {
+            dashboardUrl = '/admin';
+        } else if (payload?.role === 'CHEFF') {
+            dashboardUrl = '/chef';
+        }
 
         return NextResponse.redirect(new URL(dashboardUrl, request.url));
     }
@@ -107,6 +117,12 @@ export async function middleware(request: NextRequest) {
         // Manager routes - admin and manager can access
         if (managerRoutes.some(route => pathname.startsWith(route)) &&
             !['ADMIN', 'MANAGER', 'Admin', 'Manager'].includes(payload.role || userRole || '')) {
+            return NextResponse.redirect(new URL('/403', request.url));
+        }
+
+        // Chef routes - only cheff can access
+        if (chefRoutes.some(route => pathname.startsWith(route)) &&
+            !['CHEFF', 'Cheff'].includes(payload.role || userRole || '')) {
             return NextResponse.redirect(new URL('/403', request.url));
         }
     }

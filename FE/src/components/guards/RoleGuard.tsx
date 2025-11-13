@@ -81,3 +81,14 @@ export function CustomerGuard({ children }: { children: React.ReactNode }) {
         </RoleGuard>
     );
 }
+
+/**
+ * ChefGuard - Chỉ cho phép CHEFF
+ */
+export function ChefGuard({ children }: { children: React.ReactNode }) {
+    return (
+        <RoleGuard allowedRoles={['CHEFF']}>
+            {children}
+        </RoleGuard>
+    );
+}
