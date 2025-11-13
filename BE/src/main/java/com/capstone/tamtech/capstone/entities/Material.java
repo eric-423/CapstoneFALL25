@@ -12,25 +12,34 @@ import java.util.List;
 @NoArgsConstructor
 public class Material {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "material_id")
-    private int id;
-    @Column(name = "material_name")
-    private String name;
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        @Column(name = "material_id")
+        private int id;
+        @Column(name = "material_name")
+        private String name;
 
-    @Column(name = "is_deleted")
-    private Boolean isDeleted = false;
+        @Column(name = "calories_per_unit")
+        private Double caloriesPerUnit;
 
-    @ManyToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH })
-    @JoinColumn(name = "material_type_id")
-    private MaterialType materialType;
+        @Column(name = "unit", length = 20)
+        private String unit;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE,
-            CascadeType.REFRESH }, mappedBy = "material")
-    private List<ProductRecipes> productRecipes;
+        @Column(name = "threshold")
+        private Double threshold;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE,
-            CascadeType.REFRESH }, mappedBy = "material")
-    private List<MaterialWarehouse> materialWarehouses;
+        @Column(name = "is_deleted")
+        private Boolean isDeleted = false;
+
+        @ManyToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH })
+        @JoinColumn(name = "material_type_id")
+        private MaterialType materialType;
+
+        @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE,
+                        CascadeType.REFRESH }, mappedBy = "material")
+        private List<ProductRecipes> productRecipes;
+
+        @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE,
+                        CascadeType.REFRESH }, mappedBy = "material")
+        private List<MaterialWarehouse> materialWarehouses;
 }

@@ -62,6 +62,13 @@ public class OrderController {
         return new ResponseEntity<>(responseData, HttpStatus.CREATED);
     }
 
+    @GetMapping("{orderId}")
+    public ResponseEntity<?> getOrderById(@PathVariable int orderId) {
+        ResponseData responseData = new ResponseData();
+        responseData.setData(orderService.getOrderById(orderId));
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
+
     @PutMapping("/dining-table/update/{orderId}")
     public ResponseEntity<?> updateDiningTableOrder(@RequestBody DiningTableProductRequest diningTableProductRequest,
             @PathVariable int orderId) throws BadRequestException {
@@ -106,6 +113,14 @@ public class OrderController {
         boolean result = orderService.assignOrderToCheff(orderId);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
+
+    @GetMapping("/cheff/view/{chefId}")
+    public ResponseEntity<?> getOrdersByChefId(@PathVariable int chefId, @RequestParam String status) {
+        ResponseData responseData = new ResponseData();
+        responseData.setData(orderService.getOrdersByChefId(chefId, status));
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
+
 
     @PutMapping("/cheff/cooked/{orderId}")
     public ResponseEntity<?> markAsCooked(@PathVariable int orderId) {
@@ -166,14 +181,6 @@ public class OrderController {
     public ResponseEntity<?> customerPickupOrder(@PathVariable int orderId) {
         ResponseData responseData = new ResponseData();
         responseData.setData(orderService.customerPickedUpOrder(orderId));
-        return new ResponseEntity<>(responseData, HttpStatus.OK);
-    }
-
-    @GetMapping("/test/order/{orderId}")
-    public ResponseEntity<?> testOrder(@PathVariable int orderId) {
-        ResponseData responseData = new ResponseData();
-        orderService.markOrderPaidSuccess(orderId);
-        responseData.setData(orderId);
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
 

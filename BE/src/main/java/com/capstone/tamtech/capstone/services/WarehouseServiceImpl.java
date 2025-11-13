@@ -66,6 +66,9 @@ public class WarehouseServiceImpl implements WarehouseService {
             if (mw.getMaterial() != null) {
                 dto.setMaterialId(mw.getMaterial().getId());
                 dto.setMaterialName(mw.getMaterial().getName());
+                dto.setCaloriesPerUnit(mw.getMaterial().getCaloriesPerUnit());
+                dto.setUnit(mw.getMaterial().getUnit());
+                dto.setThreshold(mw.getMaterial().getThreshold());
                 if (mw.getMaterial().getMaterialType() != null) {
                     dto.setMaterialTypeName(mw.getMaterial().getMaterialType().getName());
                 }
@@ -148,6 +151,9 @@ public class WarehouseServiceImpl implements WarehouseService {
             dto.setWarehouseAddress(warehouse.getAddress());
             dto.setMaterialId(material.getId());
             dto.setMaterialName(material.getName());
+            dto.setCaloriesPerUnit(material.getCaloriesPerUnit());
+            dto.setUnit(material.getUnit());
+            dto.setThreshold(material.getThreshold());
             if (material.getMaterialType() != null) {
                 dto.setMaterialTypeName(material.getMaterialType().getName());
             }

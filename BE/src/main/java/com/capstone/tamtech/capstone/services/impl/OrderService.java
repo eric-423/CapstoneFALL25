@@ -47,4 +47,8 @@ public interface OrderService {
     List<OrderListDTO> getCustomerOrders(int customerId, String status);
 
     List<OrderListDTO> getBranchOrders(int branchId, String status);
+
+    OrderDTO getOrderById(int orderId);
+
+    List<OrderListDTO> getOrdersByChefId(int chefId, String status);
 }
