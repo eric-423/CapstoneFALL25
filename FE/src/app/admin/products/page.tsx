@@ -3,8 +3,10 @@
 import { AdminGuard } from '@/components/guards';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { MOCK_PRODUCTS } from '@/utils/mocks/data/products.mock';
 import { UtensilsCrossed, Plus, Edit, Trash2, CheckCircle, XCircle } from 'lucide-react';
+
+// Temporary empty array until API is implemented
+const MOCK_PRODUCTS: any[] = [];
 
 export default function ProductsPage() {
     return (

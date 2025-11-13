@@ -1,10 +1,13 @@
 package com.capstone.tamtech.capstone.controllers;
 
+import com.capstone.tamtech.capstone.dto.OrderListDTO;
+import com.capstone.tamtech.capstone.entities.Users;
 import com.capstone.tamtech.capstone.payload.ResponseData;
 import com.capstone.tamtech.capstone.payload.request.DiningTablePaymentRequest;
 import com.capstone.tamtech.capstone.payload.request.DiningTableProductRequest;
 import com.capstone.tamtech.capstone.payload.request.OrderRequest;
 import com.capstone.tamtech.capstone.payload.request.WaiterConfirmOrderRequest;
+import com.capstone.tamtech.capstone.repositories.UsersRepository;
 import com.capstone.tamtech.capstone.services.impl.OrderService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -15,11 +18,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import vn.payos.PayOS;
 import vn.payos.model.webhooks.WebhookData;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -40,15 +45,15 @@ public class OrderController {
     @Value("${PAYOS_CHECKSUM_KEY}")
     private String checksumKey;
 
+    @Autowired
+    private UsersRepository usersRepository;
+
     @PostMapping
     public ResponseEntity<?> createOrder(@RequestBody OrderRequest orderRequest) throws BadRequestException {
 
         ResponseData responseData = new ResponseData();
         if (orderRequest.getMode().toUpperCase().equals("SHIPPING")) {
-            HashMap<String, Object> value = new HashMap<>();
             responseData.setData(orderService.createOrderForShipping(orderRequest));
-        } else if (orderRequest.getMode().toUpperCase().equals("DINING")) {
-            responseData.setData(orderService.createOrderForDining(orderRequest));
         } else if (orderRequest.getMode().toUpperCase().equals("PICKUP")) {
             responseData.setData(orderService.createOrderForPickup(orderRequest));
         }
@@ -169,6 +174,104 @@ public class OrderController {
         orderService.markOrderPaidSuccess(orderId);
         responseData.setData(orderId);
         return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
+
+    /**
+     * Customer endpoint - Get orders of the authenticated customer
+     * GET /api/orders/customer/my-orders?status=CREATED
+     *
+     * @param status Optional order status filter (CREATED, IN_PROCESS, DELIVERING, COMPLETED, CANCELLED, PAID, etc.)
+     *               Use "ALL" or omit to get all orders
+     * @param authentication Spring Security authentication object
+     * @return List of customer's orders
+     */
+    @GetMapping("/customer/my-orders")
+    public ResponseEntity<?> getCustomerOrders(
+            @RequestParam(required = false) String status,
+            Authentication authentication) {
+        try {
+            String email = authentication.getName();
+            Users customer = usersRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+            List<OrderListDTO> orders = orderService.getCustomerOrders(customer.getId(), status);
+
+            ResponseData responseData = new ResponseData();
+            responseData.setData(orders);
+            responseData.setDesc("Retrieved " + orders.size() + " order(s) successfully");
+            return new ResponseEntity<>(responseData, HttpStatus.OK);
+        } catch (Exception e) {
+            ResponseData responseData = new ResponseData();
+            responseData.setDesc("Error: " + e.getMessage());
+            return new ResponseEntity<>(responseData, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    /**
+     * Staff endpoint - Get orders of the branch where the staff works
+     * GET /api/orders/branch/my-branch?status=IN_PROCESS
+     *
+     * Available for: MANAGER, WAITER, CHEF, SHIPPER (any internal role)
+     *
+     * @param status Optional order status filter
+     * @param authentication Spring Security authentication object
+     * @return List of branch's orders
+     */
+    @GetMapping("/branch/my-branch")
+    public ResponseEntity<?> getBranchOrders(
+            @RequestParam(required = false) String status,
+            Authentication authentication) {
+        try {
+            String email = authentication.getName();
+            Users user = usersRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            if (user.getRoleHistories().get(user.getRoleHistories().size()-1).getBranch() == null) {
+                ResponseData responseData = new ResponseData();
+                responseData.setDesc("User is not assigned to any branch");
+                return new ResponseEntity<>(responseData, HttpStatus.BAD_REQUEST);
+            }
+
+            int branchId = user.getRoleHistories().get(user.getRoleHistories().size()-1).getBranch().getId();
+            List<OrderListDTO> orders = orderService.getBranchOrders(branchId, status);
+
+            ResponseData responseData = new ResponseData();
+            responseData.setData(orders);
+            responseData.setDesc("Retrieved " + orders.size() + " order(s) from branch: " + user.getRoleHistories().get(user.getRoleHistories().size()-1).getBranch().getName());
+            return new ResponseEntity<>(responseData, HttpStatus.OK);
+        } catch (Exception e) {
+            ResponseData responseData = new ResponseData();
+            responseData.setDesc("Error: " + e.getMessage());
+            return new ResponseEntity<>(responseData, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    /**
+     * Get order statuses (helper endpoint for frontend)
+     * GET /api/orders/statuses
+     */
+    @GetMapping("/statuses")
+    public ResponseEntity<?> getOrderStatuses() {
+        try {
+            List<String> statuses = List.of(
+                    "ALL",
+                    "CREATED",
+                    "IN_PROCESS",
+                    "DELIVERING",
+                    "COMPLETED",
+                    "CANCELLED",
+                    "PAID"
+            );
+
+            ResponseData responseData = new ResponseData();
+            responseData.setData(statuses);
+            responseData.setDesc("Available order statuses");
+            return new ResponseEntity<>(responseData, HttpStatus.OK);
+        } catch (Exception e) {
+            ResponseData responseData = new ResponseData();
+            responseData.setDesc("Error: " + e.getMessage());
+            return new ResponseEntity<>(responseData, HttpStatus.BAD_REQUEST);
+        }
     }
 
 }

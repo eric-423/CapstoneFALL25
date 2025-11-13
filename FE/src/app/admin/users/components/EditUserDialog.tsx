@@ -11,6 +11,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Edit, Mail, Phone, Calendar, Lock, Building2, Shield, User, Briefcase, ChefHat, Users as UsersIcon } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { getBranches, type Branch } from '@/apis/branch.api';
 
 interface User {
     id: number;
@@ -49,15 +50,9 @@ const ROLE_OPTIONS = [
     { value: 'CUSTOMER', label: 'Khách hàng', icon: UsersIcon, color: 'from-green-500 to-green-600' },
 ];
 
-const MOCK_BRANCHES = [
-    { id: 1, name: 'Chi nhánh Quận 1' },
-    { id: 2, name: 'Chi nhánh Quận 3' },
-    { id: 3, name: 'Chi nhánh Quận 5' },
-    { id: 4, name: 'Chi nhánh Thủ Đức' },
-];
-
 export function EditUserDialog({ user, open, onOpenChange }: EditUserDialogProps) {
     const [isLoading, setIsLoading] = useState(false);
+    const [branches, setBranches] = useState<Branch[]>([]);
     const [formData, setFormData] = useState<UserFormData>({
         fullName: user.fullName,
         email: user.email,
@@ -70,6 +65,15 @@ export function EditUserDialog({ user, open, onOpenChange }: EditUserDialogProps
 
     const [errors, setErrors] = useState<Partial<UserFormData>>({});
     const [changePassword, setChangePassword] = useState(false);
+
+    // Fetch branches when dialog opens
+    useEffect(() => {
+        if (open) {
+            getBranches()
+                .then(data => setBranches(data))
+                .catch(err => console.error('Error fetching branches:', err));
+        }
+    }, [open]);
 
     // Update form data when user prop changes
     useEffect(() => {
@@ -337,7 +341,7 @@ export function EditUserDialog({ user, open, onOpenChange }: EditUserDialogProps
                                     } focus:border-orange-500 focus:ring-orange-500/20 focus:ring-4 outline-none transition-all bg-white text-gray-900 font-medium`}
                             >
                                 <option value="" className="text-gray-900">Chọn chi nhánh</option>
-                                {MOCK_BRANCHES.map((branch) => (
+                                {branches.map((branch) => (
                                     <option key={branch.id} value={branch.name} className="text-gray-900">
                                         {branch.name}
                                     </option>

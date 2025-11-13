@@ -1,19 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
-import http from '@/utils/http';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const page = searchParams.get('page') || '0';
-    const size = searchParams.get('size') || '100';
-    const typeId = searchParams.get('typeId') || '0';
 
-    // Forward to external API
-    const response = await http.get('/products', {
-      params: { page, size, typeId },
+    // Build query params
+    const params = new URLSearchParams();
+    searchParams.forEach((value, key) => {
+      params.append(key, value);
     });
 
-    return NextResponse.json(response.data);
+    // Forward to external API (public endpoint, no auth required)
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/products?${params.toString()}`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch products');
+    }
+
+    const data = await response.json();
+    return NextResponse.json(data);
   } catch (error) {
     console.error('Products API Error:', error);
     return NextResponse.json(

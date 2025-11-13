@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -12,6 +12,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { UserPlus, Mail, Phone, Calendar, Lock, Building2, Shield, Briefcase, ChefHat, Users as UsersIcon } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { getBranches, type Branch } from '@/apis/branch.api';
 
 interface UserFormData {
     fullName: string;
@@ -30,16 +31,10 @@ const ROLE_OPTIONS = [
     { value: 'CUSTOMER', label: 'Khách hàng', icon: UsersIcon, color: 'from-green-500 to-green-600' },
 ];
 
-const MOCK_BRANCHES = [
-    { id: 1, name: 'Chi nhánh Quận 1' },
-    { id: 2, name: 'Chi nhánh Quận 3' },
-    { id: 3, name: 'Chi nhánh Quận 5' },
-    { id: 4, name: 'Chi nhánh Thủ Đức' },
-];
-
 export function AddUserDialog() {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [branches, setBranches] = useState<Branch[]>([]);
     const [formData, setFormData] = useState<UserFormData>({
         fullName: '',
         email: '',
@@ -51,6 +46,15 @@ export function AddUserDialog() {
     });
 
     const [errors, setErrors] = useState<Partial<UserFormData>>({});
+
+    // Fetch branches when dialog opens
+    useEffect(() => {
+        if (open) {
+            getBranches()
+                .then(data => setBranches(data))
+                .catch(err => console.error('Error fetching branches:', err));
+        }
+    }, [open]);
 
     const validateForm = () => {
         const newErrors: Partial<UserFormData> = {};
@@ -274,7 +278,7 @@ export function AddUserDialog() {
                                 } focus:border-orange-500 focus:ring-orange-500/20 focus:ring-4 outline-none transition-all bg-white text-gray-900 font-medium`}
                         >
                             <option value="" className="text-gray-900">Chọn chi nhánh</option>
-                            {MOCK_BRANCHES.map((branch) => (
+                            {branches.map((branch) => (
                                 <option key={branch.id} value={branch.name} className="text-gray-900">
                                     {branch.name}
                                 </option>

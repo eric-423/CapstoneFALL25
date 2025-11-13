@@ -11,9 +11,24 @@ import { RecentRecipesCards } from './components/RecentRecipesCards';
 import { TrainingStatusCard } from './components/TrainingStatusCard';
 import { AlertsPanel } from './components/AlertsPanel';
 import { ActivitiesTimeline } from './components/ActivitiesTimeline';
-import { ScopeInfoBanner } from './components/ScopeInfoBanner';
 import { useAdminContext } from '@/utils/contexts/AdminContext';
 import { useEffect, useState } from 'react';
+import {
+    getRevenueStatistics,
+    getOrderCountStatistics,
+    getNewCustomerStatistics,
+    getServiceTimeStatistics,
+    getRevenue7Days,
+    getTopMaterials,
+    getTopSellingItems,
+    type RevenueStatistics,
+    type OrderCountStatistics,
+    type NewCustomerStatistics,
+    type ServiceTimeStatistics,
+    type Revenue7Days as Revenue7DaysType,
+    type TopMaterials,
+    type TopSellingItems,
+} from '@/apis/statistics.api';
 import {
     kpiData,
     revenueData,
@@ -32,6 +47,15 @@ export default function DashboardPage() {
     const [isLoading, setIsLoading] = useState(false);
     const lowStockCount = lowStockAlertsData.length;
 
+    // Statistics state
+    const [revenueStats, setRevenueStats] = useState<RevenueStatistics | null>(null);
+    const [orderCountStats, setOrderCountStats] = useState<OrderCountStatistics | null>(null);
+    const [newCustomerStats, setNewCustomerStats] = useState<NewCustomerStatistics | null>(null);
+    const [serviceTimeStats, setServiceTimeStats] = useState<ServiceTimeStatistics | null>(null);
+    const [revenue7DaysData, setRevenue7DaysData] = useState<Revenue7DaysType | null>(null);
+    const [topMaterialsData, setTopMaterialsData] = useState<TopMaterials | null>(null);
+    const [topSellingData, setTopSellingData] = useState<TopSellingItems | null>(null);
+
     // Mock F&B KPIs - in real app, fetch from API based on branch/time filters
     const [operationalKPIs, setOperationalKPIs] = useState({
         avgServiceTime: 12.5, // minutes
@@ -46,22 +70,42 @@ export default function DashboardPage() {
     useEffect(() => {
         const fetchDashboardData = async () => {
             setIsLoading(true);
-            // TODO: Implement real API calls
-            // const data = await fetch(`/api/dashboard?branch=${selectedBranch?.id}&period=${timePeriod}`);
+            try {
+                const branchId = selectedBranch?.id ? parseInt(selectedBranch.id) : 1; // Default to branch 1 if none selected
+                const branchIdOrUndefined = selectedBranch?.id ? parseInt(selectedBranch.id) : undefined;
 
-            // Simulate API delay
-            await new Promise(resolve => setTimeout(resolve, 500));
+                // Fetch all statistics in parallel
+                const [revenue, orderCount, newCustomers, serviceTime, revenue7Days, topMaterials, topSelling] = await Promise.all([
+                    getRevenueStatistics(branchId),
+                    getOrderCountStatistics(branchId),
+                    getNewCustomerStatistics('DAILY'),
+                    getServiceTimeStatistics(branchId),
+                    getRevenue7Days(branchIdOrUndefined), // Pass undefined if no branch selected for total
+                    getTopMaterials(branchIdOrUndefined, 5),
+                    getTopSellingItems(branchIdOrUndefined, 5),
+                ]);
 
-            // Mock: adjust data based on branch/time
-            if (selectedBranch) {
-                setOperationalKPIs(prev => ({
-                    ...prev,
-                    avgServiceTime: prev.avgServiceTime * (Math.random() * 0.3 + 0.85),
-                    slaCompliance: Math.min(100, prev.slaCompliance * (Math.random() * 0.1 + 0.95)),
-                }));
+                setRevenueStats(revenue);
+                setOrderCountStats(orderCount);
+                setNewCustomerStats(newCustomers);
+                setServiceTimeStats(serviceTime);
+                setRevenue7DaysData(revenue7Days);
+                setTopMaterialsData(topMaterials);
+                setTopSellingData(topSelling);
+
+                // Update operational KPIs from service time stats
+                if (serviceTime) {
+                    setOperationalKPIs(prev => ({
+                        ...prev,
+                        avgServiceTime: serviceTime.averageServiceTimeMinutes,
+                        slaCompliance: serviceTime.averageServiceTimeMinutes < 15 ? 94.2 : 87.5,
+                    }));
+                }
+            } catch (error) {
+                console.error('Error fetching dashboard data:', error);
+            } finally {
+                setIsLoading(false);
             }
-
-            setIsLoading(false);
         };
 
         fetchDashboardData();
@@ -79,101 +123,99 @@ export default function DashboardPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-            <div className="max-w-[1600px] mx-auto space-y-8">
-                {/* Header */}
+            <div className="max-w-[1800px] mx-auto space-y-4">
+                {/* Header - Compact */}
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-4xl font-bold bg-gradient-to-r from-[#EC6426] to-[#F8A91F] bg-clip-text text-transparent mb-2">
+                        <h1 className="text-2xl font-bold bg-gradient-to-r from-[#EC6426] to-[#F8A91F] bg-clip-text text-transparent mb-1">
                             {selectedBranch ? selectedBranch.name : 'Tổng quan hệ thống'}
                         </h1>
-                        <p className="text-gray-600 text-lg">
-                            • {getTimePeriodLabel()}
-                            {isLoading && <span className="ml-2 text-sm text-orange-500">Đang tải...</span>}
+                        <p className="text-gray-600 text-sm">
+                            {getTimePeriodLabel()}
+                            {isLoading && <span className="ml-2 text-xs text-orange-500">Đang tải...</span>}
                         </p>
                     </div>
-                    <div className="text-sm text-gray-500">
-                        Cập nhật: {new Date().toLocaleString('vi-VN')}
+                    <div className="text-xs text-gray-500">
+                        {new Date().toLocaleString('vi-VN')}
                     </div>
                 </div>
 
-                {/* Scope Info Banner */}
-                <ScopeInfoBanner />
-
-                {/* ROW 1: KPI Overview (6 cards - 2 rows of 3) */}
+                {/* ROW 1: KPI Overview - Compact 6 cards in 1 row */}
                 <div>
-                    <div className="flex items-center gap-2 mb-4">
-                        <TrendingUp className="w-5 h-5 text-[#EC6426]" />
-                        <h2 className="text-xl font-semibold text-gray-800">Chỉ số hoạt động</h2>
+                    <div className="flex items-center gap-2 mb-2">
+                        <TrendingUp className="w-4 h-4 text-[#EC6426]" />
+                        <h2 className="text-base font-semibold text-gray-800">Chỉ số hoạt động</h2>
                     </div>
-                    {/* First row - 3 cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                         <DashboardCard
                             title="Doanh thu hôm nay"
-                            value={kpiData.revenueToday.value}
+                            value={revenueStats ? `${revenueStats.totalRevenue.toLocaleString('vi-VN')}đ` : kpiData.revenueToday.value}
                             icon={DollarSign}
                             trend={kpiData.revenueToday.trend}
-                            subtitle={kpiData.revenueToday.subtitle}
+                            subtitle={revenueStats ? `${revenueStats.totalOrders} đơn` : kpiData.revenueToday.subtitle}
                             isLoading={isLoading}
                         />
                         <DashboardCard
                             title="Tổng đơn hàng"
-                            value={kpiData.totalOrders.value}
+                            value={orderCountStats ? orderCountStats.totalOrders : kpiData.totalOrders.value}
                             icon={ShoppingCart}
                             trend={kpiData.totalOrders.trend}
-                            subtitle={kpiData.totalOrders.subtitle}
+                            subtitle={orderCountStats ? `${orderCountStats.shippingOrders + orderCountStats.pickupOrders + orderCountStats.diningOrders} đơn` : kpiData.totalOrders.subtitle}
                             isLoading={isLoading}
                         />
                         <DashboardCard
-                            title="Chi nhánh hoạt động"
+                            title="Chi nhánh"
                             value={kpiData.activeBranches.value}
                             icon={Store}
                             isLoading={isLoading}
                         />
-                    </div>
-                    {/* Second row - 3 cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <DashboardCard
                             title="Khách hàng mới"
-                            value={kpiData.newCustomers.value}
+                            value={newCustomerStats ? newCustomerStats.newCustomersToday : kpiData.newCustomers.value}
                             icon={Users}
-                            trend={kpiData.newCustomers.trend}
-                            subtitle={kpiData.newCustomers.subtitle}
+                            trend={newCustomerStats ? {
+                                value: Math.abs(newCustomerStats.percentageChange),
+                                isPositive: newCustomerStats.percentageChange >= 0
+                            } : kpiData.newCustomers.trend}
+                            subtitle={newCustomerStats ? `${newCustomerStats.difference > 0 ? '+' : ''}${newCustomerStats.difference}` : kpiData.newCustomers.subtitle}
                             isLoading={isLoading}
                         />
                         <DashboardCard
-                            title="Nguyên liệu sắp hết"
+                            title="Cảnh báo kho"
                             value={lowStockCount}
                             icon={AlertTriangle}
-                            subtitle="Cần nhập hàng"
+                            subtitle="Cần nhập"
                             isLoading={isLoading}
                         />
                         <DashboardCard
-                            title="Tỷ lệ hoàn thành"
+                            title="Đào tạo"
                             value={`${trainingStatsData.completionRate}%`}
                             icon={GraduationCap}
-                            subtitle="Đào tạo nhân viên"
+                            subtitle="Hoàn thành"
                             isLoading={isLoading}
                         />
                     </div>
                 </div>
 
-                {/* ROW 1.5: F&B Operational KPIs */}
+                {/* ROW 2: F&B Operational KPIs - Compact */}
                 <div>
-                    <div className="flex items-center gap-2 mb-4">
-                        <Zap className="w-5 h-5 text-[#EC6426]" />
-                        <h2 className="text-xl font-semibold text-gray-800">KPI Vận hành F&B</h2>
-                        <span className="ml-auto text-sm text-gray-500">Real-time monitoring</span>
+                    <div className="flex items-center gap-2 mb-2">
+                        <Zap className="w-4 h-4 text-[#EC6426]" />
+                        <h2 className="text-base font-semibold text-gray-800">KPI Vận hành</h2>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <DashboardCard
                             title="Thời gian phục vụ TB"
-                            value={`${operationalKPIs.avgServiceTime.toFixed(1)} phút`}
+                            value={serviceTimeStats ? `${serviceTimeStats.averageServiceTimeMinutes.toFixed(1)}p` : `${operationalKPIs.avgServiceTime.toFixed(1)}p`}
                             icon={Clock}
-                            trend={{
+                            trend={serviceTimeStats ? {
+                                value: Math.abs(serviceTimeStats.percentageChange),
+                                isPositive: serviceTimeStats.percentageChange <= 0
+                            } : {
                                 value: 2.1,
                                 isPositive: operationalKPIs.avgServiceTime < 15
                             }}
-                            subtitle={operationalKPIs.avgServiceTime < 15 ? 'Trong mục tiêu' : 'Cần cải thiện'}
+                            subtitle={serviceTimeStats ? `${serviceTimeStats.totalOrdersProcessed} đơn` : (operationalKPIs.avgServiceTime < 15 ? 'Đạt chuẩn' : 'Cải thiện')}
                             isLoading={isLoading}
                         />
                         <DashboardCard
@@ -191,54 +233,60 @@ export default function DashboardPage() {
                             title="Cảnh báo ưu tiên"
                             value={operationalKPIs.criticalAlerts}
                             icon={AlertTriangle}
-                            subtitle="Cần xử lý ngay"
+                            subtitle="Xử lý ngay"
                             isLoading={isLoading}
                         />
                     </div>
                 </div>
 
-                {/* ROW 2: Analytics Charts */}
+                {/* ROW 3: Analytics Charts - 2x2 Grid */}
                 <div>
-                    <div className="flex items-center gap-2 mb-4">
-                        <Package className="w-5 h-5 text-[#EC6426]" />
-                        <h2 className="text-xl font-semibold text-gray-800">Phân tích bếp & Doanh thu</h2>
+                    <div className="flex items-center gap-2 mb-2">
+                        <Package className="w-4 h-4 text-[#EC6426]" />
+                        <h2 className="text-base font-semibold text-gray-800">Phân tích</h2>
                     </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                        <RevenueChart data={revenueData} />
-                        <IngredientUsageChart data={ingredientUsageData} />
-                    </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                        <RevenueChart data={revenue7DaysData ?
+                            revenue7DaysData.dailyRevenues.map((item) => ({
+                                date: item.date,
+                                revenue: item.revenue
+                            }))
+                            : revenueData}
+                        />
                         <TopDishesChart data={topDishesData} />
+                        <IngredientUsageChart data={ingredientUsageData} />
                         <SupplierDistributionChart data={supplierDistributionData} />
                     </div>
                 </div>
 
-                {/* ROW 3: Recipe & Training Overview */}
-                <div>
-                    <div className="flex items-center gap-2 mb-4">
-                        <BookOpen className="w-5 h-5 text-[#EC6426]" />
-                        <h2 className="text-xl font-semibold text-gray-800">Công thức & Đào tạo</h2>
+                {/* ROW 4: 3-column layout - Recipe, Training, Alerts */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+                    <div>
+                        <div className="flex items-center gap-2 mb-2">
+                            <BookOpen className="w-4 h-4 text-[#EC6426]" />
+                            <h2 className="text-base font-semibold text-gray-800">Công thức</h2>
+                        </div>
+                        <RecentRecipesCards data={recentRecipesData} />
                     </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div className="lg:col-span-2">
-                            <RecentRecipesCards data={recentRecipesData} />
+                    <div>
+                        <div className="flex items-center gap-2 mb-2">
+                            <GraduationCap className="w-4 h-4 text-[#EC6426]" />
+                            <h2 className="text-base font-semibold text-gray-800">Đào tạo</h2>
                         </div>
-                        <div>
-                            <TrainingStatusCard data={trainingStatsData} />
+                        <TrainingStatusCard data={trainingStatsData} />
+                    </div>
+                    <div>
+                        <div className="flex items-center gap-2 mb-2">
+                            <Activity className="w-4 h-4 text-[#EC6426]" />
+                            <h2 className="text-base font-semibold text-gray-800">Hoạt động</h2>
                         </div>
+                        <ActivitiesTimeline activities={recentActivitiesData} />
                     </div>
                 </div>
 
-                {/* ROW 4: Alerts + Recent Activities */}
+                {/* ROW 5: Alerts Panel */}
                 <div>
-                    <div className="flex items-center gap-2 mb-4">
-                        <Activity className="w-5 h-5 text-[#EC6426]" />
-                        <h2 className="text-xl font-semibold text-gray-800">Cảnh báo & Hoạt động</h2>
-                    </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <AlertsPanel alerts={lowStockAlertsData} />
-                        <ActivitiesTimeline activities={recentActivitiesData} />
-                    </div>
+                    <AlertsPanel alerts={lowStockAlertsData} />
                 </div>
 
                 {/* Recent Orders Table */}

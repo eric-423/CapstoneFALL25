@@ -1,8 +1,29 @@
 // Mock data for Finance page charts
 
-// Generate revenue data for different time periods
+// Branch names for revenue tracking
+export const branches = [
+    { id: 'branch1', name: 'Chi nhánh Trung tâm', color: '#EC6426' },
+    { id: 'branch2', name: 'Chi nhánh Thủ Đức', color: '#10b981' },
+    { id: 'branch3', name: 'Chi nhánh Quận 1', color: '#3b82f6' },
+    { id: 'branch4', name: 'Chi nhánh Bình Thạnh', color: '#f59e0b' },
+];
+
+// Generate revenue data for different time periods with branch breakdown
 export const generateRevenueData = (period: 'day' | 'week' | 'month' | 'year') => {
     const baseRevenue = 150000000; // 150M base
+
+    const generateDataPoint = (date: Date, multiplier: number) => {
+        const totalRevenue = baseRevenue * multiplier + Math.random() * (80000000 * multiplier);
+        return {
+            date: date.toISOString(),
+            revenue: totalRevenue,
+            // Distribute revenue across branches (with some variation)
+            'Chi nhánh Trung tâm': totalRevenue * (0.35 + Math.random() * 0.1),
+            'Chi nhánh Thủ Đức': totalRevenue * (0.25 + Math.random() * 0.1),
+            'Chi nhánh Quận 1': totalRevenue * (0.22 + Math.random() * 0.08),
+            'Chi nhánh Bình Thạnh': totalRevenue * (0.18 + Math.random() * 0.07),
+        };
+    };
 
     switch (period) {
         case 'day':
@@ -10,12 +31,7 @@ export const generateRevenueData = (period: 'day' | 'week' | 'month' | 'year') =
             return Array.from({ length: 7 }, (_, i) => {
                 const date = new Date();
                 date.setDate(date.getDate() - (6 - i));
-                return {
-                    date: date.toISOString(),
-                    revenue: baseRevenue + Math.random() * 80000000,
-                    profit: (baseRevenue + Math.random() * 80000000) * 0.4,
-                    expenses: (baseRevenue + Math.random() * 80000000) * 0.6,
-                };
+                return generateDataPoint(date, 1);
             });
 
         case 'week':
@@ -23,12 +39,7 @@ export const generateRevenueData = (period: 'day' | 'week' | 'month' | 'year') =
             return Array.from({ length: 4 }, (_, i) => {
                 const date = new Date();
                 date.setDate(date.getDate() - (3 - i) * 7);
-                return {
-                    date: date.toISOString(),
-                    revenue: baseRevenue * 7 + Math.random() * 300000000,
-                    profit: (baseRevenue * 7 + Math.random() * 300000000) * 0.35,
-                    expenses: (baseRevenue * 7 + Math.random() * 300000000) * 0.65,
-                };
+                return generateDataPoint(date, 7);
             });
 
         case 'month':
@@ -36,12 +47,7 @@ export const generateRevenueData = (period: 'day' | 'week' | 'month' | 'year') =
             return Array.from({ length: 12 }, (_, i) => {
                 const date = new Date();
                 date.setMonth(date.getMonth() - (11 - i));
-                return {
-                    date: date.toISOString(),
-                    revenue: baseRevenue * 30 + Math.random() * 1500000000,
-                    profit: (baseRevenue * 30 + Math.random() * 1500000000) * 0.35,
-                    expenses: (baseRevenue * 30 + Math.random() * 1500000000) * 0.65,
-                };
+                return generateDataPoint(date, 30);
             });
 
         case 'year':
@@ -49,12 +55,7 @@ export const generateRevenueData = (period: 'day' | 'week' | 'month' | 'year') =
             return Array.from({ length: 5 }, (_, i) => {
                 const date = new Date();
                 date.setFullYear(date.getFullYear() - (4 - i));
-                return {
-                    date: date.toISOString(),
-                    revenue: baseRevenue * 365 + Math.random() * 15000000000,
-                    profit: (baseRevenue * 365 + Math.random() * 15000000000) * 0.3,
-                    expenses: (baseRevenue * 365 + Math.random() * 15000000000) * 0.7,
-                };
+                return generateDataPoint(date, 365);
             });
 
         default:

@@ -30,23 +30,30 @@ public class Branch {
     @Column(name = "is_parent")
     private Boolean isParent = false;
 
-    @OneToMany(mappedBy = "branch", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH}, fetch = FetchType.LAZY)
+    @Column(name = "is_active")
+    private Boolean isActive = true;
+
+    @OneToMany(mappedBy = "branch", cascade = { CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH,
+            CascadeType.DETACH }, fetch = FetchType.LAZY)
     private List<BlackList> blackLists;
 
-    @OneToMany(mappedBy = "branch", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH}, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "branch", cascade = { CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH,
+            CascadeType.DETACH }, fetch = FetchType.LAZY)
     private List<Combo> combos;
 
-    @OneToMany
-    (mappedBy = "branch",fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH})
-    private List<DiningTable>diningTables;
+    @OneToMany(mappedBy = "branch", fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE,
+            CascadeType.REFRESH, CascadeType.DETACH })
+    private List<DiningTable> diningTables;
 
-    @OneToMany
-            (mappedBy = "branch",fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH})
-    private List<RoleHistory>roleHistories;
+    @OneToMany(mappedBy = "branch", fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE,
+            CascadeType.REFRESH, CascadeType.DETACH })
+    private List<RoleHistory> roleHistories;
 
-    @OneToMany(mappedBy = "branch", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE,CascadeType.REFRESH,CascadeType.DETACH})
+    @OneToMany(mappedBy = "branch", fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE,
+            CascadeType.REFRESH, CascadeType.DETACH })
     private List<Order> orders;
 
-    @OneToMany(mappedBy = "branch", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE,CascadeType.REFRESH,CascadeType.DETACH})
+    @OneToMany(mappedBy = "branch", fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE,
+            CascadeType.REFRESH, CascadeType.DETACH })
     private List<BranchProduct> branchProducts;
 }

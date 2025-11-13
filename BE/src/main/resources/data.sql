@@ -551,13 +551,13 @@ VALUES ('Giảm giá theo %'),
 
 INSERT INTO promotion (promotion_id, promotion_name, promotion_description, promotion_discount, minimum_order_value,
                        promotion_start_date, promotion_end_date, promotion_status, created_at, promotion_type_id,
-                       user_id)
+                       created_by)
 VALUES (1, 'Khuyến mãi 20% thứ 2', 'Giảm 20% tất cả các món vào thứ 2 hàng tuần', 20, 100000, '2025-01-01',
-        '2025-12-31', true, NOW(), 1, NULL),
+        '2025-12-31', true, NOW(), 1, 1),
        (2, 'Combo gia đình', 'Giảm 30000đ cho đơn hàng trên 200000đ', 30000, 200000, '2025-01-01', '2025-12-31', true,
-        NOW(), 2, NULL),
+        NOW(), 2, 1),
        (3, 'Free ship cho đơn trên 50000đ', 'Miễn phí vận chuyển cho đơn hàng trên 50000đ', 0, 50000, '2025-01-01',
-        '2025-12-31', true, NOW(), 3, NULL);
+        '2025-12-31', true, NOW(), 3, 1);
 
 
 
@@ -968,3 +968,18 @@ VALUES (4, 1, 2, 50000, 'Không cay', true, DATE_SUB(NOW(), INTERVAL 2 HOUR), tr
 INSERT INTO order_item (order_id, product_id, quantity, price, note, is_confirm, confirm_at, created_at)
 VALUES (6, 1, 1, 50000, NULL, true, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 1 DAY)),
        (6, 9, 2, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 1 DAY));
+
+
+
+INSERT INTO user_promotion (user_id, promotion_id, received_date, used_date, status, usage_count, note)
+VALUES (23, 1, DATE_SUB(NOW(), INTERVAL 10 DAY), NULL, 'AVAILABLE', 1, 'Khuyến mãi thứ 2'),
+       (24, 1, DATE_SUB(NOW(), INTERVAL 10 DAY), DATE_SUB(NOW(), INTERVAL 3 DAY), 'USED', 1, 'Đã sử dụng'),
+       (25, 2, DATE_SUB(NOW(), INTERVAL 5 DAY), NULL, 'AVAILABLE', 1, 'Combo gia đình'),
+       (26, 3, DATE_SUB(NOW(), INTERVAL 7 DAY), NULL, 'AVAILABLE', 1, 'Free ship'),
+       (27, 1, DATE_SUB(NOW(), INTERVAL 8 DAY), NULL, 'AVAILABLE', 1, 'Khuyến mãi thứ 2'),
+       (28, 2, DATE_SUB(NOW(), INTERVAL 6 DAY), NULL, 'AVAILABLE', 1, 'Combo gia đình'),
+       (31, 1, DATE_SUB(NOW(), INTERVAL 15 DAY), DATE_SUB(NOW(), INTERVAL 2 DAY), 'USED', 1, 'Đã sử dụng'),
+       (31, 3, DATE_SUB(NOW(), INTERVAL 4 DAY), NULL, 'AVAILABLE', 1, 'Free ship'),
+       (36, 2, DATE_SUB(NOW(), INTERVAL 12 DAY), NULL, 'AVAILABLE', 1, 'Combo gia đình'),
+       (42, 1, DATE_SUB(NOW(), INTERVAL 20 DAY), DATE_SUB(NOW(), INTERVAL 5 DAY), 'USED', 1, 'Đã sử dụng'),
+       (42, 3, DATE_SUB(NOW(), INTERVAL 3 DAY), NULL, 'AVAILABLE', 1, 'Free ship');

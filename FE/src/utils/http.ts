@@ -16,8 +16,6 @@ import {
   removeToken,
 } from './cookies';
 
-import { setupMockInterceptor } from '@/utils/mocks/interceptor';
-
 
 // --------
 class Http {
@@ -28,7 +26,7 @@ class Http {
   constructor() {
     this.accessToken = getToken() || getAccessToken();
     this.refreshToken = getRefreshToken();
-    
+
     this.instance = axios.create({
       baseURL: apiBaseURL,
       timeout: 10000,
@@ -36,8 +34,6 @@ class Http {
         'Content-Type': 'application/json',
       },
     });
-
-    setupMockInterceptor(this.instance, process.env.NEXT_PUBLIC_USE_MOCK === 'true');
 
     this.instance.interceptors.request.use(
       (config) => {
@@ -61,8 +57,15 @@ class Http {
             setToken(this.accessToken);
             setRefreshToken(this.refreshToken);
           }
+        } else if (method === 'post' && url?.includes('employee/login')) {
+          // Employee login response: { token, tokenType, expiresIn, userInfo }
+          if (response.data?.token) {
+            this.accessToken = response.data.token;
+            setToken(this.accessToken);
+            // Employee login không có refresh_token
+          }
         } else if (method === 'post' && url?.includes('sign-in')) {
-          if (response.data.data.access_token) {
+          if (response.data.data?.access_token) {
             this.accessToken = response.data.data.access_token;
             this.refreshToken = response.data.data.refresh_token;
             setToken(this.accessToken);

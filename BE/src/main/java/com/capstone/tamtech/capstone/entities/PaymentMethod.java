@@ -20,7 +20,11 @@ public class PaymentMethod {
     @Column(name = "payment_method_name")
     private String name;
 
-    @OneToMany(mappedBy = "paymentMethod", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE,CascadeType.REFRESH,CascadeType.DETACH})
+    @Column(name = "is_active")
+    private Boolean isActive = true;
+
+    @OneToMany(mappedBy = "paymentMethod", fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE,
+            CascadeType.REFRESH, CascadeType.DETACH })
     private List<Order> orderList;
 
 }

@@ -27,5 +27,6 @@ public class TopSellingItemDTO {
         private String name;
         private Integer quantitySold;
         private Double revenue;
+        private String imageUrl;
     }
 }

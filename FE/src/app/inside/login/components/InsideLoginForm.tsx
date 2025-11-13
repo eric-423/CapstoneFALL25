@@ -46,7 +46,9 @@ export default function InsideLoginForm() {
 
         try {
             const response = await loginEmployee({ email, password });
-            if (response.status === 200) {
+
+            // Kiểm tra response có token
+            if (response?.data?.token) {
                 if (rememberMe) {
                     localStorage.setItem('insideRememberedEmail', email);
                     localStorage.setItem('insideRememberMe', 'true');
@@ -55,11 +57,41 @@ export default function InsideLoginForm() {
                     localStorage.setItem('insideRememberMe', 'false');
                 }
 
+                const token = response.data.token;
+                const decoded = JSON.parse(atob(token.split('.')[1]));
+
                 toast.success('Đăng nhập nội bộ thành công!');
 
-                const token = response.data.data.access_token;
-                const decoded = JSON.parse(atob(token.split('.')[1]));
-                redirectAfterLogin(decoded.role);
+                // Redirect trực tiếp theo role
+                const role = decoded.role.toUpperCase();
+                let redirectUrl = '/';
+
+                switch (role) {
+                    case 'ADMIN':
+                        redirectUrl = '/admin/dashboard';
+                        break;
+                    case 'MANAGER':
+                    case 'BRANCH_MANAGER':
+                        redirectUrl = '/manager/dashboard';
+                        break;
+                    case 'CHEF':
+                        redirectUrl = '/chef/dashboard';
+                        break;
+                    case 'WAITER':
+                        redirectUrl = '/waiter/dashboard';
+                        break;
+                    case 'SHIPPER':
+                        redirectUrl = '/shipper/dashboard';
+                        break;
+                    default:
+                        redirectUrl = '/';
+                }
+
+                // Sử dụng window.location để đảm bảo redirect
+                window.location.href = redirectUrl;
+            } else {
+                // Trường hợp response không có token
+                toast.error('Đăng nhập thất bại. Vui lòng thử lại.');
             }
         } catch (error: unknown) {
             const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Email hoặc mật khẩu không đúng';
@@ -162,7 +194,7 @@ export default function InsideLoginForm() {
                                     >
                                         {showPassword ? 'Ẩn' : 'Hiện'}
                                     </button>
-                                    
+
                                 </div>
                                 {errors.password && (
                                     <p className="mt-1 text-sm text-red-600">{errors.password}</p>

@@ -10,6 +10,7 @@ import com.capstone.tamtech.capstone.payload.request.WaiterConfirmOrderRequest;
 import com.capstone.tamtech.capstone.repositories.*;
 import com.capstone.tamtech.capstone.services.impl.OrderService;
 import com.capstone.tamtech.capstone.services.impl.PaymentService;
+import com.capstone.tamtech.capstone.services.impl.PromotionService;
 import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -63,7 +64,10 @@ public class OrderServiceImpl implements OrderService {
     private PaymentMethodRepository paymentMethodRepository;
 
     @Autowired
-    private com.capstone.tamtech.capstone.services.impl.PromotionService promotionService;
+    private PromotionService promotionService;
+
+    @Autowired
+    private OrderBillService orderBillService;
 
     @Override
     public OrderDTO createOrderForShipping(OrderRequest orderRequest) throws BadRequestException {
@@ -123,7 +127,7 @@ public class OrderServiceImpl implements OrderService {
         String promotionCode = orderRequest.getPromotionCode();
         boolean hasPromotionCode = promotionCode != null && !promotionCode.isBlank();
         if (hasPromotionCode && orderRequest.getCustomerId() > 0) {
-            com.capstone.tamtech.capstone.dto.PromotionValidationResult validationResult = promotionService
+            PromotionValidationResult validationResult = promotionService
                     .validateAndApplyPromotion(
                             orderRequest.getCustomerId(),
                             promotionCode,
@@ -591,6 +595,12 @@ public class OrderServiceImpl implements OrderService {
         }
 
         orderRepository.save(order);
+
+        try {
+            orderBillService.generateAndUploadBill(orderId);
+        } catch (Exception e) {
+            System.err.println("Failed to generate bill for order " + orderId + ": " + e.getMessage());
+        }
     }
 
     @Override
@@ -1021,7 +1031,7 @@ public class OrderServiceImpl implements OrderService {
 
                     orderItem.setIsConfirmed(false);
 
-                    orderItemRepository.save(orderItem); // Lưu vào DB (ID tự động tăng)
+                    orderItemRepository.save(orderItem);
                 }
 
                 if (isCombo) {
@@ -1046,5 +1056,80 @@ public class OrderServiceImpl implements OrderService {
         }
 
         return null;
+    }
+
+    @Override
+    public List<OrderListDTO> getCustomerOrders(int customerId, String status) {
+        List<Order> orders;
+
+        if (status != null && !status.isEmpty() && !status.equalsIgnoreCase("ALL")) {
+            orders = orderRepository.findByCustomer_IdAndStatus_NameOrderByCreatedAtDesc(customerId, status);
+        } else {
+            orders = orderRepository.findByCustomerId(customerId);
+        }
+
+        return convertToOrderListDTO(orders);
+    }
+
+    @Override
+    public List<OrderListDTO> getBranchOrders(int branchId, String status) {
+        List<Order> orders;
+
+        if (status != null && !status.isEmpty() && !status.equalsIgnoreCase("ALL")) {
+            orders = orderRepository.findByBranch_IdAndStatus_NameOrderByCreatedAtDesc(branchId, status);
+        } else {
+            orders = orderRepository.findByBranchId(branchId);
+        }
+
+        return convertToOrderListDTO(orders);
+    }
+
+    private List<OrderListDTO> convertToOrderListDTO(List<Order> orders) {
+        return orders.stream().map(order -> {
+            OrderListDTO dto = new OrderListDTO();
+            dto.setId(order.getId());
+            dto.setOrderStatus(order.getStatus().getName() != null ? order.getStatus().getName() : null);
+            dto.setOrderDate(order.getCreatedAt());
+            dto.setPaymentTime(order.getPaymentTime());
+            dto.setDeliveryAt(order.getDeliveryAtt());
+
+            if (order.getCustomer() != null) {
+                dto.setCustomerName(order.getCustomer().getFullName());
+                dto.setCustomerPhone(order.getCustomer().getPhoneNumber());
+            }
+
+            dto.setAddress(order.getAddress());
+
+            if (order.getBranch() != null) {
+                dto.setBranchName(order.getBranch().getName());
+                dto.setBranchAddress(order.getBranch().getAddress());
+            }
+
+            dto.setSubTotal(order.getSubTotal());
+            dto.setShippingFee(order.getShippingFee() != null ? order.getShippingFee() : 0.0);
+            dto.setDiscountValue(order.getDiscountValue());
+            dto.setAmount(order.getAmount());
+
+            dto.setPromotionCode(order.getPromotionCode());
+            dto.setPointUsed(order.getPointUsed());
+            dto.setPointEarned(order.getPointEarned());
+
+            dto.setPickUp(order.isPickUp());
+            dto.setTable(order.getIsTable() != null ? order.getIsTable() : false);
+
+            if (order.getShipper() != null) {
+                dto.setShipperName(order.getShipper().getFullName());
+            }
+            if (order.getWaiter() != null) {
+                dto.setWaiterName(order.getWaiter().getFullName());
+            }
+            if (order.getWorker() != null) {
+                dto.setChefName(order.getWorker().getFullName());
+            }
+
+            dto.setItemCount(order.getOrderItems() != null ? order.getOrderItems().size() : 0);
+
+            return dto;
+        }).collect(java.util.stream.Collectors.toList());
     }
 }
