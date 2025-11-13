@@ -2,14 +2,23 @@ package com.capstone.tamtech.capstone.services;
 
 import com.capstone.tamtech.capstone.dto.BranchDTO;
 import com.capstone.tamtech.capstone.dto.BranchDistanceDTO;
+import com.capstone.tamtech.capstone.dto.BranchProductDTO;
+import com.capstone.tamtech.capstone.dto.BranchStatisticsDTO;
 import com.capstone.tamtech.capstone.entities.Branch;
+import com.capstone.tamtech.capstone.entities.BranchProduct;
+import com.capstone.tamtech.capstone.entities.Product;
+import com.capstone.tamtech.capstone.entities.keys.KeyBranchProduct;
 import com.capstone.tamtech.capstone.exception.ResourceNotFoundException;
+import com.capstone.tamtech.capstone.payload.request.AddProductsToBranchRequest;
 import com.capstone.tamtech.capstone.payload.request.BranchRequest;
+import com.capstone.tamtech.capstone.repositories.BranchProductRepository;
 import com.capstone.tamtech.capstone.repositories.BranchRepository;
+import com.capstone.tamtech.capstone.repositories.ProductRepository;
 import com.capstone.tamtech.capstone.services.impl.BranchService;
 import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -23,6 +32,12 @@ public class BranchServiceImpl implements BranchService {
 
     @Autowired
     private DistanceService distanceService;
+
+    @Autowired
+    private BranchProductRepository branchProductRepository;
+
+    @Autowired
+    private ProductRepository productRepository;
 
     @Override
     public List<BranchDistanceDTO> findBranchesSortedByDistance(String userAddress, Integer limit) {
@@ -57,7 +72,7 @@ public class BranchServiceImpl implements BranchService {
         return results;
     }
 
-    private BranchDTO toDTO(Branch branch){
+    private BranchDTO toDTO(Branch branch) {
         BranchDTO dto = new BranchDTO();
         dto.setId(branch.getId());
         dto.setName(branch.getName());
@@ -76,12 +91,13 @@ public class BranchServiceImpl implements BranchService {
 
     @Override
     public Boolean deactivateBranch(int branchId) throws BadRequestException {
-        Branch branch = branchRepository.findById(branchId).orElseThrow(() -> new ResourceNotFoundException("Branch not found"));
-        if(branch.getIsParent()){
+        Branch branch = branchRepository.findById(branchId)
+                .orElseThrow(() -> new ResourceNotFoundException("Branch not found"));
+        if (branch.getIsParent()) {
             throw new BadRequestException("Cannot deactivate parent branch");
-        } else if(!branch.getIsActive()){
+        } else if (!branch.getIsActive()) {
             throw new BadRequestException("Branch is already deactivated");
-        } else{
+        } else {
             branch.setIsActive(false);
             branchRepository.save(branch);
             return true;
@@ -90,10 +106,11 @@ public class BranchServiceImpl implements BranchService {
 
     @Override
     public Boolean activateBranch(int branchId) throws BadRequestException {
-        Branch branch = branchRepository.findById(branchId).orElseThrow(() -> new ResourceNotFoundException("Branch not found"));
-        if(branch.getIsParent()){
+        Branch branch = branchRepository.findById(branchId)
+                .orElseThrow(() -> new ResourceNotFoundException("Branch not found"));
+        if (branch.getIsParent()) {
             throw new BadRequestException("Cannot active parent branch");
-        } else if(!branch.getIsActive()) {
+        } else if (!branch.getIsActive()) {
             throw new BadRequestException("Branch is already activated");
         } else {
             branch.setIsActive(true);
@@ -118,7 +135,8 @@ public class BranchServiceImpl implements BranchService {
     @Override
     public BranchDTO updateBranch(int branchId, BranchRequest branchRequest) {
 
-        Branch branch = branchRepository.findById(branchId).orElseThrow(() -> new ResourceNotFoundException("Branch not found"));
+        Branch branch = branchRepository.findById(branchId)
+                .orElseThrow(() -> new ResourceNotFoundException("Branch not found"));
         branch.setName(branchRequest.getName());
         branch.setAddress(branchRequest.getAddress());
         branch.setPhoneNumber(branchRequest.getPhoneNumber());
@@ -129,8 +147,96 @@ public class BranchServiceImpl implements BranchService {
 
     @Override
     public BranchDTO getBranchById(int branchId) {
-        Branch branch = branchRepository.findById(branchId).orElseThrow(() -> new ResourceNotFoundException("Branch not found"));
+        Branch branch = branchRepository.findById(branchId)
+                .orElseThrow(() -> new ResourceNotFoundException("Branch not found"));
         return toDTO(branch);
+    }
+
+    @Override
+    @Transactional
+    public List<BranchProductDTO> addProductsToBranch(int branchId, AddProductsToBranchRequest request) {
+        Branch branch = branchRepository.findById(branchId)
+                .orElseThrow(() -> new ResourceNotFoundException("Branch not found"));
+
+        List<BranchProductDTO> results = new ArrayList<>();
+
+        for (AddProductsToBranchRequest.ProductItem item : request.getProducts()) {
+            Product product = productRepository.findById(item.getProductId())
+                    .orElseThrow(
+                            () -> new ResourceNotFoundException("Product not found with id: " + item.getProductId()));
+
+            KeyBranchProduct key = new KeyBranchProduct(branchId, item.getProductId());
+
+            BranchProduct branchProduct = branchProductRepository.findById(key).orElse(null);
+
+            if (branchProduct == null) {
+                branchProduct = new BranchProduct();
+                branchProduct.setKeyBranchProduct(key);
+                branchProduct.setBranch(branch);
+                branchProduct.setProduct(product);
+                branchProduct.setQuantity(item.getQuantity());
+            } else {
+                branchProduct.setQuantity(branchProduct.getQuantity() + item.getQuantity());
+            }
+
+            branchProductRepository.save(branchProduct);
+
+            BranchProductDTO dto = new BranchProductDTO();
+            dto.setBranchId(branch.getId());
+            dto.setBranchName(branch.getName());
+            dto.setProductId(product.getId());
+            dto.setProductName(product.getName());
+            dto.setProductPrice(product.getPrice() != null ? product.getPrice() : 0.0);
+            dto.setProductImage(product.getImage());
+            dto.setQuantity(branchProduct.getQuantity());
+
+            results.add(dto);
+        }
+
+        return results;
+    }
+
+    @Override
+    public BranchStatisticsDTO getBranchStatistics() {
+        List<Branch> allBranches = branchRepository.findAll();
+
+        int totalBranches = allBranches.size();
+        int activeBranches = 0;
+        int inactiveBranches = 0;
+        int parentBranches = 0;
+
+        List<BranchStatisticsDTO.BranchStatusDTO> branchStatusList = new ArrayList<>();
+
+        for (Branch branch : allBranches) {
+            BranchStatisticsDTO.BranchStatusDTO statusDTO = new BranchStatisticsDTO.BranchStatusDTO();
+            statusDTO.setId(branch.getId());
+            statusDTO.setName(branch.getName());
+            statusDTO.setAddress(branch.getAddress());
+            statusDTO.setPhoneNumber(branch.getPhoneNumber());
+            statusDTO.setIsActive(branch.getIsActive() != null ? branch.getIsActive() : true);
+            statusDTO.setIsParent(branch.getIsParent() != null ? branch.getIsParent() : false);
+
+            branchStatusList.add(statusDTO);
+
+            if (Boolean.TRUE.equals(branch.getIsParent())) {
+                parentBranches++;
+            }
+
+            if (Boolean.TRUE.equals(branch.getIsActive())) {
+                activeBranches++;
+            } else {
+                inactiveBranches++;
+            }
+        }
+
+        BranchStatisticsDTO statistics = new BranchStatisticsDTO();
+        statistics.setTotalBranches(totalBranches);
+        statistics.setActiveBranches(activeBranches);
+        statistics.setInactiveBranches(inactiveBranches);
+        statistics.setParentBranches(parentBranches);
+        statistics.setBranches(branchStatusList);
+
+        return statistics;
     }
 
     private String formatDistance(long meters) {
@@ -144,5 +250,3 @@ public class BranchServiceImpl implements BranchService {
         return String.format(java.util.Locale.US, "%.2f km", km);
     }
 }
-
-

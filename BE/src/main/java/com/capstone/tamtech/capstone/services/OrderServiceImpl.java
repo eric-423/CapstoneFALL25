@@ -1059,6 +1059,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<OrderListDTO> getCustomerOrders(int customerId, String status) {
         List<Order> orders;
 
@@ -1072,6 +1073,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<OrderListDTO> getBranchOrders(int branchId, String status) {
         List<Order> orders;
 
@@ -1088,7 +1090,11 @@ public class OrderServiceImpl implements OrderService {
         return orders.stream().map(order -> {
             OrderListDTO dto = new OrderListDTO();
             dto.setId(order.getId());
-            dto.setOrderStatus(order.getStatus().getName() != null ? order.getStatus().getName() : null);
+
+            dto.setOrderStatus(order.getStatus() != null && order.getStatus().getName() != null
+                    ? order.getStatus().getName()
+                    : null);
+
             dto.setOrderDate(order.getCreatedAt());
             dto.setPaymentTime(order.getPaymentTime());
             dto.setDeliveryAt(order.getDeliveryAtt());
@@ -1127,7 +1133,11 @@ public class OrderServiceImpl implements OrderService {
                 dto.setChefName(order.getWorker().getFullName());
             }
 
-            dto.setItemCount(order.getOrderItems() != null ? order.getOrderItems().size() : 0);
+            try {
+                dto.setItemCount(order.getOrderItems() != null ? order.getOrderItems().size() : 0);
+            } catch (Exception e) {
+                dto.setItemCount(0);
+            }
 
             return dto;
         }).collect(java.util.stream.Collectors.toList());

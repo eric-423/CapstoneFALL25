@@ -2,7 +2,10 @@ package com.capstone.tamtech.capstone.controllers;
 
 import com.capstone.tamtech.capstone.dto.BranchDTO;
 import com.capstone.tamtech.capstone.dto.BranchDistanceDTO;
+import com.capstone.tamtech.capstone.dto.BranchProductDTO;
+import com.capstone.tamtech.capstone.dto.BranchStatisticsDTO;
 import com.capstone.tamtech.capstone.payload.ResponseData;
+import com.capstone.tamtech.capstone.payload.request.AddProductsToBranchRequest;
 import com.capstone.tamtech.capstone.payload.request.BranchRequest;
 import com.capstone.tamtech.capstone.services.impl.BranchService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,16 +28,12 @@ public class BranchController {
     @Autowired
     private BranchService branchService;
 
-    @Operation(summary = "Danh sách chi nhánh theo khoảng cách",
-            description = "Trả về danh sách chi nhánh sắp xếp từ gần tới xa theo địa chỉ người dùng, kèm khoảng cách.")
+    @Operation(summary = "Danh sách chi nhánh theo khoảng cách", description = "Trả về danh sách chi nhánh sắp xếp từ gần tới xa theo địa chỉ người dùng, kèm khoảng cách.")
     @GetMapping("/nearby")
     public ResponseEntity<List<BranchDistanceDTO>> getBranchesNearby(
-            @Parameter(description = "Địa chỉ của người dùng (bắt buộc)", required = true)
-            @RequestParam(name = "address") String userAddress,
+            @Parameter(description = "Địa chỉ của người dùng (bắt buộc)", required = true) @RequestParam(name = "address") String userAddress,
 
-            @Parameter(description = "Giới hạn số lượng kết quả", example = "5")
-            @RequestParam(name = "limit", required = false) Integer limit
-    ) {
+            @Parameter(description = "Giới hạn số lượng kết quả", example = "5") @RequestParam(name = "limit", required = false) Integer limit) {
         List<BranchDistanceDTO> results = branchService.findBranchesSortedByDistance(userAddress, limit);
         return ResponseEntity.ok(results);
     }
@@ -73,16 +72,44 @@ public class BranchController {
     }
 
     @PutMapping("/{branchId}")
-    public ResponseEntity<BranchDTO> updateBranch(@PathVariable int branchId, @RequestBody BranchRequest branchRequest) {
+    public ResponseEntity<BranchDTO> updateBranch(@PathVariable int branchId,
+            @RequestBody BranchRequest branchRequest) {
         BranchDTO updatedBranch = branchService.updateBranch(branchId, branchRequest);
         return ResponseEntity.ok(updatedBranch);
     }
 
-    @PutMapping("/add-product/{branchId}")
-    public ResponseEntity<?> addProductToBranch(@PathVariable int branchId, @RequestBody BranchDistanceDTO branchDTO) {
-//        BranchDistanceDTO updatedBranch = branchService.addBranchProduct(branchId, branchDTO);
-        return ResponseEntity.ok(null);
+    @Operation(summary = "Thêm sản phẩm vào chi nhánh", description = "Thêm một hoặc nhiều sản phẩm vào chi nhánh với số lượng. Nếu sản phẩm đã có trong chi nhánh, sẽ cộng thêm số lượng.")
+    @PostMapping("/{branchId}/products")
+    public ResponseEntity<?> addProductsToBranch(
+            @Parameter(description = "ID của chi nhánh", required = true) @PathVariable int branchId,
+            @RequestBody AddProductsToBranchRequest request) {
+        try {
+            List<BranchProductDTO> results = branchService.addProductsToBranch(branchId, request);
+
+            ResponseData responseData = new ResponseData();
+            responseData.setData(results);
+            responseData.setDesc("Added " + results.size() + " product(s) to branch successfully");
+            return new ResponseEntity<>(responseData, HttpStatus.OK);
+        } catch (Exception e) {
+            ResponseData responseData = new ResponseData();
+            responseData.setDesc("Error: " + e.getMessage());
+            return new ResponseEntity<>(responseData, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @Operation(summary = "Thống kê chi nhánh", description = "Trả về thống kê tổng quan về các chi nhánh: tổng số, số đang hoạt động, số ngừng hoạt động, và danh sách chi tiết từng chi nhánh.")
+    @GetMapping("/statistics")
+    public ResponseEntity<?> getBranchStatistics() {
+        try {
+            BranchStatisticsDTO statistics = branchService.getBranchStatistics();
+            ResponseData responseData = new ResponseData();
+            responseData.setData(statistics);
+            responseData.setDesc("Branch statistics retrieved successfully");
+            return new ResponseEntity<>(responseData, HttpStatus.OK);
+        } catch (Exception e) {
+            ResponseData responseData = new ResponseData();
+            responseData.setDesc("Error: " + e.getMessage());
+            return new ResponseEntity<>(responseData, HttpStatus.BAD_REQUEST);
+        }
     }
 }
-
-

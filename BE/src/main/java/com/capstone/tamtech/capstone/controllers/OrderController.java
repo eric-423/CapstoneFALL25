@@ -1,6 +1,7 @@
 package com.capstone.tamtech.capstone.controllers;
 
 import com.capstone.tamtech.capstone.dto.OrderListDTO;
+import com.capstone.tamtech.capstone.dto.OrderStatusDTO;
 import com.capstone.tamtech.capstone.entities.Users;
 import com.capstone.tamtech.capstone.payload.ResponseData;
 import com.capstone.tamtech.capstone.payload.request.DiningTablePaymentRequest;
@@ -9,11 +10,10 @@ import com.capstone.tamtech.capstone.payload.request.OrderRequest;
 import com.capstone.tamtech.capstone.payload.request.WaiterConfirmOrderRequest;
 import com.capstone.tamtech.capstone.repositories.UsersRepository;
 import com.capstone.tamtech.capstone.services.impl.OrderService;
+import com.capstone.tamtech.capstone.services.impl.OrderStatusService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.models.responses.ApiResponse;
 import org.apache.coyote.BadRequestException;
-import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -23,9 +23,8 @@ import org.springframework.web.bind.annotation.*;
 import vn.payos.PayOS;
 import vn.payos.model.webhooks.WebhookData;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -35,6 +34,9 @@ public class OrderController {
 
     @Autowired
     private OrderService orderService;
+
+    @Autowired
+    private OrderStatusService orderStatusService;
 
     @Value("${PAYOS_CLIENT_ID}")
     private String clientId;
@@ -62,7 +64,7 @@ public class OrderController {
 
     @PutMapping("/dining-table/update/{orderId}")
     public ResponseEntity<?> updateDiningTableOrder(@RequestBody DiningTableProductRequest diningTableProductRequest,
-                                                    @PathVariable int orderId) throws BadRequestException {
+            @PathVariable int orderId) throws BadRequestException {
         ResponseData responseData = new ResponseData();
         responseData.setData(orderService.updateOrderForDining(orderId, diningTableProductRequest));
         return new ResponseEntity<>(responseData, HttpStatus.OK);
@@ -74,7 +76,6 @@ public class OrderController {
         responseData.setData(orderService.createOrderForDining(orderRequest));
         return new ResponseEntity<>(responseData, HttpStatus.CREATED);
     }
-
 
     @PostMapping("/payment/webhook")
     public ResponseEntity<String> paymentWebhook(@RequestBody Object body)
@@ -180,8 +181,9 @@ public class OrderController {
      * Customer endpoint - Get orders of the authenticated customer
      * GET /api/orders/customer/my-orders?status=CREATED
      *
-     * @param status Optional order status filter (CREATED, IN_PROCESS, DELIVERING, COMPLETED, CANCELLED, PAID, etc.)
-     *               Use "ALL" or omit to get all orders
+     * @param status         Optional order status filter (CREATED, IN_PROCESS,
+     *                       DELIVERING, COMPLETED, CANCELLED, PAID, etc.)
+     *                       Use "ALL" or omit to get all orders
      * @param authentication Spring Security authentication object
      * @return List of customer's orders
      */
@@ -190,9 +192,10 @@ public class OrderController {
             @RequestParam(required = false) String status,
             Authentication authentication) {
         try {
-            String email = authentication.getName();
-            Users customer = usersRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("Customer not found"));
+            String principal = authentication.getName();
+            Users customer = usersRepository.findByEmail(principal)
+                    .orElseGet(() -> usersRepository.findByPhoneNumber(principal)
+                            .orElseThrow(() -> new RuntimeException("Customer not found")));
 
             List<OrderListDTO> orders = orderService.getCustomerOrders(customer.getId(), status);
 
@@ -201,9 +204,11 @@ public class OrderController {
             responseData.setDesc("Retrieved " + orders.size() + " order(s) successfully");
             return new ResponseEntity<>(responseData, HttpStatus.OK);
         } catch (Exception e) {
+            e.printStackTrace();
             ResponseData responseData = new ResponseData();
             responseData.setDesc("Error: " + e.getMessage());
-            return new ResponseEntity<>(responseData, HttpStatus.BAD_REQUEST);
+            responseData.setStatus(500);
+            return new ResponseEntity<>(responseData, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -213,7 +218,7 @@ public class OrderController {
      *
      * Available for: MANAGER, WAITER, CHEF, SHIPPER (any internal role)
      *
-     * @param status Optional order status filter
+     * @param status         Optional order status filter
      * @param authentication Spring Security authentication object
      * @return List of branch's orders
      */
@@ -226,18 +231,19 @@ public class OrderController {
             Users user = usersRepository.findByEmail(email)
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
-            if (user.getRoleHistories().get(user.getRoleHistories().size()-1).getBranch() == null) {
+            if (user.getRoleHistories().get(user.getRoleHistories().size() - 1).getBranch() == null) {
                 ResponseData responseData = new ResponseData();
                 responseData.setDesc("User is not assigned to any branch");
                 return new ResponseEntity<>(responseData, HttpStatus.BAD_REQUEST);
             }
 
-            int branchId = user.getRoleHistories().get(user.getRoleHistories().size()-1).getBranch().getId();
+            int branchId = user.getRoleHistories().get(user.getRoleHistories().size() - 1).getBranch().getId();
             List<OrderListDTO> orders = orderService.getBranchOrders(branchId, status);
 
             ResponseData responseData = new ResponseData();
             responseData.setData(orders);
-            responseData.setDesc("Retrieved " + orders.size() + " order(s) from branch: " + user.getRoleHistories().get(user.getRoleHistories().size()-1).getBranch().getName());
+            responseData.setDesc("Retrieved " + orders.size() + " order(s) from branch: "
+                    + user.getRoleHistories().get(user.getRoleHistories().size() - 1).getBranch().getName());
             return new ResponseEntity<>(responseData, HttpStatus.OK);
         } catch (Exception e) {
             ResponseData responseData = new ResponseData();
@@ -253,15 +259,13 @@ public class OrderController {
     @GetMapping("/statuses")
     public ResponseEntity<?> getOrderStatuses() {
         try {
-            List<String> statuses = List.of(
-                    "ALL",
-                    "CREATED",
-                    "IN_PROCESS",
-                    "DELIVERING",
-                    "COMPLETED",
-                    "CANCELLED",
-                    "PAID"
-            );
+            List<OrderStatusDTO> statusDTOs = orderStatusService.getAllOrderStatuses();
+            List<String> statuses = new ArrayList<>();
+            statuses.add("ALL");
+            statusDTOs.stream()
+                    .map(OrderStatusDTO::getName)
+                    .filter(name -> name != null && !name.isBlank())
+                    .forEach(status -> statuses.add(status.toUpperCase()));
 
             ResponseData responseData = new ResponseData();
             responseData.setData(statuses);
