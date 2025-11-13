@@ -2,8 +2,11 @@ package com.capstone.tamtech.capstone.services;
 
 import com.capstone.tamtech.capstone.entities.Order;
 import com.capstone.tamtech.capstone.entities.OrderItem;
+import com.itextpdf.io.font.PdfEncodings;
 import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.kernel.colors.ColorConstants;
+import com.itextpdf.kernel.font.PdfFont;
+import com.itextpdf.kernel.font.PdfFontFactory;
 import com.itextpdf.kernel.geom.PageSize;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
@@ -12,12 +15,15 @@ import com.itextpdf.layout.element.Cell;
 import com.itextpdf.layout.element.Image;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
+import com.itextpdf.layout.properties.HorizontalAlignment;
 import com.itextpdf.layout.properties.TextAlignment;
 import com.itextpdf.layout.properties.UnitValue;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -39,13 +45,43 @@ public class PdfBillService {
 
         document.setMargins(40, 40, 40, 40);
 
+        PdfFont font = null;
+        try {
+            font = PdfFontFactory.createFont("fonts/DejaVuSans.ttf", PdfEncodings.IDENTITY_H);
+        } catch (Exception e) {
+            try {
+                font = PdfFontFactory.createFont("Helvetica", PdfEncodings.IDENTITY_H);
+            } catch (Exception ex) {
+                font = PdfFontFactory.createFont();
+            }
+        }
+
+        document.setFont(font);
+
+        try {
+            ClassPathResource logoResource = new ClassPathResource("images/logo-full-bg.png");
+            if (logoResource.exists()) {
+                InputStream logoStream = logoResource.getInputStream();
+                byte[] logoBytes = logoStream.readAllBytes();
+                Image logo = new Image(ImageDataFactory.create(logoBytes));
+                logo.setWidth(100);
+                logo.setHorizontalAlignment(HorizontalAlignment.CENTER);
+                document.add(logo);
+            }
+        } catch (Exception e) {
+            System.err.println("Logo not found: " + e.getMessage());
+        }
+
         Paragraph header = new Paragraph("TÂM TECH RESTAURANT")
+                .setFont(font)
                 .setFontSize(24)
                 .setBold()
-                .setTextAlignment(TextAlignment.CENTER);
+                .setTextAlignment(TextAlignment.CENTER)
+                .setMarginTop(10);
         document.add(header);
 
         Paragraph subheader = new Paragraph("HÓA ĐƠN THANH TOÁN")
+                .setFont(font)
                 .setFontSize(16)
                 .setTextAlignment(TextAlignment.CENTER)
                 .setMarginBottom(20);
