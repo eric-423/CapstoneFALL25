@@ -66,6 +66,9 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private PromotionService promotionService;
 
+    @Autowired
+    private OrderBillService orderBillService;
+
     @Override
     public OrderDTO createOrderForShipping(OrderRequest orderRequest) throws BadRequestException {
         inventoryService.assertSufficientMaterialsForOrder(orderRequest.getOrderItemList());
@@ -592,6 +595,12 @@ public class OrderServiceImpl implements OrderService {
         }
 
         orderRepository.save(order);
+
+        try {
+            orderBillService.generateAndUploadBill(orderId);
+        } catch (Exception e) {
+            System.err.println("Failed to generate bill for order " + orderId + ": " + e.getMessage());
+        }
     }
 
     @Override
@@ -1022,7 +1031,7 @@ public class OrderServiceImpl implements OrderService {
 
                     orderItem.setIsConfirmed(false);
 
-                    orderItemRepository.save(orderItem); // Lưu vào DB (ID tự động tăng)
+                    orderItemRepository.save(orderItem);
                 }
 
                 if (isCombo) {
