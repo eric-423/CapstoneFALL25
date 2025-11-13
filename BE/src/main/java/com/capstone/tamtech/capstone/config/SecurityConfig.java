@@ -57,6 +57,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/orders/shipping/fee").permitAll()
                         .requestMatchers("/api/orders/payment/webhook").permitAll()
                         .requestMatchers("/api/orders/dining-table/create").permitAll()
+                        .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers("/api/orders/*/shipper-location").permitAll()
 
                         // Public statistics for customers
                         .requestMatchers("/api/statistics/top-selling").permitAll()
@@ -69,6 +71,11 @@ public class SecurityConfig {
                         .requestMatchers("/api/products/update/**").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers("/api/orders/manager/**").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers("/api/statistics/**").hasAnyRole("MANAGER", "ADMIN")
+                        .requestMatchers("/api/promotions/create").hasAnyRole("MANAGER", "ADMIN")
+                        .requestMatchers("/api/promotions/assign").hasAnyRole("MANAGER", "ADMIN")
+                        .requestMatchers("/api/promotions/all").hasAnyRole("MANAGER", "ADMIN")
+                        .requestMatchers("/api/promotions/*").hasAnyRole("MANAGER", "ADMIN")
+                        .requestMatchers("/api/promotions/*/status").hasAnyRole("MANAGER", "ADMIN")
 
                         .requestMatchers("/api/orders/waiter/**").hasRole("WAITER")
                         .requestMatchers("/api/table/**").hasAnyRole("WAITER", "MANAGER", "ADMIN")
@@ -76,13 +83,18 @@ public class SecurityConfig {
                         .requestMatchers("/api/orders/cheff/**").hasRole("CHEF")
 
                         .requestMatchers("/api/orders/shipper/**").hasRole("SHIPPER")
+                        .requestMatchers("/api/shipper/orders/*/location").hasRole("SHIPPER")
 
-                        .requestMatchers("/api/customers/**").hasRole("CUSTOMER")
-                        .requestMatchers("/api/orders/customer/**").hasRole("CUSTOMER")
-                        .requestMatchers("/api/orders/dining-table/**").hasRole("CUSTOMER")
+                        .requestMatchers("/api/orders/branch/**")
+                        .hasAnyRole("MANAGER", "ADMIN", "WAITER", "CHEF", "SHIPPER")
+                        .requestMatchers("/api/orders/statuses").permitAll()
 
                         .requestMatchers("/api/orders/customer/pickup").hasAnyRole("CUSTOMER", "STAFF")
-
+                        .requestMatchers("/api/orders/customer/**").hasRole("CUSTOMER")
+                        .requestMatchers("/api/customers/**").hasRole("CUSTOMER")
+                        .requestMatchers("/api/orders/dining-table/**").hasRole("CUSTOMER")
+                        .requestMatchers("/api/promotions/customer/**").hasRole("CUSTOMER")
+                        .requestMatchers("/api/roles/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/orders").hasRole("CUSTOMER")
 
                         .anyRequest().authenticated());
@@ -93,10 +105,11 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("*"));
+        configuration.setAllowedOriginPatterns(List.of("*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(false);
+        configuration.setExposedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

@@ -6,10 +6,7 @@ import {
     Plus,
     FileText,
     BookOpen,
-    DollarSign,
-    Flame,
-    Clock,
-    TrendingUp,
+    DollarSign
 } from 'lucide-react';
 import { FilterBar, FilterChip, SavedFilter } from '@/components/common/FilterBar';
 import { DataTable, Column } from '@/components/common/DataTable';
@@ -17,8 +14,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Recipe } from '@/utils/types/recipe.types';
-import { MOCK_RECIPES } from '@/utils/mocks/data/recipes.mock';
 import { RecipeDetailDialog } from './components/RecipeDetailDialog';
+
+// Temporary empty array until API is implemented
+const MOCK_RECIPES: Recipe[] = [];
 
 export default function RecipesPage() {
     const [searchValue, setSearchValue] = useState('');

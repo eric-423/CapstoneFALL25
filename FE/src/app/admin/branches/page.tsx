@@ -3,9 +3,11 @@
 import { AdminGuard } from '@/components/guards';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { MOCK_BRANCHES } from '@/utils/mocks/data/branches.mock';
 import { Store, MapPin, Phone, User, Edit, Trash2, CheckCircle, XCircle } from 'lucide-react';
 import { AddBranchDialog } from './components/AddBranchDialog';
+
+// Temporary empty array until API is implemented
+const MOCK_BRANCHES: any[] = [];
 
 export default function BranchesPage() {
     return (

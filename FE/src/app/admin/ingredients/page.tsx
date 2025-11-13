@@ -17,8 +17,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Ingredient } from '@/utils/types/ingredient.types';
-import { MOCK_INGREDIENTS_ENHANCED } from '@/utils/mocks/data/ingredients-enhanced.mock';
 import { IngredientDetailDialog } from './components/IngredientDetailDialog';
+
+// Temporary empty array until API is implemented
+const MOCK_INGREDIENTS_ENHANCED: Ingredient[] = [];
 
 export default function IngredientsPage() {
     const [searchValue, setSearchValue] = useState('');

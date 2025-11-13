@@ -559,6 +559,7 @@ public class StatisticsServiceImpl implements StatisticsService {
                                     .name(product.getName())
                                     .quantitySold(orderItem.getQuantity())
                                     .revenue(orderItem.getPrice() * orderItem.getQuantity())
+                                    .imageUrl(product.getImage())
                                     .build());
                         }
                     }

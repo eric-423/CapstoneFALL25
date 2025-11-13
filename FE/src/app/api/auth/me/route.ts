@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     // Debug: Log all cookies
     const allCookies = request.cookies.getAll();
     console.log('[API /auth/me] All cookies:', allCookies.map(c => ({ name: c.name, value: c.value?.substring(0, 20) + '...' })));
-    
+
     const token = request.cookies.get('token')?.value;
 
     if (!token) {

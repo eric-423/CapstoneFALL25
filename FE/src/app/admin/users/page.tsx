@@ -19,9 +19,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { RoleHistory, TrainingStats, UserRole, UserTraining } from '@/utils/types/user.types';
-import { MOCK_USERS } from '@/utils/mocks/data/users.mock';
+// import { MOCK_USERS } from '@/utils/mocks/data/users.mock';
 import type { UserWithUiExtras } from './components/UserDetailDialog';
 import { UserDetailDialog } from './components/UserDetailDialog';
+
+// Temporary empty array until API is implemented
+const MOCK_USERS: any[] = [];
 
 type UserStatusFilter = 'active' | 'inactive' | 'banned';
 

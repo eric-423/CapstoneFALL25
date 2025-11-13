@@ -175,7 +175,7 @@ export default function InsideLoginForm() {
 
                             <div className="flex items-center justify-between text-sm">
                                 <label className="inline-flex items-center gap-2 text-slate-600">
-                                    <input
+                                    <Input
                                         type="checkbox"
                                         checked={rememberMe}
                                         onChange={(e) => setRememberMe(e.target.checked)}

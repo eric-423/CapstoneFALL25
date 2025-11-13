@@ -1,11 +1,14 @@
 package com.capstone.tamtech.capstone.services.impl;
 
 import com.capstone.tamtech.capstone.dto.OrderDTO;
+import com.capstone.tamtech.capstone.dto.OrderListDTO;
 import com.capstone.tamtech.capstone.payload.request.DiningTablePaymentRequest;
 import com.capstone.tamtech.capstone.payload.request.DiningTableProductRequest;
 import com.capstone.tamtech.capstone.payload.request.OrderRequest;
 import com.capstone.tamtech.capstone.payload.request.WaiterConfirmOrderRequest;
 import org.apache.coyote.BadRequestException;
+
+import java.util.List;
 
 public interface OrderService {
 
@@ -40,4 +43,8 @@ public interface OrderService {
     boolean customerPickedUpOrder(int orderId);
 
     OrderDTO updateOrderForDining(int orderId, DiningTableProductRequest diningTableProductRequest);
+
+    List<OrderListDTO> getCustomerOrders(int customerId, String status);
+
+    List<OrderListDTO> getBranchOrders(int branchId, String status);
 }

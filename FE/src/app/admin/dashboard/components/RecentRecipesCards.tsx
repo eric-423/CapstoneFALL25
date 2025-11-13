@@ -19,7 +19,7 @@ interface RecentRecipesCardsProps {
 
 export function RecentRecipesCards({ data }: RecentRecipesCardsProps) {
     return (
-        <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow border border-gray-100">
+        <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow border border-gray-100 h-full flex flex-col">
             <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-800">Công thức mới nhất</h3>
                 <Link
@@ -29,7 +29,7 @@ export function RecentRecipesCards({ data }: RecentRecipesCardsProps) {
                     Xem tất cả →
                 </Link>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-4 flex-1 overflow-y-auto">
                 {data.map((recipe) => (
                     <div
                         key={recipe.id}

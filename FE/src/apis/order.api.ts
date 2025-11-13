@@ -157,7 +157,7 @@ export const cancelOrder = async (orderId: number, customerId: number) => {
 };
 
 export const createDiningOrder = async (orderRequest: DiningOrderRequest) => {
-  const { data } = await http.post('/orders', orderRequest);
+  const { data } = await http.post('/orders/dining-table/create', orderRequest);
   return data;
 };
 

@@ -52,13 +52,13 @@ export function ActivitiesTimeline({ activities }: ActivitiesTimelineProps) {
     };
 
     return (
-        <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow border border-gray-100">
+        <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow border border-gray-100 h-full flex flex-col">
             <div className="flex items-center gap-2 mb-4">
                 <Activity className="w-5 h-5 text-gray-700" />
                 <h3 className="text-lg font-semibold text-gray-800">Hoạt động gần đây</h3>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4 flex-1 overflow-y-auto">
                 {activities.map((activity, index) => (
                     <div key={activity.id} className="flex gap-4 relative">
                         {/* Timeline line */}

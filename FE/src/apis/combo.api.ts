@@ -1,5 +1,3 @@
-import http from '@/utils/http';
-
 export interface Combo {
     comboId: number;
     name: string;
@@ -36,18 +34,30 @@ export interface ComboSearchResponse {
 }
 
 export const searchCombos = async (params: ComboSearchParams): Promise<ComboSearchResponse> => {
-    const { data } = await http.get('/combos/search', {
-        params: {
-            branchId: params.branchId,
-            keyword: params.keyword,
-            productName: params.productName,
-            minPrice: params.minPrice,
-            maxPrice: params.maxPrice,
-            sortBy: params.sortBy,
-            sortDirection: params.sortDirection,
-            page: params.page ?? 0,
-            size: params.size ?? 10,
-        },
+    // Build query params
+    const queryParams = new URLSearchParams();
+    Object.entries({
+        branchId: params.branchId,
+        keyword: params.keyword,
+        productName: params.productName,
+        minPrice: params.minPrice,
+        maxPrice: params.maxPrice,
+        sortBy: params.sortBy,
+        sortDirection: params.sortDirection,
+        page: params.page ?? 0,
+        size: params.size ?? 10,
+    }).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+            queryParams.append(key, value.toString());
+        }
     });
+
+    const response = await fetch(`/api/combos/search?${queryParams.toString()}`);
+
+    if (!response.ok) {
+        throw new Error('Failed to search combos');
+    }
+
+    const data = await response.json();
     return data;
 };
