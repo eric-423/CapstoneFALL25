@@ -1057,4 +1057,79 @@ public class OrderServiceImpl implements OrderService {
 
         return null;
     }
+
+    @Override
+    public List<OrderListDTO> getCustomerOrders(int customerId, String status) {
+        List<Order> orders;
+
+        if (status != null && !status.isEmpty() && !status.equalsIgnoreCase("ALL")) {
+            orders = orderRepository.findByCustomer_IdAndStatus_NameOrderByCreatedAtDesc(customerId, status);
+        } else {
+            orders = orderRepository.findByCustomerId(customerId);
+        }
+
+        return convertToOrderListDTO(orders);
+    }
+
+    @Override
+    public List<OrderListDTO> getBranchOrders(int branchId, String status) {
+        List<Order> orders;
+
+        if (status != null && !status.isEmpty() && !status.equalsIgnoreCase("ALL")) {
+            orders = orderRepository.findByBranch_IdAndStatus_NameOrderByCreatedAtDesc(branchId, status);
+        } else {
+            orders = orderRepository.findByBranchId(branchId);
+        }
+
+        return convertToOrderListDTO(orders);
+    }
+
+    private List<OrderListDTO> convertToOrderListDTO(List<Order> orders) {
+        return orders.stream().map(order -> {
+            OrderListDTO dto = new OrderListDTO();
+            dto.setId(order.getId());
+            dto.setOrderStatus(order.getStatus().getName() != null ? order.getStatus().getName() : null);
+            dto.setOrderDate(order.getCreatedAt());
+            dto.setPaymentTime(order.getPaymentTime());
+            dto.setDeliveryAt(order.getDeliveryAtt());
+
+            if (order.getCustomer() != null) {
+                dto.setCustomerName(order.getCustomer().getFullName());
+                dto.setCustomerPhone(order.getCustomer().getPhoneNumber());
+            }
+
+            dto.setAddress(order.getAddress());
+
+            if (order.getBranch() != null) {
+                dto.setBranchName(order.getBranch().getName());
+                dto.setBranchAddress(order.getBranch().getAddress());
+            }
+
+            dto.setSubTotal(order.getSubTotal());
+            dto.setShippingFee(order.getShippingFee() != null ? order.getShippingFee() : 0.0);
+            dto.setDiscountValue(order.getDiscountValue());
+            dto.setAmount(order.getAmount());
+
+            dto.setPromotionCode(order.getPromotionCode());
+            dto.setPointUsed(order.getPointUsed());
+            dto.setPointEarned(order.getPointEarned());
+
+            dto.setPickUp(order.isPickUp());
+            dto.setTable(order.getIsTable() != null ? order.getIsTable() : false);
+
+            if (order.getShipper() != null) {
+                dto.setShipperName(order.getShipper().getFullName());
+            }
+            if (order.getWaiter() != null) {
+                dto.setWaiterName(order.getWaiter().getFullName());
+            }
+            if (order.getWorker() != null) {
+                dto.setChefName(order.getWorker().getFullName());
+            }
+
+            dto.setItemCount(order.getOrderItems() != null ? order.getOrderItems().size() : 0);
+
+            return dto;
+        }).collect(java.util.stream.Collectors.toList());
+    }
 }

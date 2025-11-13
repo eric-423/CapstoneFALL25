@@ -85,13 +85,16 @@ public class SecurityConfig {
                         .requestMatchers("/api/orders/shipper/**").hasRole("SHIPPER")
                         .requestMatchers("/api/shipper/orders/*/location").hasRole("SHIPPER")
 
-                        .requestMatchers("/api/customers/**").hasRole("CUSTOMER")
-                        .requestMatchers("/api/orders/customer/**").hasRole("CUSTOMER")
-                        .requestMatchers("/api/orders/dining-table/**").hasRole("CUSTOMER")
-                        .requestMatchers("/api/promotions/customer/**").hasRole("CUSTOMER")
+                        .requestMatchers("/api/orders/branch/**")
+                        .hasAnyRole("MANAGER", "ADMIN", "WAITER", "CHEF", "SHIPPER")
+                        .requestMatchers("/api/orders/statuses").permitAll()
 
                         .requestMatchers("/api/orders/customer/pickup").hasAnyRole("CUSTOMER", "STAFF")
-
+                        .requestMatchers("/api/orders/customer/**").hasRole("CUSTOMER")
+                        .requestMatchers("/api/customers/**").hasRole("CUSTOMER")
+                        .requestMatchers("/api/orders/dining-table/**").hasRole("CUSTOMER")
+                        .requestMatchers("/api/promotions/customer/**").hasRole("CUSTOMER")
+                        .requestMatchers("/api/roles/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/orders").hasRole("CUSTOMER")
 
                         .anyRequest().authenticated());
