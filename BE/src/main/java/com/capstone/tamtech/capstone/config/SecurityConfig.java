@@ -110,6 +110,12 @@ public class SecurityConfig {
 
                         .requestMatchers("/api/products/create").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers("/api/products/update/**").hasAnyRole("MANAGER", "ADMIN")
+
+                        .requestMatchers(HttpMethod.GET, "/api/recipes/**")
+                        .hasAnyRole("MANAGER", "ADMIN", "CHEFF", "WAITER")
+                        .requestMatchers(HttpMethod.POST, "/api/recipes").hasAnyRole("MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/recipes/**").hasAnyRole("MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/recipes/**").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers("/api/orders/manager/**").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers("/api/statistics/**").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers("/api/promotions/create").hasAnyRole("MANAGER", "ADMIN")
@@ -136,8 +142,12 @@ public class SecurityConfig {
                         .requestMatchers("/api/orders/dining-table/**").hasRole("CUSTOMER")
                         .requestMatchers("/api/promotions/customer/**").hasRole("CUSTOMER")
                         .requestMatchers("/api/roles/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT,"/api/roles/{roleId}").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET,"/api/roles/{roleId}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/roles/{roleId}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/roles/{roleId}").hasRole("ADMIN")
+
+                        .requestMatchers("/api/users/**").hasRole("ADMIN")
+                        .requestMatchers("/api/role-histories/**").hasRole("ADMIN")
+
                         .requestMatchers(HttpMethod.POST, "/api/orders").hasRole("CUSTOMER")
 
                         .anyRequest().authenticated());
