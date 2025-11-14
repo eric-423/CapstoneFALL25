@@ -23,6 +23,8 @@ export default function RootLayout() {
           }}
         >
           <Stack.Screen name="(auth)/welcome" />
+          <Stack.Screen name="(auth)/map" />
+          <Stack.Screen name="(auth)/shipperTrackingScreen" />
           <Stack.Screen name="(shippers)" />
         </Stack>
       </AppProvider>
