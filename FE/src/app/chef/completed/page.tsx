@@ -32,12 +32,12 @@ export default function CompletedPage() {
                 if (response.status === 0 && response.data) {
                     setOrders(response.data);
                 } else {
-                    const errorMsg = response.desc || response.error || 'Không thể tải danh sách đơn hàng đã hoàn thành';
+                    const errorMsg = response.desc || 'Không thể tải danh sách đơn hàng đã hoàn thành';
                     setError(errorMsg);
                 }
             } catch (err) {
                 console.error('Error fetching completed orders:', err);
-                const error = err as Error & { response?: { data?: { error?: string; status?: number } } };
+                const error = err as Error & { response?: { data?: { error?: string; status?: number; details?: { error?: string } }; status?: number } };
                 
                 if (error.response?.data) {
                     const errorData = error.response.data;
@@ -48,7 +48,8 @@ export default function CompletedPage() {
                     } else if (status === 401) {
                         setError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
                     } else {
-                        setError(errorData.error || 'Không thể tải danh sách đơn hàng đã hoàn thành');
+                        const errorMsg = errorData.error || errorData.details?.error || 'Không thể tải danh sách đơn hàng đã hoàn thành';
+                        setError(errorMsg);
                     }
                 } else {
                     setError('Có lỗi xảy ra khi tải danh sách đơn hàng đã hoàn thành. Vui lòng thử lại sau.');

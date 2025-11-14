@@ -9,24 +9,20 @@ import {
   getRefreshToken,
   removeAccessToken,
   removeRefreshToken,
-  setAccessToken,
   setRefreshToken,
   getToken,
   setToken,
   removeToken,
-} from './cookies';
+} from './cookies.client';
 
 
 // --------
 class Http {
-  private accessToken: string;
-  private refreshToken: string;
+  private accessToken: string | null = null;
+  private refreshToken: string | null = null;
   instance: AxiosInstance;
 
   constructor() {
-    this.accessToken = getToken() || getAccessToken();
-    this.refreshToken = getRefreshToken();
-
     this.instance = axios.create({
       baseURL: apiBaseURL,
       timeout: 10000,
@@ -37,9 +33,19 @@ class Http {
 
     this.instance.interceptors.request.use(
       (config) => {
+        if (!this.accessToken) {
+          try {
+            const token = getToken();
+            const accessToken = getAccessToken();
+            this.accessToken = token || accessToken || null;
+            this.refreshToken = getRefreshToken() || null;
+          } catch (error) {
+            console.error('Error getting token:', error);
+          }
+        }
+        
         if (this.accessToken && config.headers) {
           config.headers.Authorization = `Bearer ${this.accessToken}`;
-          return config;
         }
         return config;
       },
@@ -53,27 +59,37 @@ class Http {
         if (method === 'post' && url?.includes('token/refresh')) {
           if (response.data.access_token) {
             this.accessToken = response.data.access_token;
-            this.refreshToken = response.data.refresh_token;
-            setToken(this.accessToken);
-            setRefreshToken(this.refreshToken);
+            this.refreshToken = response.data.refresh_token || null;
+            if (this.accessToken) {
+              setToken(this.accessToken);
+            }
+            if (this.refreshToken) {
+              setRefreshToken(this.refreshToken);
+            }
           }
         } else if (method === 'post' && url?.includes('employee/login')) {
           // Employee login response: { token, tokenType, expiresIn, userInfo }
           if (response.data?.token) {
             this.accessToken = response.data.token;
-            setToken(this.accessToken);
+            if (this.accessToken) {
+              setToken(this.accessToken);
+            }
             // Employee login không có refresh_token
           }
         } else if (method === 'post' && url?.includes('sign-in')) {
           if (response.data.data?.access_token) {
             this.accessToken = response.data.data.access_token;
-            this.refreshToken = response.data.data.refresh_token;
-            setToken(this.accessToken);
-            setRefreshToken(this.refreshToken);
+            this.refreshToken = response.data.data.refresh_token || null;
+            if (this.accessToken) {
+              setToken(this.accessToken);
+            }
+            if (this.refreshToken) {
+              setRefreshToken(this.refreshToken);
+            }
           }
         } else if (url === configs.routes.logout) {
-          this.accessToken = '';
-          this.refreshToken = '';
+          this.accessToken = null;
+          this.refreshToken = null;
           removeToken();
           removeAccessToken();
           removeRefreshToken();
@@ -82,6 +98,8 @@ class Http {
       },
       (error: AxiosError) => {
         if (error.response?.status === HTTP_STATUS.UNAUTHORIZED) {
+          this.accessToken = null;
+          this.refreshToken = null;
           removeToken();
           removeAccessToken();
           removeRefreshToken();

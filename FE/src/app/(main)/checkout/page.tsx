@@ -22,7 +22,7 @@ import useScrollTop from '@/utils/hooks/useScrollTop';
 import { cn } from '@/utils/lib/utils';
 
 import configs from '@/utils/configs';
-import { setCookie, getToken } from '@/utils/cookies';
+import { setCookie, getToken } from '@/utils/cookies.client';
 
 import { getReceiveTime } from '@/utils/getReceiveTime';
 import { STORE_INFO } from '@/utils/mockupData';

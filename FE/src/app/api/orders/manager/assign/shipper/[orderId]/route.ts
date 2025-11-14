@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://tam-tac.com';
 
 export async function PUT(
     request: NextRequest,
@@ -18,8 +19,10 @@ export async function PUT(
             );
         }
 
+        const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
+        const url = `${baseUrl}/orders/manager/assign/shipper/${orderId}`;
 
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/manager/assign/shipper/${orderId}`, {
+        const response = await fetch(url, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',

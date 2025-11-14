@@ -8,6 +8,7 @@ import com.capstone.tamtech.capstone.repositories.RoleRepository;
 import com.capstone.tamtech.capstone.services.impl.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -36,6 +37,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
+    @Transactional
     public RoleDTO updateRole(int roleId, RoleRequest roleRequest) {
         Role role = roleRepository.findById(roleId).orElseThrow(() -> new ResourceNotFoundException("Role not found"));
         if (role != null) {
