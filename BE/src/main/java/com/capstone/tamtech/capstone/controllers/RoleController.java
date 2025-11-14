@@ -31,14 +31,21 @@ public class RoleController {
         return new ResponseEntity<>(responseData, HttpStatus.CREATED);
     }
 
-    @PutMapping("/{roleId} ")
+    @PutMapping("/{roleId}")
     public ResponseEntity<?> updateRole(@PathVariable int roleId, @RequestBody RoleRequest roleRequest) {
-        ResponseData responseData = new ResponseData();
-        responseData.setData(roleService.updateRole(roleId, roleRequest));
-        return ResponseEntity.ok(responseData);
+        System.out.println("test");
+        try {
+            System.out.println("Updating role with ID: " + roleId + 1);
+            ResponseData responseData = new ResponseData();
+            responseData.setData(roleService.updateRole(roleId, roleRequest));
+            return ResponseEntity.ok(responseData);
+        } catch (Exception e){
+            System.out.println("Error updating role: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating role");
+        }
     }
 
-    @GetMapping("/{roleId} ")
+    @GetMapping("/{roleId}")
     public ResponseEntity<?> getRoleById(@PathVariable int roleId) {
         ResponseData responseData = new ResponseData();
         responseData.setData(roleService.getRoleById(roleId));

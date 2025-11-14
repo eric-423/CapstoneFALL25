@@ -119,7 +119,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/promotions/*/status").hasAnyRole("MANAGER", "ADMIN")
 
                         .requestMatchers("/api/orders/waiter/**").hasRole("WAITER")
-                        .requestMatchers("/api/table/**").hasAnyRole("WAITER", "MANAGER", "ADMIN")
+                        .requestMatchers("/api/table/**").permitAll()
 
                         .requestMatchers("/api/orders/cheff/**").hasRole("CHEFF")
 
@@ -136,6 +136,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/orders/dining-table/**").hasRole("CUSTOMER")
                         .requestMatchers("/api/promotions/customer/**").hasRole("CUSTOMER")
                         .requestMatchers("/api/roles/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT,"/api/roles/{roleId}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET,"/api/roles/{roleId}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/orders").hasRole("CUSTOMER")
 
                         .anyRequest().authenticated());
