@@ -3,13 +3,13 @@
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import configs from '@/utils/configs';
 import { useAuth } from '@/utils/hooks';
-import { getCookie } from '@/utils/cookies';
+import { getCookie } from '@/utils/cookies.client';
 
 import { FC, PropsWithChildren, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 const PaymentGuard: FC<PropsWithChildren> = ({ children }) => {
-  const isPaying = getCookie('is_paying') === true;
+  const isPaying = getCookie('is_paying') === 'true';
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 

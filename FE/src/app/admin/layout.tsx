@@ -32,18 +32,18 @@ import {
 } from 'lucide-react';
 
 // Memoized Menu Item Component
-const MenuItem = memo(({ 
-    item, 
-    isActive 
-}: { 
-    item: { href: string; label: string; icon: any }; 
+const MenuItem = memo(({
+    item,
+    isActive
+}: {
+    item: { href: string; label: string; icon: any };
     isActive: boolean;
 }) => {
     const Icon = item.icon;
-    
+
     return (
-        <Link 
-            href={item.href} 
+        <Link
+            href={item.href}
             prefetch={true}
             className="block"
         >
@@ -58,9 +58,9 @@ const MenuItem = memo(({
                 {isActive && (
                     <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#F8A91F] rounded-r-full shadow-lg"></div>
                 )}
-                <Icon 
-                    size={20} 
-                    className={`flex-shrink-0 ${isActive ? 'text-white' : 'text-white/80 group-hover:text-[#F8A91F]'} transition-colors`} 
+                <Icon
+                    size={20}
+                    className={`flex-shrink-0 ${isActive ? 'text-white' : 'text-white/80 group-hover:text-[#F8A91F]'} transition-colors`}
                     strokeWidth={isActive ? 2.5 : 2}
                 />
                 <span className={`text-sm sm:text-base ${isActive ? 'font-semibold' : 'font-medium'} truncate`}>
@@ -113,7 +113,7 @@ export default function AdminLayout({
     // Close sidebar when clicking outside on mobile
     useEffect(() => {
         if (!sidebarOpen) return;
-        
+
         const handleClickOutside = (event: MouseEvent) => {
             if (window.innerWidth < 1024) {
                 const target = event.target as HTMLElement;
@@ -150,7 +150,7 @@ export default function AdminLayout({
                 <div className="flex relative">
                     {/* Mobile Overlay */}
                     {sidebarOpen && (
-                        <div 
+                        <div
                             className="fixed inset-0 bg-black/50 z-40 lg:hidden transition-opacity"
                             onClick={() => setSidebarOpen(false)}
                         />
@@ -184,9 +184,9 @@ export default function AdminLayout({
                         <nav className="flex-1 overflow-y-auto p-3 sm:p-4 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
                             <div className="space-y-1.5">
                                 {menuItems.map((item) => (
-                                    <MenuItem 
-                                        key={item.href} 
-                                        item={item} 
+                                    <MenuItem
+                                        key={item.href}
+                                        item={item}
                                         isActive={pathname === item.href}
                                     />
                                 ))}
@@ -228,7 +228,7 @@ export default function AdminLayout({
                                 <h1 className="text-lg font-bold text-gray-900">TamTech Admin</h1>
                             </div>
                         </div>
-                        
+
                         <AdminHeader />
                         <div className="p-4 sm:p-6 max-w-full overflow-x-hidden">
                             {children}

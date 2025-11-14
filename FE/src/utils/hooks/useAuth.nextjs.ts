@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { UserAuthData } from '@/utils/types/user.type';
-import { removeToken, removeAccessToken, removeRefreshToken, removeUserRole, removeAuthToken } from '@/utils/cookies';
+import { removeToken, removeAccessToken, removeRefreshToken, removeUserRole, removeAuthToken } from '@/utils/cookies.client';
 
 type AuthState = {
   user: UserAuthData | null;

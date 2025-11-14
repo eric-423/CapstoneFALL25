@@ -37,14 +37,14 @@ export default function ChefPage() {
                     console.log('✅ [Chef Page] Orders fetched successfully:', response.data.length);
                     setOrders(response.data);
                 } else {
-                    const errorMsg = response.desc || response.error || 'Không thể tải danh sách đơn hàng';
+                    const errorMsg = response.desc || 'Không thể tải danh sách đơn hàng';
                     console.error('❌ [Chef Page] API returned error:', response);
                     setError(errorMsg);
                 }
             } catch (err) {
                 console.error('💥 [Chef Page] Error fetching orders:', err);
                 
-                const error = err as Error & { response?: { data?: { error?: string; details?: unknown; status?: number } } };
+                const error = err as Error & { response?: { data?: { error?: string; details?: { error?: string; userRole?: string }; status?: number; userRole?: string }; status?: number } };
                 
                 if (error.response?.data) {
                     const errorData = error.response.data;

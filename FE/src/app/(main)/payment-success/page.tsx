@@ -2,7 +2,7 @@
 
 import { useCart } from '@/utils/contexts/cart/CartContext';
 import useScrollTop from '@/utils/hooks/useScrollTop';
-import { removeCookie } from '@/utils/cookies';
+import { removeCookie } from '@/utils/cookies.client';
 
 import { useEffect } from 'react';
 
