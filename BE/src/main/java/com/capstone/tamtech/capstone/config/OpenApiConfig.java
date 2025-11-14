@@ -45,7 +45,7 @@ public class OpenApiConfig {
                         .contact(new Contact()
                                 .name("TamTech Support Team")
                                 .email("support@tamtech.com")
-                                .url("https://tamtech.com"))
+                                .url("https://tam-tac.com"))
                         .license(new License()
                                 .name("Apache 2.0")
                                 .url("https://www.apache.org/licenses/LICENSE-2.0.html")))
