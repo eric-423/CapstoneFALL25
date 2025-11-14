@@ -3,7 +3,7 @@
 import { refetchToken } from '@/apis/user.api';
 import configs from '@/utils/configs';
 import type { UserAuthData } from '@/utils/types/user.type';
-import { getCookie, removeAccessToken, removeRefreshToken, setUserRole, setAuthToken, removeUserRole, removeAuthToken } from '@/utils/cookies';
+import { getCookie, removeAccessToken, removeRefreshToken, setUserRole, setAuthToken, removeUserRole, removeAuthToken } from '@/utils/cookies.client';
 import JwtDecode from '@/utils/jwtDecode';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';

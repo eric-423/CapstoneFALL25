@@ -1,20 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { jwtDecode } from 'jwt-decode';
-import { getToken } from '@/utils/cookies';
 import JwtDecode from '@/utils/jwtDecode';
+import { getToken } from '@/utils/cookies.server';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://tam-tac.com';
 
-interface DecodedToken {
-    role?: string;
-    sub?: string;
-    id?: number;
-    [key: string]: unknown;
-}
 
 export async function GET(request: NextRequest) {
     try {
-        const token = request.cookies.get('token')?.value;
+        const token = await getToken();
 
         if (!token) {
             return NextResponse.json(
