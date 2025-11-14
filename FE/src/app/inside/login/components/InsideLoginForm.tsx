@@ -45,7 +45,6 @@ export default function InsideLoginForm() {
         setLoading(true);
 
         try {
-
             const response = await loginEmployeeViaApiRoute({ email, password });
             if (response.status === 200 && response.data?.token) {
 

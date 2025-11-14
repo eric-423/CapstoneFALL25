@@ -1,12 +1,6 @@
-import { Metadata } from 'next';
-import ManagerDashboardContent from './components/ManagerDashboardContent';
+import { redirect } from 'next/navigation';
 
-export const metadata: Metadata = {
-    title: 'Manager Dashboard',
-    description: 'Trang quản lý dành cho Manager',
-    robots: 'noindex, nofollow',
-};
-
-export default function ManagerDashboard() {
-    return <ManagerDashboardContent />;
+export default function ManagerPage() {
+    redirect('/manager/dashboard');
 }
+

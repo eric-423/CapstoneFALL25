@@ -67,7 +67,6 @@ function isTokenValid(token: string): { isValid: boolean; payload: JwtPayload | 
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
-    // Skip middleware for static files and API routes
     if (
         pathname.startsWith('/_next') ||
         pathname.startsWith('/api') ||
@@ -89,7 +88,7 @@ export async function middleware(request: NextRequest) {
         if (payload?.role === 'ADMIN') {
             dashboardUrl = '/admin';
         } else if (payload?.role === 'MANAGER') {
-            dashboardUrl = '/admin';
+            dashboardUrl = '/manager';
         } else if (payload?.role === 'CHEFF') {
             dashboardUrl = '/chef';
         }

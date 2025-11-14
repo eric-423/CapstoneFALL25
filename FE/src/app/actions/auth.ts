@@ -47,8 +47,8 @@ export async function loginAction(formData: FormData) {
       if (role === 'ADMIN') {
         redirect('/admin');
       } else if (role === 'MANAGER') {
-        // redirect('/manager');
-        redirect('/admin');
+        redirect('/manager');
+        // redirect('/admin');
 
       } else {
         redirect('/');

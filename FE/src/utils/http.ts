@@ -23,13 +23,18 @@ class Http {
   instance: AxiosInstance;
 
   constructor() {
+    // Fallback nếu apiBaseURL không có giá trị
+    const baseURL = apiBaseURL || 'http://localhost:8080'; // Thay bằng domain backend của bạn
+
     this.instance = axios.create({
-      baseURL: apiBaseURL,
-      timeout: 10000,
+      baseURL: baseURL,
+      timeout: 5000,
       headers: {
         'Content-Type': 'application/json',
       },
     });
+
+    console.log('  - axios.defaults.baseURL:', this.instance.defaults.baseURL);
 
     this.instance.interceptors.request.use(
       (config) => {
@@ -43,16 +48,20 @@ class Http {
             console.error('Error getting token:', error);
           }
         }
-        
+
         if (this.accessToken && config.headers) {
           config.headers.Authorization = `Bearer ${this.accessToken}`;
         }
         return config;
+
       },
+
       (error) => {
         return Promise.reject(error);
       },
     );
+
+
     this.instance.interceptors.response.use(
       (response) => {
         const { url, method } = response.config;
@@ -68,13 +77,11 @@ class Http {
             }
           }
         } else if (method === 'post' && url?.includes('employee/login')) {
-          // Employee login response: { token, tokenType, expiresIn, userInfo }
           if (response.data?.token) {
             this.accessToken = response.data.token;
             if (this.accessToken) {
               setToken(this.accessToken);
             }
-            // Employee login không có refresh_token
           }
         } else if (method === 'post' && url?.includes('sign-in')) {
           if (response.data.data?.access_token) {
@@ -109,8 +116,8 @@ class Http {
       },
     );
   }
-}
 
+}
 const http = new Http().instance;
 
 export default http;
