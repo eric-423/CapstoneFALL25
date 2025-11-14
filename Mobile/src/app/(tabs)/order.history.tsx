@@ -1,6 +1,6 @@
 import { currencyFormatter } from "@/utils/cart";
 import { jwtDecode } from "jwt-decode";
-import { APP_COLOR } from "@/utils/constant";
+import { APP_COLOR, STATUS_COLORS } from "@/utils/constant";
 import EvilIcons from "@expo/vector-icons/EvilIcons";
 import { useCallback, useState, useEffect } from "react";
 import {
@@ -20,6 +20,8 @@ import { router } from "expo-router";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { formatDateToDDMMYYYY } from "@/utils/cart";
 import HeaderHome from "@/components/home/header.home";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { GetAllOrder } from "@/utils/api";
 
 interface Bank {
   id: number;
@@ -34,17 +36,58 @@ interface IOrderHistoryCus {
   order_address: string;
   order_point_earn: number;
   order_amount: number;
+  itemCount?: number;
 }
 interface StatusInfo {
   text: string;
   color: string;
 }
+
+interface ApiOrderResponse {
+  id: number;
+  orderStatus: string;
+  orderDate: string;
+  paymentTime: string | null;
+  deliveryAt: string | null;
+  customerName: string;
+  customerPhone: string;
+  address: string;
+  branchName: string;
+  branchAddress: string;
+  subTotal: number;
+  shippingFee: number;
+  discountValue: number;
+  amount: number;
+  promotionCode: string;
+  pointUsed: number;
+  pointEarned: number;
+  shipperName: string | null;
+  waiterName: string | null;
+  chefName: string | null;
+  itemCount: number;
+  table: boolean;
+  pickUp: boolean;
+}
+const mapOrderStatus = (status: string): string => {
+  const statusMap: Record<string, string> = {
+    CREATED: "Pending",
+    IN_PROCESS: "Paid",
+    APPROVED: "Approved",
+    PREPARING: "Preparing",
+    COOKED: "Cooked",
+    DELIVERING: "Delivering",
+    DELIVERED: "Delivered",
+    CANCELED: "Canceled",
+  };
+  return statusMap[status] || status;
+};
+
 const OrderPage = () => {
   const [orderHistory, setOrderHistory] = useState<IOrderHistoryCus[]>([]);
   const [decodeToken, setDecodeToken] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [token, setToken] = useState<string | null>("sample_token");
+  const [token, setToken] = useState<string | null>(null);
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
   const [cancelReason, setCancelReason] = useState("");
@@ -55,16 +98,7 @@ const OrderPage = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [selectedBank, setSelectedBank] = useState<Bank | null>(null);
   const [isBankDropdownVisible, setIsBankDropdownVisible] = useState(false);
-  const STATUS_COLORS = {
-    PENDING: "rgba(52, 55, 252, 0.75)",
-    APPROVED: "rgba(0, 154, 5, 0.68)",
-    PREPARING: "rgba(255, 251, 0, 0.75)",
-    COOKED: APP_COLOR.ORANGE,
-    DELIVERING: "rgba(3, 169, 244, 0.72)",
-    DELIVERED: "rgba(76, 175, 80, 0.70)",
-    CANCELED: "rgba(244, 67, 54, 0.70)",
-    DEFAULT: "rgba(158, 158, 158, 0.70)",
-  };
+
   const statusMap: Record<string, StatusInfo> = {
     Pending: { text: "Chờ thanh toán", color: STATUS_COLORS.PENDING },
     Paid: { text: "Đã thanh toán", color: STATUS_COLORS.APPROVED },
@@ -76,85 +110,51 @@ const OrderPage = () => {
     Canceled: { text: "Đã hủy", color: STATUS_COLORS.CANCELED },
   };
 
-  const sampleOrderHistory: IOrderHistoryCus[] = [
-    {
-      orderId: 12345,
-      order_create_at: "2024-12-10T10:30:00Z",
-      payment_method: "Thanh toán online",
-      status: "Delivered",
-      order_address: "123 Đường ABC, Quận 1, TP.HCM",
-      order_point_earn: 150,
-      order_amount: 250000,
-    },
-    {
-      orderId: 12346,
-      order_create_at: "2024-12-09T15:45:00Z",
-      payment_method: "Tiền mặt",
-      status: "Paid",
-      order_address: "456 Đường XYZ, Quận 2, TP.HCM",
-      order_point_earn: 80,
-      order_amount: 180000,
-    },
-    {
-      orderId: 12347,
-      order_create_at: "2024-12-08T09:15:00Z",
-      payment_method: "Thanh toán online",
-      status: "Preparing",
-      order_address: "789 Đường DEF, Quận 3, TP.HCM",
-      order_point_earn: 120,
-      order_amount: 320000,
-    },
-    {
-      orderId: 12348,
-      order_create_at: "2024-12-07T14:20:00Z",
-      payment_method: "Thanh toán online",
-      status: "Delivering",
-      order_address: "321 Đường GHI, Quận 4, TP.HCM",
-      order_point_earn: 200,
-      order_amount: 450000,
-    },
-    {
-      orderId: 12349,
-      order_create_at: "2024-12-06T11:00:00Z",
-      payment_method: "Tiền mặt",
-      status: "Delivered",
-      order_address: "654 Đường JKL, Quận 5, TP.HCM",
-      order_point_earn: 90,
-      order_amount: 220000,
-    },
-    {
-      orderId: 12350,
-      order_create_at: "2024-12-05T16:30:00Z",
-      payment_method: "Thanh toán online",
-      status: "Canceled",
-      order_address: "987 Đường MNO, Quận 6, TP.HCM",
-      order_point_earn: 0,
-      order_amount: 150000,
-    },
-    {
-      orderId: 12351,
-      order_create_at: "2024-12-04T13:45:00Z",
-      payment_method: "Thanh toán online",
-      status: "Approved",
-      order_address: "147 Đường PQR, Quận 7, TP.HCM",
-      order_point_earn: 60,
-      order_amount: 280000,
-    },
-    {
-      orderId: 12352,
-      order_create_at: "2024-12-03T08:30:00Z",
-      payment_method: "Tiền mặt",
-      status: "Cooked",
-      order_address: "258 Đường STU, Quận 8, TP.HCM",
-      order_point_earn: 110,
-      order_amount: 190000,
-    },
-  ];
-
   const fetchOrderHistoryWithToken = useCallback(async () => {
-    setTimeout(() => {
-      setOrderHistory(sampleOrderHistory);
-    }, 500);
+    try {
+      setIsLoading(true);
+      setError(null);
+      const storedToken = await AsyncStorage.getItem("access_token");
+      setToken(storedToken);
+
+      if (!storedToken) {
+        setOrderHistory([]);
+        setIsLoading(false);
+        return;
+      }
+
+      const response = await GetAllOrder();
+
+      if (response.data && response.data.status === 0 && response.data.data) {
+        const orders: IOrderHistoryCus[] = response.data.data.map(
+          (order: ApiOrderResponse) => ({
+            orderId: order.id,
+            order_create_at: order.orderDate,
+            payment_method: order.paymentTime
+              ? "Thanh toán online"
+              : "Tiền mặt",
+            status: mapOrderStatus(order.orderStatus),
+            order_address: order.address,
+            order_point_earn: order.pointEarned,
+            order_amount: order.amount,
+            itemCount: order.itemCount,
+          })
+        );
+        setOrderHistory(orders);
+      } else {
+        setOrderHistory([]);
+      }
+    } catch (err: any) {
+      console.error("Error fetching order history:", err);
+      setError(err?.response?.data?.desc || "Không thể tải lịch sử đơn hàng");
+      setOrderHistory([]);
+      Alert.alert(
+        "Lỗi",
+        err?.response?.data?.desc || "Không thể tải lịch sử đơn hàng"
+      );
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   const BankDropdown = () => {
@@ -173,26 +173,6 @@ const OrderPage = () => {
             color={APP_COLOR.BROWN}
           />
         </TouchableOpacity>
-
-        {isBankDropdownVisible && (
-          <View style={styles.dropdownList}>
-            <ScrollView style={styles.dropdownScrollView}>
-              {sampleBanks.map((bank) => (
-                <TouchableOpacity
-                  key={bank.id}
-                  style={styles.dropdownItem}
-                  onPress={() => {
-                    setSelectedBank(bank);
-                    setBankName(bank.name);
-                    setIsBankDropdownVisible(false);
-                  }}
-                >
-                  <Text style={styles.dropdownItemText}>{bank.name}</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        )}
       </View>
     );
   };
@@ -231,7 +211,7 @@ const OrderPage = () => {
   };
   const handleFeedback = (id: number) => {
     router.navigate({
-      pathname: "/(user)/like/[id]",
+      pathname: "/(user)/order/[id]",
       params: { id: id },
     });
   };
@@ -275,8 +255,22 @@ const OrderPage = () => {
   };
 
   useEffect(() => {
-    fetchOrderHistoryWithToken();
-  }, [fetchOrderHistoryWithToken]);
+    const getToken = async () => {
+      const storedToken = await AsyncStorage.getItem("access_token");
+      setToken(storedToken);
+      if (storedToken) {
+        const decoded = jwtDecode<any>(storedToken);
+        setDecodeToken(decoded);
+      }
+    };
+    getToken();
+  }, []);
+
+  useEffect(() => {
+    if (token) {
+      fetchOrderHistoryWithToken();
+    }
+  }, [token, fetchOrderHistoryWithToken]);
 
   return (
     <View style={{ flex: 1, backgroundColor: APP_COLOR.BACKGROUND_ORANGE }}>
@@ -362,7 +356,11 @@ const OrderPage = () => {
             showsVerticalScrollIndicator={false}
             style={{ flex: 1, marginBottom: Platform.OS === "ios" ? -30 : -45 }}
           >
-            {orderHistory.length === 0 ? (
+            {isLoading ? (
+              <Text style={{ textAlign: "center", marginTop: 20 }}>
+                Đang tải...
+              </Text>
+            ) : orderHistory.length === 0 ? (
               <Text style={{ textAlign: "center", marginTop: 20 }}>
                 Không có đơn hàng nào
               </Text>
@@ -440,7 +438,9 @@ const OrderPage = () => {
                               justifyContent: "space-between",
                             }}
                           >
-                            <Text style={styles.text}>X1 Sản phẩm</Text>
+                            <Text style={styles.text}>
+                              X{item.itemCount || 1} Sản phẩm
+                            </Text>
                             <Text
                               style={[
                                 styles.text,
@@ -583,7 +583,9 @@ const OrderPage = () => {
                               justifyContent: "space-between",
                             }}
                           >
-                            <Text style={styles.text}>X1 Sản phẩm</Text>
+                            <Text style={styles.text}>
+                              X{item.itemCount || 1} Sản phẩm
+                            </Text>
                             <Text
                               style={[
                                 styles.text,
