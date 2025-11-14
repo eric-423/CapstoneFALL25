@@ -9,6 +9,8 @@ import java.util.List;
 
 @Repository
 public interface ProductRecipesRepository extends JpaRepository<ProductRecipes, KeyProductRecipes> {
+    List<ProductRecipes> findByKeyProductRecipes_ProductIdOrderByCreatedAtDesc(int productId);
+
 
     List<ProductRecipes> findByKeyProductRecipesProductId(int productId);
 

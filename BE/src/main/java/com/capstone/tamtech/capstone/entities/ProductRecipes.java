@@ -7,6 +7,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Date;
+
 @Entity
 @NoArgsConstructor
 @Table(name = "product_recipes")
@@ -27,5 +29,7 @@ public class ProductRecipes {
     @Column(name = "quantity")
     private double quantity;
 
+    @Column(name = "created_at")
+    private Date createdAt = new Date();
 
 }
