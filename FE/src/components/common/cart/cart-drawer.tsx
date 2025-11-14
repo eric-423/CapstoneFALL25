@@ -39,15 +39,18 @@ export function CartDrawer() {
 
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
-        <Button variant='ghost' size={'icon'} className='text-primary hover:text-[#B84A0E] hover:bg-[#FFE8D6] mx-12'>
-          <div className='relative flex items-center justify-center h-10 w-10 rounded-full transition-colors'>
+        <Button
+          variant='ghost'
+          size='lg'
+          className='text-primary hover:text-[#B84A0E] hover:bg-[#FFE8D6] mx-12 rounded-full px-4'
+        >
+          <div className='relative flex items-center justify-center h-10 w-10 rounded-full transition-colors bg-white/60'>
             <ShoppingCart className='h-5 w-5 text-primary' />
             <Badge className='absolute -top-1 -right-3 h-5 w-5 rounded-full p-0 flex items-center justify-center bg-primary hover:bg-primary'>
               {/* {getTotalItems()} */}
             </Badge>
           </div>
-
-          <span className='ml-2'>Giỏ hàng</span>
+          <span className='ml-2 font-semibold whitespace-nowrap'>Giỏ hàng</span>
         </Button>
       </DrawerTrigger>
 

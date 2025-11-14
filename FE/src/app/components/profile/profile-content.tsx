@@ -23,7 +23,16 @@ export default function ProfileContent() {
     useDocumentTitle('Tấm Tắc | Thông tin cá nhân');
     useScrollTop();
 
-    const { orders, isLoadingOrders } = useCustomerOrders();
+    const {
+        orders,
+        isLoadingOrders,
+        isFetchingOrders,
+        realtimeStatus,
+        isRealtimeConnected,
+        statusFilter,
+        setStatusFilter,
+        totalOrdersCount,
+    } = useCustomerOrders({ realtime: true });
 
     // const { data: userData, isLoading: isLoadingUserData } = useQuery({
     //     queryKey: [GET_ME_QUERY_KEY],
@@ -118,7 +127,11 @@ export default function ProfileContent() {
                     {/* Profile Information Tab */}
                     <TabsContent value='profile'>
                         {userData ? (
-                            <ProfileInfoSection isLoading={isLoadingUserData} user={userData} totalOrders={orders.length} />
+                            <ProfileInfoSection
+                                isLoading={isLoadingUserData}
+                                user={userData}
+                                totalOrders={totalOrdersCount || orders.length}
+                            />
                         ) : (
                             <div className='p-4 text-center'>
                                 <p>Vui lòng đăng nhập để xem thông tin cá nhân</p>
@@ -133,7 +146,15 @@ export default function ProfileContent() {
 
                     {/* Order History Tab */}
                     <TabsContent value='orders'>
-                        <OrderHistorySection orders={orders} isLoadingOrders={isLoadingOrders} />
+                        <OrderHistorySection
+                            orders={orders}
+                            isLoadingOrders={isLoadingOrders}
+                            isFetchingOrders={isFetchingOrders}
+                            isRealtimeConnected={isRealtimeConnected}
+                            lastRealtimeUpdate={realtimeStatus}
+                            statusFilter={statusFilter}
+                            onStatusChange={(status) => setStatusFilter(status)}
+                        />
                     </TabsContent>
                 </Tabs>
             </div>

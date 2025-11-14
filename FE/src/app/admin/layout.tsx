@@ -158,7 +158,7 @@ export default function AdminLayout({
 
                     {/* Sidebar */}
                     <aside className={`
-                        fixed lg:static top-0 left-0 h-screen z-50
+                        fixed top-0 left-0 h-screen z-50
                         w-64 lg:w-56 xl:w-64
                         bg-gradient-to-b from-[#EC6426] via-[#EC6426]/95 to-[#EC6426]/90
                         shadow-xl lg:shadow-none
@@ -214,7 +214,7 @@ export default function AdminLayout({
                     </aside>
 
                     {/* Main Content */}
-                    <main className="flex-1 w-full bg-[#f9fafb] min-w-0">
+                    <main className="flex-1 w-full bg-[#f9fafb] min-w-0 lg:ml-56 xl:ml-64">
                         {/* Mobile Menu Toggle */}
                         <div className="lg:hidden sticky top-0 z-30 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 shadow-sm">
                             <button
