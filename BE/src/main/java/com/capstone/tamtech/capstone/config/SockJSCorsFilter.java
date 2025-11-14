@@ -21,8 +21,10 @@ public class SockJSCorsFilter implements Filter {
 
         String path = httpRequest.getRequestURI();
 
-        if (path != null && (path.startsWith("/ws/info") || path.startsWith("/ws/"))) {
+        if (path != null && (path.startsWith("/ws") || path.startsWith("/ws/"))) {
             String origin = httpRequest.getHeader("Origin");
+            String upgrade = httpRequest.getHeader("Upgrade");
+            String connection = httpRequest.getHeader("Connection");
 
             if (origin != null) {
                 httpResponse.setHeader("Access-Control-Allow-Origin", origin);
@@ -31,9 +33,16 @@ public class SockJSCorsFilter implements Filter {
             }
 
             httpResponse.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-            httpResponse.setHeader("Access-Control-Allow-Headers", "*");
+            httpResponse.setHeader("Access-Control-Allow-Headers",
+                    "Authorization, Content-Type, X-Requested-With, Origin, Accept, Upgrade, Connection, Sec-WebSocket-Key, Sec-WebSocket-Version, Sec-WebSocket-Protocol, Sec-WebSocket-Extensions");
             httpResponse.setHeader("Access-Control-Allow-Credentials", "true");
             httpResponse.setHeader("Access-Control-Max-Age", "3600");
+
+            if ("websocket".equalsIgnoreCase(upgrade) &&
+                    connection != null && connection.toLowerCase().contains("upgrade")) {
+                httpResponse.setHeader("Upgrade", "websocket");
+                httpResponse.setHeader("Connection", "Upgrade");
+            }
 
             if ("OPTIONS".equalsIgnoreCase(httpRequest.getMethod())) {
                 httpResponse.setStatus(HttpServletResponse.SC_OK);
