@@ -13,4 +13,6 @@ public interface MaterialRepository extends JpaRepository<Material, Integer> {
     Optional<Material> findByName(String name);
 
     List<Material> findByMaterialTypeId(int materialTypeId);
+
+    List<Material> findByIsDeletedFalse();
 }

@@ -1,22 +1,16 @@
-package com.capstone.tamtech.capstone.dto;
+package com.capstone.tamtech.capstone.payload.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class MaterialDTO implements Serializable {
-    private int id;
+public class MaterialRequest {
     private String name;
-    private double quantity;
     private Double caloriesPerUnit;
     private String unit;
     private Double threshold;
     private Integer materialTypeId;
-    private String materialTypeName;
-    private Boolean isDeleted;
 }
