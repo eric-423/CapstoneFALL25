@@ -95,6 +95,45 @@ export interface OrderResponse {
 }
 
 
+export interface OrderStatusesResponse {
+  status: number;
+  desc: string;
+  data: string[];
+}
+
+export interface BranchOrderResponse {
+  id: number;
+  orderStatus: string;
+  orderDate: string;
+  paymentTime: string | null;
+  deliveryAt: string | null;
+  customerName: string;
+  customerPhone: string;
+  address: string | null;
+  branchName: string;
+  branchAddress: string;
+  subTotal: number;
+  shippingFee: number;
+  discountValue: number;
+  amount: number;
+  promotionCode: string | null;
+  pointUsed: number;
+  pointEarned: number;
+  shipperName: string | null;
+  waiterName: string | null;
+  chefName: string | null;
+  itemCount: number;
+  table: boolean;
+  pickUp: boolean;
+}
+
+export interface BranchOrdersApiResponse {
+  status: number;
+  desc: string;
+  data: BranchOrderResponse[];
+}
+
+
 export const GET_CUSTOMER_ORDER_QUERY_KEY = 'GET_CUSTOMER_ORDER_QUERY_KEY';
 
 
@@ -142,13 +181,50 @@ export const createOrderApiRoute = async (payload: CreateOrderPayload) => {
 
 //   return response.json();
 // };
+// export const getCustomerInformation = async (userId: number) => {
+//   const response = await fetch(`/api/customer/infomation?userId=${userId}`, {
+//     method: 'GET',
+//     credentials: 'include',
+//   });
+
+//   if (!response.ok) {
+//     const errorBody = await response.json().catch(() => ({}));
+//     throw {
+//       response: {
+//         data: errorBody,
+//         status: response.status,
+//       },
+//     };
+//   }
+
+//   return response.json();
+// };
 
 
 
 
-export const getCustomerOrders = async (userId: number) => {
-  const { data } = await http.get(`/orders/customer/${userId}?size=100`);
-  return data;
+
+
+export const getCustomerOrders = async (status?: string) => {
+  const queryParams = status ? `?status=${encodeURIComponent(status)}` : '';
+
+  const response = await fetch(`/api/orders/customer/my-orders${queryParams}`, {
+    method: 'GET',
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw {
+      response: {
+        data: errorBody,
+        status: response.status,
+      },
+    };
+  }
+
+  return response.json();
+
 };
 
 export const cancelOrder = async (orderId: number, customerId: number) => {
@@ -171,43 +247,6 @@ export const updateDiningTableOrder = async (orderId: number, updateRequest: Upd
   return data;
 };
 
-export interface OrderStatusesResponse {
-  status: number;
-  desc: string;
-  data: string[];
-}
-
-export interface BranchOrderResponse {
-  id: number;
-  orderStatus: string;
-  orderDate: string;
-  paymentTime: string | null;
-  deliveryAt: string | null;
-  customerName: string;
-  customerPhone: string;
-  address: string | null;
-  branchName: string;
-  branchAddress: string;
-  subTotal: number;
-  shippingFee: number;
-  discountValue: number;
-  amount: number;
-  promotionCode: string | null;
-  pointUsed: number;
-  pointEarned: number;
-  shipperName: string | null;
-  waiterName: string | null;
-  chefName: string | null;
-  itemCount: number;
-  table: boolean;
-  pickUp: boolean;
-}
-
-export interface BranchOrdersApiResponse {
-  status: number;
-  desc: string;
-  data: BranchOrderResponse[];
-}
 
 export const getOrderStatuses = async (): Promise<OrderStatusesResponse> => {
   try {

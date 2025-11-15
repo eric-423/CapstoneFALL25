@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import http from '@/utils/http';
+import axios from 'axios';
+import { apiBaseURL } from '@/utils/configs/environment';
+import { cookies } from 'next/headers';
 
 export async function POST(request: NextRequest) {
     try {
@@ -13,9 +15,28 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const response = await http.post('/auth/employee/login', {
+        const baseURL = apiBaseURL;
+        const fullUrl = `${baseURL}/auth/employee/login`;
+
+        console.log('[API Route] Making request to:', fullUrl);
+
+        const cookieStore = await cookies();
+        const token = cookieStore.get('token')?.value;
+
+        const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
+        };
+
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const response = await axios.post(fullUrl, {
             email,
             password,
+        }, {
+            headers,
+            timeout: 10000,
         });
 
         const responseData = NextResponse.json(response.data);
@@ -47,11 +68,19 @@ export async function POST(request: NextRequest) {
         return responseData;
 
     } catch (error: unknown) {
-        console.error('Login API Error:', error);
+
+        if (axios.isAxiosError(error)) {
+            console.error('  - Error message:', error.message);
+            console.error('  - Request URL:', error.config?.url);
+            console.error('  - Request baseURL:', error.config?.baseURL);
+            console.error('  - Response status:', error.response?.status);
+            console.error('  - Response data:', error.response?.data);
+            console.error('  - Error code:', error.code);
+        }
 
         const errorMessage = (error as { response?: { data?: { message?: string; error?: string } } })?.response?.data?.message
             || (error as { response?: { data?: { message?: string; error?: string } } })?.response?.data?.error
-            || 'Đăng nhập thất bại. Vui lòng thử lại.';
+            || (axios.isAxiosError(error) && error.code === 'ECONNREFUSED' ? 'Không thể kết nối đến server. Vui lòng kiểm tra lại.' : 'Đăng nhập thất bại. Vui lòng thử lại.');
 
         const statusCode = (error as { response?: { status?: number } })?.response?.status || 401;
 
@@ -59,7 +88,5 @@ export async function POST(request: NextRequest) {
             { error: errorMessage },
             { status: statusCode }
         );
-
-
     }
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, ReactNode } from 'react';
-import useAuth from '@/utils/hooks/useAuth.nextjs';
+import useAuthState from '@/utils/hooks/useAuthState';
 import type { UserAuthData } from '@/utils/types/user.type';
 
 interface AuthContextType {
@@ -16,7 +16,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-    const auth = useAuth();
+    const auth = useAuthState();
 
     return (
         <AuthContext.Provider value={auth}>

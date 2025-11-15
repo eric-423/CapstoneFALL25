@@ -46,31 +46,28 @@ export const AdminHeader = memo(function AdminHeader() {
         openSearch,
     } = useAdminContext();
 
-    // Memoize breadcrumbs generation
     const breadcrumbs = useMemo(() => {
         const paths = pathname.split('/').filter(Boolean);
         const breadcrumbs = [];
+        const isManager = pathname.startsWith('/manager');
 
         for (let i = 0; i < paths.length; i++) {
             const path = paths[i];
             const href = '/' + paths.slice(0, i + 1).join('/');
 
-            // Capitalize and format
             let label = path
                 .split('-')
                 .map(word => word.charAt(0).toUpperCase() + word.slice(1))
                 .join(' ');
 
-            // Skip 'admin' root
-            if (path === 'admin') continue;
+            if (path === 'admin' || path === 'manager') continue;
 
             breadcrumbs.push({ label, href, isLast: i === paths.length - 1 });
         }
 
-        return breadcrumbs;
+        return { breadcrumbs, isManager };
     }, [pathname]);
 
-    // Mock user data - replace with real auth
     const user = useMemo(() => ({
         name: 'Quản trị viên',
         email: 'admin@tamtac.com',
@@ -80,7 +77,6 @@ export const AdminHeader = memo(function AdminHeader() {
 
     const handleBranchChange = useCallback((branch: typeof selectedBranch) => {
         setSelectedBranch(branch);
-        // TODO: Trigger data refresh across all components
     }, [setSelectedBranch]);
 
     const handleTimePeriodChange = useCallback((period: typeof timePeriod) => {
@@ -101,8 +97,8 @@ export const AdminHeader = memo(function AdminHeader() {
             <div className="flex h-16 items-center gap-4 px-6 max-w-full overflow-x-auto">
                 {/* Breadcrumbs */}
                 <div className="flex items-center gap-2 text-sm">
-                    <span className="text-gray-400">Admin</span>
-                    {breadcrumbs.map((crumb, index) => (
+                    <span className="text-gray-400">{breadcrumbs.isManager ? 'Manager' : 'Admin'}</span>
+                    {breadcrumbs.breadcrumbs.map((crumb, index) => (
                         <React.Fragment key={crumb.href}>
                             <span className="text-gray-600">/</span>
                             {crumb.isLast ? (
@@ -122,7 +118,6 @@ export const AdminHeader = memo(function AdminHeader() {
                 </div>
 
                 <div className="flex-1 flex justify-center">
-                    {/* Global Search Trigger - Centered */}
                     <Button
                         variant="outline"
                         className="relative h-9 w-full max-w-md justify-start text-sm text-gray-400 border-gray-700 bg-slate-800/50 hover:bg-slate-800 hover:text-gray-200 sm:pr-12"

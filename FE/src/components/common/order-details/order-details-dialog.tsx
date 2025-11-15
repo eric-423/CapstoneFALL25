@@ -15,6 +15,7 @@ import { useState } from 'react';
 import { CancelOrderDialog } from '../cancel-order';
 import { LoadingSpinner } from '../loading-spinner';
 import OrderProgressTracker from '../order-progress-tracker';
+import OrderLiveTrackingCard from '../order-live-tracking-card';
 
 interface OrderDetailsDialogProps {
   order: OrderResponse;
@@ -153,6 +154,8 @@ export function OrderDetailsDialog({ order, open, onClose }: OrderDetailsDialogP
 
                 {/* Order Progress Tracker */}
                 <OrderProgressTracker currentStatus={order.orderStatus} className='mb-6' />
+
+                <OrderLiveTrackingCard orderId={order.id} initialStatus={order.orderStatus} />
 
                 {/* Order items */}
                 <Card className='border-none shadow-sm gap-0'>
