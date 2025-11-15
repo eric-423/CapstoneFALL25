@@ -3,13 +3,17 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Drawer, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer';
 import { useCustomerOrders } from '@/utils/hooks/useCustomerOrders';
 import { OrderResponse } from '@/apis/order.api';
-import { OrderStatus } from '@/utils/enum';
-import { STORE_INFO } from '@/utils/mockupData';
-
-import { Calendar, CheckCircle2, Clock, MapPin, Phone, Receipt, ShoppingBag, User } from 'lucide-react';
+import { Calendar, CheckCircle2, Clock, Home, MapPin, Phone, Receipt, ShoppingBag, User } from 'lucide-react';
 import { useState } from 'react';
 
 import { CancelOrderDrawer } from '../cancel-order';
@@ -26,34 +30,52 @@ interface OrderDetailsDrawerProps {
 export function OrderDetailsDrawer({ order, open, onClose }: OrderDetailsDrawerProps) {
   const { isCancelingOrder } = useCustomerOrders();
   const [closable, setClosable] = useState(open);
-  const withdrawable = [OrderStatus.UNPAID, OrderStatus.VERIFIED];
+  const withdrawable = ['UNPAID', 'CREATED', 'VERIFIED'];
+  const normalizedStatus = order?.orderStatus?.toUpperCase?.() || '';
 
-  // Get status badge
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case OrderStatus.UNPAID:
-        return <Badge className='bg-yellow-500'>Chờ xác nhận</Badge>;
-      case OrderStatus.PROCESSING || OrderStatus.VERIFIED || OrderStatus.IN_DELIVERY:
-        return <Badge className='bg-blue-500'>{status}</Badge>;
-      case OrderStatus.COMPLETED:
-        return <Badge className='bg-green-500'>{OrderStatus.COMPLETED}</Badge>;
-      case OrderStatus.CANCELLED:
-        return <Badge className='bg-red-500'>{OrderStatus.CANCELLED}</Badge>;
-      default:
-        return null;
-    }
+  const statusLabelMap: Record<string, string> = {
+    UNPAID: 'Chờ xác nhận',
+    CREATED: 'Đã tạo đơn',
+    VERIFIED: 'Đã xác nhận',
+    COOKING: 'Đang nấu',
+    COOKED: 'Đã nấu xong',
+    IN_PROCESS: 'Đang xử lý',
+    SHIPPING: 'Đang giao',
+    DELIVERED: 'Đã giao',
+    COMPLETED: 'Hoàn tất',
+    CANCEL: 'Đã hủy',
+    CANCELLED: 'Đã hủy',
   };
 
-  // Get payment status badge
-  const getPaymentStatusBadge = (status: string) => {
-    switch (status) {
-      case OrderStatus.PAID:
-        return <Badge className='bg-green-500'>{OrderStatus.PAID}</Badge>;
-      case OrderStatus.PROCESSING:
-        return <Badge className='bg-yellow-500'>{OrderStatus.PROCESSING}</Badge>;
-      default:
-        return null;
+  const getStatusBadge = (status: string) => {
+    const normalized = status?.toUpperCase?.() || '';
+    if (!normalized) return null;
+
+    if (normalized === 'UNPAID' || normalized === 'CREATED' || normalized === 'VERIFIED') {
+      return <Badge className='bg-yellow-500 text-white'>{statusLabelMap[normalized] || normalized}</Badge>;
     }
+    if (['COOKING', 'COOKED', 'IN_PROCESS', 'SHIPPING', 'DELIVERED'].includes(normalized)) {
+      return <Badge className='bg-blue-500 text-white'>{statusLabelMap[normalized] || normalized}</Badge>;
+    }
+    if (normalized === 'COMPLETED' || normalized === 'PAID') {
+      return <Badge className='bg-green-500 text-white'>{statusLabelMap[normalized] || 'Đã hoàn tất'}</Badge>;
+    }
+    if (normalized === 'CANCEL' || normalized === 'CANCELLED') {
+      return <Badge className='bg-red-500 text-white'>{statusLabelMap[normalized]}</Badge>;
+    }
+    return <Badge className='bg-gray-500 text-white'>{normalized}</Badge>;
+  };
+
+  const getPaymentStatusBadge = (status: string) => {
+    const normalized = status?.toUpperCase?.() || '';
+    if (!normalized) return null;
+    if (normalized === 'PAID' || normalized === 'COMPLETED') {
+      return <Badge className='bg-green-500 text-white'>Đã thanh toán</Badge>;
+    }
+    if (normalized === 'UNPAID') {
+      return <Badge className='bg-yellow-500 text-white'>Chưa thanh toán</Badge>;
+    }
+    return null;
   };
 
   const redirectToPayment = () => {
@@ -86,7 +108,12 @@ export function OrderDetailsDrawer({ order, open, onClose }: OrderDetailsDrawerP
             <DrawerContent data-vaul-custom-container='true' className='max-w-4xl p-4 max-h-[90vh] overflow-y-auto'>
               <DrawerHeader>
                 <div className='flex items-center justify-between'>
-                  <DrawerTitle className='text-2xl font-bold'>Chi tiết đơn hàng</DrawerTitle>
+                  <div>
+                    <DrawerTitle className='text-2xl font-bold'>Chi tiết đơn hàng</DrawerTitle>
+                    <DrawerDescription className='sr-only'>
+                      Theo dõi các thông tin và trạng thái vận chuyển của đơn hàng {order.id}.
+                    </DrawerDescription>
+                  </div>
                   <div className='flex flex-col items-end gap-2'>
                     {getStatusBadge(order.orderStatus)}
                     {getPaymentStatusBadge(order.paymentStatus)}
@@ -134,11 +161,21 @@ export function OrderDetailsDrawer({ order, open, onClose }: OrderDetailsDrawerP
                           <MapPin className='h-4 w-4 mr-2 text-primary mt-0.5' />
                           <div>
                             <p className='text-xs text-muted-foreground'>Cửa hàng</p>
-                            <p className='font-medium text-sm'>
-                              {STORE_INFO.name} - {STORE_INFO.phone}
-                            </p>
+                            <p className='font-medium text-sm'>{order.branchName || order.restaurant}</p>
+                            {order.branchAddress && (
+                              <p className='text-xs text-muted-foreground mt-0.5'>{order.branchAddress}</p>
+                            )}
                           </div>
                         </div>
+                        {order.address && (
+                          <div className='flex items-start'>
+                            <Home className='h-4 w-4 mr-2 text-primary mt-0.5' />
+                            <div>
+                              <p className='text-xs text-muted-foreground'>Địa chỉ giao hàng</p>
+                              <p className='font-medium text-sm'>{order.address}</p>
+                            </div>
+                          </div>
+                        )}
                         <div className='flex items-start'>
                           <Clock className='h-4 w-4 mr-2 text-primary mt-0.5' />
                           <div>
@@ -152,7 +189,11 @@ export function OrderDetailsDrawer({ order, open, onClose }: OrderDetailsDrawerP
                 </Card>
 
                 <OrderProgressTracker currentStatus={order.orderStatus} className='mb-6' />
-                <OrderLiveTrackingCard orderId={order.id} initialStatus={order.orderStatus} />
+                <OrderLiveTrackingCard
+                  orderId={order.id}
+                  initialStatus={order.orderStatus}
+                  destinationAddress={order.address}
+                />
 
                 {/* Order items */}
                 <Card className='border-none shadow-sm gap-0'>
@@ -198,7 +239,7 @@ export function OrderDetailsDrawer({ order, open, onClose }: OrderDetailsDrawerP
                 </Card>
 
                 {/* Order status message */}
-                {order.orderStatus === OrderStatus.COMPLETED && (
+                {normalizedStatus === 'COMPLETED' && (
                   <div className='flex items-center justify-center p-3 bg-green-50 rounded-lg border border-green-200'>
                     <CheckCircle2 className='h-4 w-4 mr-2 text-green-500' />
                     <span className='text-green-700 text-sm'>
@@ -209,12 +250,12 @@ export function OrderDetailsDrawer({ order, open, onClose }: OrderDetailsDrawerP
               </div>
 
               <DrawerFooter className='flex flex-col sm:flex-row gap-3'>
-                {order.orderStatus === OrderStatus.UNPAID && (
+                {normalizedStatus === 'UNPAID' && (
                   <Button variant='default' className='w-full sm:w-auto' onClick={redirectToPayment}>
                     Tiếp tục thanh toán
                   </Button>
                 )}
-                {withdrawable.includes(order.orderStatus) && (
+                {withdrawable.includes(normalizedStatus) && (
                   <CancelOrderDrawer
                     onCloseDrawer={() => {
                       setClosable(true);
