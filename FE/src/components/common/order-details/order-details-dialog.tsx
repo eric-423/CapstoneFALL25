@@ -3,13 +3,17 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useCustomerOrders } from '@/utils/hooks/useCustomerOrders';
 import { OrderResponse } from '@/apis/order.api';
-import { OrderStatus } from '@/utils/enum';
-import { STORE_INFO } from '@/utils/mockupData';
-
-import { Calendar, CheckCircle2, Clock, MapPin, Phone, Receipt, ShoppingBag, User } from 'lucide-react';
+import { Calendar, CheckCircle2, Clock, Home, MapPin, Phone, Receipt, User } from 'lucide-react';
 import { useState } from 'react';
 
 import { CancelOrderDialog } from '../cancel-order';
@@ -27,22 +31,39 @@ export function OrderDetailsDialog({ order, open, onClose }: OrderDetailsDialogP
   const { isCancelingOrder } = useCustomerOrders();
   const [closable, setClosable] = useState(open);
 
-  const withdrawable = [OrderStatus.UNPAID, OrderStatus.VERIFIED];
+  const withdrawable = ['UNPAID', 'CREATED', 'VERIFIED'];
 
-  // Get status badge
+  const statusLabelMap: Record<string, string> = {
+    UNPAID: 'Chờ xác nhận',
+    CREATED: 'Đã tạo đơn',
+    VERIFIED: 'Đã xác nhận',
+    COOKING: 'Đang nấu',
+    COOKED: 'Đã nấu xong',
+    IN_PROCESS: 'Đang xử lý',
+    SHIPPING: 'Đang giao',
+    DELIVERED: 'Đã giao',
+    COMPLETED: 'Hoàn tất',
+    CANCEL: 'Đã hủy',
+    CANCELLED: 'Đã hủy',
+  };
+
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case OrderStatus.UNPAID:
-        return <Badge className='bg-yellow-500'>Chờ xác nhận</Badge>;
-      case OrderStatus.PROCESSING || OrderStatus.VERIFIED || OrderStatus.IN_DELIVERY:
-        return <Badge className='bg-blue-500'>{status}</Badge>;
-      case OrderStatus.COMPLETED:
-        return <Badge className='bg-green-500'>{OrderStatus.COMPLETED}</Badge>;
-      case OrderStatus.CANCELLED:
-        return <Badge className='bg-red-500'>{OrderStatus.CANCELLED}</Badge>;
-      default:
-        return null;
+    const normalized = status?.toUpperCase?.() || '';
+    if (!normalized) return null;
+
+    if (normalized === 'UNPAID' || normalized === 'CREATED' || normalized === 'VERIFIED') {
+      return <Badge className='bg-yellow-500 text-white'>{statusLabelMap[normalized] || normalized}</Badge>;
     }
+    if (['COOKING', 'COOKED', 'IN_PROCESS', 'SHIPPING', 'DELIVERED'].includes(normalized)) {
+      return <Badge className='bg-blue-500 text-white'>{statusLabelMap[normalized] || normalized}</Badge>;
+    }
+    if (normalized === 'COMPLETED' || normalized === 'PAID') {
+      return <Badge className='bg-green-500 text-white'>{statusLabelMap[normalized] || 'Đã hoàn tất'}</Badge>;
+    }
+    if (normalized === 'CANCEL' || normalized === 'CANCELLED') {
+      return <Badge className='bg-red-500 text-white'>{statusLabelMap[normalized]}</Badge>;
+    }
+    return <Badge className='bg-gray-500 text-white'>{normalized}</Badge>;
   };
 
   const redirectToPayment = () => {
@@ -51,14 +72,15 @@ export function OrderDetailsDialog({ order, open, onClose }: OrderDetailsDialogP
 
   // Get payment status badge
   const getPaymentStatusBadge = (status: string) => {
-    switch (status) {
-      case OrderStatus.PAID:
-        return <Badge className='bg-green-500'>{OrderStatus.PAID}</Badge>;
-      case OrderStatus.PROCESSING:
-        return <Badge className='bg-yellow-500'>{OrderStatus.PROCESSING}</Badge>;
-      default:
-        return null;
+    const normalized = status?.toUpperCase?.() || '';
+    if (!normalized) return null;
+    if (normalized === 'PAID' || normalized === 'COMPLETED') {
+      return <Badge className='bg-green-500 text-white'>Đã thanh toán</Badge>;
     }
+    if (normalized === 'UNPAID') {
+      return <Badge className='bg-yellow-500 text-white'>Chưa thanh toán</Badge>;
+    }
+    return null;
   };
 
   // Handle cancel order
@@ -72,22 +94,25 @@ export function OrderDetailsDialog({ order, open, onClose }: OrderDetailsDialogP
     <>
       <Dialog open={open} onOpenChange={(isOpen) => closable && !isOpen && onClose()}>
         {isCancelingOrder ? (
-          <div>
-            <DialogContent className='max-w-4xl max-h-[90vh] overflow-y-auto'>
-              <div className='flex items-center justify-center h-full'>
-                <div className='text-center'>
-                  <LoadingSpinner />
-                  <p className='text-red-500 mt-5'>Đang xử lý hủy đơn hàng...</p>
-                </div>
+          <DialogContent className='max-w-[80rem] sm:max-w-[80rem] w-full max-h-[90vh] overflow-y-auto'>
+            <div className='flex items-center justify-center h-full'>
+              <div className='text-center'>
+                <LoadingSpinner />
+                <p className='text-red-500 mt-5'>Đang xử lý hủy đơn hàng...</p>
               </div>
-            </DialogContent>
-          </div>
+            </div>
+          </DialogContent>
         ) : (
           <>
-            <DialogContent className='max-w-4xl max-h-[90vh] overflow-y-auto'>
+            <DialogContent className='max-w-[80rem] sm:max-w-[80rem] w-full max-h-[90vh] overflow-y-auto'>
               <DialogHeader>
                 <div className='flex items-center justify-between'>
-                  <DialogTitle className='text-2xl font-bold'>Chi tiết đơn hàng</DialogTitle>
+                  <div>
+                    <DialogTitle className='text-2xl font-bold'>Chi tiết đơn hàng</DialogTitle>
+                    <DialogDescription className='sr-only'>
+                      Hiển thị thông tin chi tiết và trạng thái theo thời gian thực của đơn hàng {order.id}.
+                    </DialogDescription>
+                  </div>
                   <div className='flex items-center gap-2'>
                     {getStatusBadge(order.orderStatus)}
                     {getPaymentStatusBadge(order.paymentStatus)}
@@ -122,6 +147,16 @@ export function OrderDetailsDialog({ order, open, onClose }: OrderDetailsDialogP
                             <p className='font-medium text-sm'>{order.id}</p>
                           </div>
                         </div>
+                        <div className='flex items-start'>
+                          <MapPin className='h-4 w-4 mr-2 text-primary mt-0.5' />
+                          <div>
+                            <p className='text-xs text-muted-foreground'>Cửa hàng</p>
+                            <p className='font-medium text-sm'>{order.branchName || order.restaurant}</p>
+                            {order.branchAddress && (
+                              <p className='text-xs text-muted-foreground mt-0.5'>{order.branchAddress}</p>
+                            )}
+                          </div>
+                        </div>
                       </div>
                       <div className='space-y-3'>
                         <div className='flex items-start'>
@@ -131,15 +166,15 @@ export function OrderDetailsDialog({ order, open, onClose }: OrderDetailsDialogP
                             <p className='font-medium text-sm'>{order.date.toLocaleString()}</p>
                           </div>
                         </div>
-                        <div className='flex items-start'>
-                          <MapPin className='h-4 w-4 mr-2 text-primary mt-0.5' />
-                          <div>
-                            <p className='text-xs text-muted-foreground'>Cửa hàng</p>
-                            <p className='font-medium text-sm'>
-                              {STORE_INFO.name} - {STORE_INFO.phone}
-                            </p>
+                        {order.address && (
+                          <div className='flex items-start'>
+                            <Home className='h-4 w-4 mr-2 text-primary mt-0.5' />
+                            <div>
+                              <p className='text-xs text-muted-foreground'>Địa chỉ giao hàng</p>
+                              <p className='font-medium text-sm'>{order.address}</p>
+                            </div>
                           </div>
-                        </div>
+                        )}
                         <div className='flex items-start'>
                           <Clock className='h-4 w-4 mr-2 text-primary mt-0.5' />
                           <div>
@@ -152,19 +187,24 @@ export function OrderDetailsDialog({ order, open, onClose }: OrderDetailsDialogP
                   </CardContent>
                 </Card>
 
-                {/* Order Progress Tracker */}
+
                 <OrderProgressTracker currentStatus={order.orderStatus} className='mb-6' />
 
-                <OrderLiveTrackingCard orderId={order.id} initialStatus={order.orderStatus} />
+                <OrderLiveTrackingCard
+                  orderId={order.id}
+                  initialStatus={order.orderStatus}
+                  destinationAddress={order.address}
+                />
 
-                {/* Order items */}
-                <Card className='border-none shadow-sm gap-0'>
+                {/* <Card className='border-none shadow-sm gap-0'>
                   <CardHeader className='pb-0 m-0'>
                     <CardTitle className='text-lg flex items-center'>
                       <ShoppingBag className='h-5 w-5 mr-2 text-primary' />
                       Thông tin đơn hàng
                     </CardTitle>
                   </CardHeader>
+
+
                   <CardContent className='px-1'>
                     <div className='divide-y max-h-60 overflow-y-auto'>
                       {order.items.map((item) => (
@@ -176,18 +216,21 @@ export function OrderDetailsDialog({ order, open, onClose }: OrderDetailsDialogP
                                 <p className='text-xs text-muted-foreground mt-1 whitespace-pre-line'>{item.note}</p>
                               )}
                             </div>
+
                             <div className='text-right'>
                               <div className='text-primary font-medium text-sm'>{item.price.toLocaleString()}đ</div>
                               <div className='text-xs text-muted-foreground mt-1'>x {item.quantity}</div>
                             </div>
+                            
                           </div>
                         </div>
                       ))}
                     </div>
                   </CardContent>
-                </Card>
 
-                {/* Order summary */}
+
+                </Card>
+ */}
                 <Card className='border-none shadow-none bg-transparent px-5 py-0'>
                   <CardHeader className='p-0'>
                     <div className='flex justify-between font-medium'>
@@ -201,7 +244,7 @@ export function OrderDetailsDialog({ order, open, onClose }: OrderDetailsDialogP
                 </Card>
 
                 {/* Order status message */}
-                {order.orderStatus === OrderStatus.COMPLETED && (
+                {(order.orderStatus?.toUpperCase?.() || '') === 'COMPLETED' && (
                   <div className='flex items-center justify-center p-3 bg-green-50 rounded-lg border border-green-200'>
                     <CheckCircle2 className='h-4 w-4 mr-2 text-green-500' />
                     <span className='text-green-700 text-sm'>
@@ -212,7 +255,7 @@ export function OrderDetailsDialog({ order, open, onClose }: OrderDetailsDialogP
               </div>
 
               <DialogFooter className='flex flex-col sm:flex-row gap-3'>
-                {withdrawable.includes(order.orderStatus) && (
+                {withdrawable.includes(order.orderStatus?.toUpperCase?.() || '') && (
                   <CancelOrderDialog
                     onCloseDialog={() => {
                       setClosable(true);
@@ -221,7 +264,7 @@ export function OrderDetailsDialog({ order, open, onClose }: OrderDetailsDialogP
                     orderId={order.id}
                   />
                 )}
-                {order.orderStatus === OrderStatus.UNPAID && (
+                {(order.orderStatus?.toUpperCase?.() || '') === 'UNPAID' && (
                   <Button variant='default' className='w-full sm:w-auto' onClick={redirectToPayment}>
                     Tiếp tục thanh toán
                   </Button>
@@ -233,7 +276,7 @@ export function OrderDetailsDialog({ order, open, onClose }: OrderDetailsDialogP
             </DialogContent>
           </>
         )}
-      </Dialog>
+      </Dialog >
     </>
   );
 }
