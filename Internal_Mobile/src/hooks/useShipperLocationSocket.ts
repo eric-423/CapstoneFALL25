@@ -1,6 +1,6 @@
 import { useCurrentApp } from "@/context/app.context";
 import { sendShipperLocation } from "@/utils/api";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import WebSocketService from "../service/WebSocketService";
 
 interface LocationUpdate {
@@ -15,6 +15,10 @@ export const useShipperLocationSocket = (orderId: number) => {
     "websocket" | "http" | "none"
   >("none");
   const { appState } = useCurrentApp();
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lastLocationRef = useRef<LocationUpdate | null>(null);
+  const lastSendTimeRef = useRef<number>(0);
+  const THROTTLE_INTERVAL = 5000;
 
   useEffect(() => {
     if (!orderId || !appState?.token) {
@@ -32,6 +36,10 @@ export const useShipperLocationSocket = (orderId: number) => {
 
       try {
         const token = appState.token;
+        console.log(
+          "🔑 Hook: Token từ appState:",
+          token ? token.substring(0, 20) + "..." : "Không có"
+        );
         await WebSocketService.connect(token);
 
         if (!isMounted) {
@@ -59,6 +67,10 @@ export const useShipperLocationSocket = (orderId: number) => {
     return () => {
       isMounted = false;
       connectionAttempted = false;
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
       if (connectionMode === "websocket") {
         WebSocketService.disconnect();
       }
@@ -83,6 +95,15 @@ export const useShipperLocationSocket = (orderId: number) => {
         console.error("Invalid location update data:", update);
         return;
       }
+      const now = Date.now();
+      const timeSinceLastSend = now - lastSendTimeRef.current;
+      if (timeSinceLastSend < THROTTLE_INTERVAL) {
+        lastLocationRef.current = update;
+        return;
+      }
+      lastLocationRef.current = update;
+      lastSendTimeRef.current = now;
+
       try {
         if (connectionMode === "websocket" && WebSocketService.isConnected()) {
           WebSocketService.send("/shipper/location", update);
@@ -107,6 +128,24 @@ export const useShipperLocationSocket = (orderId: number) => {
     },
     [appState?.token, connectionMode]
   );
+  useEffect(() => {
+    if (connectionMode === "none") {
+      return;
+    }
+    intervalRef.current = setInterval(() => {
+      if (lastLocationRef.current) {
+        lastSendTimeRef.current = 0;
+        sendLocationUpdate(lastLocationRef.current);
+      }
+    }, THROTTLE_INTERVAL);
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [connectionMode, sendLocationUpdate]);
 
   return {
     isConnected,

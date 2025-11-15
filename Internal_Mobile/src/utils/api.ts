@@ -43,14 +43,17 @@ export const sendShipperLocation = async (
     throw new Error("Invalid location data: all values must be numbers");
   }
 
-  const response = await axios.post(`${BASE_URL}/shipper/location`, payload, {
-    headers: {
-      accept: "*/*",
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
-
+  const response = await axios.post(
+    `${BASE_URL}/shipper/orders/${payload.orderId}/location`,
+    payload,
+    {
+      headers: {
+        accept: "*/*",
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
   return response.data;
 };
 

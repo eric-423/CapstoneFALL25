@@ -19,6 +19,8 @@ class WebSocketService {
     return new Promise((resolve, reject) => {
       if (token) {
         this.currentToken = token;
+      } else {
+        console.warn("⚠️ Không có token được truyền vào connect()");
       }
       if (this.client && this.client.connected) {
         resolve();
@@ -73,7 +75,7 @@ class WebSocketService {
           reconnectDelay: 5000,
           heartbeatIncoming: 4000,
           heartbeatOutgoing: 4000,
-          onConnect: () => {
+          onConnect: (frame) => {
             clearTimeout(timeout);
             resolve();
           },
@@ -111,6 +113,17 @@ class WebSocketService {
             ) {
               console.error("STOMP Error:", str);
             }
+            if (str.includes(">>> CONNECT")) {
+              console.log("🔍 STOMP CONNECT Frame (SockJS):", str);
+              if (str.includes("Authorization")) {
+                console.log("✅ Token có trong CONNECT frame");
+              } else {
+                console.warn("⚠️ Token KHÔNG có trong CONNECT frame");
+              }
+            }
+            if (str.includes("<<< CONNECTED")) {
+              console.log("🔍 STOMP CONNECTED Frame (SockJS):", str);
+            }
           },
         });
       } else {
@@ -132,7 +145,7 @@ class WebSocketService {
           reconnectDelay: 5000,
           heartbeatIncoming: 4000,
           heartbeatOutgoing: 4000,
-          onConnect: () => {
+          onConnect: (frame) => {
             clearTimeout(timeout);
             resolve();
           },
@@ -169,6 +182,20 @@ class WebSocketService {
               str.includes("Error")
             ) {
               console.error("STOMP Error:", str);
+            }
+            if (str.includes(">>> CONNECT")) {
+              console.log("🔍 STOMP CONNECT Frame (native):", str);
+              if (str.includes("Authorization")) {
+                console.log("✅ Token có trong CONNECT frame");
+              } else {
+                console.warn("⚠️ Token KHÔNG có trong CONNECT frame");
+              }
+            }
+            if (str.includes("<<< CONNECTED")) {
+              console.log("🔍 STOMP CONNECTED Frame (native):", str);
+            }
+            if (str.includes(">>> SEND")) {
+              console.log("🔍 STOMP SEND Frame (native):", str);
             }
           },
         });
@@ -236,6 +263,8 @@ class WebSocketService {
       const headers: any = {};
       if (this.currentToken) {
         headers.Authorization = `Bearer ${this.currentToken}`;
+      } else {
+        console.warn("⚠️ Không có token khi gửi message");
       }
 
       this.client.publish({
