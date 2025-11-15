@@ -45,25 +45,39 @@ export const useCustomerOrderSocket = ({
         await websocketService.connect(token);
         if (!isMounted) return;
 
-        const destination = '/topic/order/1/status';
-
         setIsConnected(true);
-        const unsubscribeStatus = websocketService.subscribe<CustomerOrderStatusUpdate>(destination, (message) => {
-          setOrderStatus(message);
-          console.log('[OrderStatus]', message);
-        });
+        const unsubs: Array<() => void> = [];
 
-        const unsubscribeLocation = websocketService.subscribe<OrderLocationMessage>(
-          '/topic/order/1/location',
-          (message) => {
-            setOrderLocation(message);
-            console.log('[OrderLocation]', message);
-          },
-        );
+        if (orderId) {
+          const statusDestination = `/topic/order/${orderId}/status`;
+          const locationDestination = `/topic/order/${orderId}/location`;
+
+          unsubs.push(
+            websocketService.subscribe<CustomerOrderStatusUpdate>(statusDestination, (message) => {
+              setOrderStatus(message);
+              console.log('[OrderStatus]', message);
+            }),
+          );
+
+          unsubs.push(
+            websocketService.subscribe<OrderLocationMessage>(locationDestination, (message) => {
+              setOrderLocation(message);
+              console.log('[OrderLocation]', message);
+            }),
+          );
+        } else if (customerId) {
+          const customerDestination = `/topic/customer/${customerId}/orders`;
+          unsubs.push(
+            websocketService.subscribe<CustomerOrderStatusUpdate>(customerDestination, (message) => {
+              setOrderStatus(message);
+              console.log('[OrderStatus][Customer]', message);
+            }),
+          );
+          setOrderLocation(null);
+        }
 
         unsubscribeRef.current = () => {
-          unsubscribeStatus();
-          unsubscribeLocation();
+          unsubs.forEach((unsubscribe) => unsubscribe());
         };
       } catch (err) {
         console.error('[useCustomerOrderSocket] Lỗi WebSocket:', err);

@@ -162,28 +162,51 @@ const normalizeOrder = (order: RawOrder): OrderResponse => {
 
   const customerName = order.customerDTO?.fullName || order.customerName || 'Khách hàng';
   const customerPhone = order.customerDTO?.phone || order.customerPhone || order.phone || '';
+  const address = order.address ?? order.customerDTO?.address ?? null;
+
+  const branchName = order.branchName || STORE_INFO.name;
+  const branchAddress = order.branchAddress || STORE_INFO.address;
+
+  const shippingFee = typeof order.shippingFee === 'number' ? order.shippingFee : 0;
+  const discountValue = typeof order.discountValue === 'number' ? order.discountValue : 0;
+  const amount =
+    typeof order.amount === 'number'
+      ? order.amount
+      : subTotal + shippingFee - discountValue;
+  const promotionCode = order.promotionCode ?? '';
+  const pointUsed = typeof order.pointUsed === 'number' ? order.pointUsed : 0;
+  const pointEarned = typeof order.pointEarned === 'number' ? order.pointEarned : 0;
+
+  const normalizedStatus = order.orderStatus?.toString().toUpperCase() || 'CREATED';
 
   const totalItems = items.length > 0 ? getTotalItems(items) : order.itemCount ?? 0;
 
   return {
     id: order.id,
     date: new Date(orderDate),
-    restaurant: order.branchName || STORE_INFO.name,
+    restaurant: branchName,
+    branchName,
+    branchAddress,
+    address,
     items,
     totalItems,
     customerName,
     customerPhone,
     subTotal,
-    paymentStatus:
-      order.orderStatus === OrderStatus.UNPAID
-        ? OrderStatus.UNPAID
-        : order.orderStatus === OrderStatus.PAID
-          ? OrderStatus.PAID
-          : OrderStatus.PAID,
-    orderStatus: order.orderStatus,
+    shippingFee,
+    discountValue,
+    amount,
+    promotionCode,
+    pointUsed,
+    pointEarned,
+    paymentStatus: normalizedStatus === 'UNPAID' ? 'UNPAID' : normalizedStatus === 'PAID' ? 'PAID' : 'PAID',
+    orderStatus: normalizedStatus,
     rated: items.some((item) => item.feedback !== null && item.feedback !== undefined),
     payment_code: order.payment_code || order.paymentCode || '',
     pickupTime,
+    shipperName: order.shipperName ?? null,
+    waiterName: order.waiterName ?? null,
+    chefName: order.chefName ?? null,
   } as OrderResponse;
 };
 
