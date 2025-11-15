@@ -143,6 +143,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/orders/customer/pickup").hasAnyRole("CUSTOMER", "STAFF")
                         .requestMatchers("/api/orders/customer/**").hasRole("CUSTOMER")
                         .requestMatchers("/api/customers/**").hasRole("CUSTOMER")
+                        .requestMatchers(HttpMethod.POST,"/api/orders/dining-table/payment/**").hasAnyRole("WAITER,ADMIN,MANAGER,STAFF")
                         .requestMatchers("/api/orders/dining-table/**").hasRole("CUSTOMER")
                         .requestMatchers("/api/promotions/customer/**").hasRole("CUSTOMER")
                         .requestMatchers("/api/roles/**").hasRole("ADMIN")
