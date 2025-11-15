@@ -26,6 +26,9 @@ public class RoleHistory {
     @Column(name = "is_active")
     private boolean  isActive = true;
 
+    @Column(name = "role_name")
+    private String roleName;
+
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH})
     @JoinColumn(name = "role_id")
     private Role role;
