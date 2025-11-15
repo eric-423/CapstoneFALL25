@@ -9,4 +9,6 @@ import lombok.NoArgsConstructor;
 @Data
 public class RoleRequest {
     private String name;
+    private boolean isInternal;
+
 }

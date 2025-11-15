@@ -7,14 +7,14 @@ VALUES (0, 'Đồng', 'Hạng đồng - 0 điểm'),
 
 
 
-INSERT INTO role (name)
-VALUES ('ADMIN'),
-       ('MANAGER'),
-       ('STAFF'),
-       ('WAITER'),
-       ('SHIPPER'),
-       ('CHEF'),
-       ('CUSTOMER');
+INSERT INTO role (name, is_internal)
+VALUES ('ADMIN', true),
+       ('MANAGER', true),
+       ('STAFF', true),
+       ('WAITER', true),
+       ('SHIPPER', true),
+       ('CHEF', true),
+       ('CUSTOMER', false);
 
 
 
