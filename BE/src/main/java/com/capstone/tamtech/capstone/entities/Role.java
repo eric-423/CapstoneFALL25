@@ -21,6 +21,9 @@ public class Role {
     @Column(name = "name")
     private String name;
 
+    @Column(name = "is_internal")
+    private boolean isInternal;
+
     @OneToMany(mappedBy = "role", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE,CascadeType.REFRESH,CascadeType.DETACH})
     private List<RoleHistory> roleHistoryList;
 }

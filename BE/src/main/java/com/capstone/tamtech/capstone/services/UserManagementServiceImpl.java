@@ -201,6 +201,7 @@ public class UserManagementServiceImpl implements UserManagementService {
         dto.setEmailVerified(user.getEmailVerified());
         dto.setPhoneVerified(user.getPhoneVerified());
         dto.setIsBusy(user.getIsBusy());
+        dto.setRole(user.getRoleHistories().get(user.getRoleHistories().size()-1).getRoleName());
 
         if (user.getMemberAssociation() != null) {
             dto.setMemberAssociationId(user.getMemberAssociation().getId());
