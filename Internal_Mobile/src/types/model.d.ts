@@ -1,14 +1,14 @@
 interface IUserLogin {
-  user: {
+  userInfo: {
     email: string;
-    _id: string;
-    name: string;
-    role: string;
+    fullName: string;
+    id: string;
     address: any;
-    avatar: string;
+    memberPoint: number;
     phone: string;
+    role: string;
   };
-  access_token: string;
+  token: string;
 }
 interface ICart {
   [key: string]: {
@@ -40,4 +40,30 @@ interface ICounter {
   updatedAt: Date;
   menu: IMenu[];
   isLike: boolean;
+}
+
+interface IOrder {
+  id: number;
+  orderStatus: string;
+  orderDate: string;
+  paymentTime: string | null;
+  deliveryAt: string | null;
+  customerName: string;
+  customerPhone: string;
+  address: string;
+  branchName: string;
+  branchAddress: string;
+  subTotal: number;
+  shippingFee: number;
+  discountValue: number;
+  amount: number;
+  promotionCode: string;
+  pointUsed: number;
+  pointEarned: number;
+  shipperName: string | null;
+  waiterName: string | null;
+  chefName: string | null;
+  itemCount: number;
+  table: boolean;
+  pickUp: boolean;
 }

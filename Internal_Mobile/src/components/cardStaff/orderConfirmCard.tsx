@@ -1,53 +1,65 @@
 import { APP_COLOR, APP_FONT } from "@/constants/Colors";
-import { currencyFormatter } from "@/constants/Function";
+import {
+  currencyFormatter,
+  formatDateTime,
+  getStatusText,
+} from "@/constants/Function";
+import { useCurrentApp } from "@/context/app.context";
+import { getShippingOrders } from "@/utils/api";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Entypo from "@expo/vector-icons/Entypo";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Animated,
   Easing,
   LayoutAnimation,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
 import ShareButton from "../btnComponent/shareBtn";
-interface IConfirmOrder {
+
+interface OrderItemProps {
+  order: IOrder;
+  isExpanded: boolean;
+  onToggle: () => void;
   isShipper?: boolean;
 }
-const OrderCard = (props: IConfirmOrder) => {
-  const [details, setDetails] = useState(false);
-  const handleViewDetails = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
-    setDetails(!details);
-  };
-  const spinValue = useRef(new Animated.Value(0)).current;
+
+const OrderItemCard = ({
+  order,
+  isExpanded,
+  onToggle,
+  isShipper,
+}: OrderItemProps) => {
+  const spinValue = useRef(new Animated.Value(isExpanded ? 1 : 0)).current;
+
   useEffect(() => {
     Animated.timing(spinValue, {
-      toValue: details ? 1 : 0,
+      toValue: isExpanded ? 1 : 0,
       duration: 300,
       easing: Easing.linear,
       useNativeDriver: true,
     }).start();
-  }, [details]);
+  }, [isExpanded]);
+
   const spin = spinValue.interpolate({
     inputRange: [0, 1],
     outputRange: ["0deg", "180deg"],
   });
-  const toggleViewCart = () => {
-    console.log("hihi");
-  };
-  const toggleViewCard = () => {
-    setDetails(!details);
-  };
+
   return (
     <View style={styles.cardShadow}>
-      <Pressable onPress={toggleViewCard} style={styles.pressableContainer}>
+      <Pressable onPress={onToggle} style={styles.pressableContainer}>
         <View style={styles.headerContent}>
-          <Text style={styles.orderIdText}>Đơn hàng: ORD001</Text>
+          <Text style={styles.orderIdText}>
+            Đơn hàng: ORD{order.id.toString().padStart(3, "0")}
+          </Text>
           <View style={styles.iconContainer}>
             <Animated.View style={{ transform: [{ rotate: spin }] }}>
               <AntDesign name="caretdown" size={24} color={APP_COLOR.ORANGE} />
@@ -57,17 +69,21 @@ const OrderCard = (props: IConfirmOrder) => {
         <View style={styles.customerInfoContainer}>
           <View>
             <Text style={styles.customerNameText}>
-              Tên khách hàng: Lê Minh Duy
+              Tên khách hàng: {order.customerName}
             </Text>
-            <Text style={styles.text}>Đặt hàng: 22:30 09/06/2025</Text>
+            <Text style={styles.text}>
+              Đặt hàng: {formatDateTime(order.orderDate)}
+            </Text>
           </View>
           <View style={styles.statusBadge}>
-            <Text style={styles.statusText}>Đã hoàn thành</Text>
+            <Text style={styles.statusText}>
+              {getStatusText(order.orderStatus)}
+            </Text>
           </View>
         </View>
       </Pressable>
 
-      {details && (
+      {isExpanded && (
         <View style={styles.detailsView}>
           <View style={styles.detailsSection}>
             <View style={styles.sectionHeader}>
@@ -79,53 +95,15 @@ const OrderCard = (props: IConfirmOrder) => {
               <Text style={styles.boldText}>Thông tin khách hàng</Text>
             </View>
             <View style={styles.infoRow}>
-              <Text style={styles.text}>Họ Tên: Lê Minh Duy</Text>
-              <Text style={styles.text}>SĐT: 0927 133 233</Text>
+              <Text style={styles.text}>Họ Tên: {order.customerName}</Text>
+              <Text style={styles.text}>SĐT: {order.customerPhone}</Text>
             </View>
             <View style={styles.infoColumn}>
               <Text style={styles.text}>Địa chỉ:</Text>
-              <Text style={styles.text}>
-                123 Đường Nguyễn Văn Linh, Phường Tân Thuận Đông, Quận 7, TP.HCM
-              </Text>
+              <Text style={styles.text}>{order.address}</Text>
             </View>
           </View>
-          <View
-            style={{
-              marginTop: 10,
-              paddingBottom: 10,
-              borderBottomColor: "#eee",
-              borderBottomWidth: 1,
-            }}
-          >
-            <View
-              style={[
-                styles.sectionHeader,
-                { justifyContent: "space-between" },
-              ]}
-            >
-              <View style={{ flexDirection: "row", alignItems: "center" }}>
-                <AntDesign
-                  name="shoppingcart"
-                  size={24}
-                  color={APP_COLOR.BROWN}
-                />
-                <Text style={[styles.boldText, { marginLeft: 5 }]}>
-                  Giỏ hàng
-                </Text>
-              </View>
-              <Pressable
-                style={{ flexDirection: "row", alignItems: "center" }}
-                onPress={toggleViewCart}
-              >
-                <AntDesign name="right" size={10} color={APP_COLOR.BROWN} />
-                <AntDesign name="right" size={10} color={APP_COLOR.BROWN} />
-                <AntDesign name="right" size={10} color={APP_COLOR.BROWN} />
-                <Text style={[styles.text, { marginLeft: 5 }]}>
-                  Xem chi tiết
-                </Text>
-              </Pressable>
-            </View>
-          </View>
+
           <View
             style={{
               marginTop: 10,
@@ -140,9 +118,14 @@ const OrderCard = (props: IConfirmOrder) => {
             </View>
             <View style={styles.infoColumn}>
               <Text style={styles.text}>
-                Phương thức: Chuyển khoản ngân hàng
+                Phương thức:{" "}
+                {order.promotionCode
+                  ? `Mã giảm giá: ${order.promotionCode}`
+                  : "Chuyển khoản ngân hàng"}
               </Text>
-              <Text style={styles.text}>Thời gian: 23:18 08/06/2025</Text>
+              <Text style={styles.text}>
+                Thời gian: {formatDateTime(order.paymentTime)}
+              </Text>
             </View>
           </View>
           <View
@@ -154,7 +137,9 @@ const OrderCard = (props: IConfirmOrder) => {
             }}
           >
             <Text style={styles.boldText}>Tổng đơn hàng:</Text>
-            <Text style={styles.boldText}>{currencyFormatter(10000000)}</Text>
+            <Text style={styles.boldText}>
+              {currencyFormatter(order.amount)} đ
+            </Text>
           </View>
           <View>
             <View style={{ flexDirection: "row" }}>
@@ -177,7 +162,7 @@ const OrderCard = (props: IConfirmOrder) => {
                     marginLeft: 10,
                   }}
                 >
-                  +323 điểm
+                  +{order.pointEarned} điểm
                 </Text>
               </View>
             </View>
@@ -191,39 +176,127 @@ const OrderCard = (props: IConfirmOrder) => {
               marginBottom: 10,
             }}
           >
-            <Text style={styles.text}>Ghi chú:</Text>
-            <Text style={styles.text}>Ít dưa chua</Text>
+            <Text style={styles.text}>Số lượng món: {order.itemCount}</Text>
+            <Text style={styles.text}>Chi nhánh: {order.branchName}</Text>
           </View>
         </View>
       )}
-      {props.isShipper && (
+      {isShipper && (
         <View
-          style={{ flexDirection: "row", justifyContent: "center", gap: 20 }}
+          style={{
+            flexDirection: "row",
+            justifyContent: "flex-start",
+            gap: 20,
+            paddingLeft: 10,
+            paddingBottom: 10,
+          }}
         >
           <ShareButton
-            onPress={() => router.push("/(shippers)/map")}
+            onPress={() =>
+              router.push({
+                params: {
+                  orderId: order.id,
+                  address: order.address,
+                  orderName: order.customerName,
+                },
+                pathname: "/(auth)/map",
+              })
+            }
             title="Xác nhận đơn"
-            textStyle={{ color: APP_COLOR.WHITE, fontFamily: APP_FONT.REGULAR }}
-            btnStyle={{
-              marginVertical: 5,
-              width: 130,
-              justifyContent: "center",
+            textStyle={{
+              color: APP_COLOR.WHITE,
+              fontFamily: APP_FONT.REGULAR,
             }}
-          />
-          <ShareButton
-            onPress={() => console.log("Confirm")}
-            title="Từ chối đơn"
-            textStyle={{ color: APP_COLOR.WHITE, fontFamily: APP_FONT.REGULAR }}
             btnStyle={{
               marginVertical: 5,
               width: 130,
               justifyContent: "center",
-              backgroundColor: APP_COLOR.CANCEL,
             }}
           />
         </View>
       )}
     </View>
+  );
+};
+
+interface IConfirmOrder {
+  isShipper?: boolean;
+}
+const OrderCard = (props: IConfirmOrder) => {
+  const { appState } = useCurrentApp();
+  const [orders, setOrders] = useState<IOrder[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedOrderIndex, setSelectedOrderIndex] = useState<number | null>(
+    null
+  );
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      if (!appState?.token) {
+        setLoading(false);
+        return;
+      }
+      try {
+        setLoading(true);
+        const response = await getShippingOrders(appState.token);
+        if (response.status === 0 && response.data) {
+          setOrders(response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching orders:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, [appState?.token]);
+
+  const handleViewDetails = (index: number) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
+    if (selectedOrderIndex === index) {
+      setSelectedOrderIndex(null);
+    } else {
+      setSelectedOrderIndex(index);
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={[styles.cardShadow, { padding: 20, alignItems: "center" }]}>
+        <ActivityIndicator size="large" color={APP_COLOR.ORANGE} />
+        <Text style={[styles.text, { marginTop: 10 }]}>
+          Đang tải đơn hàng...
+        </Text>
+      </View>
+    );
+  }
+
+  if (orders.length === 0) {
+    return (
+      <View style={[styles.cardShadow, { padding: 20, alignItems: "center" }]}>
+        <Text style={styles.text}>Không có đơn hàng nào</Text>
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView>
+      <View style={{ marginHorizontal: 10 }}>
+        <Text style={[styles.boldText, { fontSize: 22, marginTop: 10 }]}>
+          Đơn hàng cần giao
+        </Text>
+      </View>
+      {orders.map((order, index) => (
+        <OrderItemCard
+          key={order.id}
+          order={order}
+          isExpanded={selectedOrderIndex === index}
+          onToggle={() => handleViewDetails(index)}
+          isShipper={props.isShipper}
+        />
+      ))}
+    </ScrollView>
   );
 };
 const styles = StyleSheet.create({

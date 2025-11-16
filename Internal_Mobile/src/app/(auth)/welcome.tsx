@@ -3,13 +3,14 @@ import footerFrame from "@/assets/frame_footer.png";
 import ShareButton from "@/components/btnComponent/shareBtn";
 import ShareInput from "@/components/btnComponent/shareInput";
 import { APP_COLOR, APP_FONT } from "@/constants/Colors";
+import { useCurrentApp } from "@/context/app.context";
 import { typography } from "@/themes/typography";
+import { LoginShipper } from "@/utils/api";
 import {
   authenticateWithBiometric,
   checkBiometricAuth,
 } from "@/utils/biometric";
 import { StaffSignInSchema } from "@/utils/validate.schema";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { Formik } from "formik";
@@ -26,6 +27,7 @@ import {
 import Toast from "react-native-root-toast";
 
 const WelcomePage = () => {
+  const { setAppState } = useCurrentApp();
   const [loading, setLoading] = useState<boolean>(false);
   const [fogotPasword, setFogotPassword] = useState(false);
   const handleLogin = async (
@@ -33,11 +35,20 @@ const WelcomePage = () => {
     password: string,
     resetForm: any
   ) => {
-    router.navigate("/(shippers)");
     setLoading(true);
     try {
-      console.log("Logging in with:", { email, password });
-      router.navigate("/(shippers)");
+      const response = await LoginShipper(email, password);
+      if (response) {
+        setAppState(response);
+        router.navigate("/(shippers)");
+      } else {
+        Toast.show("Lỗi khi đăng nhập. Vui lòng thử lại.", {
+          duration: Toast.durations.LONG,
+          textColor: "white",
+          backgroundColor: APP_COLOR.CANCEL,
+          opacity: 1,
+        });
+      }
     } catch (error) {
       console.log("Lỗi khi đăng nhập", error);
       Toast.show("Lỗi khi đăng nhập. Vui lòng thử lại.", {
@@ -195,20 +206,6 @@ const WelcomePage = () => {
                 )}
               </Formik>
             </View>
-            <Pressable
-              style={{ flexDirection: "row", alignItems: "center", gap: 10 }}
-            >
-              <MaterialIcons
-                name="report-problem"
-                size={24}
-                color={APP_COLOR.BROWN}
-              />
-              <Text
-                style={[styles.normalText, { textDecorationLine: "underline" }]}
-              >
-                Báo cáo kỹ thuật
-              </Text>
-            </Pressable>
           </View>
         </View>
         <Image
