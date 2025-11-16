@@ -146,7 +146,7 @@ export default function AdminLayout({
         <AdminProvider>
             <GlobalSearchKeyboardHandler />
             <BranchesLoader />
-            <div className="min-h-screen bg-[#f9fafb]">
+            <div className="min-h-screen bg-[#EFE6DB]">
                 <GlobalSearchCommand />
                 <div className="flex relative">
                     {/* Mobile Overlay */}
@@ -215,7 +215,7 @@ export default function AdminLayout({
                     </aside>
 
                     {/* Main Content */}
-                    <main className="flex-1 w-full bg-[#f9fafb] min-w-0 lg:ml-56 xl:ml-64">
+                    <main className="flex-1 w-full bg-[#EFE6DB] min-w-0 lg:ml-56 xl:ml-64">
                         {/* Mobile Menu Toggle */}
                         <div className="lg:hidden sticky top-0 z-30 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 shadow-sm">
                             <button

@@ -20,6 +20,7 @@ public class UserManagementDTO implements Serializable {
     private String note;
     private Boolean isBan;
     private Date createdAt;
+    private String role;
     private Integer memberPoint;
     private Boolean emailVerified;
     private Boolean phoneVerified;

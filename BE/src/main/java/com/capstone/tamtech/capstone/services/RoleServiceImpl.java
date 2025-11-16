@@ -32,6 +32,7 @@ public class RoleServiceImpl implements RoleService {
     public RoleDTO createRole(RoleRequest roleRequest) {
         Role role = new Role();
         role.setName(roleRequest.getName());
+        role.setInternal(role.isInternal());
         Role savedRole = roleRepository.save(role);
         return toDTO(savedRole);
     }
@@ -42,6 +43,7 @@ public class RoleServiceImpl implements RoleService {
         Role role = roleRepository.findById(roleId).orElseThrow(() -> new ResourceNotFoundException("Role not found"));
         if (role != null) {
             role.setName(roleRequest.getName());
+            role.setInternal(role.isInternal());
             Role updatedRole = roleRepository.save(role);
             return toDTO(updatedRole);
         }
@@ -61,6 +63,7 @@ public class RoleServiceImpl implements RoleService {
         RoleDTO dto = new RoleDTO();
         dto.setId(role.getId());
         dto.setName(role.getName());
+        dto.setIsInternal(role.isInternal());
         return dto;
     }
 }

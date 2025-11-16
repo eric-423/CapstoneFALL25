@@ -189,11 +189,15 @@ export function OrderDetailsDrawer({ order, open, onClose }: OrderDetailsDrawerP
                 </Card>
 
                 <OrderProgressTracker currentStatus={order.orderStatus} className='mb-6' />
-                <OrderLiveTrackingCard
-                  orderId={order.id}
-                  initialStatus={order.orderStatus}
-                  destinationAddress={order.address}
-                />
+                
+                {/* Chỉ hiển thị theo dõi real-time khi đơn hàng đang giao */}
+                {['SHIPPING', 'DELIVERING', 'IN_DELIVERY'].includes(normalizedStatus) && (
+                  <OrderLiveTrackingCard
+                    orderId={order.id}
+                    initialStatus={order.orderStatus}
+                    destinationAddress={order.address}
+                  />
+                )}
 
                 {/* Order items */}
                 <Card className='border-none shadow-sm gap-0'>

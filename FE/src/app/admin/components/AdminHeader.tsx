@@ -3,17 +3,12 @@
 import React, { useMemo, useCallback, memo } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-    Search,
     ChevronDown,
     Bell,
     Settings,
     LogOut,
     User,
-    MapPin,
-    Calendar,
-    Command as CommandIcon,
 } from 'lucide-react';
-import { useAdminContext } from '@/utils/contexts/AdminContext';
 import { useAuthContext } from '@/utils/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import {
@@ -26,25 +21,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
-const timePeriodLabels = {
-    today: 'Hôm nay',
-    '7d': '7 ngày qua',
-    '30d': '30 ngày qua',
-    custom: 'Tùy chỉnh',
-};
-
 export const AdminHeader = memo(function AdminHeader() {
     const pathname = usePathname();
     const router = useRouter();
     const { logout } = useAuthContext();
-    const {
-        selectedBranch,
-        setSelectedBranch,
-        branches,
-        timePeriod,
-        setTimePeriod,
-        openSearch,
-    } = useAdminContext();
 
     const breadcrumbs = useMemo(() => {
         const paths = pathname.split('/').filter(Boolean);
@@ -55,7 +35,7 @@ export const AdminHeader = memo(function AdminHeader() {
             const path = paths[i];
             const href = '/' + paths.slice(0, i + 1).join('/');
 
-            let label = path
+            const label = path
                 .split('-')
                 .map(word => word.charAt(0).toUpperCase() + word.slice(1))
                 .join(' ');
@@ -75,15 +55,6 @@ export const AdminHeader = memo(function AdminHeader() {
         avatar: '/avatars/admin.jpg',
     }), []);
 
-    const handleBranchChange = useCallback((branch: typeof selectedBranch) => {
-        setSelectedBranch(branch);
-    }, [setSelectedBranch]);
-
-    const handleTimePeriodChange = useCallback((period: typeof timePeriod) => {
-        setTimePeriod(period);
-        // TODO: Trigger data refresh
-    }, [setTimePeriod]);
-
     const handleProfileClick = useCallback(() => {
         router.push('/admin/profile');
     }, [router]);
@@ -93,22 +64,22 @@ export const AdminHeader = memo(function AdminHeader() {
     }, [router]);
 
     return (
-        <header className="sticky top-0 z-40 w-full border-b border-gray-700/50 bg-slate-900">
+        <header className="sticky top-0 z-40 w-full border-b border-gray-300/50 bg-[#EFE6DB] shadow-md">
             <div className="flex h-16 items-center gap-4 px-6 max-w-full overflow-x-auto">
                 {/* Breadcrumbs */}
                 <div className="flex items-center gap-2 text-sm">
-                    <span className="text-gray-400">{breadcrumbs.isManager ? 'Manager' : 'Admin'}</span>
-                    {breadcrumbs.breadcrumbs.map((crumb, index) => (
+                    <span className="text-gray-600">{breadcrumbs.isManager ? 'Manager' : 'Admin'}</span>
+                    {breadcrumbs.breadcrumbs.map((crumb) => (
                         <React.Fragment key={crumb.href}>
-                            <span className="text-gray-600">/</span>
+                            <span className="text-gray-500">/</span>
                             {crumb.isLast ? (
-                                <span className="font-semibold text-white">
+                                <span className="font-semibold text-gray-900">
                                     {crumb.label}
                                 </span>
                             ) : (
                                 <button
                                     onClick={() => router.push(crumb.href)}
-                                    className="text-gray-300 hover:text-white transition-colors"
+                                    className="text-gray-700 hover:text-gray-900 transition-colors"
                                 >
                                     {crumb.label}
                                 </button>
@@ -117,23 +88,10 @@ export const AdminHeader = memo(function AdminHeader() {
                     ))}
                 </div>
 
-                <div className="flex-1 flex justify-center">
-                    <Button
-                        variant="outline"
-                        className="relative h-9 w-full max-w-md justify-start text-sm text-gray-400 border-gray-700 bg-slate-800/50 hover:bg-slate-800 hover:text-gray-200 sm:pr-12"
-                        onClick={openSearch}
-                    >
-                        <Search className="mr-2 h-4 w-4" />
-                        <span className="hidden lg:inline-flex">Tìm người dùng, đơn hàng, công thức...</span>
-                        <span className="inline-flex lg:hidden">Tìm kiếm...</span>
-                        <kbd className="pointer-events-none absolute right-1.5 top-1.5 hidden h-6 select-none items-center gap-1 rounded border border-gray-700 bg-slate-800 px-1.5 font-mono text-xs font-medium text-gray-400 opacity-100 sm:flex">
-                            <CommandIcon className="h-3 w-3" />K
-                        </kbd>
-                    </Button>
-                </div>
+                <div className="flex-1"></div>
 
                 {/* Notifications */}
-                <Button variant="ghost" size="icon" className="relative h-9 w-9 text-gray-300 hover:text-white hover:bg-slate-800">
+                <Button variant="ghost" size="icon" className="relative h-9 w-9 text-gray-700 hover:text-gray-900 hover:bg-white/50">
                     <Bell className="h-5 w-5" />
                     <span className="absolute right-1 top-1 flex h-2 w-2">
                         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
@@ -144,14 +102,14 @@ export const AdminHeader = memo(function AdminHeader() {
                 {/* User Menu */}
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="relative h-9 gap-2 px-2 text-gray-300 hover:text-white hover:bg-slate-800">
+                        <Button variant="ghost" className="relative h-9 gap-2 px-2 text-gray-700 hover:text-gray-900 hover:bg-white/50">
                             <Avatar className="h-7 w-7">
                                 <AvatarImage src={user.avatar} alt={user.name} />
                                 <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div className="hidden flex-col items-start text-left sm:flex">
-                                <span className="text-sm font-medium text-white">{user.name}</span>
-                                <span className="text-xs text-gray-400">{user.role}</span>
+                                <span className="text-sm font-medium text-gray-900">{user.name}</span>
+                                <span className="text-xs text-gray-600">{user.role}</span>
                             </div>
                             <ChevronDown className="h-4 w-4" />
                         </Button>

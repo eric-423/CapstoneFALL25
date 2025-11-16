@@ -85,6 +85,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/material-types/{id}").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(HttpMethod.DELETE, "/api/material-types/{id}").hasAnyRole("ADMIN", "MANAGER")
 
+                        .requestMatchers(HttpMethod.GET, "/api/materials")
+                        .hasAnyRole("MANAGER", "ADMIN", "CHEFF", "WAITER")
+                        .requestMatchers(HttpMethod.GET, "/api/materials/{id}")
+                        .hasAnyRole("MANAGER", "ADMIN", "CHEFF", "WAITER")
+                        .requestMatchers(HttpMethod.POST, "/api/materials").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.PUT, "/api/materials/{id}").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/materials/{id}").hasAnyRole("ADMIN", "MANAGER")
+
                         .requestMatchers("/api/combos/search").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/combos/{id}").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/combos").hasAnyRole("ADMIN", "MANAGER")
@@ -143,6 +151,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/orders/customer/pickup").hasAnyRole("CUSTOMER", "STAFF")
                         .requestMatchers("/api/orders/customer/**").hasRole("CUSTOMER")
                         .requestMatchers("/api/customers/**").hasRole("CUSTOMER")
+                        .requestMatchers(HttpMethod.POST, "/api/orders/dining-table/payment/**")
+                        .hasAnyRole("WAITER,ADMIN,MANAGER,STAFF")
                         .requestMatchers("/api/orders/dining-table/**").hasRole("CUSTOMER")
                         .requestMatchers("/api/promotions/customer/**").hasRole("CUSTOMER")
                         .requestMatchers("/api/roles/**").hasRole("ADMIN")

@@ -81,6 +81,7 @@ public class RoleHistoryServiceImpl implements RoleHistoryService {
         });
 
         RoleHistory roleHistory = new RoleHistory();
+        roleHistory.setRoleName(role.getName());
         roleHistory.setUser(user);
         roleHistory.setRole(role);
         roleHistory.setStartDate(request.getStartDate() != null ? request.getStartDate() : new Date());
@@ -124,6 +125,10 @@ public class RoleHistoryServiceImpl implements RoleHistoryService {
 
         if (request.getEndDate() != null) {
             roleHistory.setEndDate(request.getEndDate());
+        }
+
+        if (request.getRoleName() != null) {
+            roleHistory.setRoleName(request.getRoleName());
         }
 
         if (request.getIsActive() != null) {
@@ -171,10 +176,7 @@ public class RoleHistoryServiceImpl implements RoleHistoryService {
             dto.setUserName(roleHistory.getUser().getFullName());
         }
 
-        if (roleHistory.getRole() != null) {
-            dto.setRoleId(roleHistory.getRole().getId());
-            dto.setRoleName(roleHistory.getRole().getName());
-        }
+        dto.setRoleName(roleHistory.getRoleName());
 
         if (roleHistory.getBranch() != null) {
             dto.setBranchId(roleHistory.getBranch().getId());

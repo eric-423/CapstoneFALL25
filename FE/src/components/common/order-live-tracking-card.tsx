@@ -1,6 +1,5 @@
 'use client';
 
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useOrderLiveTracking } from '@/utils/hooks/useOrderLiveTracking';
@@ -8,7 +7,7 @@ import { cn } from '@/utils/lib/utils';
 
 import { GoogleMap, Marker, useLoadScript, DirectionsRenderer } from '@react-google-maps/api';
 import type { Libraries } from '@react-google-maps/api';
-import { Loader2, MapPin, Navigation2, Radio, RefreshCcw, Route, Wifi, WifiOff } from 'lucide-react';
+import { Loader2, Radio, RefreshCcw, Route } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 interface OrderLiveTrackingCardProps {
@@ -21,26 +20,16 @@ interface OrderLiveTrackingCardProps {
 const MAP_LIBRARIES: Libraries = ['marker'];
 const DEFAULT_CENTER = { lat: 10.762622, lng: 106.660172 };
 
-const STATUS_CONFIG = {
-  UNPAID: { label: 'Chờ thanh toán', badgeClass: 'bg-yellow-500 text-white' },
-  VERIFIED: { label: 'Đã xác nhận', badgeClass: 'bg-blue-500 text-white' },
-  PROCESSING: { label: 'Đang chuẩn bị', badgeClass: 'bg-blue-500 text-white' },
-  IN_DELIVERY: { label: 'Đang giao', badgeClass: 'bg-blue-500 text-white' },
-  COMPLETED: { label: 'Hoàn thành', badgeClass: 'bg-green-600 text-white' },
-  CANCELLED: { label: 'Đã hủy', badgeClass: 'bg-red-500 text-white' },
-} as const;
+// const STATUS_CONFIG = {
+//   UNPAID: { label: 'Chờ thanh toán', badgeClass: 'bg-yellow-500 text-white' },
+//   VERIFIED: { label: 'Đã xác nhận', badgeClass: 'bg-blue-500 text-white' },
+//   PROCESSING: { label: 'Đang chuẩn bị', badgeClass: 'bg-blue-500 text-white' },
+//   IN_DELIVERY: { label: 'Đang giao', badgeClass: 'bg-blue-500 text-white' },
+//   COMPLETED: { label: 'Hoàn thành', badgeClass: 'bg-green-600 text-white' },
+//   CANCELLED: { label: 'Đã hủy', badgeClass: 'bg-red-500 text-white' },
+// } as const;
 
-const getStatusConfig = (value?: string) => {
-  if (!value) return null;
 
-  const fromKey = STATUS_CONFIG[value as keyof typeof STATUS_CONFIG];
-  if (fromKey) return fromKey;
-
-  const fromLabel = Object.values(STATUS_CONFIG).find((item) => item.label === value);
-  if (fromLabel) return fromLabel;
-
-  return { label: value, badgeClass: 'bg-secondary text-foreground' };
-};
 
 export function OrderLiveTrackingCard({
   orderId,
@@ -53,25 +42,13 @@ export function OrderLiveTrackingCard({
   const [routeInfo, setRouteInfo] = useState<{ distanceText?: string; durationText?: string } | null>(null);
 
   const {
-    currentStatus,
-    statusMessage,
     lastUpdatedAt,
     shipperLocation,
-    isStatusConnected,
-    isLocationConnected,
   } = useOrderLiveTracking({
     orderId,
     initialStatus,
     enabled: hasOrder,
   });
-
-  const statusBadge = useMemo(() => {
-    if (!currentStatus) return null;
-    const config = getStatusConfig(currentStatus);
-    if (!config) return null;
-
-    return <Badge className={config.badgeClass}>{config.label}</Badge>;
-  }, [currentStatus]);
 
   if (!hasOrder) {
     return null;
@@ -83,10 +60,12 @@ export function OrderLiveTrackingCard({
         <div className='flex items-center justify-between gap-4 flex-wrap'>
           <CardTitle className='text-lg font-semibold flex items-center gap-2'>
             <Radio className='h-5 w-5 text-primary' />
-            Theo dõi trạng thái theo thời gian thực
+            Theo dõi đơn hàng của bạn
           </CardTitle>
           <div className='flex flex-wrap gap-2 text-xs'>
-            <Badge
+
+
+            {/* <Badge
               variant={isStatusConnected ? 'secondary' : 'outline'}
               className={cn('flex items-center gap-1', isStatusConnected ? 'text-primary' : 'text-muted-foreground')}
             >
@@ -117,7 +96,9 @@ export function OrderLiveTrackingCard({
                   Đợi tín hiệu vị trí
                 </>
               )}
-            </Badge>
+            </Badge> */}
+
+
           </div>
         </div>
         {lastUpdatedAt && (
@@ -128,19 +109,12 @@ export function OrderLiveTrackingCard({
         )}
       </CardHeader>
       <CardContent className='space-y-4'>
-        <div className='space-y-2'>
-          <p className='text-sm text-muted-foreground'>Trạng thái hiện tại</p>
-          {statusBadge}
-          {statusMessage && <p className='text-sm text-foreground/80'>{statusMessage}</p>}
-        </div>
+
 
         <Separator />
 
         <div className='space-y-3'>
-          <div className='flex items-center gap-2 text-sm font-medium text-foreground'>
-            <MapPin className='h-4 w-4 text-primary' />
-            Vị trí shipper
-          </div>
+
           {shipperLocation ? (
             <div className='space-y-3 rounded-lg border border-primary/10 bg-primary/5 p-3 text-sm'>
               <div className='flex items-center gap-2 text-sm font-medium text-primary'>
@@ -229,30 +203,29 @@ function ShipperLocationMap({ lat, lng, apiKey, destinationAddress, onRouteInfo 
     [],
   );
 
-  // Tạo icon tùy chỉnh cho shipper (màu cam)
   const shipperIcon = useMemo(() => {
     if (typeof window === 'undefined' || !window.google || !isLoaded) return undefined;
     return {
       path: window.google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-      scale: 6,
-      fillColor: '#FF0000',
+      scale: 5,
+      fillColor: '#FF6B35',
       fillOpacity: 1,
       strokeColor: '#FFFFFF',
       strokeWeight: 2,
     };
   }, [isLoaded]);
 
-  // Icon tùy chỉnh cho điểm đến (màu xanh lá)
+  // Icon tùy chỉnh cho điểm đến (địa chỉ khách hàng)
   const destinationIcon = useMemo(() => {
     if (typeof window === 'undefined' || !window.google || !isLoaded) return undefined;
     return {
       path: window.google.maps.SymbolPath.CIRCLE,
-      scale: 10,
-      fillColor: '#FF0000',
+      scale: 6,
+      fillColor: '#4CAF50',
       fillOpacity: 1,
       strokeColor: '#FFFFFF',
       strokeWeight: 2,
-      rotation: 180,
+
     };
   }, [isLoaded]);
 

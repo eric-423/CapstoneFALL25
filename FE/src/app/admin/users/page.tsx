@@ -451,19 +451,6 @@ export default function UsersManagementPage() {
                     onSaveCurrentFilter={handleSaveFilter}
                     showAdvancedFilters={showAdvanced}
                     onToggleAdvancedFilters={() => setShowAdvanced((prev) => !prev)}
-                    customActions={
-                        <div className="flex gap-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                style={{ color: '#000000', fontWeight: '600' }}
-                                onClick={handleExport}
-                            >
-                                <FileText className="h-4 w-4 mr-2" />
-                                Xuất báo cáo
-                            </Button>
-                        </div>
-                    }
                 />
             </div>
 

@@ -12,6 +12,7 @@ import java.util.Date;
 public class RoleHistoryUpdateRequest {
     private Integer roleId;
     private Integer branchId;
+    private String roleName;
     private Date startDate;
     private Date endDate;
     private Boolean isActive;

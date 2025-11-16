@@ -12,10 +12,15 @@ interface OrderProgressTrackerProps {
 
 const STATUS_DESCRIPTIONS: Record<string, string> = {
   CREATED: 'Đơn hàng đã được tạo và chờ xác nhận.',
+  VERIFIED: 'Đơn hàng đã được xác nhận.',
+  UNPAID: 'Đơn hàng đã được tạo và chờ xác nhận.',
   COOKING: 'Đầu bếp đang chuẩn bị món ăn của bạn.',
+  PROCESSING: 'Đơn hàng đang được xử lý.',
   COOKED: 'Món ăn đã sẵn sàng, chờ đóng gói.',
   IN_PROCESS: 'Đơn hàng đang được hoàn thiện để giao.',
   SHIPPING: 'Shipper đang trên đường giao món.',
+  DELIVERING: 'Shipper đang trên đường giao món.',
+  IN_DELIVERY: 'Shipper đang trên đường giao món.',
   DELIVERED: 'Đơn đã tới nơi, chờ xác nhận hoàn tất.',
   COMPLETED: 'Đơn hàng đã hoàn thành.',
   PAID: 'Thanh toán đã hoàn tất.',
@@ -29,25 +34,7 @@ const ORDER_STATUSES = [
     color: 'text-yellow-600',
     bgColor: 'bg-yellow-100',
     borderColor: 'border-yellow-300',
-    percent: 5,
-  },
-  {
-    key: 'COOKING',
-    label: 'Đang nấu',
-    icon: ChefHat,
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-100',
-    borderColor: 'border-orange-300',
-    percent: 25,
-  },
-  {
-    key: 'COOKED',
-    label: 'Đã nấu xong',
-    icon: UtensilsCrossed,
-    color: 'text-amber-600',
-    bgColor: 'bg-amber-100',
-    borderColor: 'border-amber-300',
-    percent: 45,
+    percent: 4,
   },
   {
     key: 'IN_PROCESS',
@@ -56,7 +43,25 @@ const ORDER_STATUSES = [
     color: 'text-blue-600',
     bgColor: 'bg-blue-100',
     borderColor: 'border-blue-300',
-    percent: 65,
+    percent: 20,
+  },
+  {
+    key: 'COOKING',
+    label: 'Đang nấu',
+    icon: ChefHat,
+    color: 'text-orange-600',
+    bgColor: 'bg-orange-100',
+    borderColor: 'border-orange-300',
+    percent: 35,
+  },
+  {
+    key: 'COOKED',
+    label: 'Đã nấu xong',
+    icon: UtensilsCrossed,
+    color: 'text-amber-600',
+    bgColor: 'bg-amber-100',
+    borderColor: 'border-amber-300',
+    percent: 55,
   },
   {
     key: 'SHIPPING',
@@ -65,7 +70,7 @@ const ORDER_STATUSES = [
     color: 'text-purple-600',
     bgColor: 'bg-purple-100',
     borderColor: 'border-purple-300',
-    percent: 85,
+    percent: 65,
   },
   {
     key: 'DELIVERED',
@@ -74,7 +79,7 @@ const ORDER_STATUSES = [
     color: 'text-green-600',
     bgColor: 'bg-green-100',
     borderColor: 'border-green-300',
-    percent: 95,
+    percent: 80,
   },
   {
     key: 'COMPLETED',
@@ -96,6 +101,39 @@ const CANCELLED_STATUS = {
   borderColor: 'border-red-300',
 };
 
+// Map backend status to frontend progress tracker status
+const mapStatusToProgressStatus = (status: string): string => {
+  const normalized = status?.toUpperCase?.() || '';
+
+  // Map các status từ backend sang status trong progress tracker
+  const statusMap: Record<string, string> = {
+    // Status ban đầu
+    'UNPAID': 'CREATED',
+    'CREATED': 'CREATED',
+    'VERIFIED': 'CREATED', // VERIFIED được coi như CREATED trong progress
+
+    // Status nấu ăn
+    'PROCESSING': 'COOKING', // PROCESSING có thể là COOKING hoặc IN_PROCESS
+    'COOKING': 'COOKING',
+    'COOKED': 'COOKED',
+
+    // Status xử lý
+    'IN_PROCESS': 'IN_PROCESS',
+
+    // Status giao hàng
+    'SHIPPING': 'SHIPPING',
+    'DELIVERING': 'SHIPPING', // DELIVERING map sang SHIPPING
+    'IN_DELIVERY': 'SHIPPING', // IN_DELIVERY map sang SHIPPING
+
+    // Status hoàn thành
+    'DELIVERED': 'DELIVERED',
+    'COMPLETED': 'COMPLETED',
+    'PAID': 'COMPLETED', // PAID được coi như COMPLETED
+  };
+
+  return statusMap[normalized] || normalized;
+};
+
 export default function OrderProgressTracker({ currentStatus, className }: OrderProgressTrackerProps) {
   const normalizedStatus = currentStatus?.toUpperCase?.() || '';
   const isCancelled = normalizedStatus === 'CANCEL' || normalizedStatus === 'CANCELLED';
@@ -112,9 +150,19 @@ export default function OrderProgressTracker({ currentStatus, className }: Order
     );
   }
 
-  const currentIndex = ORDER_STATUSES.findIndex((status) => status.key === normalizedStatus);
-  const safeIndex = currentIndex === -1 ? 0 : currentIndex;
+  // Map status từ backend sang status trong progress tracker
+  const mappedStatus = mapStatusToProgressStatus(normalizedStatus);
+  const currentIndex = ORDER_STATUSES.findIndex((status) => status.key === mappedStatus);
+
+  // Nếu không tìm thấy status, thử tìm trực tiếp với normalizedStatus
+  const finalIndex = currentIndex === -1
+    ? ORDER_STATUSES.findIndex((status) => status.key === normalizedStatus)
+    : currentIndex;
+
+  // Nếu vẫn không tìm thấy, fallback về index 0 (CREATED)
+  const safeIndex = finalIndex === -1 ? 0 : finalIndex;
   const progressValue = ORDER_STATUSES[safeIndex]?.percent ?? 0;
+
 
   return (
     <div className={cn('w-full space-y-4 ', className)}>
@@ -176,7 +224,7 @@ export default function OrderProgressTracker({ currentStatus, className }: Order
       {/* Current Status Description */}
       <div className='text-center p-3 pt-0'>
         <p className='text-sm text-primary font-medium'>
-          {STATUS_DESCRIPTIONS[normalizedStatus] || 'Đơn hàng đang được xử lý.'}
+          {STATUS_DESCRIPTIONS[normalizedStatus] || STATUS_DESCRIPTIONS[mappedStatus] || 'Đơn hàng đang được xử lý.'}
         </p>
       </div>
     </div>

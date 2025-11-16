@@ -4,12 +4,13 @@ import { Product } from '@/apis/product.api';
 import { Star } from 'lucide-react';
 import Image from 'next/image';
 import { AnimatedCard } from '@/components/common/animated-card';
+import { memo, useMemo } from 'react';
 
 type BestSellersNewProps = {
     products: Product[];
 };
 
-const BestSellersSection = ({ products = [] }: BestSellersNewProps) => {
+const BestSellersSection = memo(({ products = [] }: BestSellersNewProps) => {
     // Mock data for fallback - matching the design
     const mockBestSellers = [
         {
@@ -72,7 +73,9 @@ const BestSellersSection = ({ products = [] }: BestSellersNewProps) => {
                                         src={item.image}
                                         alt={item.title}
                                         fill
+                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                         className="object-cover transition-transform duration-300 hover:scale-105"
+                                        loading="lazy"
                                     />
                                     {item.originalPrice && (
                                         <div className="absolute top-4 left-4 bg-red-500 text-white px-2 py-1 rounded-lg text-sm font-semibold">
@@ -122,6 +125,8 @@ const BestSellersSection = ({ products = [] }: BestSellersNewProps) => {
             </div>
         </section>
     );
-};
+});
+
+BestSellersSection.displayName = 'BestSellersSection';
 
 export default BestSellersSection;
