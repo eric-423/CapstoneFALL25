@@ -2,6 +2,7 @@ package com.capstone.tamtech.capstone.controllers;
 
 import com.capstone.tamtech.capstone.dto.MaterialTypeDTO;
 import com.capstone.tamtech.capstone.payload.ResponseData;
+import com.capstone.tamtech.capstone.payload.request.MaterialTypeRequest;
 import com.capstone.tamtech.capstone.services.impl.MaterialTypeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -56,7 +57,7 @@ public class MaterialTypeController {
 
     @Operation(summary = "Tạo loại nguyên liệu mới")
     @PostMapping
-    public ResponseEntity<?> createMaterialType(@RequestBody MaterialTypeDTO request) {
+    public ResponseEntity<?> createMaterialType(@RequestBody MaterialTypeRequest request) {
         try {
             MaterialTypeDTO dto = materialTypeService.createMaterialType(request);
             ResponseData responseData = new ResponseData();
@@ -74,7 +75,7 @@ public class MaterialTypeController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updateMaterialType(
             @Parameter(description = "ID loại nguyên liệu", required = true) @PathVariable int id,
-            @RequestBody MaterialTypeDTO request) {
+            @RequestBody MaterialTypeRequest request) {
         try {
             MaterialTypeDTO dto = materialTypeService.updateMaterialType(id, request);
             ResponseData responseData = new ResponseData();

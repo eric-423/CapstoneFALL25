@@ -3,6 +3,7 @@ package com.capstone.tamtech.capstone.services;
 import com.capstone.tamtech.capstone.dto.MaterialTypeDTO;
 import com.capstone.tamtech.capstone.entities.MaterialType;
 import com.capstone.tamtech.capstone.exception.ResourceNotFoundException;
+import com.capstone.tamtech.capstone.payload.request.MaterialTypeRequest;
 import com.capstone.tamtech.capstone.repositories.MaterialRepository;
 import com.capstone.tamtech.capstone.repositories.MaterialTypeRepository;
 import com.capstone.tamtech.capstone.services.impl.MaterialTypeService;
@@ -35,7 +36,7 @@ public class MaterialTypeServiceImpl implements MaterialTypeService {
     }
 
     @Override
-    public MaterialTypeDTO createMaterialType(MaterialTypeDTO request) {
+    public MaterialTypeDTO createMaterialType(MaterialTypeRequest request) {
         materialTypeRepository.findByName(request.getName()).ifPresent(mt -> {
             throw new IllegalArgumentException("Material type with the same name already exists");
         });
@@ -49,7 +50,7 @@ public class MaterialTypeServiceImpl implements MaterialTypeService {
     }
 
     @Override
-    public MaterialTypeDTO updateMaterialType(int id, MaterialTypeDTO request) {
+    public MaterialTypeDTO updateMaterialType(int id, MaterialTypeRequest request) {
         MaterialType materialType = materialTypeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Material type not found"));
 
