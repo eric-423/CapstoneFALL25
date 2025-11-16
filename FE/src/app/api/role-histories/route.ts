@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
-// PUT: Cập nhật role
-export async function PUT(
-    request: NextRequest,
-    { params }: { params: Promise<{ roleId: string }> }
-) {
+const API_URL = process.env.NEXT_PUBLIC_BASE_URL;
+
+// POST: Tạo role history
+export async function POST(request: NextRequest) {
     try {
         const cookieStore = await cookies();
         const accessToken = cookieStore.get('access_token')?.value || cookieStore.get('token')?.value;
@@ -17,14 +16,12 @@ export async function PUT(
             );
         }
 
-        const { roleId } = await params;
         const body = await request.json();
 
-        // Forward to external API
         const response = await fetch(
-            `${process.env.NEXT_PUBLIC_BASE_URL}/roles/${roleId}`,
+            `${API_URL}/role-histories`,
             {
-                method: 'PUT',
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${accessToken}`,
@@ -34,7 +31,7 @@ export async function PUT(
         );
 
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ error: 'Failed to update role' }));
+            const errorData = await response.json().catch(() => ({ error: 'Failed to create role history' }));
             return NextResponse.json(
                 errorData,
                 { status: response.status }
@@ -44,9 +41,9 @@ export async function PUT(
         const data = await response.json();
         return NextResponse.json(data);
     } catch (error) {
-        console.error('Update Role API Error:', error);
+        console.error('Create Role History API Error:', error);
         return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Failed to update role' },
+            { error: error instanceof Error ? error.message : 'Failed to create role history' },
             { status: 500 }
         );
     }

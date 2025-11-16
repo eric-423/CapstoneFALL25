@@ -45,7 +45,7 @@ export default function FinancePage() {
 
     return (
         <AdminGuard>
-            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+            <div className="min-h-screen bg-[#EFE6DB]">
                 <div className="max-w-[1800px] mx-auto space-y-4">
                     {/* Header - Compact */}
                     <div className="flex justify-between items-center">

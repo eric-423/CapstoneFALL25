@@ -109,8 +109,8 @@ export default function DashboardPage() {
     });
 
     // Combined loading state
-    const isLoading = isLoadingRevenue || isLoadingOrderCount || isLoadingNewCustomers || 
-                     isLoadingServiceTime || isLoadingRevenue7Days || isLoadingTopMaterials || isLoadingTopSelling;
+    const isLoading = isLoadingRevenue || isLoadingOrderCount || isLoadingNewCustomers ||
+        isLoadingServiceTime || isLoadingRevenue7Days || isLoadingTopMaterials || isLoadingTopSelling;
 
     // Memoize operational KPIs to prevent unnecessary recalculations
     const operationalKPIs = useMemo(() => {
@@ -145,7 +145,7 @@ export default function DashboardPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="min-h-screen bg-[#EFE6DB]">
             <div className="max-w-[1800px] mx-auto space-y-4">
                 {/* Header - Compact */}
                 <div className="flex items-center justify-between">

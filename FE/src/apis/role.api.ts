@@ -3,6 +3,7 @@
 export interface Role {
     id: number;
     name: string;
+    isInternal: boolean;
 }
 
 export interface RolesResponse {
@@ -19,10 +20,12 @@ export interface RoleResponse {
 
 export interface CreateRoleRequest {
     name: string;
+    internal: boolean;
 }
 
 export interface UpdateRoleRequest {
     name: string;
+    internal: boolean;
 }
 
 /**

@@ -1,406 +1,154 @@
 'use client';
 
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     Users,
-    UserPlus,
-    Shield,
-    Lock,
-    FileText,
-    Award,
-    Clock,
-    CheckCircle,
-    Eye,
+    Plus,
+    Edit2,
     Trash2,
+    Ban,
+    ShieldCheck,
+    UserCheck,
+    Eye,
+    Search,
+    Filter,
+    X,
 } from 'lucide-react';
-import { FilterBar, FilterChip, SavedFilter } from '@/components/common/FilterBar';
-import { DataTable, Column } from '@/components/common/DataTable';
+import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { RoleHistory, TrainingStats, UserRole, UserTraining } from '@/utils/types/user.types';
-// import { MOCK_USERS } from '@/utils/mocks/data/users.mock';
-import type { UserWithUiExtras } from './components/UserDetailDialog';
-import { UserDetailDialog } from './components/UserDetailDialog';
+import { Badge } from '@/components/ui/badge';
 import { AdminPageLayout, AdminPageHeader, AdminStatsCard, AdminStatsGrid } from '../components/AdminPageLayout';
+import { getUsers, deleteUser, banUser, unbanUser, type User } from '@/apis/admin-user.api';
+import { UserFormDialog } from './components/UserFormDialog';
+import { ConfirmDialog } from './components/ConfirmDialog';
 import Link from 'next/link';
 
-// Temporary empty array until API is implemented
-const MOCK_USERS: any[] = [];
+export default function UsersManagementPage() {
+    const [users, setUsers] = useState<User[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [searchKeyword, setSearchKeyword] = useState('');
+    const [roleFilter, setRoleFilter] = useState<string>('');
+    const [statusFilter, setStatusFilter] = useState<string>('');
 
-type UserStatusFilter = 'active' | 'inactive' | 'banned';
+    // Dialog states
+    const [showDialog, setShowDialog] = useState(false);
+    const [editingUser, setEditingUser] = useState<User | null>(null);
+    const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; type: 'ban' | 'unban' | 'delete' | null; userId: number; userName: string }>({
+        open: false,
+        type: null,
+        userId: 0,
+        userName: ''
+    });
+    const [actionLoading, setActionLoading] = useState(false);
 
-const BRANCH_LABELS: Record<number, string> = {
-    1: 'Chi nhánh Quận 1',
-    2: 'Chi nhánh Quận 3',
-    3: 'Chi nhánh Thủ Đức',
-};
+    const fetchUsers = useCallback(async () => {
+        try {
+            setLoading(true);
+            const data = await getUsers();
+            setUsers(data);
+        } catch (error) {
+            console.error('Failed to fetch users:', error);
+            toast.error('❌ Không thể tải danh sách người dùng!');
+        } finally {
+            setLoading(false);
+        }
+    }, []);
 
-const STATUS_CONFIG: Record<UserStatusFilter, { label: string; className: string; icon: string }> = {
-    active: { label: 'Hoạt động', className: 'bg-green-100 text-green-800', icon: '✓' },
-    inactive: { label: 'Không hoạt động', className: 'bg-gray-100 text-gray-800', icon: '○' },
-    banned: { label: 'Đã khóa', className: 'bg-red-100 text-red-800', icon: '🔒' },
-};
+    useEffect(() => {
+        fetchUsers();
+    }, [fetchUsers]);
 
-const ROLE_CONFIG: Record<UserRole, { label: string; className: string }> = {
-    ADMIN: { label: 'Admin', className: 'bg-red-100 text-red-800 border-red-300' },
-    MANAGER: { label: 'Manager', className: 'bg-blue-100 text-blue-800 border-blue-300' },
-    CHEF: { label: 'Chef', className: 'bg-orange-100 text-orange-800 border-orange-300' },
-    WAITER: { label: 'Waiter', className: 'bg-purple-100 text-purple-800 border-purple-300' },
-    SHIPPER: { label: 'Shipper', className: 'bg-lime-100 text-lime-800 border-lime-300' },
-    CUSTOMER: { label: 'Customer', className: 'bg-green-100 text-green-800 border-green-300' },
-};
+    const handleCreateUser = () => {
+        setEditingUser(null);
+        setShowDialog(true);
+    };
 
-const getRandomDateIso = (rangeInDays: number) =>
-    new Date(Date.now() - Math.random() * rangeInDays * 24 * 60 * 60 * 1000).toISOString();
+    const handleEditUser = (user: User) => {
+        setEditingUser(user);
+        setShowDialog(true);
+    };
 
-const buildMockUsers = (): UserWithUiExtras[] =>
-    MOCK_USERS.map((mock, idx) => {
-        const normalizedRole = (mock.role ?? 'CUSTOMER').toUpperCase() as UserRole;
-        const branchId = mock.branchId ?? ((idx % 3) + 1);
-        const isBanned = idx % 6 === 4;
-        const isActive = !isBanned && idx % 5 !== 2;
+    const handleConfirmAction = async () => {
+        try {
+            setActionLoading(true);
 
-        const roleHistory: RoleHistory = {
-            id: idx + 1,
-            roleId: idx + 101,
-            roleName: normalizedRole,
-            userId: mock.id,
-            branchId,
-            branchName: BRANCH_LABELS[branchId],
-            startDate: getRandomDateIso(240),
-            endDate: undefined,
-            isActive: true,
-        };
+            if (confirmDialog.type === 'delete') {
+                await deleteUser(confirmDialog.userId);
+                toast.success(`🗑️ Đã xóa người dùng "${confirmDialog.userName}" thành công!`);
+            } else if (confirmDialog.type === 'ban') {
+                await banUser(confirmDialog.userId);
+                toast.success(`🔒 Đã khóa tài khoản "${confirmDialog.userName}" thành công!`);
+            } else if (confirmDialog.type === 'unban') {
+                await unbanUser(confirmDialog.userId);
+                toast.success(`✅ Đã mở khóa tài khoản "${confirmDialog.userName}" thành công!`);
+            }
 
-        const totalTrainings = 3;
-        const completedTrainings = Math.max(0, Math.min(totalTrainings, (idx % (totalTrainings + 1))));
+            await fetchUsers();
+            setConfirmDialog({ open: false, type: null, userId: 0, userName: '' });
+        } catch (error) {
+            console.error('Failed to perform action:', error);
+            const errorMessages = {
+                delete: 'Không thể xóa người dùng!',
+                ban: 'Không thể khóa tài khoản!',
+                unban: 'Không thể mở khóa tài khoản!',
+            };
+            toast.error(`❌ ${confirmDialog.type ? errorMessages[confirmDialog.type] : 'Có lỗi xảy ra!'}`);
+        } finally {
+            setActionLoading(false);
+        }
+    };
 
-        const trainingStats: TrainingStats = {
-            totalEnrolled: totalTrainings,
-            totalCompleted: completedTrainings,
-            totalPoints: 150 + idx * 10,
-            completionRate: Math.round((completedTrainings / totalTrainings) * 100),
-            inProgressCount: totalTrainings - completedTrainings,
-        };
+    const handleDialogSuccess = () => {
+        fetchUsers();
+    };
 
-        const trainings: UserTraining[] = [
-            {
-                id: idx * 3 + 1,
-                userId: mock.id,
-                trainingId: 1,
-                trainingName: 'An toàn thực phẩm',
-                enrollDate: getRandomDateIso(120),
-                point: 85,
-                isPassed: completedTrainings > 1,
-                lessonsProgress: [
-                    {
-                        id: idx * 5 + 1,
-                        userTrainingId: idx * 3 + 1,
-                        lessonId: 1,
-                        lessonTitle: 'Kiểm soát vệ sinh',
-                        point: 40,
-                        isPassed: true,
-                        startDate: getRandomDateIso(90),
-                    },
-                ],
-            },
-            {
-                id: idx * 3 + 2,
-                userId: mock.id,
-                trainingId: 2,
-                trainingName: 'Dịch vụ khách hàng',
-                enrollDate: getRandomDateIso(200),
-                point: 70,
-                isPassed: completedTrainings > 2,
-            },
-        ];
+    // Filter users
+    const filteredUsers = users.filter(user => {
+        const matchesKeyword = !searchKeyword ||
+            user.fullName.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+            user.email.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+            user.phoneNumber.includes(searchKeyword);
 
-        return {
-            id: mock.id,
-            fullName: mock.fullName,
-            email: mock.email ?? `user${mock.id}@tamtac.com`,
-            phoneNumber: mock.phoneNumber ?? mock.phone ?? '0900000000',
-            password: undefined,
-            dateOfBirth: undefined,
-            address: BRANCH_LABELS[branchId] ?? 'Chưa cập nhật',
-            note: undefined,
-            isActive,
-            isBan: isBanned,
-            emailVerified: idx % 2 === 0,
-            phoneVerified: idx % 3 !== 0,
-            memberPoint: 200 + idx * 25,
-            memberRank: (idx % 5) + 1,
-            createdAt: getRandomDateIso(300),
-            roleHistories: [roleHistory],
-            currentRole: roleHistory,
-            trainings,
-            trainingStats,
-            twoFactorEnabled: idx % 3 === 0,
-            lastLogin: getRandomDateIso(15),
-            certificatesEarned: completedTrainings,
-        } as UserWithUiExtras;
+        const matchesRole = !roleFilter || user.role === roleFilter;
+        const matchesStatus = !statusFilter ||
+            (statusFilter === 'banned' && user.isBan) ||
+            (statusFilter === 'active' && !user.isBan);
+
+        return matchesKeyword && matchesRole && matchesStatus;
     });
 
-const getUserStatus = (user: UserWithUiExtras): UserStatusFilter => {
-    if (user.isBan) return 'banned';
-    if (!user.isActive) return 'inactive';
-    return 'active';
-};
-
-export default function UsersManagementPage() {
-    const [users, setUsers] = useState<UserWithUiExtras[]>(buildMockUsers);
-    const [searchValue, setSearchValue] = useState('');
-    const [filters, setFilters] = useState<FilterChip[]>([]);
-    const [showAdvanced, setShowAdvanced] = useState(false);
-    const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
-    const [detailUser, setDetailUser] = useState<UserWithUiExtras | null>(null);
-
-    const savedFilters: SavedFilter[] = [
-        {
-            id: '1',
-            name: 'Active Admins',
-            filters: [
-                { id: 'role', label: 'Vai trò', value: 'ADMIN' },
-                { id: 'status', label: 'Trạng thái', value: 'active' },
-            ],
-        },
-        {
-            id: '2',
-            name: 'Người dùng bị khóa',
-            filters: [{ id: 'status', label: 'Trạng thái', value: 'banned' }],
-        },
-    ];
-
-    const filteredUsers = useMemo(() => {
-        const normalizedSearch = searchValue.trim().toLowerCase();
-
-        return users.filter((user) => {
-            const matchesSearch =
-                normalizedSearch.length === 0 ||
-                user.fullName.toLowerCase().includes(normalizedSearch) ||
-                user.email.toLowerCase().includes(normalizedSearch) ||
-                user.phoneNumber.includes(searchValue.trim());
-
-            const matchesFilters = filters.every((filter) => {
-                switch (filter.id) {
-                    case 'role':
-                        return user.currentRole?.roleName === filter.value;
-                    case 'status':
-                        return getUserStatus(user) === filter.value;
-                    case '2fa':
-                        return filter.value === 'enabled' ? user.twoFactorEnabled : !user.twoFactorEnabled;
-                    case 'branch':
-                        return filter.value === String(user.currentRole?.branchId ?? '');
-                    default:
-                        return true;
-                }
-            });
-
-            return matchesSearch && matchesFilters;
-        });
-    }, [users, searchValue, filters]);
-
-    const stats = useMemo(() => {
-        const getCountByRole = (role: UserRole) =>
-            users.filter((user) => user.currentRole?.roleName === role).length;
-
-        return {
-            total: users.length,
-            active: users.filter((user) => getUserStatus(user) === 'active').length,
-            admins: getCountByRole('ADMIN'),
-            managers: getCountByRole('MANAGER'),
-            with2FA: users.filter((user) => user.twoFactorEnabled).length,
-            banned: users.filter((user) => getUserStatus(user) === 'banned').length,
-        };
-    }, [users]);
-
-    const handleRemoveFilter = (filterId: string) => {
-        setFilters((prev) => prev.filter((f) => f.id !== filterId));
+    const stats = {
+        total: users.length,
+        active: users.filter(u => !u.isBan).length,
+        banned: users.filter(u => u.isBan).length,
+        verified: users.filter(u => u.emailVerified || u.phoneVerified).length,
     };
 
-    const handleClearAll = () => {
-        setSearchValue('');
-        setFilters([]);
-    };
-
-    const handleApplySavedFilter = (filter: SavedFilter) => {
-        setFilters(filter.filters);
-    };
-
-    const handleSaveFilter = (name: string) => {
-        console.log('Save filter:', name, filters);
-    };
-
-    const handleExport = () => {
-        console.log('Export users:', filteredUsers);
-    };
-
-    const handleBulkDelete = useCallback(
-        (ids: string[]) => {
-            if (ids.length === 0) return;
-
-            setUsers((prev) => prev.filter((user) => !ids.includes(String(user.id))));
-            setSelectedUserIds([]);
-            setDetailUser((prev) => (prev && ids.includes(String(prev.id)) ? null : prev));
-        },
-        [],
-    );
-
-    const handleDeleteUser = useCallback((userId: number) => {
-        setUsers((prev) => prev.filter((user) => user.id !== userId));
-        setSelectedUserIds((prev) => prev.filter((id) => id !== String(userId)));
-        setDetailUser((prev) => (prev?.id === userId ? null : prev));
-    }, []);
-
-    const handleViewUser = useCallback((user: UserWithUiExtras) => {
-        setDetailUser(user);
-    }, []);
-
-    const handleUpdateUser = useCallback((updatedUser: UserWithUiExtras) => {
-        setUsers((prev) => prev.map((user) => (user.id === updatedUser.id ? updatedUser : user)));
-        setDetailUser(updatedUser);
-    }, []);
-
-    const columns: Column<UserWithUiExtras>[] = useMemo(
-        () => [
-            {
-                id: 'fullName',
-                header: 'Người dùng',
-                accessor: (row) => (
-                    <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
-                            {row.fullName.charAt(0).toUpperCase()}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                            <div className="font-semibold text-gray-900 truncate">{row.fullName}</div>
-                            <div className="text-xs text-gray-500 truncate">{row.email}</div>
-                        </div>
-                    </div>
-                ),
-                sortable: true,
-                minWidth: 200,
-            },
-            {
-                id: 'phoneNumber',
-                header: 'Số điện thoại',
-                accessor: 'phoneNumber',
-                sortable: true,
-            },
-            {
-                id: 'role',
-                header: 'Vai trò',
-                accessor: (row) => {
-                    const role = (row.currentRole?.roleName ?? 'CUSTOMER') as UserRole;
-                    const config = ROLE_CONFIG[role] ?? ROLE_CONFIG.CUSTOMER;
-                    return (
-                        <Badge className={`${config.className} border font-semibold`}>
-                            {config.label}
-                        </Badge>
-                    );
-                },
-            },
-            {
-                id: 'status',
-                header: 'Trạng thái',
-                accessor: (row) => {
-                    const status = getUserStatus(row);
-                    const config = STATUS_CONFIG[status];
-                    return (
-                        <Badge className={config.className}>
-                            <span className="mr-1">{config.icon}</span>
-                            {config.label}
-                        </Badge>
-                    );
-                },
-            },
-            {
-                id: 'branch',
-                header: 'Chi nhánh',
-                accessor: (row) => (
-                    <div className="text-sm">
-                        {row.currentRole?.branchName ? (
-                            <span className="text-gray-700">{row.currentRole.branchName}</span>
-                        ) : (
-                            <span className="text-gray-400 italic">Chưa gán</span>
-                        )}
-                    </div>
-                ),
-            },
-            {
-                id: 'training',
-                header: 'Đào tạo',
-                accessor: (row) => (
-                    <div className="flex items-center gap-2 text-sm">
-                        <span className="font-semibold text-gray-900">
-                            {row.trainingStats?.completionRate ?? 0}%
-                        </span>
-                        <Badge variant="outline" className="text-orange-700">
-                            <Award className="w-3 h-3 mr-1" />
-                            {row.certificatesEarned ?? 0}
-                        </Badge>
-                    </div>
-                ),
-            },
-            {
-                id: 'lastLogin',
-                header: 'Truy cập',
-                accessor: (row) => (
-                    <div className="text-sm text-gray-600">
-                        {row.lastLogin ? new Date(row.lastLogin).toLocaleDateString('vi-VN') : 'Chưa đăng nhập'}
-                    </div>
-                ),
-                sortable: true,
-            },
-            {
-                id: 'actions',
-                header: 'Thao tác',
-                accessor: (row) => (
-                    <div className="flex items-center gap-2 justify-end flex-shrink-0">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-gray-700 border-gray-300"
-                            onClick={() => handleViewUser(row)}
-                        >
-                            <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-red-600 border-red-200 hover:bg-red-50"
-                            onClick={() => handleDeleteUser(row.id)}
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
-                    </div>
-                ),
-                minWidth: 120,
-            },
-        ],
-        [handleDeleteUser, handleViewUser],
-    );
+    const uniqueRoles = Array.from(new Set(users.map(u => u.role)));
 
     return (
         <AdminPageLayout>
-            {/* Header */}
             <AdminPageHeader
                 title="Quản lý người dùng"
-                description="Quản lý tài khoản, phân quyền và theo dõi tiến độ đào tạo"
+                description="Quản lý tài khoản và phân quyền người dùng"
                 icon={Users}
                 actions={
                     <div className="flex gap-2">
                         <Link href="/admin/users/roles">
                             <Button
                                 variant="outline"
-                                className="border-2 border-[#EC6426] text-[#EC6426] hover:bg-[#EC6426] hover:text-white shadow-md hover:shadow-lg transition-all duration-300 px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold text-sm sm:text-base flex-shrink-0"
+                                className="border-2 border-blue-300 text-blue-700 hover:bg-blue-50"
                             >
-                                <Shield className="h-4 w-4 mr-2" />
+                                <ShieldCheck className="h-4 w-4 mr-2" />
                                 Quản lý vai trò
                             </Button>
                         </Link>
-                        <Button className="bg-gradient-to-r from-[#EC6426] to-[#F8A91F] hover:from-[#EC6426]/90 hover:to-[#F8A91F]/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold text-sm sm:text-base flex-shrink-0">
-                            <UserPlus className="h-4 w-4 mr-2" />
+                        <Button
+                            onClick={handleCreateUser}
+                            className="bg-gradient-to-r from-[#EC6426] to-[#F8A91F] hover:from-[#EC6426]/90 hover:to-[#F8A91F]/90 text-white"
+                        >
+                            <Plus className="h-4 w-4 mr-2" />
                             Thêm người dùng
                         </Button>
                     </div>
@@ -415,189 +163,228 @@ export default function UsersManagementPage() {
                     icon={Users}
                 />
                 <AdminStatsCard
-                    title="Đang hoạt động"
+                    title="Hoạt động"
                     value={stats.active}
-                    icon={CheckCircle}
-                    className="border-green-200"
-                    iconClassName="from-green-400 to-green-600"
-                />
-                <AdminStatsCard
-                    title="Bật 2FA"
-                    value={stats.with2FA}
-                    icon={Shield}
-                    className="border-blue-200"
-                    iconClassName="from-blue-400 to-blue-600"
+                    icon={ShieldCheck}
                 />
                 <AdminStatsCard
                     title="Đã khóa"
                     value={stats.banned}
-                    icon={Lock}
-                    className="border-red-200"
-                    iconClassName="from-red-400 to-red-600"
+                    icon={Ban}
+                />
+                <AdminStatsCard
+                    title="Đã xác thực"
+                    value={stats.verified}
+                    icon={ShieldCheck}
                 />
             </AdminStatsGrid>
 
-            {/* FilterBar */}
-            <div className="w-full">
-                <FilterBar
-                    searchPlaceholder="Tìm kiếm theo tên, email, số điện thoại..."
-                    searchValue={searchValue}
-                    onSearchChange={setSearchValue}
-                    filters={filters}
-                    onRemoveFilter={handleRemoveFilter}
-                    onClearAll={handleClearAll}
-                    savedFilters={savedFilters}
-                    onApplySavedFilter={handleApplySavedFilter}
-                    onSaveCurrentFilter={handleSaveFilter}
-                    showAdvancedFilters={showAdvanced}
-                    onToggleAdvancedFilters={() => setShowAdvanced((prev) => !prev)}
-                />
-            </div>
-
-            {showAdvanced && (
-                <Card className="p-3 bg-white w-full">
-                    <h3 className="font-bold mb-3 text-sm text-gray-950">Bộ lọc nâng cao</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 w-full">
-                        <div>
-                            <label className="text-sm font-bold mb-2 block text-gray-950">Vai trò</label>
-                            <select
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-950 font-semibold bg-white"
-                                onChange={(e) => {
-                                    if (e.target.value) {
-                                        setFilters([
-                                            ...filters.filter((f) => f.id !== 'role'),
-                                            { id: 'role', label: 'Vai trò', value: e.target.value },
-                                        ]);
-                                    }
-                                }}
-                            >
-                                <option value="">Tất cả</option>
-                                <option value="ADMIN">Admin</option>
-                                <option value="MANAGER">Manager</option>
-                                <option value="CHEF">Chef</option>
-                                <option value="WAITER">Waiter</option>
-                                <option value="SHIPPER">Shipper</option>
-                                <option value="CUSTOMER">Customer</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="text-sm font-bold mb-2 block text-gray-950">Trạng thái</label>
-                            <select
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-950 font-semibold bg-white"
-                                onChange={(e) => {
-                                    if (e.target.value) {
-                                        setFilters([
-                                            ...filters.filter((f) => f.id !== 'status'),
-                                            { id: 'status', label: 'Trạng thái', value: e.target.value },
-                                        ]);
-                                    }
-                                }}
-                            >
-                                <option value="">Tất cả</option>
-                                <option value="active">Hoạt động</option>
-                                <option value="inactive">Không hoạt động</option>
-                                <option value="banned">Đã khóa</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="text-sm font-bold mb-2 block text-gray-950">Bảo mật 2FA</label>
-                            <select
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-950 font-semibold bg-white"
-                                onChange={(e) => {
-                                    if (e.target.value) {
-                                        setFilters([
-                                            ...filters.filter((f) => f.id !== '2fa'),
-                                            { id: '2fa', label: '2FA', value: e.target.value },
-                                        ]);
-                                    }
-                                }}
-                            >
-                                <option value="">Tất cả</option>
-                                <option value="enabled">Đã bật</option>
-                                <option value="disabled">Chưa bật</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="text-sm font-bold mb-2 block text-gray-950">Chi nhánh</label>
-                            <select
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-950 font-semibold bg-white"
-                                onChange={(e) => {
-                                    if (e.target.value) {
-                                        setFilters([
-                                            ...filters.filter((f) => f.id !== 'branch'),
-                                            { id: 'branch', label: 'Chi nhánh', value: e.target.value },
-                                        ]);
-                                    }
-                                }}
-                            >
-                                <option value="">Tất cả</option>
-                                <option value="1">Quận 1</option>
-                                <option value="2">Quận 3</option>
-                                <option value="3">Thủ Đức</option>
-                            </select>
+            {/* Filters */}
+            <Card className="p-4 space-y-3">
+                <div className="flex flex-wrap gap-3">
+                    <div className="flex-1 min-w-[200px]">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <input
+                                type="text"
+                                placeholder="Tìm theo tên, email, số điện thoại..."
+                                value={searchKeyword}
+                                onChange={(e) => setSearchKeyword(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2 border-2 border-gray-200 rounded-lg text-sm focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                            />
                         </div>
                     </div>
-                </Card>
-            )}
+                    <select
+                        value={roleFilter}
+                        onChange={(e) => setRoleFilter(e.target.value)}
+                        className="px-4 py-2 border-2 border-gray-200 rounded-lg text-sm focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                    >
+                        <option value="">Tất cả vai trò</option>
+                        {uniqueRoles.map(role => (
+                            <option key={role} value={role}>{role}</option>
+                        ))}
+                    </select>
+                    <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        className="px-4 py-2 border-2 border-gray-200 rounded-lg text-sm focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                    >
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="active">Hoạt động</option>
+                        <option value="banned">Đã khóa</option>
+                    </select>
+                    {(searchKeyword || roleFilter || statusFilter) && (
+                        <Button
+                            onClick={() => {
+                                setSearchKeyword('');
+                                setRoleFilter('');
+                                setStatusFilter('');
+                            }}
+                            variant="outline"
+                            size="sm"
+                        >
+                            <X className="h-4 w-4 mr-2" />
+                            Xóa bộ lọc
+                        </Button>
+                    )}
+                </div>
+                <div className="text-sm text-gray-600">
+                    Hiển thị <span className="font-bold">{filteredUsers.length}</span> / {users.length} người dùng
+                </div>
+            </Card>
 
-            <div className="w-full overflow-x-auto">
-                <DataTable
-                    data={filteredUsers}
-                    columns={columns}
-                    selectable
-                    onSelectionChange={setSelectedUserIds}
-                    getRowId={(row) => String(row.id)}
-                    defaultSort={{ columnId: 'fullName', direction: 'asc' }}
-                    pagination={{
-                        pageSize: 10,
-                        pageSizeOptions: [10, 25, 50, 100],
-                    }}
-                    actions={{
-                        onExport: handleExport,
-                        onDelete: handleBulkDelete,
-                        customActions: (
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                style={{ color: '#000000', fontWeight: '600' }}
-                                disabled={selectedUserIds.length === 0}
-                            >
-                                <Lock className="h-4 w-4 mr-2" />
-                                Khóa tài khoản
-                            </Button>
-                        ),
-                    }}
-                    emptyState={{
-                        title: 'Không tìm thấy người dùng',
-                        description: 'Thử thay đổi bộ lọc hoặc tìm kiếm với từ khóa khác',
-                        icon: <Users className="h-16 w-16 text-gray-400" />,
-                        action: (
-                            <Button className="bg-gradient-to-r from-orange-500 to-orange-600">
-                                <UserPlus className="h-4 w-4 mr-2" />
-                                Thêm người dùng mới
-                            </Button>
-                        ),
-                    }}
-                    stickyHeader
-                    rowClassName={(row) =>
-                        getUserStatus(row) === 'banned' || getUserStatus(row) === 'inactive' ? 'opacity-60' : ''
-                    }
-                    className="w-full"
-                />
-            </div>
+            {/* Users Table */}
+            <Card className="overflow-hidden">
+                {loading ? (
+                    <div className="p-12 text-center text-gray-500">
+                        <div className="w-12 h-12 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin mx-auto mb-4"></div>
+                        <p>Đang tải danh sách người dùng...</p>
+                    </div>
+                ) : filteredUsers.length === 0 ? (
+                    <div className="p-12 text-center text-gray-500">
+                        <Users className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+                        <p className="font-semibold">Không tìm thấy người dùng nào</p>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead className="bg-gray-50 border-b-2 border-gray-200">
+                                <tr>
+                                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">ID</th>
+                                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Họ tên</th>
+                                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Email</th>
+                                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">SĐT</th>
+                                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Vai trò</th>
+                                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Trạng thái</th>
+                                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700">Điểm</th>
+                                    <th className="px-4 py-3 text-right text-xs font-bold text-gray-700">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200">
+                                {filteredUsers.map((user) => (
+                                    <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                                        <td className="px-4 py-3 text-sm font-semibold text-gray-900">{user.id}</td>
+                                        <td className="px-4 py-3">
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-semibold text-gray-900">{user.fullName}</span>
+                                                {user.isBusy && (
+                                                    <Badge className="bg-yellow-100 text-yellow-700 text-xs w-fit mt-1">
+                                                        Đang bận
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-sm text-gray-900">{user.email}</span>
+                                                {user.emailVerified && (
+                                                    <Badge className="bg-green-100 text-green-700 text-xs">✓</Badge>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-sm text-gray-900">{user.phoneNumber}</span>
+                                                {user.phoneVerified && (
+                                                    <Badge className="bg-green-100 text-green-700 text-xs">✓</Badge>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <Badge className="bg-blue-100 text-blue-700 border-blue-300 font-semibold">
+                                                {user.role}
+                                            </Badge>
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            {user.isBan ? (
+                                                <Badge className="bg-red-100 text-red-700 border-red-300">
+                                                    🔒 Đã khóa
+                                                </Badge>
+                                            ) : (
+                                                <Badge className="bg-green-100 text-green-700 border-green-300">
+                                                    ✓ Hoạt động
+                                                </Badge>
+                                            )}
+                                        </td>
+                                        <td className="px-4 py-3 text-sm font-semibold text-gray-900">
+                                            {user.memberPoint.toLocaleString('vi-VN')}
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <div className="flex items-center justify-end gap-2">
+                                                <Link href={`/admin/users/${user.id}`}>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                                                    >
+                                                        <Eye className="h-3 w-3" />
+                                                    </Button>
+                                                </Link>
+                                                <Button
+                                                    onClick={() => handleEditUser(user)}
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="text-orange-600 border-orange-200 hover:bg-orange-50"
+                                                >
+                                                    <Edit2 className="h-3 w-3" />
+                                                </Button>
+                                                {user.isBan ? (
+                                                    <Button
+                                                        onClick={() => setConfirmDialog({ open: true, type: 'unban', userId: user.id, userName: user.fullName })}
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="text-green-600 border-green-200 hover:bg-green-50"
+                                                        disabled={actionLoading}
+                                                    >
+                                                        <UserCheck className="h-3 w-3" />
+                                                    </Button>
+                                                ) : (
+                                                    <Button
+                                                        onClick={() => setConfirmDialog({ open: true, type: 'ban', userId: user.id, userName: user.fullName })}
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="text-yellow-600 border-yellow-200 hover:bg-yellow-50"
+                                                        disabled={actionLoading}
+                                                    >
+                                                        <Ban className="h-3 w-3" />
+                                                    </Button>
+                                                )}
+                                                <Button
+                                                    onClick={() => setConfirmDialog({ open: true, type: 'delete', userId: user.id, userName: user.fullName })}
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="text-red-600 border-red-200 hover:bg-red-50"
+                                                    disabled={actionLoading}
+                                                >
+                                                    <Trash2 className="h-3 w-3" />
+                                                </Button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </Card>
 
-            {/* Detail Dialog */}
-            {detailUser && (
-                <UserDetailDialog
-                    user={detailUser}
-                    open={Boolean(detailUser)}
-                    onOpenChange={(open) => {
-                        if (!open) {
-                            setDetailUser(null);
-                        }
-                    }}
-                    onDelete={() => handleDeleteUser(detailUser.id)}
-                    onSave={handleUpdateUser}
+            {/* User Form Dialog */}
+            <UserFormDialog
+                open={showDialog}
+                onOpenChange={setShowDialog}
+                user={editingUser}
+                onSuccess={handleDialogSuccess}
+            />
+
+            {/* Confirm Dialog */}
+            {confirmDialog.type && (
+                <ConfirmDialog
+                    open={confirmDialog.open}
+                    onOpenChange={(open) => setConfirmDialog({ open, type: null, userId: 0, userName: '' })}
+                    onConfirm={handleConfirmAction}
+                    type={confirmDialog.type}
+                    userName={confirmDialog.userName}
+                    loading={actionLoading}
                 />
             )}
         </AdminPageLayout>

@@ -11,6 +11,7 @@ import {
     X,
     ArrowLeft,
 } from 'lucide-react';
+import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -65,7 +66,9 @@ export default function RolesManagementPage() {
     const [loading, setLoading] = useState(true);
     const [editingId, setEditingId] = useState<number | null>(null);
     const [editingName, setEditingName] = useState('');
+    const [editingIsInternal, setEditingIsInternal] = useState(false);
     const [newRoleName, setNewRoleName] = useState('');
+    const [newRoleIsInternal, setNewRoleIsInternal] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
 
     const fetchRoles = useCallback(async () => {
@@ -85,30 +88,46 @@ export default function RolesManagementPage() {
     }, [fetchRoles]);
 
     const handleCreate = async () => {
-        if (!newRoleName.trim()) return;
+        if (!newRoleName.trim()) {
+            toast.warning('Vui lòng nhập tên vai trò!');
+            return;
+        }
 
         try {
-            await createRole({ name: newRoleName.trim().toUpperCase() });
+            await createRole({
+                name: newRoleName.trim().toUpperCase(),
+                internal: newRoleIsInternal
+            });
+            toast.success('Tạo vai trò thành công!');
             setNewRoleName('');
+            setNewRoleIsInternal(false);
             setIsCreating(false);
             await fetchRoles();
         } catch (error) {
             console.error('Failed to create role:', error);
-            alert('Không thể tạo role mới');
+            toast.error('Không thể tạo vai trò. Vui lòng thử lại!');
         }
     };
 
     const handleUpdate = async (roleId: number) => {
-        if (!editingName.trim()) return;
+        if (!editingName.trim()) {
+            toast.warning('Vui lòng nhập tên vai trò!');
+            return;
+        }
 
         try {
-            await updateRole(roleId, { name: editingName.trim().toUpperCase() });
+            await updateRole(roleId, {
+                name: editingName.trim().toUpperCase(),
+                internal: editingIsInternal
+            });
+            toast.success('Cập nhật vai trò thành công!');
             setEditingId(null);
             setEditingName('');
+            setEditingIsInternal(false);
             await fetchRoles();
         } catch (error) {
             console.error('Failed to update role:', error);
-            alert('Không thể cập nhật role');
+            toast.error('Không thể cập nhật vai trò. Vui lòng thử lại!');
         }
     };
 
@@ -117,21 +136,24 @@ export default function RolesManagementPage() {
 
         try {
             await deleteRole(roleId);
+            toast.success(`Đã xóa vai trò "${roleName}" thành công!`);
             await fetchRoles();
         } catch (error) {
             console.error('Failed to delete role:', error);
-            alert('Không thể xóa role');
+            toast.error('Không thể xóa vai trò. Vui lòng thử lại!');
         }
     };
 
     const startEdit = (role: Role) => {
         setEditingId(role.id);
         setEditingName(role.name);
+        setEditingIsInternal(role.isInternal);
     };
 
     const cancelEdit = () => {
         setEditingId(null);
         setEditingName('');
+        setEditingIsInternal(false);
     };
 
     return (
@@ -185,23 +207,49 @@ export default function RolesManagementPage() {
             {isCreating && (
                 <Card className="p-4 bg-white border-2 border-orange-200">
                     <h3 className="text-sm font-bold mb-3 text-gray-900">Tạo vai trò mới</h3>
-                    <div className="flex gap-2">
+                    <div className="space-y-3">
                         <input
                             type="text"
                             value={newRoleName}
                             onChange={(e) => setNewRoleName(e.target.value)}
                             placeholder="Nhập tên vai trò (VD: STAFF)"
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-semibold uppercase"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-semibold uppercase"
                             onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
                         />
-                        <Button
-                            onClick={handleCreate}
-                            disabled={!newRoleName.trim()}
-                            className="bg-gradient-to-r from-[#EC6426] to-[#F8A91F] text-white px-4 py-2"
-                        >
-                            <Save className="h-4 w-4 mr-2" />
-                            Lưu
-                        </Button>
+                        <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                            <input
+                                type="checkbox"
+                                id="newRoleInternal"
+                                checked={newRoleIsInternal}
+                                onChange={(e) => setNewRoleIsInternal(e.target.checked)}
+                                className="w-4 h-4 rounded border-2 border-blue-400 text-blue-600 focus:ring-2 focus:ring-blue-200"
+                            />
+                            <label htmlFor="newRoleInternal" className="text-sm font-semibold text-gray-900 cursor-pointer">
+                                Vai trò hệ thống (Internal)
+                            </label>
+                        </div>
+                        <div className="flex gap-2">
+                            <Button
+                                onClick={handleCreate}
+                                disabled={!newRoleName.trim()}
+                                className="flex-1 bg-gradient-to-r from-[#EC6426] to-[#F8A91F] text-white px-4 py-2"
+                            >
+                                <Save className="h-4 w-4 mr-2" />
+                                Lưu
+                            </Button>
+                            <Button
+                                onClick={() => {
+                                    setIsCreating(false);
+                                    setNewRoleName('');
+                                    setNewRoleIsInternal(false);
+                                }}
+                                variant="outline"
+                                className="px-4 py-2"
+                            >
+                                <X className="h-4 w-4 mr-2" />
+                                Hủy
+                            </Button>
+                        </div>
                     </div>
                 </Card>
             )}
@@ -232,6 +280,18 @@ export default function RolesManagementPage() {
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-bold uppercase"
                                             onKeyDown={(e) => e.key === 'Enter' && handleUpdate(role.id)}
                                         />
+                                        <div className="flex items-center gap-2 p-2 bg-blue-50 rounded-lg border border-blue-200">
+                                            <input
+                                                type="checkbox"
+                                                id={`editInternal-${role.id}`}
+                                                checked={editingIsInternal}
+                                                onChange={(e) => setEditingIsInternal(e.target.checked)}
+                                                className="w-4 h-4 rounded border-2 border-blue-400 text-blue-600 focus:ring-2 focus:ring-blue-200"
+                                            />
+                                            <label htmlFor={`editInternal-${role.id}`} className="text-xs font-semibold text-gray-900 cursor-pointer">
+                                                Internal
+                                            </label>
+                                        </div>
                                         <div className="flex gap-2">
                                             <Button
                                                 onClick={() => handleUpdate(role.id)}
@@ -254,13 +314,20 @@ export default function RolesManagementPage() {
                                     </div>
                                 ) : (
                                     <div className="space-y-3">
-                                        <div className="flex items-center justify-between">
-                                            <Badge
-                                                className={`${getRoleColor(role.name)} border font-bold text-sm px-3 py-1`}
-                                            >
-                                                {role.name}
-                                            </Badge>
-                                            <span className="text-xs text-gray-500">ID: {role.id}</span>
+                                        <div className="flex flex-col gap-2">
+                                            <div className="flex items-center justify-between">
+                                                <Badge
+                                                    className={`${getRoleColor(role.name)} border font-bold text-sm px-3 py-1`}
+                                                >
+                                                    {role.name}
+                                                </Badge>
+                                                <span className="text-xs text-gray-500">ID: {role.id}</span>
+                                            </div>
+                                            {role.isInternal && (
+                                                <Badge className="bg-blue-100 text-blue-700 border-blue-300 text-xs w-fit">
+                                                    🔒 Hệ thống
+                                                </Badge>
+                                            )}
                                         </div>
                                         <div className="flex gap-2">
                                             <Button
