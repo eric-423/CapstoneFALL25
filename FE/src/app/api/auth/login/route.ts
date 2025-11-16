@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import http from '@/utils/http';
 
 export async function POST(request: NextRequest) {
+
   try {
     const body = await request.json();
     const { phoneNumber, password } = body;

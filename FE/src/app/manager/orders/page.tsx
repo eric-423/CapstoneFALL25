@@ -5,7 +5,7 @@ import { ManagerGuard } from '@/components/guards';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingBag, FileText, Eye, CheckCircle, Clock, Printer, Package, Truck, XCircle, MapPin, Phone, User, Calendar, DollarSign, CreditCard } from 'lucide-react';
+import { ShoppingBag, Eye, CheckCircle, Clock, Printer, Package, Truck, XCircle, MapPin, Phone, User, Calendar, DollarSign, CreditCard } from 'lucide-react';
 import { getOrderStatuses, getBranchOrders, assignShipperToOrder, BranchOrderResponse } from '@/apis/order.api';
 import { AdminPageLayout, AdminPageHeader, AdminStatsCard, AdminStatsGrid } from '@/app/admin/components/AdminPageLayout';
 import { printBillAction } from '@/app/actions/printBill';
@@ -430,12 +430,6 @@ export default function ManagerOrdersPage() {
                     title="Quản Lý Đơn Hàng"
                     description="Theo dõi và xử lý đơn hàng"
                     icon={ShoppingBag}
-                    actions={
-                        <Button className="bg-gradient-to-r from-[#EC6426] to-[#F8A91F] hover:from-[#EC6426]/90 hover:to-[#F8A91F]/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold text-sm sm:text-base">
-                            <FileText size={18} className="mr-2" strokeWidth={2.5} />
-                            Xuất Báo Cáo
-                        </Button>
-                    }
                 />
 
                 <AdminStatsGrid>
@@ -605,15 +599,21 @@ export default function ManagerOrdersPage() {
                                             </div>
                                             <div className="flex flex-col gap-2 w-full lg:w-auto">
                                                 <div className="flex gap-2 w-full lg:w-auto">
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => handlePrintInvoice(order)}
-                                                        className="flex-1 lg:flex-none whitespace-nowrap border-2 border-[#EC6426] text-[#EC6426] hover:bg-[#EC6426] hover:text-white transition-all duration-300 rounded-xl font-semibold"
-                                                    >
-                                                        <Printer size={16} className="mr-1 flex-shrink-0" strokeWidth={2.5} />
-                                                        <span className="truncate">In hóa đơn</span>
-                                                    </Button>
+                                                    {['IN_PROCESS', 'COOKED'].includes(order.orderStatus) && (
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => handlePrintInvoice(order)}
+                                                            className="flex-1 lg:flex-none whitespace-nowrap border-2 border-[#EC6426] text-[#EC6426] hover:bg-[#EC6426] hover:text-white transition-all duration-300 rounded-xl font-semibold"
+                                                        >
+                                                            <>
+                                                                <Printer size={16} className="mr-1 flex-shrink-0" strokeWidth={2.5} />
+                                                                <span className="truncate">In hóa đơn</span>
+                                                            </>
+                                                        </Button>
+                                                    )}
+
+
                                                     <Button
                                                         variant="outline"
                                                         size="sm"

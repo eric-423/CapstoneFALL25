@@ -94,7 +94,7 @@ export default function OrderHistorySection({
                                         <ShoppingBag className='h-5 w-5' />
                                         Lịch sử đơn hàng
                                     </CardTitle>
-                                    <CardDescription>Xem lại các đơn hàng bạn đã đặt</CardDescription>
+                                    {/* <CardDescription>Xem lại các đơn hàng bạn đã đặt</CardDescription> */}
                                     {lastRealtimeUpdate && (
                                         <p className='text-xs text-muted-foreground mt-2'>
                                             Cập nhật mới nhất: đơn #{lastRealtimeUpdate.orderId}{' '}
@@ -106,11 +106,13 @@ export default function OrderHistorySection({
                                 </div>
 
                                 <div className='flex flex-col gap-3 w-full lg:w-auto'>
-                                    {typeof isRealtimeConnected === 'boolean' && (
-                                            <Badge
-                                                variant={isRealtimeConnected ? 'secondary' : 'outline'}
-                                                className='self-end flex items-center gap-1 text-xs'
-                                            >
+                                    {/* này test connect */}
+
+                                    {/* {typeof isRealtimeConnected === 'boolean' && (
+                                        <Badge
+                                            variant={isRealtimeConnected ? 'secondary' : 'outline'}
+                                            className='self-end flex items-center gap-1 text-xs'
+                                        >
                                             {isRealtimeConnected ? (
                                                 <>
                                                     <Wifi className='h-3 w-3' />
@@ -123,7 +125,8 @@ export default function OrderHistorySection({
                                                 </>
                                             )}
                                         </Badge>
-                                    )}
+                                    )} */}
+
                                     <div className='flex w-full sm:w-60'>
                                         <Select
                                             value={statusFilter}

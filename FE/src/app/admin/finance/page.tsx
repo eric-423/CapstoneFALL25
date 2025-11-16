@@ -84,10 +84,6 @@ export default function FinancePage() {
                                 Báo Cáo Doanh Thu
                             </h1>
                         </div>
-                        <Button className="bg-gradient-to-r from-[#EC6426] to-[#F8A91F] hover:from-[#EC6426]/90 hover:to-[#F8A91F]/90 text-white shadow-md hover:shadow-lg transition-all duration-300 px-4 py-2 rounded-lg font-semibold text-sm">
-                            <FileText size={16} className="mr-1" strokeWidth={2.5} />
-                            Xuất báo cáo
-                        </Button>
                     </div>
 
                     {/* Revenue Overview Cards - Compact */}

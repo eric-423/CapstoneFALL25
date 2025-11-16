@@ -162,7 +162,7 @@ const normalizeOrder = (order: RawOrder): OrderResponse => {
 
   const customerName = order.customerDTO?.fullName || order.customerName || 'Khách hàng';
   const customerPhone = order.customerDTO?.phone || order.customerPhone || order.phone || '';
-  const address = order.address ?? order.customerDTO?.address ?? null;
+  const address = order.address ?? null;
 
   const branchName = order.branchName || STORE_INFO.name;
   const branchAddress = order.branchAddress || STORE_INFO.address;
@@ -204,9 +204,6 @@ const normalizeOrder = (order: RawOrder): OrderResponse => {
     rated: items.some((item) => item.feedback !== null && item.feedback !== undefined),
     payment_code: order.payment_code || order.paymentCode || '',
     pickupTime,
-    shipperName: order.shipperName ?? null,
-    waiterName: order.waiterName ?? null,
-    chefName: order.chefName ?? null,
   } as OrderResponse;
 };
 

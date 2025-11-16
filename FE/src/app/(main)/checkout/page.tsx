@@ -203,7 +203,7 @@ export default function CheckoutPage() {
                 setCookie('is_paying', 'true');
                 setTimeout(() => {
                     window.location.href = paymentUrl;
-                }, 1000);
+                }, 100);
                 return;
             }
 

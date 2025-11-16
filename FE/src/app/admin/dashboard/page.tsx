@@ -12,7 +12,8 @@ import { TrainingStatusCard } from './components/TrainingStatusCard';
 import { AlertsPanel } from './components/AlertsPanel';
 import { ActivitiesTimeline } from './components/ActivitiesTimeline';
 import { useAdminContext } from '@/utils/contexts/AdminContext';
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import {
     getRevenueStatistics,
     getOrderCountStatistics,
@@ -44,72 +45,94 @@ import {
 
 export default function DashboardPage() {
     const { selectedBranch, timePeriod, dateRange } = useAdminContext();
-    const [isLoading, setIsLoading] = useState(false);
     const lowStockCount = lowStockAlertsData.length;
 
-    // Statistics state
-    const [revenueStats, setRevenueStats] = useState<RevenueStatistics | null>(null);
-    const [orderCountStats, setOrderCountStats] = useState<OrderCountStatistics | null>(null);
-    const [newCustomerStats, setNewCustomerStats] = useState<NewCustomerStatistics | null>(null);
-    const [serviceTimeStats, setServiceTimeStats] = useState<ServiceTimeStatistics | null>(null);
-    const [revenue7DaysData, setRevenue7DaysData] = useState<Revenue7DaysType | null>(null);
-    const [topMaterialsData, setTopMaterialsData] = useState<TopMaterials | null>(null);
-    const [topSellingData, setTopSellingData] = useState<TopSellingItems | null>(null);
+    // Memoize branch IDs to prevent unnecessary refetches
+    const branchId = useMemo(() => selectedBranch?.id ? parseInt(selectedBranch.id) : 1, [selectedBranch?.id]);
+    const branchIdOrUndefined = useMemo(() => selectedBranch?.id ? parseInt(selectedBranch.id) : undefined, [selectedBranch?.id]);
 
-    // Mock F&B KPIs - in real app, fetch from API based on branch/time filters
-    const [operationalKPIs, setOperationalKPIs] = useState({
-        avgServiceTime: 12.5, // minutes
-        slaCompliance: 94.2, // percentage
-        trainingCompletion: 87.5, // percentage
-        criticalAlerts: 3,
-        peakHourEfficiency: 89.3, // percentage
-        wastePercentage: 4.2, // percentage
+    // Use React Query for all statistics with proper caching
+    const { data: revenueStats, isLoading: isLoadingRevenue } = useQuery({
+        queryKey: ['dashboard-revenue', branchId, timePeriod],
+        queryFn: () => getRevenueStatistics(branchId),
+        staleTime: 2 * 60 * 1000, // 2 minutes
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
     });
 
-    // Refetch data when filters change
-    useEffect(() => {
-        const fetchDashboardData = async () => {
-            setIsLoading(true);
-            try {
-                const branchId = selectedBranch?.id ? parseInt(selectedBranch.id) : 1; // Default to branch 1 if none selected
-                const branchIdOrUndefined = selectedBranch?.id ? parseInt(selectedBranch.id) : undefined;
+    const { data: orderCountStats, isLoading: isLoadingOrderCount } = useQuery({
+        queryKey: ['dashboard-order-count', branchId, timePeriod],
+        queryFn: () => getOrderCountStatistics(branchId),
+        staleTime: 2 * 60 * 1000,
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
+    });
 
-                // Fetch all statistics in parallel
-                const [revenue, orderCount, newCustomers, serviceTime, revenue7Days, topMaterials, topSelling] = await Promise.all([
-                    getRevenueStatistics(branchId),
-                    getOrderCountStatistics(branchId),
-                    getNewCustomerStatistics('DAILY'),
-                    getServiceTimeStatistics(branchId),
-                    getRevenue7Days(branchIdOrUndefined), // Pass undefined if no branch selected for total
-                    getTopMaterials(branchIdOrUndefined, 5),
-                    getTopSellingItems(branchIdOrUndefined, 5),
-                ]);
+    const { data: newCustomerStats, isLoading: isLoadingNewCustomers } = useQuery({
+        queryKey: ['dashboard-new-customers', timePeriod],
+        queryFn: () => getNewCustomerStatistics('DAILY'),
+        staleTime: 2 * 60 * 1000,
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
+    });
 
-                setRevenueStats(revenue);
-                setOrderCountStats(orderCount);
-                setNewCustomerStats(newCustomers);
-                setServiceTimeStats(serviceTime);
-                setRevenue7DaysData(revenue7Days);
-                setTopMaterialsData(topMaterials);
-                setTopSellingData(topSelling);
+    const { data: serviceTimeStats, isLoading: isLoadingServiceTime } = useQuery({
+        queryKey: ['dashboard-service-time', branchId, timePeriod],
+        queryFn: () => getServiceTimeStatistics(branchId),
+        staleTime: 2 * 60 * 1000,
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
+    });
 
-                // Update operational KPIs from service time stats
-                if (serviceTime) {
-                    setOperationalKPIs(prev => ({
-                        ...prev,
-                        avgServiceTime: serviceTime.averageServiceTimeMinutes,
-                        slaCompliance: serviceTime.averageServiceTimeMinutes < 15 ? 94.2 : 87.5,
-                    }));
-                }
-            } catch (error) {
-                console.error('Error fetching dashboard data:', error);
-            } finally {
-                setIsLoading(false);
-            }
+    const { data: revenue7DaysData, isLoading: isLoadingRevenue7Days } = useQuery({
+        queryKey: ['dashboard-revenue-7days', branchIdOrUndefined],
+        queryFn: () => getRevenue7Days(branchIdOrUndefined),
+        staleTime: 2 * 60 * 1000,
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
+    });
+
+    const { data: topMaterialsData, isLoading: isLoadingTopMaterials } = useQuery({
+        queryKey: ['dashboard-top-materials', branchIdOrUndefined],
+        queryFn: () => getTopMaterials(branchIdOrUndefined, 5),
+        staleTime: 5 * 60 * 1000, // 5 minutes - less frequently changing
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
+    });
+
+    const { data: topSellingData, isLoading: isLoadingTopSelling } = useQuery({
+        queryKey: ['dashboard-top-selling', branchIdOrUndefined],
+        queryFn: () => getTopSellingItems(branchIdOrUndefined, 5),
+        staleTime: 5 * 60 * 1000,
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
+    });
+
+    // Combined loading state
+    const isLoading = isLoadingRevenue || isLoadingOrderCount || isLoadingNewCustomers || 
+                     isLoadingServiceTime || isLoadingRevenue7Days || isLoadingTopMaterials || isLoadingTopSelling;
+
+    // Memoize operational KPIs to prevent unnecessary recalculations
+    const operationalKPIs = useMemo(() => {
+        const baseKPIs = {
+            avgServiceTime: 12.5,
+            slaCompliance: 94.2,
+            trainingCompletion: 87.5,
+            criticalAlerts: 3,
+            peakHourEfficiency: 89.3,
+            wastePercentage: 4.2,
         };
 
-        fetchDashboardData();
-    }, [selectedBranch, timePeriod, dateRange]);
+        if (serviceTimeStats) {
+            return {
+                ...baseKPIs,
+                avgServiceTime: serviceTimeStats.averageServiceTimeMinutes,
+                slaCompliance: serviceTimeStats.averageServiceTimeMinutes < 15 ? 94.2 : 87.5,
+            };
+        }
+
+        return baseKPIs;
+    }, [serviceTimeStats]);
 
     const getTimePeriodLabel = () => {
         switch (timePeriod) {
@@ -153,7 +176,7 @@ export default function DashboardPage() {
                             icon={DollarSign}
                             trend={kpiData.revenueToday.trend}
                             subtitle={revenueStats ? `${revenueStats.totalOrders} đơn` : kpiData.revenueToday.subtitle}
-                            isLoading={isLoading}
+                            isLoading={isLoadingRevenue}
                         />
                         <DashboardCard
                             title="Tổng đơn hàng"
@@ -161,13 +184,13 @@ export default function DashboardPage() {
                             icon={ShoppingCart}
                             trend={kpiData.totalOrders.trend}
                             subtitle={orderCountStats ? `${orderCountStats.shippingOrders + orderCountStats.pickupOrders + orderCountStats.diningOrders} đơn` : kpiData.totalOrders.subtitle}
-                            isLoading={isLoading}
+                            isLoading={isLoadingOrderCount}
                         />
                         <DashboardCard
                             title="Chi nhánh"
                             value={kpiData.activeBranches.value}
                             icon={Store}
-                            isLoading={isLoading}
+                            isLoading={false}
                         />
                         <DashboardCard
                             title="Khách hàng mới"
@@ -178,21 +201,21 @@ export default function DashboardPage() {
                                 isPositive: newCustomerStats.percentageChange >= 0
                             } : kpiData.newCustomers.trend}
                             subtitle={newCustomerStats ? `${newCustomerStats.difference > 0 ? '+' : ''}${newCustomerStats.difference}` : kpiData.newCustomers.subtitle}
-                            isLoading={isLoading}
+                            isLoading={isLoadingNewCustomers}
                         />
                         <DashboardCard
                             title="Cảnh báo kho"
                             value={lowStockCount}
                             icon={AlertTriangle}
                             subtitle="Cần nhập"
-                            isLoading={isLoading}
+                            isLoading={false}
                         />
                         <DashboardCard
                             title="Đào tạo"
                             value={`${trainingStatsData.completionRate}%`}
                             icon={GraduationCap}
                             subtitle="Hoàn thành"
-                            isLoading={isLoading}
+                            isLoading={false}
                         />
                     </div>
                 </div>
@@ -216,7 +239,7 @@ export default function DashboardPage() {
                                 isPositive: operationalKPIs.avgServiceTime < 15
                             }}
                             subtitle={serviceTimeStats ? `${serviceTimeStats.totalOrdersProcessed} đơn` : (operationalKPIs.avgServiceTime < 15 ? 'Đạt chuẩn' : 'Cải thiện')}
-                            isLoading={isLoading}
+                            isLoading={isLoadingServiceTime}
                         />
                         <DashboardCard
                             title="SLA Phục vụ"
@@ -227,14 +250,14 @@ export default function DashboardPage() {
                                 isPositive: operationalKPIs.slaCompliance >= 90
                             }}
                             subtitle={operationalKPIs.slaCompliance >= 90 ? 'Đạt chuẩn' : 'Dưới mục tiêu'}
-                            isLoading={isLoading}
+                            isLoading={isLoadingServiceTime}
                         />
                         <DashboardCard
                             title="Cảnh báo ưu tiên"
                             value={operationalKPIs.criticalAlerts}
                             icon={AlertTriangle}
                             subtitle="Xử lý ngay"
-                            isLoading={isLoading}
+                            isLoading={false}
                         />
                     </div>
                 </div>

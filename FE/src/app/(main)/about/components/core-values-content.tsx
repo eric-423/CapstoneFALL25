@@ -1,6 +1,6 @@
 import content1 from '@/assets/images/content-1.jpg';
 import content2 from '@/assets/images/content-2.jpg';
-import content3 from '@/assets/images/content-3.avif';
+import content3 from '@/assets/images/content-3.jpg';
 import content4 from '@/assets/images/content-4.jpg';
 import content5 from '@/assets/images/content-5.jpg';
 import content6 from '@/assets/images/content-6.jpg';

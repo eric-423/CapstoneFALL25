@@ -78,6 +78,7 @@ const nextConfig: NextConfig = {
   },
 
   turbopack: {
+    root: process.cwd(),
     rules: {},
   },
 
