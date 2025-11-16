@@ -36,10 +36,6 @@ export const useShipperLocationSocket = (orderId: number) => {
 
       try {
         const token = appState.token;
-        console.log(
-          "🔑 Hook: Token từ appState:",
-          token ? token.substring(0, 20) + "..." : "Không có"
-        );
         await WebSocketService.connect(token);
 
         if (!isMounted) {

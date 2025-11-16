@@ -69,3 +69,16 @@ export const getShipperLocation = async (token: string, orderId: number) => {
   );
   return response.data;
 };
+
+export const confirmOrder = async (token: string, orderId: number) => {
+  const response = await axios.post(
+    `${BASE_URL}/orders/shipper/delivered/${orderId}`,
+    {
+      headers: {
+        accept: "*/*",
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  return response.data;
+};

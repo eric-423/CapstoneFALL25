@@ -1,12 +1,16 @@
+import ShareButton from "@/components/btnComponent/shareBtn";
 import { APP_COLOR, APP_FONT } from "@/constants/Colors";
+import { useCurrentApp } from "@/context/app.context";
+import { confirmOrder, sendShipperLocation } from "@/utils/api";
 import { GOOGLE_API_KEY } from "@/utils/constant";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import * as Location from "expo-location";
-import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { useLocalSearchParams } from "expo-router";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Image,
   Platform,
   Pressable,
   StyleSheet,
@@ -23,22 +27,170 @@ interface LocationData {
 }
 
 const MapScreen = () => {
+  const { orderId, address, orderName } = useLocalSearchParams<{
+    orderId: string;
+    address: string;
+    orderName: string;
+  }>();
+  const orderIdNum = parseInt(orderId || "0", 10);
+  const { appState } = useCurrentApp();
   const [location, setLocation] = useState<LocationData | null>(null);
   const [destination, setDestination] = useState<LocationData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [region, setRegion] = useState<Region | null>(null);
-
+  const lastSendTimeRef = useRef<number>(0);
+  const THROTTLE_INTERVAL = 5000;
+  const isAuthorizedRef = useRef<boolean>(true);
   useEffect(() => {
     getCurrentLocation();
   }, []);
+  const geocodeAddress = async (addressString: string) => {
+    try {
+      const encodedAddress = encodeURIComponent(addressString);
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodedAddress}&key=${GOOGLE_API_KEY}`
+      );
+      const data = await response.json();
+
+      if (data.status === "OK" && data.results && data.results.length > 0) {
+        const location = data.results[0].geometry.location;
+        return {
+          latitude: location.lat,
+          longitude: location.lng,
+        };
+      } else {
+        console.error("Geocoding failed:", data.status);
+        return null;
+      }
+    } catch (error) {
+      console.error("Error geocoding address:", error);
+      return null;
+    }
+  };
+  useEffect(() => {
+    const setDestinationFromAddress = async () => {
+      if (address && location) {
+        const destinationCoords = await geocodeAddress(address);
+        if (destinationCoords) {
+          setDestination(destinationCoords);
+          const minLat = Math.min(
+            location.latitude,
+            destinationCoords.latitude
+          );
+          const maxLat = Math.max(
+            location.latitude,
+            destinationCoords.latitude
+          );
+          const minLng = Math.min(
+            location.longitude,
+            destinationCoords.longitude
+          );
+          const maxLng = Math.max(
+            location.longitude,
+            destinationCoords.longitude
+          );
+
+          const latDelta = (maxLat - minLat) * 1.5;
+          const lngDelta = (maxLng - minLng) * 1.5;
+
+          setRegion({
+            latitude: (minLat + maxLat) / 2,
+            longitude: (minLng + maxLng) / 2,
+            latitudeDelta: Math.max(latDelta, 0.01),
+            longitudeDelta: Math.max(lngDelta, 0.01),
+          });
+        } else {
+          Alert.alert(
+            "Lỗi",
+            "Không thể tìm thấy địa chỉ. Vui lòng kiểm tra lại địa chỉ."
+          );
+        }
+      }
+    };
+
+    setDestinationFromAddress();
+  }, [address, location]);
+
+  const sendLocationUpdate = useCallback(
+    async (latitude: number, longitude: number) => {
+      if (!appState?.token || !orderIdNum || orderIdNum === 0) {
+        return;
+      }
+      if (
+        !isAuthorizedRef.current ||
+        latitude === undefined ||
+        longitude === undefined ||
+        isNaN(latitude) ||
+        isNaN(longitude)
+      ) {
+        return;
+      }
+      const now = Date.now();
+      const timeSinceLastSend = now - lastSendTimeRef.current;
+      if (timeSinceLastSend < THROTTLE_INTERVAL) {
+        return;
+      }
+      lastSendTimeRef.current = now;
+
+      try {
+        await sendShipperLocation(appState.token, {
+          orderId: orderIdNum,
+          latitude,
+          longitude,
+        });
+      } catch (error: any) {
+        if (error?.response?.status === 500) {
+          return;
+        }
+        // Nếu lỗi 400 (unauthorized), dừng việc gửi location
+        if (error?.response?.status === 400) {
+          isAuthorizedRef.current = false;
+          console.warn(
+            "Shipper không được phép gửi vị trí cho order này. Đã dừng gửi location."
+          );
+          return;
+        }
+        if (error?.response) {
+          console.error("Error sending location:", {
+            status: error.response.status,
+            data: error.response.data,
+            message: error.message,
+          });
+        } else {
+          console.error("Error sending location:", error);
+        }
+      }
+    },
+    [appState?.token, orderIdNum]
+  );
+
+  useEffect(() => {
+    if (!location || !orderIdNum || orderIdNum === 0 || !appState?.token) {
+      return;
+    }
+    isAuthorizedRef.current = true;
+
+    const timeoutId = setTimeout(() => {
+      sendLocationUpdate(location.latitude, location.longitude);
+    }, 5000);
+
+    const intervalId = setInterval(() => {
+      if (location && isAuthorizedRef.current) {
+        sendLocationUpdate(location.latitude, location.longitude);
+      }
+    }, THROTTLE_INTERVAL);
+
+    return () => {
+      clearTimeout(timeoutId);
+      clearInterval(intervalId);
+    };
+  }, [location, orderIdNum, appState?.token, sendLocationUpdate]);
 
   const getCurrentLocation = async () => {
     try {
       setLoading(true);
-      // Yêu cầu quyền truy cập vị trí
       const { status } = await Location.requestForegroundPermissionsAsync();
-
       if (status !== "granted") {
         setError("Quyền truy cập vị trí bị từ chối");
         Alert.alert(
@@ -49,8 +201,6 @@ const MapScreen = () => {
         setLoading(false);
         return;
       }
-
-      // Lấy vị trí hiện tại
       const currentLocation = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.High,
       });
@@ -60,8 +210,6 @@ const MapScreen = () => {
         longitude: currentLocation.coords.longitude,
       };
       setLocation(newLocation);
-
-      // Set initial region
       setRegion({
         latitude: newLocation.latitude,
         longitude: newLocation.longitude,
@@ -71,7 +219,6 @@ const MapScreen = () => {
 
       setLoading(false);
     } catch (err) {
-      console.error("Lỗi khi lấy vị trí:", err);
       setError("Không thể lấy vị trí hiện tại");
       setLoading(false);
     }
@@ -81,14 +228,13 @@ const MapScreen = () => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-          <Pressable onPress={() => router.back()} style={styles.backButton}>
-            <AntDesign name="arrowleft" size={24} color={APP_COLOR.BROWN} />
-          </Pressable>
-          <Text style={styles.headerTitle}>Bản đồ vị trí</Text>
+          <Text style={styles.headerTitle}>Theo dõi đơn hàng</Text>
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={APP_COLOR.ORANGE} />
-          <Text style={styles.loadingText}>Đang lấy vị trí...</Text>
+          <Text style={styles.loadingText}>
+            Đang lấy vị trí của khách hàng...
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -102,18 +248,11 @@ const MapScreen = () => {
     });
   };
 
-  const clearDestination = () => {
-    setDestination(null);
-  };
-
   if (error || !location) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-          <Pressable onPress={() => router.back()} style={styles.backButton}>
-            <AntDesign name="arrowleft" size={24} color={APP_COLOR.BROWN} />
-          </Pressable>
-          <Text style={styles.headerTitle}>Bản đồ vị trí</Text>
+          <Text style={styles.headerTitle}>Theo dõi đơn hàng</Text>
         </View>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
@@ -130,16 +269,8 @@ const MapScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backButton}>
-          <AntDesign name="arrowleft" size={24} color={APP_COLOR.BROWN} />
-        </Pressable>
-        <Text style={styles.headerTitle}>Bản đồ vị trí</Text>
+        <Text style={styles.headerTitle}>Theo dõi đơn hàng</Text>
         <View style={styles.headerButtons}>
-          {destination && (
-            <Pressable onPress={clearDestination} style={styles.clearButton}>
-              <AntDesign name="close" size={20} color={APP_COLOR.CANCEL} />
-            </Pressable>
-          )}
           <Pressable onPress={getCurrentLocation} style={styles.refreshButton}>
             <AntDesign name="reload1" size={20} color={APP_COLOR.ORANGE} />
           </Pressable>
@@ -173,8 +304,15 @@ const MapScreen = () => {
             description={`Lat: ${location.latitude.toFixed(
               6
             )}, Lng: ${location.longitude.toFixed(6)}`}
-            pinColor={APP_COLOR.ORANGE}
-          />
+          >
+            <Image
+              source={require("@/assets/shipper.png")}
+              style={{
+                width: 30,
+                height: 30,
+              }}
+            />
+          </Marker>
 
           {destination && (
             <>
@@ -228,10 +366,8 @@ const MapScreen = () => {
                     const maxLng = Math.max(
                       ...coordinates.map((c) => c.longitude)
                     );
-
                     const latDelta = (maxLat - minLat) * 1.5;
                     const lngDelta = (maxLng - minLng) * 1.5;
-
                     setRegion({
                       latitude: (minLat + maxLat) / 2,
                       longitude: (minLng + maxLng) / 2,
@@ -266,30 +402,48 @@ const MapScreen = () => {
       )}
       <View style={styles.infoContainer}>
         <View style={styles.locationInfo}>
-          <Text style={styles.locationLabel}>Vị trí hiện tại:</Text>
+          <Text style={styles.locationLabel}>Đơn hàng đang vận chuyển:</Text>
           <Text style={styles.infoText}>
-            Vĩ độ: {location.latitude.toFixed(6)}
+            {" "}
+            <Text style={{ fontFamily: APP_FONT.SEMIBOLD }}>
+              Địa chỉ đơn hàng:
+            </Text>{" "}
+            {address}
           </Text>
           <Text style={styles.infoText}>
-            Kinh độ: {location.longitude.toFixed(6)}
+            {" "}
+            <Text style={{ fontFamily: APP_FONT.SEMIBOLD }}>
+              Khách hàng nhận:
+            </Text>{" "}
+            {orderName}
           </Text>
         </View>
-        {destination && (
-          <View style={styles.locationInfo}>
-            <Text style={styles.locationLabel}>Điểm đích:</Text>
-            <Text style={styles.infoText}>
-              Vĩ độ: {destination.latitude.toFixed(6)}
-            </Text>
-            <Text style={styles.infoText}>
-              Kinh độ: {destination.longitude.toFixed(6)}
-            </Text>
-          </View>
-        )}
-        {!destination && (
-          <Text style={styles.hintText}>
-            👆 Nhấn giữ trên bản đồ để chọn điểm đích
-          </Text>
-        )}
+        <ShareButton
+          title="Xác nhận giao hàng"
+          onPress={() => {
+            confirmOrder(appState?.token || "", orderIdNum).then((res) => {
+              if (res.success) {
+                Alert.alert("Thành công", "Đơn hàng đã được xác nhận");
+              } else {
+                Alert.alert("Lỗi", res.message);
+              }
+            });
+          }}
+          textStyle={{
+            fontFamily: APP_FONT.SEMIBOLD,
+            fontSize: 16,
+            color: APP_COLOR.WHITE,
+          }}
+          btnStyle={{
+            backgroundColor: APP_COLOR.ORANGE,
+            marginHorizontal: 50,
+            width: 250,
+            justifyContent: "center",
+            alignItems: "center",
+            position: "absolute",
+            bottom: -100,
+          }}
+        />
       </View>
     </SafeAreaView>
   );
@@ -310,9 +464,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
   },
-  backButton: {
-    padding: 5,
-  },
   headerTitle: {
     flex: 1,
     textAlign: "center",
@@ -332,36 +483,31 @@ const styles = StyleSheet.create({
     marginRight: 5,
   },
   map: {
-    flex: 1,
+    flex: 0.75,
+    position: "relative",
+    bottom: -10,
   },
   infoContainer: {
-    backgroundColor: APP_COLOR.WHITE,
+    backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
     padding: 15,
-    borderTopWidth: 1,
-    borderTopColor: "#eee",
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    flex: 0.4,
   },
   locationInfo: {
     marginBottom: 10,
   },
   locationLabel: {
     fontFamily: APP_FONT.SEMIBOLD,
-    fontSize: 14,
+    fontSize: 20,
     color: APP_COLOR.BROWN,
     marginBottom: 5,
   },
   infoText: {
     fontFamily: APP_FONT.REGULAR,
-    fontSize: 12,
+    fontSize: 16,
     color: APP_COLOR.BROWN,
     marginVertical: 2,
-  },
-  hintText: {
-    fontFamily: APP_FONT.REGULAR,
-    fontSize: 12,
-    color: APP_COLOR.GREY,
-    textAlign: "center",
-    marginTop: 10,
-    fontStyle: "italic",
   },
   loadingContainer: {
     flex: 1,

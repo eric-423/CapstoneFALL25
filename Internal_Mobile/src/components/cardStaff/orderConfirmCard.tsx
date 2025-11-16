@@ -185,12 +185,23 @@ const OrderItemCard = ({
         <View
           style={{
             flexDirection: "row",
-            justifyContent: "center",
+            justifyContent: "flex-start",
             gap: 20,
+            paddingLeft: 10,
+            paddingBottom: 10,
           }}
         >
           <ShareButton
-            onPress={() => router.push("/(auth)/map")}
+            onPress={() =>
+              router.push({
+                params: {
+                  orderId: order.id,
+                  address: order.address,
+                  orderName: order.customerName,
+                },
+                pathname: "/(auth)/map",
+              })
+            }
             title="Xác nhận đơn"
             textStyle={{
               color: APP_COLOR.WHITE,
@@ -200,25 +211,6 @@ const OrderItemCard = ({
               marginVertical: 5,
               width: 130,
               justifyContent: "center",
-            }}
-          />
-          <ShareButton
-            onPress={() =>
-              router.push({
-                pathname: "/(auth)/shipperTrackingScreen",
-                params: { orderId: order.id },
-              })
-            }
-            title="Từ chối đơn"
-            textStyle={{
-              color: APP_COLOR.WHITE,
-              fontFamily: APP_FONT.REGULAR,
-            }}
-            btnStyle={{
-              marginVertical: 5,
-              width: 130,
-              justifyContent: "center",
-              backgroundColor: APP_COLOR.CANCEL,
             }}
           />
         </View>
@@ -290,9 +282,9 @@ const OrderCard = (props: IConfirmOrder) => {
 
   return (
     <ScrollView>
-      <View>
-        <Text style={[styles.boldText, { fontSize: 25, marginTop: 10 }]}>
-          Đơn hàng
+      <View style={{ marginHorizontal: 10 }}>
+        <Text style={[styles.boldText, { fontSize: 22, marginTop: 10 }]}>
+          Đơn hàng cần giao
         </Text>
       </View>
       {orders.map((order, index) => (

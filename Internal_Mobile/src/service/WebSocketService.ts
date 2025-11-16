@@ -3,9 +3,7 @@ import { Platform } from "react-native";
 let SockJS: any = null;
 try {
   SockJS = require("sockjs-client");
-} catch (e) {
-  console.warn("SockJS not available");
-}
+} catch (e) {}
 
 class WebSocketService {
   private client: Client | null = null;
@@ -19,8 +17,6 @@ class WebSocketService {
     return new Promise((resolve, reject) => {
       if (token) {
         this.currentToken = token;
-      } else {
-        console.warn("⚠️ Không có token được truyền vào connect()");
       }
       if (this.client && this.client.connected) {
         resolve();
@@ -45,17 +41,12 @@ class WebSocketService {
       if (!SockJS) {
         try {
           if (Platform.OS !== "web") {
-            console.warn(
-              "SockJS not available for React Native, using native WebSocket"
-            );
           } else {
             clearTimeout(timeout);
             reject(new Error("SockJS not available"));
             return;
           }
-        } catch (e) {
-          console.warn("SockJS not available:", e);
-        }
+        } catch (e) {}
       }
 
       if (SockJS) {
@@ -105,26 +96,6 @@ class WebSocketService {
                 Authorization: `Bearer ${token}`,
               }
             : {},
-          debug: (str) => {
-            if (
-              str.includes("ERROR") ||
-              str.includes("error") ||
-              str.includes("Error")
-            ) {
-              console.error("STOMP Error:", str);
-            }
-            if (str.includes(">>> CONNECT")) {
-              console.log("🔍 STOMP CONNECT Frame (SockJS):", str);
-              if (str.includes("Authorization")) {
-                console.log("✅ Token có trong CONNECT frame");
-              } else {
-                console.warn("⚠️ Token KHÔNG có trong CONNECT frame");
-              }
-            }
-            if (str.includes("<<< CONNECTED")) {
-              console.log("🔍 STOMP CONNECTED Frame (SockJS):", str);
-            }
-          },
         });
       } else {
         const wsUrl = baseUrlWithoutApi
@@ -175,29 +146,6 @@ class WebSocketService {
             reject(new Error(errorMessage));
           },
           connectHeaders: headers,
-          debug: (str) => {
-            if (
-              str.includes("ERROR") ||
-              str.includes("error") ||
-              str.includes("Error")
-            ) {
-              console.error("STOMP Error:", str);
-            }
-            if (str.includes(">>> CONNECT")) {
-              console.log("🔍 STOMP CONNECT Frame (native):", str);
-              if (str.includes("Authorization")) {
-                console.log("✅ Token có trong CONNECT frame");
-              } else {
-                console.warn("⚠️ Token KHÔNG có trong CONNECT frame");
-              }
-            }
-            if (str.includes("<<< CONNECTED")) {
-              console.log("🔍 STOMP CONNECTED Frame (native):", str);
-            }
-            if (str.includes(">>> SEND")) {
-              console.log("🔍 STOMP SEND Frame (native):", str);
-            }
-          },
         });
       }
 
@@ -263,8 +211,6 @@ class WebSocketService {
       const headers: any = {};
       if (this.currentToken) {
         headers.Authorization = `Bearer ${this.currentToken}`;
-      } else {
-        console.warn("⚠️ Không có token khi gửi message");
       }
 
       this.client.publish({
