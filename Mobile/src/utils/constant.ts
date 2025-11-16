@@ -19,10 +19,12 @@ export const APP_COLOR = {
 export const STATUS_COLORS = {
   PENDING: "rgba(52, 55, 252, 0.75)",
   APPROVED: "rgba(0, 154, 5, 0.68)",
-  PREPARING: "rgba(255, 251, 0, 0.75)",
+  PREPARING: "rgba(255, 200, 0, 0.85)",
+  COOKING: "rgba(255, 152, 0, 0.80)",
   COOKED: APP_COLOR.ORANGE,
   DELIVERING: "rgba(3, 169, 244, 0.72)",
   DELIVERED: "rgba(76, 175, 80, 0.70)",
+  DONE: "rgba(26, 63, 34, 0.85)",
   CANCELED: "rgba(244, 67, 54, 0.70)",
   DEFAULT: "rgba(158, 158, 158, 0.70)",
 };

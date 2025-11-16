@@ -96,7 +96,7 @@ const AccountPage = () => {
       }}
     >
       <View style={styles.headerContainer}>
-        <View>
+        <View style={{ marginTop: 10 }}>
           <Text
             style={[
               styles.text,
@@ -366,7 +366,7 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     flexDirection: "row",
-    marginHorizontal: 10,
+    marginTop: 20,
     paddingBottom: 3,
     marginBottom: 3,
     borderBottomColor: APP_COLOR.BROWN,
