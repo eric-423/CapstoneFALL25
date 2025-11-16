@@ -28,7 +28,7 @@ const useAuthState = () => {
         return '/admin';
       case 'MANAGER':
       case 'BRANCH_MANAGER':
-        return '/admin';
+        return '/manager';
       case 'CHEFF':
         return '/chef';
       case 'WAITER':
@@ -87,8 +87,11 @@ const useAuthState = () => {
   }, []);
 
   useEffect(() => {
-    fetchCurrentUser();
-  }, [fetchCurrentUser]);
+    // Only fetch if not already initialized to prevent unnecessary calls
+    if (!authState.isInitialized) {
+      fetchCurrentUser();
+    }
+  }, [authState.isInitialized, fetchCurrentUser]);
 
   useEffect(() => {
     if (!authState.isInitialized || !authState.isAuthenticated || !authState.user) {

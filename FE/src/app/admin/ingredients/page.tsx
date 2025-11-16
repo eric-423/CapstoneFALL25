@@ -294,16 +294,10 @@ export default function IngredientsPage() {
                 showAdvancedFilters={showAdvanced}
                 onToggleAdvancedFilters={() => setShowAdvanced(!showAdvanced)}
                 customActions={
-                    <>
-                        <Button variant="outline" size="sm" style={{ color: '#000000', fontWeight: '600' }}>
-                            <Barcode className="h-4 w-4 mr-2" />
-                            Quét mã
-                        </Button>
-                        <Button variant="outline" size="sm" style={{ color: '#000000', fontWeight: '600' }}>
-                            <FileText className="h-4 w-4 mr-2" />
-                            Báo cáo
-                        </Button>
-                    </>
+                    <Button variant="outline" size="sm" style={{ color: '#000000', fontWeight: '600' }}>
+                        <Barcode className="h-4 w-4 mr-2" />
+                        Quét mã
+                    </Button>
                 }
                 />
             </div>

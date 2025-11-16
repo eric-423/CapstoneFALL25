@@ -190,11 +190,14 @@ export function OrderDetailsDialog({ order, open, onClose }: OrderDetailsDialogP
 
                 <OrderProgressTracker currentStatus={order.orderStatus} className='mb-6' />
 
-                <OrderLiveTrackingCard
-                  orderId={order.id}
-                  initialStatus={order.orderStatus}
-                  destinationAddress={order.address}
-                />
+                {/* Chỉ hiển thị theo dõi real-time khi đơn hàng đang giao */}
+                {['SHIPPING', 'DELIVERING', 'IN_DELIVERY'].includes(order.orderStatus?.toUpperCase?.() || '') && (
+                  <OrderLiveTrackingCard
+                    orderId={order.id}
+                    initialStatus={order.orderStatus}
+                    destinationAddress={order.address}
+                  />
+                )}
 
                 {/* <Card className='border-none shadow-sm gap-0'>
                   <CardHeader className='pb-0 m-0'>

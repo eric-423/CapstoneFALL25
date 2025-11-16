@@ -1,7 +1,8 @@
 import Image from 'next/image';
 import { SearchForm } from '@/components/common/search-form';
+import { memo } from 'react';
 
-const HeroSection = () => {
+const HeroSection = memo(() => {
     return (
         <section className="relative min-h-screen bg-black">
             {/* Background Image */}
@@ -10,6 +11,7 @@ const HeroSection = () => {
                     src="/images/Home - Banner.jpg"
                     alt="Cơm Tấm Tắc Background"
                     fill
+                    sizes="100vw"
                     className="object-cover"
                     priority
                 />
@@ -38,6 +40,8 @@ const HeroSection = () => {
             </div>
         </section>
     );
-};
+});
+
+HeroSection.displayName = 'HeroSection';
 
 export default HeroSection;

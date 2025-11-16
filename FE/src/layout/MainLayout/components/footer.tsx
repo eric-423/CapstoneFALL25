@@ -18,6 +18,7 @@ const Footer = () => {
                   src='/full-logo-white.svg'
                   alt='Tấm Tắc Logo'
                   fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   className='object-contain scale-110 lg:scale-125 p-1'
                 />
               </div>

@@ -6,8 +6,8 @@ import { Input } from '@/components/ui/input';
 import { useAuthContext } from '@/utils/contexts/AuthContext';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { toast } from 'react-toastify';
 import Image from 'next/image';
+
 
 export default function LoginForm() {
     const [phone, setPhone] = useState('');
@@ -34,6 +34,7 @@ export default function LoginForm() {
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
+
         e.preventDefault();
         setErrors({});
 
@@ -64,14 +65,10 @@ export default function LoginForm() {
 
 
                 const role = response.data.userInfo?.role || 'CUSTOMER';
-                toast.success('Đăng nhập thành công!');
                 redirectAfterLogin(role);
             }
         } catch (error: unknown) {
-            const errorData = (error as { response?: { data?: { error?: string } } })?.response?.data;
-            const errorMessage = errorData?.error || 'Đăng nhập thất bại. Vui lòng thử lại.';
-
-            toast.error(errorMessage);
+            console.log(error);
         } finally {
             setLoading(false);
         }
@@ -87,6 +84,7 @@ export default function LoginForm() {
                         src="/images/Home - Banner.jpg"
                         alt="Tấm Tắc Food"
                         fill
+                        sizes="50vw"
                         className="object-cover"
                         priority
                     />

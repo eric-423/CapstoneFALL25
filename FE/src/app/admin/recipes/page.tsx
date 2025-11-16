@@ -288,16 +288,10 @@ export default function RecipesPage() {
                 showAdvancedFilters={showAdvanced}
                 onToggleAdvancedFilters={() => setShowAdvanced(!showAdvanced)}
                 customActions={
-                    <>
-                        <Button variant="outline" size="sm" style={{ color: '#000000', fontWeight: '600' }}>
-                            <BookOpen className="h-4 w-4 mr-2" />
-                            Import
-                        </Button>
-                        <Button variant="outline" size="sm" style={{ color: '#000000', fontWeight: '600' }}>
-                            <FileText className="h-4 w-4 mr-2" />
-                            Báo cáo chi phí
-                        </Button>
-                    </>
+                    <Button variant="outline" size="sm" style={{ color: '#000000', fontWeight: '600' }}>
+                        <BookOpen className="h-4 w-4 mr-2" />
+                        Import
+                    </Button>
                 }
                 />
             </div>

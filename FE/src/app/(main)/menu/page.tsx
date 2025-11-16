@@ -8,7 +8,7 @@ import useScrollTop from '@/utils/hooks/useScrollTop';
 import useGetProductSearch from '@/utils/hooks/useGetProductSearch';
 import { ProductType } from '@/apis/product.api';
 import { getCustomerInformation } from '@/apis/user.api';
-import { getNearbyBranches } from '@/apis/branch.api';
+import { CustomerInformation, getNearbyBranches, NearbyBranch } from '@/apis/branch.api';
 import { useAuth } from '@/utils/hooks';
 import { useSampleProductTypes, useSampleBranches } from '@/utils/hooks/useSampleData';
 
@@ -41,7 +41,7 @@ export default function MenuPage() {
 
     const { data: customerInformationData = [], isLoading: isLoadingCustomerInfos } = useQuery({
         queryKey: ['customer-informations', user?.id],
-        queryFn: () => getCustomerInformation(user?.id || 0),
+        queryFn: () => getCustomerInformation(user?.id ?? 0),
         enabled: Boolean(user?.id),
         refetchOnMount: false,
         refetchOnWindowFocus: false,
@@ -55,7 +55,7 @@ export default function MenuPage() {
 
     const primaryAddress = useMemo(() => {
         if (!customerInformations.length) return '';
-        const defaultInfo = customerInformations.find((info: any) => info.isDefault);
+        const defaultInfo = customerInformations.find((info: CustomerInformation) => info.isDefault);
         return (defaultInfo ?? customerInformations[0])?.address || '';
     }, [customerInformations]);
 
@@ -69,7 +69,7 @@ export default function MenuPage() {
 
     const nearbyBranches = useMemo(() => {
         if (!Array.isArray(nearbyBranchesData)) return [];
-        return nearbyBranchesData.map((branch: any) => ({
+        return nearbyBranchesData.map((branch: NearbyBranch) => ({
             branchId: branch.branchId,
             branchName: branch.name,
             address: branch.address,
@@ -83,11 +83,11 @@ export default function MenuPage() {
         if (nearbyBranches.length) {
             return nearbyBranches;
         }
-        return (sampleBranches || []).map((branch: any) => ({
+        return (sampleBranches || []).map((branch: Branch) => ({
             branchId: branch.branchId,
             branchName: branch.branchName,
             address: branch.address,
-            phone: branch.phone ?? branch.phoneNumber ?? '',
+            phone: branch.phone,
             isActive: branch.isActive,
         })) as Branch[];
     }, [nearbyBranches, sampleBranches]);
@@ -136,7 +136,12 @@ export default function MenuPage() {
             ) : (
                 <>
                     <div id='hero-section' className='relative h-64 md:h-80 overflow-hidden'>
-                        <Image src={image} alt='Tấm Tắc Menu' fill className='object-cover' />
+                        <Image
+                            src={image}
+                            alt='Tấm Tắc Menu'
+                            fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            className='object-cover' />
                         <div className='absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-black/20 flex items-center justify-center'>
                             <div className='text-center'>
                                 <h1 className='text-4xl md:text-5xl font-bold text-white mb-4'>

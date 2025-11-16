@@ -431,12 +431,6 @@ export default function OrdersPage() {
                     title="Quản Lý Đơn Hàng"
                     description="Theo dõi và xử lý đơn hàng"
                     icon={ShoppingBag}
-                    actions={
-                        <Button className="bg-gradient-to-r from-[#EC6426] to-[#F8A91F] hover:from-[#EC6426]/90 hover:to-[#F8A91F]/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold text-sm sm:text-base">
-                            <FileText size={18} className="mr-2" strokeWidth={2.5} />
-                            Xuất Báo Cáo
-                        </Button>
-                    }
                 />
 
                 <AdminStatsGrid>

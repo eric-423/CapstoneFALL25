@@ -6,7 +6,7 @@ import { ProductType, Product, getProduct, getProductType } from '@/apis/product
 import { Combo, searchCombos } from '@/apis/combo.api';
 import { createDiningOrder, payDiningTableOrder, updateDiningTableOrder, DiningOrderRequest, DiningTablePaymentRequest, UpdateDiningTableOrderRequest } from '@/apis/order.api';
 import { PaymentMethod, getPaymentMethods } from '@/apis/payment.api';
-import { TableData, getTableById, CurrentOrder, OrderItem } from '@/apis/table.api';
+import { TableData, getTableById } from '@/apis/table.api';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ShoppingCart, CheckCircle, ChevronUp, ChevronDown, Menu, X, Receipt, CreditCard } from 'lucide-react';
@@ -307,11 +307,9 @@ export default function OrderTablePage() {
             const updatedTableData = await getTableById(tableId);
             setTableData(updatedTableData);
 
-            setTimeout(() => {
-                setIsOrderConfirmed(false);
-                setShowSuccessScreen(true);
-                setCartItems([]);
-            }, 1000);
+            setIsOrderConfirmed(false);
+            setShowSuccessScreen(true);
+            setCartItems([]);
         } catch (error) {
             console.error('Error creating/updating dining order:', error);
             alert('Có lỗi xảy ra khi đặt món. Vui lòng thử lại!');
@@ -578,7 +576,12 @@ export default function OrderTablePage() {
                 </div>
 
                 <div id="hero-section" className="relative h-48 sm:h-56 md:h-64 overflow-hidden mb-6">
-                    <Image src={image} alt="Đặt món tại bàn" fill className="object-cover" />
+                    <Image
+                        src={image}
+                        alt="Đặt món tại bàn"
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className="object-cover" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-black/20 flex items-center justify-center">
                         <div className="text-center px-4">
                             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
