@@ -1,138 +1,340 @@
 'use client';
 
-import { AdminGuard } from '@/components/guards';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+    Building,
+    Plus,
+    Edit2,
+    MapPin,
+    Phone,
+    Power,
+    PowerOff,
+    CheckCircle,
+    XCircle,
+    Search,
+    Crown,
+} from 'lucide-react';
+import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Store, MapPin, Phone, User, Edit, Trash2, CheckCircle, XCircle } from 'lucide-react';
-import { AddBranchDialog } from './components/AddBranchDialog';
+import { Badge } from '@/components/ui/badge';
 import { AdminPageLayout, AdminPageHeader, AdminStatsCard, AdminStatsGrid } from '../components/AdminPageLayout';
+import { getBranchStatistics, activateBranch, deactivateBranch, type BranchStatistics, type BranchDetail } from '@/apis/branch.api';
+import { BranchFormDialog } from './components/BranchFormDialog';
+import { BranchConfirmDialog } from './components/BranchConfirmDialog';
 
-// Temporary empty array until API is implemented
-const MOCK_BRANCHES: any[] = [];
+export default function BranchesManagementPage() {
+    const [statistics, setStatistics] = useState<BranchStatistics | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [searchKeyword, setSearchKeyword] = useState('');
+    const [statusFilter, setStatusFilter] = useState<string>('');
+    const [actionLoading, setActionLoading] = useState(false);
 
-export default function BranchesPage() {
+    // Dialog states
+    const [showDialog, setShowDialog] = useState(false);
+    const [editingBranch, setEditingBranch] = useState<BranchDetail | null>(null);
+
+    // Confirm dialog states
+    const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+    const [confirmType, setConfirmType] = useState<'activate' | 'deactivate'>('activate');
+    const [selectedBranch, setSelectedBranch] = useState<{ id: number; name: string } | null>(null);
+
+    const fetchStatistics = useCallback(async () => {
+        try {
+            setLoading(true);
+            const data = await getBranchStatistics();
+            setStatistics(data);
+        } catch (error) {
+            console.error('Failed to fetch branch statistics:', error);
+            toast.error('❌ Không thể tải danh sách chi nhánh!');
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchStatistics();
+    }, [fetchStatistics]);
+
+    const handleCreateBranch = () => {
+        setEditingBranch(null);
+        setShowDialog(true);
+    };
+
+    const handleEditBranch = (branch: BranchDetail) => {
+        setEditingBranch(branch);
+        setShowDialog(true);
+    };
+
+    const handleActivate = (branchId: number, branchName: string) => {
+        setSelectedBranch({ id: branchId, name: branchName });
+        setConfirmType('activate');
+        setShowConfirmDialog(true);
+    };
+
+    const handleDeactivate = (branchId: number, branchName: string) => {
+        setSelectedBranch({ id: branchId, name: branchName });
+        setConfirmType('deactivate');
+        setShowConfirmDialog(true);
+    };
+
+    const handleConfirmAction = async () => {
+        if (!selectedBranch) return;
+
+        try {
+            setActionLoading(true);
+
+            if (confirmType === 'activate') {
+                await activateBranch(selectedBranch.id);
+                toast.success(`✅ Đã kích hoạt chi nhánh "${selectedBranch.name}"!`);
+            } else {
+                await deactivateBranch(selectedBranch.id);
+                toast.success(`🔒 Đã vô hiệu hóa chi nhánh "${selectedBranch.name}"!`);
+            }
+
+            await fetchStatistics();
+            setShowConfirmDialog(false);
+            setSelectedBranch(null);
+        } catch (error) {
+            console.error('Failed to perform action:', error);
+            toast.error(`❌ Không thể ${confirmType === 'activate' ? 'kích hoạt' : 'vô hiệu hóa'} chi nhánh!`);
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleDialogSuccess = () => {
+        fetchStatistics();
+    };
+
+    // Filter branches
+    const filteredBranches = statistics?.branches.filter(branch => {
+        const matchesKeyword = !searchKeyword ||
+            branch.name.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+            branch.address.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+            branch.phoneNumber.includes(searchKeyword);
+
+        const matchesStatus = !statusFilter ||
+            (statusFilter === 'active' && branch.isActive) ||
+            (statusFilter === 'inactive' && !branch.isActive);
+
+        return matchesKeyword && matchesStatus;
+    }) || [];
+
     return (
-        <AdminGuard>
-            <AdminPageLayout>
-                {/* Header */}
-                <AdminPageHeader
-                    title="Quản Lý Chi Nhánh"
-                    icon={Store}
-                    actions={<AddBranchDialog />}
-                />
+        <AdminPageLayout>
+            <AdminPageHeader
+                title="Quản lý chi nhánh"
+                description="Quản lý thông tin các chi nhánh"
+                icon={Building}
+                actions={
+                    <Button
+                        onClick={handleCreateBranch}
+                        className="bg-gradient-to-r from-[#EC6426] to-[#F8A91F] hover:from-[#EC6426]/90 hover:to-[#F8A91F]/90 text-white"
+                    >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Thêm chi nhánh
+                    </Button>
+                }
+            />
 
-                {/* Stats */}
+            {/* Stats */}
+            {statistics && (
                 <AdminStatsGrid>
                     <AdminStatsCard
                         title="Tổng chi nhánh"
-                        value={MOCK_BRANCHES.length}
-                        icon={Store}
+                        value={statistics.totalBranches}
+                        icon={Building}
                     />
                     <AdminStatsCard
                         title="Đang hoạt động"
-                        value={MOCK_BRANCHES.filter(b => b.isActive === true).length}
+                        value={statistics.activeBranches}
                         icon={CheckCircle}
-                        className="border-green-200"
-                        iconClassName="from-green-400 to-green-600"
                     />
                     <AdminStatsCard
-                        title="Tạm ngưng"
-                        value={MOCK_BRANCHES.filter(b => b.isActive === false).length}
+                        title="Ngừng hoạt động"
+                        value={statistics.inactiveBranches}
                         icon={XCircle}
-                        className="border-red-200"
-                        iconClassName="from-red-400 to-red-600"
                     />
                     <AdminStatsCard
                         title="Chi nhánh chính"
-                        value={MOCK_BRANCHES.filter(b => b.isParent === true).length}
-                        icon={Store}
-                        className="border-blue-200"
-                        iconClassName="from-blue-400 to-blue-600"
+                        value={statistics.parentBranches}
+                        icon={Crown}
                     />
                 </AdminStatsGrid>
+            )}
 
-                {/* Branches Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {MOCK_BRANCHES.map(branch => (
-                            <Card key={branch.id} className="relative overflow-hidden p-8 bg-white border-0 shadow-sm hover:shadow-2xl transition-all duration-500 group rounded-2xl">
-                                {/* Gradient overlay on hover */}
-                                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            {/* Filters */}
+            <Card className="p-4 space-y-3">
+                <div className="flex flex-wrap gap-3">
+                    <div className="flex-1 min-w-[200px]">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <input
+                                type="text"
+                                placeholder="Tìm theo tên, địa chỉ, số điện thoại..."
+                                value={searchKeyword}
+                                onChange={(e) => setSearchKeyword(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2 border-2 border-gray-200 rounded-lg text-sm focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                            />
+                        </div>
+                    </div>
+                    <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        className="px-4 py-2 border-2 border-gray-200 rounded-lg text-sm focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                    >
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="active">Đang hoạt động</option>
+                        <option value="inactive">Ngừng hoạt động</option>
+                    </select>
+                </div>
+            </Card>
 
-                                <div className="relative">
-                                    <div className="flex justify-between items-start mb-6">
-                                        <div className="flex items-center gap-4 flex-1">
-                                            <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
-                                                <Store size={30} className="text-white" strokeWidth={2.5} />
-                                            </div>
-                                            <div className="flex-1">
-                                                <h3 className="text-2xl font-bold text-gray-900 mb-2 group-hover:text-primary transition-colors">
-                                                    {branch.name}
-                                                </h3>
-                                                <div className="flex items-center gap-2">
-                                                    <span className={`inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full font-bold shadow-sm ${branch.isActive
-                                                        ? 'bg-green-50 text-green-700 border-2 border-green-200'
-                                                        : 'bg-red-50 text-red-700 border-2 border-red-200'
-                                                        }`}>
-                                                        {branch.isActive ? <CheckCircle size={14} strokeWidth={2.5} /> : <XCircle size={14} strokeWidth={2.5} />}
-                                                        {branch.isActive ? 'Hoạt động' : 'Tạm ngưng'}
-                                                    </span>
-                                                    {branch.isParent && (
-                                                        <span className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-blue-50 text-blue-700 border-2 border-blue-200 rounded-full font-bold shadow-sm">
-                                                            Chi nhánh chính
-                                                        </span>
-                                                    )}
+            {/* Branches Table */}
+            <Card className="overflow-hidden">
+                {loading ? (
+                    <div className="p-12 text-center text-gray-500">
+                        <div className="w-12 h-12 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin mx-auto mb-4"></div>
+                        <p>Đang tải danh sách chi nhánh...</p>
+                    </div>
+                ) : filteredBranches.length === 0 ? (
+                    <div className="p-12 text-center text-gray-500">
+                        <Building className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+                        <p className="font-semibold">Không tìm thấy chi nhánh nào</p>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead className="bg-gradient-to-r from-orange-50 to-yellow-50 border-b-2 border-orange-200">
+                                <tr>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                        Chi nhánh
+                                    </th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                        Địa chỉ
+                                    </th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                        Số điện thoại
+                                    </th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                        Trạng thái
+                                    </th>
+                                    <th className="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                        Thao tác
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {filteredBranches.map((branch) => (
+                                    <tr key={branch.id} className="hover:bg-gray-50 transition-colors">
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center">
+                                                    <Building className="h-5 w-5 text-white" />
+                                                </div>
+                                                <div>
+                                                    <div className="flex items-center gap-2">
+                                                        <p className="font-semibold text-gray-900">{branch.name}</p>
+                                                        {branch.isParent && (
+                                                            <Badge className="bg-yellow-100 text-yellow-700 border-yellow-300">
+                                                                <Crown className="h-3 w-3 mr-1" />
+                                                                Chính
+                                                            </Badge>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-xs text-gray-500">ID: {branch.id}</p>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-start gap-2">
+                                                <MapPin className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                                                <p className="text-sm text-gray-700 line-clamp-2">{branch.address}</p>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-2">
+                                                <Phone className="h-4 w-4 text-gray-400" />
+                                                <p className="text-sm text-gray-700">{branch.phoneNumber}</p>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <Badge className={`${branch.isActive
+                                                ? 'bg-green-100 text-green-700 border-green-300'
+                                                : 'bg-red-100 text-red-700 border-red-300'
+                                                }`}>
+                                                {branch.isActive ? (
+                                                    <>
+                                                        <CheckCircle className="h-3 w-3 mr-1" />
+                                                        Hoạt động
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <XCircle className="h-3 w-3 mr-1" />
+                                                        Ngừng
+                                                    </>
+                                                )}
+                                            </Badge>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center justify-center gap-2">
+                                                <Button
+                                                    onClick={() => handleEditBranch(branch)}
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="text-orange-600 border-orange-200 hover:bg-orange-50"
+                                                    disabled={actionLoading}
+                                                >
+                                                    <Edit2 className="h-3 w-3" />
+                                                </Button>
+                                                {branch.isActive ? (
+                                                    <Button
+                                                        onClick={() => handleDeactivate(branch.id, branch.name)}
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="text-red-600 border-red-200 hover:bg-red-50"
+                                                        disabled={actionLoading}
+                                                    >
+                                                        <PowerOff className="h-3 w-3" />
+                                                    </Button>
+                                                ) : (
+                                                    <Button
+                                                        onClick={() => handleActivate(branch.id, branch.name)}
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="text-green-600 border-green-200 hover:bg-green-50"
+                                                        disabled={actionLoading}
+                                                    >
+                                                        <Power className="h-3 w-3" />
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </Card>
 
-                                    <div className="space-y-4 mb-6">
-                                        <div className="flex items-start gap-4 p-3 bg-gray-50 rounded-xl group-hover:bg-white transition-colors">
-                                            <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                                                <MapPin size={20} className="text-primary" strokeWidth={2.5} />
-                                            </div>
-                                            <p className="text-sm font-medium text-gray-700 leading-relaxed">{branch.address}</p>
-                                        </div>
-                                        <div className="flex items-center gap-4 p-3 bg-gray-50 rounded-xl group-hover:bg-white transition-colors">
-                                            <div className="w-10 h-10 bg-secondary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                                                <Phone size={20} className="text-secondary" strokeWidth={2.5} />
-                                            </div>
-                                            <p className="text-sm font-bold text-gray-900">{branch.phone}</p>
-                                        </div>
-                                        <div className="flex items-center gap-4 p-3 bg-gray-50 rounded-xl group-hover:bg-white transition-colors">
-                                            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                                                <User size={20} className="text-purple-600" strokeWidth={2.5} />
-                                            </div>
-                                            <div>
-                                                <p className="text-xs text-gray-500 font-medium">Quản lý</p>
-                                                <p className="text-sm font-bold text-gray-900">{branch.managerId || 'Chưa phân công'}</p>
-                                            </div>
-                                        </div>
-                                    </div>
+            {/* Branch Form Dialog */}
+            <BranchFormDialog
+                open={showDialog}
+                onOpenChange={setShowDialog}
+                branch={editingBranch}
+                onSuccess={handleDialogSuccess}
+            />
 
-                                    <div className="flex gap-3 pt-6 border-t-2 border-gray-100">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="flex-1 border-2 border-primary text-primary hover:bg-primary hover:text-white font-semibold rounded-xl transition-all duration-300 py-6"
-                                        >
-                                            <Edit size={18} className="mr-2" strokeWidth={2.5} />
-                                            Sửa
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="flex-1 border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-semibold rounded-xl transition-all duration-300 py-6"
-                                        >
-                                            <Trash2 size={18} className="mr-2" strokeWidth={2.5} />
-                                            Xóa
-                                        </Button>
-                                    </div>
-                                </div>
-                            </Card>
-                        ))}
-                </div>
-            </AdminPageLayout>
-        </AdminGuard>
+            <BranchConfirmDialog
+                open={showConfirmDialog}
+                onOpenChange={setShowConfirmDialog}
+                onConfirm={handleConfirmAction}
+                type={confirmType}
+                branchName={selectedBranch?.name || ''}
+                loading={actionLoading}
+            />
+        </AdminPageLayout>
     );
 }

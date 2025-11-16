@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
-export async function GET(request: NextRequest) {
+const API_URL = process.env.NEXT_PUBLIC_BASE_URL;
+
+// POST: Tạo role history
+export async function POST(request: NextRequest) {
     try {
         const cookieStore = await cookies();
         const accessToken = cookieStore.get('access_token')?.value || cookieStore.get('token')?.value;
@@ -13,27 +16,22 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        const { searchParams } = new URL(request.url);
+        const body = await request.json();
 
-        // Build query params
-        const params = new URLSearchParams();
-        searchParams.forEach((value, key) => {
-            params.append(key, value);
-        });
-
-        // Forward to external API
         const response = await fetch(
-            `${process.env.NEXT_PUBLIC_BASE_URL}/combos/search?${params.toString()}`,
+            `${API_URL}/role-histories`,
             {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${accessToken}`,
                 },
+                body: JSON.stringify(body),
             }
         );
 
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ error: 'Failed to search combos' }));
+            const errorData = await response.json().catch(() => ({ error: 'Failed to create role history' }));
             return NextResponse.json(
                 errorData,
                 { status: response.status }
@@ -43,9 +41,9 @@ export async function GET(request: NextRequest) {
         const data = await response.json();
         return NextResponse.json(data);
     } catch (error) {
-        console.error('Combos Search API Error:', error);
+        console.error('Create Role History API Error:', error);
         return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Failed to search combos' },
+            { error: error instanceof Error ? error.message : 'Failed to create role history' },
             { status: 500 }
         );
     }
