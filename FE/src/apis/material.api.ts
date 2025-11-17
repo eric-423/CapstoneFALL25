@@ -42,6 +42,29 @@ export interface UpdateMaterialRequest {
     materialTypeId: number;
 }
 
+export interface MaterialSearchRequest {
+    includeDeleted?: boolean;
+    page?: number;
+    size?: number;
+    sortBy?: string;
+    sortDirection?: 'ASC' | 'DESC';
+}
+
+export interface PaginatedMaterialResponse {
+    status: number;
+    desc: string;
+    data: {
+        content: Material[];
+        pageNumber: number;
+        pageSize: number;
+        totalElements: number;
+        totalPages: number;
+        last: boolean;
+        first: boolean;
+        empty: boolean;
+    };
+}
+
 // Warehouse interfaces
 export interface Warehouse {
     id: number;
@@ -146,9 +169,19 @@ export async function deleteMaterialType(id: number): Promise<void> {
 
 // ==================== Material API ====================
 
-export async function getMaterials(includeDeleted: boolean = false): Promise<Material[]> {
+export async function getMaterials(searchRequest?: MaterialSearchRequest): Promise<PaginatedMaterialResponse> {
+    const params = new URLSearchParams();
+
+    if (searchRequest) {
+        if (searchRequest.includeDeleted !== undefined) params.append('includeDeleted', searchRequest.includeDeleted.toString());
+        if (searchRequest.page !== undefined) params.append('page', searchRequest.page.toString());
+        if (searchRequest.size !== undefined) params.append('size', searchRequest.size.toString());
+        if (searchRequest.sortBy) params.append('sortBy', searchRequest.sortBy);
+        if (searchRequest.sortDirection) params.append('sortDirection', searchRequest.sortDirection);
+    }
+
     const response = await fetch(
-        `/api/materials?includeDeleted=${includeDeleted}`,
+        `/api/materials?${params.toString()}`,
         {
             method: 'GET',
             credentials: 'include',
@@ -159,8 +192,7 @@ export async function getMaterials(includeDeleted: boolean = false): Promise<Mat
         throw new Error('Failed to fetch materials');
     }
 
-    const result = await response.json();
-    return result.data;
+    return response.json();
 }
 
 export async function createMaterial(request: CreateMaterialRequest): Promise<void> {

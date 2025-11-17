@@ -3,16 +3,6 @@ import { cookies } from 'next/headers';
 
 export async function GET(request: NextRequest) {
     try {
-        const cookieStore = await cookies();
-        const accessToken = cookieStore.get('access_token')?.value || cookieStore.get('token')?.value;
-
-        if (!accessToken) {
-            return NextResponse.json(
-                { error: 'Unauthorized' },
-                { status: 401 }
-            );
-        }
-
         const { searchParams } = new URL(request.url);
 
         // Build query params
@@ -21,13 +11,12 @@ export async function GET(request: NextRequest) {
             params.append(key, value);
         });
 
-        // Forward to external API
+        // Forward to external API (no auth)
         const response = await fetch(
             `${process.env.NEXT_PUBLIC_BASE_URL}/combos/search?${params.toString()}`,
             {
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Bearer ${accessToken}`,
                 },
             }
         );

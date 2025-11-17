@@ -13,11 +13,12 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        const { searchParams } = new URL(request.url);
-        const includeDeleted = searchParams.get('includeDeleted') || 'false';
+        // Forward all query parameters
+        const searchParams = request.nextUrl.searchParams;
+        const queryString = searchParams.toString();
 
         const response = await fetch(
-            `${process.env.NEXT_PUBLIC_BASE_URL}/materials?includeDeleted=${includeDeleted}`,
+            `${process.env.NEXT_PUBLIC_BASE_URL}/materials${queryString ? `?${queryString}` : ''}`,
             {
                 method: 'GET',
                 headers: {

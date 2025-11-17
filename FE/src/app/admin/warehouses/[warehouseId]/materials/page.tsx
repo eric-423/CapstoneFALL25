@@ -37,12 +37,12 @@ export default function WarehouseMaterialsPage({ params }: WarehouseMaterialsPag
 
         try {
             setLoading(true);
-            const [warehouseData, allMaterialsData] = await Promise.all([
+            const [warehouseData, allMaterialsResponse] = await Promise.all([
                 getWarehouseMaterials(warehouseId),
-                getMaterials(false)
+                getMaterials({ size: 10000 })
             ]);
             setWarehouseMaterials(warehouseData);
-            setAllMaterials(allMaterialsData);
+            setAllMaterials(allMaterialsResponse.data.content);
         } catch (error) {
             console.error('Failed to fetch warehouse materials:', error);
             toast.error('❌ Không thể tải danh sách nguyên liệu!');

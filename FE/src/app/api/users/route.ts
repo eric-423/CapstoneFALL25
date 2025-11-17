@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 
 const API_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
-// GET: Lấy danh sách users
+// GET: Lấy danh sách users với filter và phân trang
 export async function GET(request: NextRequest) {
     try {
         const cookieStore = await cookies();
@@ -16,8 +16,12 @@ export async function GET(request: NextRequest) {
             );
         }
 
+        // Forward all query parameters
+        const searchParams = request.nextUrl.searchParams;
+        const queryString = searchParams.toString();
+
         const response = await fetch(
-            `${API_URL}/users`,
+            `${API_URL}/users${queryString ? `?${queryString}` : ''}`,
             {
                 method: 'GET',
                 headers: {
