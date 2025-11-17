@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Package, Plus, Edit2, Trash2, Search, AlertTriangle, Tag } from 'lucide-react';
+import { Package, Plus, Edit2, Trash2, Search, AlertTriangle, Tag, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { AdminPageLayout, AdminPageHeader, AdminStatsCard, AdminStatsGrid } from '../components/AdminPageLayout';
-import { getMaterials, deleteMaterial, type Material } from '@/apis/material.api';
+import { getMaterials, deleteMaterial, type Material, type MaterialSearchRequest } from '@/apis/material.api';
 import { MaterialFormDialog } from './components/MaterialFormDialog';
 import { MaterialConfirmDialog } from './components/MaterialConfirmDialog';
 import Link from 'next/link';
@@ -16,8 +16,19 @@ export default function MaterialsPage() {
     const [materials, setMaterials] = useState<Material[]>([]);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(false);
+
+    // Pagination states
+    const [currentPage, setCurrentPage] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalElements, setTotalElements] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+
+    // Filter states
     const [searchKeyword, setSearchKeyword] = useState('');
     const [typeFilter, setTypeFilter] = useState<string>('');
+    const [includeDeleted, setIncludeDeleted] = useState(false);
+    const [sortBy, setSortBy] = useState('name');
+    const [sortDirection, setSortDirection] = useState<'ASC' | 'DESC'>('ASC');
 
     // Dialog states
     const [showFormDialog, setShowFormDialog] = useState(false);
@@ -30,15 +41,26 @@ export default function MaterialsPage() {
     const fetchMaterials = useCallback(async () => {
         try {
             setLoading(true);
-            const data = await getMaterials(false);
-            setMaterials(data);
+
+            const searchRequest: MaterialSearchRequest = {
+                includeDeleted,
+                page: currentPage,
+                size: pageSize,
+                sortBy,
+                sortDirection,
+            };
+
+            const response = await getMaterials(searchRequest);
+            setMaterials(response.data.content);
+            setTotalElements(response.data.totalElements);
+            setTotalPages(response.data.totalPages);
         } catch (error) {
             console.error('Failed to fetch materials:', error);
             toast.error('❌ Không thể tải danh sách nguyên liệu!');
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [includeDeleted, currentPage, pageSize, sortBy, sortDirection]);
 
     useEffect(() => {
         fetchMaterials();
@@ -81,12 +103,19 @@ export default function MaterialsPage() {
         fetchMaterials();
     };
 
-    // Calculate statistics
-    const totalMaterials = materials.length;
+    // Handle page change
+    const handlePageChange = (newPage: number) => {
+        if (newPage >= 0 && newPage < totalPages) {
+            setCurrentPage(newPage);
+        }
+    };
+
+    // Calculate statistics (from current page only as we don't have total stats from API)
+    const totalMaterialsCount = totalElements;
     const lowStockMaterials = materials.filter(m => m.quantity < m.threshold).length;
     const materialTypes = new Set(materials.map(m => m.materialTypeName)).size;
 
-    // Filter materials
+    // Filter materials (client-side filter for search and type)
     const filteredMaterials = materials.filter(material => {
         const matchesKeyword = !searchKeyword ||
             material.name.toLowerCase().includes(searchKeyword.toLowerCase()) ||
@@ -142,7 +171,7 @@ export default function MaterialsPage() {
             <AdminStatsGrid>
                 <AdminStatsCard
                     title="Tổng nguyên liệu"
-                    value={totalMaterials}
+                    value={totalMaterialsCount}
                     icon={Package}
                 />
                 <AdminStatsCard
@@ -159,7 +188,7 @@ export default function MaterialsPage() {
 
             {/* Filters */}
             <div className="bg-white rounded-xl border-2 border-gray-200 p-4 mb-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {/* Search */}
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -182,6 +211,27 @@ export default function MaterialsPage() {
                             <option key={type} value={type}>{type}</option>
                         ))}
                     </select>
+
+                    {/* Page Size */}
+                    <div className="flex items-center gap-3">
+                        <label className="text-sm text-gray-700 font-medium whitespace-nowrap">Hiển thị:</label>
+                        <select
+                            value={pageSize}
+                            onChange={(e) => {
+                                setPageSize(parseInt(e.target.value));
+                                setCurrentPage(0);
+                            }}
+                            className="px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        >
+                            <option value="5">5</option>
+                            <option value="10">10</option>
+                            <option value="20">20</option>
+                            <option value="50">50</option>
+                        </select>
+                        <span className="text-sm text-gray-600 whitespace-nowrap">
+                            Tổng: <span className="font-bold">{totalElements}</span>
+                        </span>
+                    </div>
                 </div>
             </div>
 
@@ -295,6 +345,38 @@ export default function MaterialsPage() {
                     <div className="text-center py-12">
                         <Package className="h-12 w-12 text-gray-400 mx-auto mb-3" />
                         <p className="text-gray-500">Không tìm thấy nguyên liệu nào</p>
+                    </div>
+                )}
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                    <div className="px-4 py-3 border-t border-gray-200 bg-gray-50">
+                        <div className="flex items-center justify-between">
+                            <div className="text-sm text-gray-700">
+                                Trang <span className="font-semibold">{currentPage + 1}</span> / {totalPages}
+                                {' '}(Hiển thị {filteredMaterials.length} / {totalElements} nguyên liệu)
+                            </div>
+                            <div className="flex gap-2">
+                                <Button
+                                    onClick={() => handlePageChange(currentPage - 1)}
+                                    disabled={currentPage === 0}
+                                    variant="outline"
+                                    size="sm"
+                                >
+                                    <ChevronLeft className="h-4 w-4" />
+                                    Trước
+                                </Button>
+                                <Button
+                                    onClick={() => handlePageChange(currentPage + 1)}
+                                    disabled={currentPage >= totalPages - 1}
+                                    variant="outline"
+                                    size="sm"
+                                >
+                                    Sau
+                                    <ChevronRight className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </div>
                     </div>
                 )}
             </div>

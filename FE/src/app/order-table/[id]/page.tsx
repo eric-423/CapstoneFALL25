@@ -895,14 +895,6 @@ export default function OrderTablePage() {
                                 >
                                     Tiếp tục đặt món
                                 </Button>
-                                <Button
-                                    onClick={handlePayment}
-                                    className="flex-1 gap-2 bg-primary hover:bg-primary/90"
-                                    disabled={tableData.currentOrder.orderStatus === 'PAID'}
-                                >
-                                    <CreditCard className="h-5 w-5" />
-                                    {tableData.currentOrder.orderStatus === 'PAID' ? 'Đã thanh toán' : 'Thanh toán'}
-                                </Button>
                             </div>
 
                             {/* Status */}
@@ -921,113 +913,7 @@ export default function OrderTablePage() {
                 </div>
             )}
 
-            {/* Payment Modal */}
-            {showPaymentModal && tableData?.currentOrder && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-                        {/* Header */}
-                        <div className="flex items-center justify-between p-6 border-b">
-                            <h2 className="text-2xl font-bold text-gray-900">Thanh toán</h2>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setShowPaymentModal(false)}
-                                className="p-2 hover:bg-gray-100"
-                                disabled={isProcessingPayment}
-                            >
-                                <X className="h-6 w-6" />
-                            </Button>
-                        </div>
 
-                        {/* Content */}
-                        <div className="p-6 space-y-6">
-                            {/* Order Summary */}
-                            <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-gray-600">Bàn:</span>
-                                    <span className="font-medium">{tableData.name}</span>
-                                </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-gray-600">Khách hàng:</span>
-                                    <span className="font-medium">{tableData.currentOrder.customerName}</span>
-                                </div>
-                                <div className="flex justify-between text-lg font-bold pt-2 border-t mt-2">
-                                    <span>Tổng tiền:</span>
-                                    <span className="text-primary">{tableData.currentOrder.amount.toLocaleString()}đ</span>
-                                </div>
-                            </div>
-
-                            {/* Payment Method Selection */}
-                            <div className="space-y-3">
-                                <label className="text-sm font-medium text-gray-700">Phương thức thanh toán</label>
-                                {isLoadingPaymentMethods ? (
-                                    <div className="flex items-center justify-center py-8">
-                                        <LoadingSpinner className="h-6 w-6" />
-                                    </div>
-                                ) : (
-                                    <div className="grid grid-cols-2 gap-3">
-                                        {paymentMethods.map((method) => {
-                                            const isSelected = selectedPaymentMethod === method.id;
-                                            const isCash = method.name.toLowerCase().includes('tiền mặt') || method.name.toLowerCase().includes('cash');
-                                            const isPayOS = method.name.toLowerCase().includes('payos');
-
-                                            return (
-                                                <button
-                                                    key={method.id}
-                                                    onClick={() => setSelectedPaymentMethod(method.id)}
-                                                    className={`p-4 border-2 rounded-lg transition-all ${isSelected
-                                                        ? 'border-primary bg-primary/5'
-                                                        : 'border-gray-200 hover:border-gray-300'
-                                                        }`}
-                                                    disabled={isProcessingPayment}
-                                                >
-                                                    <div className="flex flex-col items-center gap-2">
-                                                        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${isSelected ? 'bg-primary/10' : 'bg-gray-100'
-                                                            }`}>
-                                                            {isCash ? (
-                                                                <span className="text-2xl">💵</span>
-                                                            ) : isPayOS ? (
-                                                                <CreditCard className={`h-6 w-6 ${isSelected ? 'text-primary' : 'text-gray-600'
-                                                                    }`} />
-                                                            ) : (
-                                                                <CreditCard className={`h-6 w-6 ${isSelected ? 'text-primary' : 'text-gray-600'
-                                                                    }`} />
-                                                            )}
-                                                        </div>
-                                                        <span className={`font-medium text-sm ${isSelected ? 'text-primary' : 'text-gray-700'
-                                                            }`}>
-                                                            {method.name}
-                                                        </span>
-                                                    </div>
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Confirm Button */}
-                            <Button
-                                onClick={handleConfirmPayment}
-                                disabled={isProcessingPayment}
-                                className="w-full h-12 text-base font-semibold"
-                            >
-                                {isProcessingPayment ? (
-                                    <>
-                                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                                        Đang xử lý...
-                                    </>
-                                ) : (
-                                    <>
-                                        <CheckCircle className="h-5 w-5 mr-2" />
-                                        Xác nhận thanh toán
-                                    </>
-                                )}
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

@@ -1,21 +1,15 @@
-'use client';
-
+import { SellingItem } from '@/apis/statistics.api';
 import { Card } from '@/components/ui/card';
 import { Trophy } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
-interface DishData {
-    name: string;
-    sales: number;
-}
-
 interface TopDishesChartProps {
-    data: DishData[];
+    data?: SellingItem[];
 }
 
 const COLORS = ['#EC6426', '#F8A91F', '#FF9F43', '#FFC107', '#FFD54F'];
 
-export function TopDishesChart({ data }: TopDishesChartProps) {
+export function TopDishesChart({ data = [] }: TopDishesChartProps) {
     return (
         <Card className="p-8 bg-white border-0 shadow-sm hover:shadow-xl transition-all duration-300 rounded-2xl group">
             <div className="flex items-center justify-between mb-6">
@@ -50,7 +44,7 @@ export function TopDishesChart({ data }: TopDishesChartProps) {
                     />
                     <YAxis
                         type="category"
-                        dataKey="name"
+                        dataKey="itemName"
                         stroke="#9ca3af"
                         style={{ fontSize: '13px', fontWeight: 600 }}
                         width={140}
@@ -74,7 +68,7 @@ export function TopDishesChart({ data }: TopDishesChartProps) {
                         ]}
                         cursor={{ fill: 'rgba(236, 100, 38, 0.05)' }}
                     />
-                    <Bar dataKey="sales" radius={[0, 12, 12, 0]} barSize={32}>
+                    <Bar dataKey="quantitySold" radius={[0, 12, 12, 0]} barSize={32}>
                         {data.map((entry, index) => (
                             <Cell
                                 key={`cell-${index}`}
