@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { useAuthContext } from '@/utils/contexts/AuthContext';
 import { AdminProvider } from '@/utils/contexts/AdminContext';
 import { AdminHeader } from '@/app/admin/components/AdminHeader';
-import { useBarcodeScanner } from '@/utils/hooks/useBarcodeScanner';
+import { useBarcodeScanner, type BarcodeProcessContext } from '@/utils/hooks/useBarcodeScanner';
+import { assignChefToOrder, assignShipperToOrder, getBranchOrders } from '@/apis/order.api';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect, useMemo, memo, useCallback } from 'react';
@@ -97,25 +98,109 @@ export default function ManagerLayout({
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [sidebarOpen]);
 
-    const handleBarcodeSuccess = useCallback((orderId: number) => {
-        toast.success(`Đã assign chef thành công cho đơn hàng #${orderId}`, {
-            position: 'top-right',
-            autoClose: 3000,
-        });
-        // Dispatch custom event to refresh orders data
+    const processScannedOrder = useCallback(async (orderId: number) => {
+        const response = await getBranchOrders();
+        const branchOrders = Array.isArray(response?.data) ? response.data : [];
+        const order = branchOrders.find((item) => item.id === orderId);
+
+        if (!order) {
+            throw new Error(`Không tìm thấy đơn hàng #${orderId} trong chi nhánh của bạn.`);
+        }
+
+        const status = (order.orderStatus || '').toUpperCase();
+        const contextBase: BarcodeProcessContext = { status };
+
+        if (['IN_PROCESS', 'PROCESSING'].includes(status)) {
+            const assignResult = await assignChefToOrder(orderId);
+            if (!assignResult.success) {
+                return {
+                    success: false,
+                    context: {
+                        ...contextBase,
+                        action: 'assign-chef' as const,
+                        message: 'Không thể chuyển đơn cho bếp. Vui lòng thử lại.',
+                    },
+                };
+            }
+            return {
+                success: true,
+                context: {
+                    ...contextBase,
+                    action: 'assign-chef' as const,
+                },
+            };
+        }
+
+        if (status === 'COOKED') {
+            const assignResult = await assignShipperToOrder(orderId);
+            if (!assignResult.success) {
+                return {
+                    success: false,
+                    context: {
+                        ...contextBase,
+                        action: 'assign-shipper' as const,
+                        message: 'Không thể giao đơn cho shipper. Vui lòng thử lại.',
+                    },
+                };
+            }
+            return {
+                success: true,
+                context: {
+                    ...contextBase,
+                    action: 'assign-shipper' as const,
+                },
+            };
+        }
+
+        return {
+            success: false,
+            context: {
+                ...contextBase,
+                action: 'no-action' as const,
+                message: `Đơn #${orderId} đang ở trạng thái ${status || 'khác'}, không thể xử lý.`,
+            },
+        };
+    }, []);
+
+    const handleBarcodeSuccess = useCallback((orderId: number, context?: BarcodeProcessContext) => {
+        if (context?.action === 'assign-chef') {
+            toast.success(`Đã chuyển đơn #${orderId} cho bếp`, {
+                position: 'top-right',
+                autoClose: 3000,
+            });
+        } else if (context?.action === 'assign-shipper') {
+            toast.success(`Đã bàn giao đơn #${orderId} cho shipper`, {
+                position: 'top-right',
+                autoClose: 3000,
+            });
+        } else {
+            toast.success(`Đã xử lý đơn hàng #${orderId}`, {
+                position: 'top-right',
+                autoClose: 3000,
+            });
+        }
+
         window.dispatchEvent(new CustomEvent('refreshOrders'));
     }, []);
 
     const handleBarcodeError = useCallback((error: Error) => {
-        const errorMessage = error.message || 'Có lỗi xảy ra khi assign chef';
+        const errorMessage = error.message || 'Có lỗi xảy ra khi xử lý đơn';
         toast.error(`Lỗi: ${errorMessage}`, {
             position: 'top-right',
             autoClose: 5000,
         });
     }, []);
 
-    const handleBarcodeAlreadyHandled = useCallback((orderId: number) => {
-        toast.warning(`Đơn hàng #${orderId} đã được chef khác nhận`, {
+    const handleBarcodeAlreadyHandled = useCallback((orderId: number, context?: BarcodeProcessContext) => {
+        if (context?.action === 'no-action') {
+            toast.info(context?.message || `Đơn #${orderId} đang ở trạng thái ${context?.status || 'không xác định'}`, {
+                position: 'top-right',
+                autoClose: 4000,
+            });
+            return;
+        }
+
+        toast.warning(`Đơn hàng #${orderId} đã được xử lý trước đó`, {
             position: 'top-right',
             autoClose: 3000,
         });
@@ -123,6 +208,7 @@ export default function ManagerLayout({
 
     useBarcodeScanner({
         enabled: true,
+        processOrder: processScannedOrder,
         onSuccess: handleBarcodeSuccess,
         onError: handleBarcodeError,
         onAlreadyHandled: handleBarcodeAlreadyHandled,

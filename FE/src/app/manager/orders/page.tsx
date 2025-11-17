@@ -287,6 +287,11 @@ export default function ManagerOrdersPage() {
     }, [fetchOrders]);
 
     useEffect(() => {
+        const interval = setInterval(fetchOrders, 30000);
+        return () => clearInterval(interval);
+    }, [fetchOrders]);
+
+    useEffect(() => {
         const handleRefreshOrders = () => {
             fetchOrders();
         };

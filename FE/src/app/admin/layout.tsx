@@ -8,7 +8,7 @@ import { AdminHeader } from './components/AdminHeader';
 import { GlobalSearchCommand } from './components/GlobalSearchCommand';
 import { GlobalSearchKeyboardHandler } from './components/GlobalSearchKeyboardHandler';
 import { BranchesLoader } from './components/BranchesLoader';
-import { useBarcodeScanner } from '@/utils/hooks/useBarcodeScanner';
+import { useBarcodeScanner, type BarcodeProcessContext } from '@/utils/hooks/useBarcodeScanner';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect, useMemo, memo, useCallback } from 'react';
@@ -126,7 +126,7 @@ export default function AdminLayout({
     }, [sidebarOpen]);
 
     // Memoize barcode scanner callbacks
-    const handleBarcodeSuccess = useCallback((orderId: number) => {
+    const handleBarcodeSuccess = useCallback((orderId: number, _context?: BarcodeProcessContext) => {
         console.log('Assign chef thành công cho order:', orderId);
     }, []);
 
@@ -134,7 +134,7 @@ export default function AdminLayout({
         console.error('Lỗi khi assign chef:', error);
     }, []);
 
-    const handleBarcodeAlreadyHandled = useCallback((orderId: number) => {
+    const handleBarcodeAlreadyHandled = useCallback((orderId: number, _context?: BarcodeProcessContext) => {
         console.warn('Chef khác đã nhận order:', orderId);
     }, []);
 
