@@ -14,6 +14,12 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+} from '@/components/ui/select';
 
 import { useCart } from '@/utils/contexts/cart/CartContext';
 import { useAuth } from '@/utils/hooks';
@@ -26,6 +32,14 @@ import { setCookie, getToken } from '@/utils/cookies.client';
 
 import { getReceiveTime } from '@/utils/getReceiveTime';
 import { STORE_INFO } from '@/utils/mockupData';
+import {
+    Branch as ApiBranch,
+    GET_BRANCHES_QUERY_KEY,
+    GET_BRANCHES_STALE_TIME,
+    getBranches,
+    getNearbyBranches,
+    NearbyBranch,
+} from '@/apis/branch.api';
 
 
 // auto complete 
@@ -39,6 +53,7 @@ type Branch = {
     address: string;
     phone: string;
     isActive: boolean;
+    distanceText?: string;
 };
 
 type CustomerInformation = {
@@ -172,6 +187,99 @@ export default function CheckoutPage() {
         [customerInformationData],
     );
 
+    const primaryAddress = useMemo(() => {
+        if (!customerInformations.length) return '';
+        const defaultInfo = customerInformations.find((info) => info.isDefault);
+        return (defaultInfo ?? customerInformations[0])?.address?.trim() || '';
+    }, [customerInformations]);
+
+    const { data: branchesData = [], isLoading: isLoadingBranchesData } = useQuery<ApiBranch[]>({
+        queryKey: [GET_BRANCHES_QUERY_KEY],
+        queryFn: () => getBranches(),
+        staleTime: GET_BRANCHES_STALE_TIME,
+        refetchOnMount: false,
+        refetchOnWindowFocus: false,
+    });
+
+    const { data: nearbyBranchesData = [], isLoading: isLoadingNearbyBranches } = useQuery<NearbyBranch[]>({
+        queryKey: ['nearby-branches', primaryAddress],
+        queryFn: () => getNearbyBranches(primaryAddress, 20),
+        enabled: Boolean(primaryAddress),
+        refetchOnMount: false,
+        refetchOnWindowFocus: false,
+    });
+
+    const normalizedBranches = useMemo(
+        () =>
+            Array.isArray(branchesData)
+                ? branchesData.map(
+                    (branch): Branch => ({
+                        branchId: branch.id,
+                        branchName: branch.name,
+                        address: branch.address ?? '',
+                        phone: branch.phone ?? '',
+                        isActive: branch.active,
+                    }),
+                )
+                : [],
+        [branchesData],
+    );
+
+    const normalizedNearbyBranches = useMemo(
+        () =>
+            Array.isArray(nearbyBranchesData)
+                ? nearbyBranchesData.map(
+                    (branch): Branch => ({
+                        branchId: branch.branchId,
+                        branchName: branch.name,
+                        address: branch.address ?? '',
+                        phone: branch.phoneNumber ?? '',
+                        isActive: true,
+                        distanceText: branch.distanceText,
+                    }),
+                )
+                : [],
+        [nearbyBranchesData],
+    );
+
+    const displayBranches = useMemo(
+        () => (normalizedNearbyBranches.length ? normalizedNearbyBranches : normalizedBranches),
+        [normalizedBranches, normalizedNearbyBranches],
+    );
+
+    const isBranchesLoading = isLoadingBranchesData || (primaryAddress ? isLoadingNearbyBranches : false);
+
+    useEffect(() => {
+        if (!displayBranches.length) return;
+
+        setSelectedBranch((prev) => {
+            const fallbackBranch = displayBranches[0];
+
+            if (!prev) {
+                return fallbackBranch;
+            }
+
+            const matchedBranch = displayBranches.find((branch) => branch.branchId === prev.branchId);
+
+            if (matchedBranch) {
+                const hasChanged =
+                    matchedBranch.branchName !== prev.branchName ||
+                    matchedBranch.address !== prev.address ||
+                    matchedBranch.phone !== prev.phone ||
+                    matchedBranch.distanceText !== prev.distanceText;
+
+                return hasChanged ? matchedBranch : prev;
+            }
+
+            return fallbackBranch;
+        });
+    }, [displayBranches]);
+
+    useEffect(() => {
+        if (!selectedBranch) return;
+        if (typeof window === 'undefined') return;
+        localStorage.setItem('selectedBranch', JSON.stringify(selectedBranch));
+    }, [selectedBranch]);
 
     const { mutate: createOrderMutate, isPending: isPlacingOrderPending } = useMutation({
         mutationFn: (payload: CreateOrderPayload) => createOrderApiRoute(payload),
@@ -381,6 +489,20 @@ export default function CheckoutPage() {
         form.setValue('customerName', user?.fullName || '', { shouldValidate: true });
         setShippingFee(null);
     }, [form, user?.phoneNumber, user?.fullName]);
+
+    const handleBranchSelect = useCallback((branch: Branch) => {
+        setSelectedBranch(branch);
+    }, []);
+
+    const handleBranchChange = useCallback(
+        (branchId: string) => {
+            const branch = displayBranches.find((item) => String(item.branchId) === branchId);
+            if (branch) {
+                handleBranchSelect(branch);
+            }
+        },
+        [displayBranches, handleBranchSelect],
+    );
 
     const { mutateAsync: saveAddressMutation, isPending: isSavingAddress } = useMutation({
         mutationFn: saveCustomerInformation,
@@ -763,13 +885,13 @@ export default function CheckoutPage() {
                                                                     />
                                                                 </div>
                                                             </div>
-                                                            <div className='flex items-start text-sm text-medium ml-3 mt-2'>
+                                                            {/* <div className='flex items-start text-sm text-medium ml-3 mt-2'>
                                                                 <MapPin className='h-4 w-4 mr-2 mt-0.5 flex-shrink-0' />
                                                                 <span className='font-medium'>
                                                                     {branchName}
                                                                     <p className='font-normal'>Cổng trước {branchAddress}</p>
                                                                 </span>
-                                                            </div>
+                                                            </div> */}
                                                             {form.getFieldState('receiveTime').error && (
                                                                 <p className='text-red-500 text-sm ml-3 mt-2'>
                                                                     {form.getFieldState('receiveTime').error?.message}
@@ -790,13 +912,13 @@ export default function CheckoutPage() {
                                                     name='deliveryAddress'
                                                     render={({ field }) => (
                                                         <FormItem className='space-y-3'>
-                                                            <div className='flex flex-wrap items-center justify-between gap-2'>
+                                                            {/* <div className='flex flex-wrap items-center justify-between gap-2'>
                                                                 <FormLabel htmlFor='deliveryAddress' className='m-0 space-y-1'>
                                                                     <span className='block text-xs text-muted-foreground ps-2'>{branchName} – {branchAddress}</span>
                                                                 </FormLabel>
-                                                            </div>
+                                                            </div> */}
 
-                                                                {isLoadingCustomerInfos ? (
+                                                            {isLoadingCustomerInfos ? (
                                                                 <p className='text-sm text-muted-foreground'>
                                                                     Đang tải địa chỉ giao hàng của bạn...
                                                                 </p>
@@ -827,7 +949,7 @@ export default function CheckoutPage() {
                                                                             </Button>
                                                                         </div>
                                                                     ) : (
-                                                                        <p className='text-sm text-muted-foreground'>
+                                                                        <p className='text-sm text-muted-foreground px-1'>
                                                                             Bạn chưa có địa chỉ đã lưu. Vui lòng nhập địa chỉ giao hàng mới.
                                                                         </p>
                                                                     )}
@@ -844,8 +966,8 @@ export default function CheckoutPage() {
                                                                             }
                                                                         }}
                                                                         placeholder='Ví dụ: Số nhà, đường, phường/xã, quận/huyện, thành phố'
-                                                                       rows={3}
-                                                                       disabled={selectedInfoId !== 'new'}
+                                                                        rows={3}
+                                                                        disabled={selectedInfoId !== 'new'}
                                                                     />
 
                                                                     {isCreatingNewAddress && (
@@ -944,7 +1066,126 @@ export default function CheckoutPage() {
                                 </Card>
                             </div>
 
-                            <div className='space-y-4'>
+
+
+
+                            <div className='space-y-3'>
+                                <Card>
+                                    <CardContent className='p-4 space-y-4'>
+                                        <div className='flex items-center gap-2'>
+                                            <Store className='h-5 w-5 text-primary' />
+                                            <CardTitle className='text-lg m-0'>Chi nhánh phục vụ</CardTitle>
+                                        </div>
+                                        {isBranchesLoading ? (
+                                            <div className='flex items-center text-sm text-muted-foreground'>
+                                                <Loader2 className='h-4 w-4 animate-spin mr-2' />
+                                                Đang tải danh sách chi nhánh...
+                                            </div>
+                                        ) : displayBranches.length ? (
+                                            <div className='space-y-4'>
+                                                <div className='space-y-2'>
+                                                    <Label htmlFor='branch-select' className='text-sm font-medium text-foreground'>
+                                                        Chọn chi nhánh phục vụ
+                                                    </Label>
+
+
+                                                    <Select
+                                                        value={selectedBranch ? String(selectedBranch.branchId) : undefined}
+                                                        onValueChange={handleBranchChange}
+                                                    >
+                                                        <SelectTrigger
+                                                            id='branch-select'
+                                                            className='w-full items-start px-4 sm:px-5 sm:py-3 min-h-[68px] h-auto'
+                                                        >
+                                                            <div className='flex flex-col text-left w-full overflow-hidden gap-1'>
+                                                                <div className='flex items-center gap-2 min-h-[20px]'>
+                                                                    <span className='font-semibold text-sm text-foreground truncate max-w-[70%] sm:max-w-[75%]'>
+                                                                        {selectedBranch?.branchName || 'Chọn chi nhánh phù hợp'}
+                                                                    </span>
+                                                                    {selectedBranch?.distanceText && (
+                                                                        <span className='text-xs italic text-muted-foreground whitespace-nowrap'>
+                                                                            Khoảng cách: {selectedBranch.distanceText}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                <span
+                                                                    className='text-xs text-muted-foreground line-clamp-2'
+                                                                    title={selectedBranch?.address || undefined}
+                                                                >
+                                                                    {selectedBranch?.address || 'Địa chỉ chi nhánh sẽ hiển thị tại đây.'}
+                                                                </span>
+
+                                                            </div>
+                                                        </SelectTrigger>
+
+
+
+                                                        <SelectContent className='max-h-72 w-[min(420px,calc(100vw-2rem))] sm:min-w-[22rem] p-2'>
+                                                            {displayBranches.map((branch) => (
+                                                                <SelectItem
+                                                                    key={branch.branchId}
+                                                                    value={String(branch.branchId)}
+                                                                    className='py-2'
+                                                                >
+                                                                    <span className='flex flex-col text-left'>
+                                                                        <span className='font-medium text-sm'>{branch.branchName}</span>
+                                                                        {branch.address && (
+                                                                            <span
+                                                                                className='text-xs text-muted-foreground line-clamp-2'
+                                                                                title={branch.address}
+                                                                            >
+                                                                                {branch.address}
+                                                                            </span>
+                                                                        )}
+                                                                        {branch.distanceText && (
+                                                                            <span className='text-xs text-muted-foreground italic'>
+                                                                                Khoảng cách: {branch.distanceText}
+                                                                            </span>
+                                                                        )}
+                                                                    </span>
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+
+
+
+                                                </div>
+
+
+                                                {/* <div className='rounded-lg border border-gray-200 bg-white/70 p-4 text-sm space-y-3'>
+                                                    <p className='text-sm font-semibold text-foreground'>Chi tiết chi nhánh</p>
+                                                    <div className='flex items-start gap-2 text-muted-foreground'>
+                                                        <MapPin className='h-4 w-4 mt-0.5 text-primary' />
+                                                        <div>
+                                                            <p className='font-medium text-foreground'>
+                                                                {selectedBranch?.branchName || STORE_INFO.name}
+                                                            </p>
+                                                            <p>
+                                                                {selectedBranch?.address || STORE_INFO.address || 'Địa chỉ đang cập nhật'}
+                                                            </p>
+                                                            {selectedBranch?.distanceText && (
+                                                                <p className='text-xs italic text-muted-foreground'>
+                                                                    Khoảng cách: {selectedBranch.distanceText}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <div className='flex items-center gap-2 text-muted-foreground'>
+                                                        <Phone className='h-4 w-4 text-primary' />
+                                                        <span>
+                                                            {selectedBranch?.phone || STORE_INFO.phone || 'Hotline sẽ được cập nhật sớm.'}
+                                                        </span>
+                                                    </div>
+                                                </div> */}
+                                            </div>
+                                        ) : (
+                                            <p className='text-sm text-muted-foreground'>
+                                                Hiện chưa có chi nhánh khả dụng. Tạm thời sử dụng {STORE_INFO.name}.
+                                            </p>
+                                        )}
+                                    </CardContent>
+                                </Card>
                                 {fulfillmentMethod === 'pickup' ? (
                                     <Card>
                                         <CardContent className='p-4 space-y-4'>

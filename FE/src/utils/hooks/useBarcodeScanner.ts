@@ -1,20 +1,43 @@
 import { useEffect, useRef } from 'react';
 import { assignChefToOrder } from '@/apis/order.api';
 
-type ProcessOrderFn = (orderId: number) => Promise<{ success: boolean }>;
+export type BarcodeProcessAction = 'assign-chef' | 'assign-shipper' | 'no-action' | 'unknown';
+
+export interface BarcodeProcessContext {
+    action?: BarcodeProcessAction;
+    status?: string;
+    message?: string;
+}
+
+export interface ProcessOrderResult {
+    success: boolean;
+    context?: BarcodeProcessContext;
+}
+
+type ProcessOrderFn = (orderId: number) => Promise<ProcessOrderResult>;
+
+const defaultProcessOrder: ProcessOrderFn = async (orderId: number) => {
+    const result = await assignChefToOrder(orderId);
+    return {
+        success: result.success,
+        context: {
+            action: 'assign-chef',
+        },
+    };
+};
 
 interface UseBarcodeScannerOptions {
     enabled?: boolean;
     processOrder?: ProcessOrderFn;
-    onSuccess?: (orderId: number) => void;
+    onSuccess?: (orderId: number, context?: BarcodeProcessContext) => void;
     onError?: (error: Error) => void;
-    onAlreadyHandled?: (orderId: number) => void;
+    onAlreadyHandled?: (orderId: number, context?: BarcodeProcessContext) => void;
 }
 
 export const useBarcodeScanner = (options: UseBarcodeScannerOptions = {}) => {
     const {
         enabled = true,
-        processOrder = assignChefToOrder,
+        processOrder = defaultProcessOrder,
         onSuccess,
         onError,
         onAlreadyHandled,
@@ -115,9 +138,9 @@ export const useBarcodeScanner = (options: UseBarcodeScannerOptions = {}) => {
                     console.log('[Barcode Scanner] Kết quả xử lý:', result);
 
                     if (result?.success === true) {
-                        onSuccessRef.current?.(orderId);
+                        onSuccessRef.current?.(orderId, result.context);
                     } else {
-                        onAlreadyHandledRef.current?.(orderId);
+                        onAlreadyHandledRef.current?.(orderId, result?.context);
                     }
                 } catch (error) {
                     console.error('[Barcode Scanner] Lỗi khi xử lý:', error);

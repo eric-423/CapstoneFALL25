@@ -8,7 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import { useCart } from '@/utils/contexts/cart/CartContext';
 import { STORE_INFO } from '@/utils/mockupData';
 
-import { ChevronRight, MapPin, ShoppingCart, X } from 'lucide-react';
+import { ChevronRight, Loader2, MapPin, ShoppingCart, X } from 'lucide-react';
 import { useState } from 'react';
 import Link from 'next/link';
 
@@ -19,9 +19,14 @@ import { useNavigation } from '@/utils/hooks';
 export function CartPopover() {
   const { items, removeItem, updateQuantity, getTotalPrice, getTotalItems } = useCart();
   const [open, setOpen] = useState(false);
+  const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
 
   const { navigate } = useNavigation();
   function handleCheckoutClicked() {
+    if (isCheckoutLoading) {
+      return;
+    }
+    setIsCheckoutLoading(true);
     navigate(routes.checkout);
   }
 
@@ -115,9 +120,20 @@ export function CartPopover() {
                 <Button
                   className='w-full h-12 bg-[#4CAF50] hover:bg-[#43A047] text-white rounded-lg font-medium'
                   onClick={handleCheckoutClicked}
+                  disabled={isCheckoutLoading}
+                  aria-busy={isCheckoutLoading}
                 >
-                  Xác nhận đơn hàng
-                  <ChevronRight className='h-4 w-4 ml-1' />
+                  {isCheckoutLoading ? (
+                    <>
+                      <Loader2 className='h-4 w-4 animate-spin' />
+                      Đang chuyển hướng...
+                    </>
+                  ) : (
+                    <>
+                      Xác nhận đơn hàng
+                      <ChevronRight className='h-4 w-4 ml-1' />
+                    </>
+                  )}
                 </Button>
                 {/* </Link> */}
               </div>
