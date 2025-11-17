@@ -33,7 +33,7 @@ export async function GET(
 
         const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
         let url = `${baseUrl}/orders/cheff/view/${chefId}`;
-        
+
         if (status && status.trim() !== '' && status !== 'ALL') {
             const params = new URLSearchParams();
             params.append('status', status);
@@ -58,7 +58,7 @@ export async function GET(
             } catch {
                 errorData = { error: errorText || 'Unknown error', status: response.status };
             }
-            
+
             return NextResponse.json(
                 {
                     error: errorData.error || errorData.message || 'Failed to fetch chef orders',
@@ -82,7 +82,7 @@ export async function GET(
     } catch (error) {
         console.error('Get Chef Orders API Error:', error);
         return NextResponse.json(
-            { 
+            {
                 error: error instanceof Error ? error.message : 'Failed to fetch chef orders',
                 type: 'UnexpectedError'
             },

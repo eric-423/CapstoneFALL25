@@ -8,6 +8,7 @@ import { useBarcodeScanner } from '@/utils/hooks/useBarcodeScanner';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect, useMemo, memo, useCallback } from 'react';
+import { toast } from 'react-toastify';
 import {
     ShoppingBag,
     LogOut,
@@ -96,17 +97,35 @@ export default function ManagerLayout({
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [sidebarOpen]);
 
+    const handleBarcodeSuccess = useCallback((orderId: number) => {
+        toast.success(`Đã assign chef thành công cho đơn hàng #${orderId}`, {
+            position: 'top-right',
+            autoClose: 3000,
+        });
+        // Dispatch custom event to refresh orders data
+        window.dispatchEvent(new CustomEvent('refreshOrders'));
+    }, []);
+
+    const handleBarcodeError = useCallback((error: Error) => {
+        const errorMessage = error.message || 'Có lỗi xảy ra khi assign chef';
+        toast.error(`Lỗi: ${errorMessage}`, {
+            position: 'top-right',
+            autoClose: 5000,
+        });
+    }, []);
+
+    const handleBarcodeAlreadyHandled = useCallback((orderId: number) => {
+        toast.warning(`Đơn hàng #${orderId} đã được chef khác nhận`, {
+            position: 'top-right',
+            autoClose: 3000,
+        });
+    }, []);
+
     useBarcodeScanner({
         enabled: true,
-        onSuccess: (orderId) => {
-            console.log('✅ Assign chef thành công cho order:', orderId);
-        },
-        onError: (error) => {
-            console.error('❌ Lỗi khi assign chef:', error);
-        },
-        onChefBusy: (orderId) => {
-            console.warn('⚠️ Chef đang bận cho order:', orderId);
-        },
+        onSuccess: handleBarcodeSuccess,
+        onError: handleBarcodeError,
+        onAlreadyHandled: handleBarcodeAlreadyHandled,
     });
 
     return (

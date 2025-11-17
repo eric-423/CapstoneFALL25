@@ -12,12 +12,13 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { registerCustomer, sendOtp, verifyOTP, getTimeResendOtp } from '@/apis/user.api';
+import { registerCustomer, sendOtp, verifyOTP, getTimeResendOtp, loginCustomerViaApiRoute } from '@/apis/user.api';
+import { setAuthToken } from '@/utils/cookies.client';
+import { useAuthContext } from '@/utils/contexts/AuthContext';
 
 const registerSchema = z.object({
     fullName: z.string().min(2, 'Họ tên phải có ít nhất 2 ký tự'),
     phone: z.string().regex(/^[0-9]{10}$/, 'Số điện thoại không hợp lệ (cần 10 số)'),
-    email: z.string().email('Email không hợp lệ').optional(),
     dateOfBirth: z
         .string()
         .regex(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/u, 'Ngày sinh phải theo định dạng MM/DD/YYYY'),
@@ -34,6 +35,7 @@ type RegisterStep = 'info' | 'otp';
 
 export default function RegisterForm() {
     const router = useRouter();
+    const { redirectAfterLogin } = useAuthContext();
     const [step, setStep] = useState<RegisterStep>('info');
     const [otp, setOtp] = useState('');
     const [loading, setLoading] = useState(false);
@@ -44,6 +46,7 @@ export default function RegisterForm() {
     const [verificationIdentifier, setVerificationIdentifier] = useState('');
 
     const [phoneForVerify, setPhoneForVerify] = useState<string | null>(null);
+    const [passwordForAutoLogin, setPasswordForAutoLogin] = useState<string | null>(null);
 
 
 
@@ -86,6 +89,7 @@ export default function RegisterForm() {
             setStep('otp');
             setCountdown(0);
             setPhoneForVerify(data.phone);
+            setPasswordForAutoLogin(data.password);
 
 
 
@@ -131,7 +135,10 @@ export default function RegisterForm() {
 
             toast.success('Xác thực thành công!');
 
-            router.push('/login');
+            const autoLoginSuccess = await autoLoginAfterRegister(identifier);
+            if (!autoLoginSuccess) {
+                router.push('/login');
+            }
 
 
         } catch (error) {
@@ -145,6 +152,31 @@ export default function RegisterForm() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const autoLoginAfterRegister = async (phoneNumber: string) => {
+        if (!passwordForAutoLogin) {
+            return false;
+        }
+
+        try {
+            const response = await loginCustomerViaApiRoute({
+                phoneNumber,
+                password: passwordForAutoLogin,
+            });
+
+            if (response.status === 200 && response.data?.token) {
+                setAuthToken(response.data.token);
+                const role = response.data.userInfo?.role || 'CUSTOMER';
+                redirectAfterLogin(role);
+                return true;
+            }
+        } catch (error) {
+            console.error('Auto login after register failed:', error);
+        }
+
+        toast.info('Đăng ký thành công, vui lòng đăng nhập lại.');
+        return false;
     };
 
     return (
@@ -239,23 +271,6 @@ export default function RegisterForm() {
                                     </div>
 
                                     <div>
-                                        <Input
-                                            {...register('email')}
-                                            type="email"
-                                            placeholder="Email"
-                                            className={`rounded-lg border ${errors.email ? 'border-red-500' : 'border-gray-300'
-                                                } focus:border-[#FF6B35] focus:ring-[#FF6B35]`}
-                                        />
-                                        {errors.email && (
-                                            <p className="mt-1 text-sm text-red-600">
-                                                {errors.email.message}
-                                            </p>
-                                        )}
-                                    </div>
-
-
-
-                                    <div>
                                         <div className="relative">
                                             <Input
                                                 {...register('password')}
@@ -348,6 +363,9 @@ export default function RegisterForm() {
                                         <span className="text-[#8BC34A]">Tắc</span>{' '}
                                         <span className="text-gray-800">nhớ!</span>
                                     </h1>
+                                    <p className="text-gray-600 text-sm max-w-sm mx-auto mb-4">
+                                        Mã xác thực đang được gửi qua Zalo. Bạn vui lòng kiểm tra thông báo trong Zalo để lấy mã và nhập bên dưới nhé.
+                                    </p>
 
                                     <div className="flex justify-center mb-6">
                                         <InputOTP

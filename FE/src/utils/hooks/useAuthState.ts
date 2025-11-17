@@ -145,23 +145,23 @@ const useAuthState = () => {
   }, [authState.isInitialized, authState.isAuthenticated, authState.user, getRoleBasedRoute, router]);
 
   const logout = useCallback(async () => {
-    // Lưu role hiện tại trước khi reset state để xác định redirect path
+
     const currentRole = authState.user?.role?.toUpperCase();
-    const isEmployee = currentRole && ['ADMIN', 'MANAGER', 'BRANCH_MANAGER', 'CHEF', 'WAITER', 'SHIPPER'].includes(currentRole);
+    const employeeRoles = ['ADMIN', 'MANAGER', 'BRANCH_MANAGER', 'CHEF', 'CHEFF', 'WAITER', 'SHIPPER'];
+    const isEmployee = currentRole && employeeRoles.includes(currentRole);
     const redirectPath = isEmployee ? '/inside/login' : '/login';
 
     try {
-      // Gọi API logout để clear cookies ở server
       await fetch('/api/auth/logout', {
         method: 'POST',
         credentials: 'include',
       });
+
     } catch (error) {
       console.error('[useAuth] Logout API failed:', error);
-      // Tiếp tục clear ở client dù API có lỗi
     }
 
-    // Clear tất cả cookies ở client
+
     try {
       removeToken();
       removeAccessToken();

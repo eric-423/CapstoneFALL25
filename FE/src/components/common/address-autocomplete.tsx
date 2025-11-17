@@ -9,12 +9,11 @@ interface AddressAutocompleteProps {
     onChange: (address: string) => void;
     placeholder?: string;
     rows?: number;
+    disabled?: boolean;
 }
 
 declare global {
-    interface Window {
-        google: typeof google;
-    }
+    interface Window { google: typeof google; }
 }
 
 export function AddressAutocomplete({
@@ -22,218 +21,132 @@ export function AddressAutocomplete({
     onChange,
     placeholder = '',
     rows = 3,
+    disabled = false,
 }: AddressAutocompleteProps) {
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-
     const [isScriptLoaded, setIsScriptLoaded] = useState(false);
     const [isScriptError, setIsScriptError] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
     const [predictions, setPredictions] = useState<google.maps.places.AutocompletePrediction[]>([]);
-    const [isFetchingPredictions, setIsFetchingPredictions] = useState(false);
+    const [isFetching, setIsFetching] = useState(false);
+    const [inputValue, setInputValue] = useState(value ?? '');
 
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const autocompleteServiceRef = useRef<google.maps.places.AutocompleteService | null>(null);
     const placesServiceRef = useRef<google.maps.places.PlacesService | null>(null);
-    const debounceTimerRef = useRef<number | null>(null);
+    const requestIdRef = useRef(0);
+    const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-    const MIN_QUERY_LENGTH = 3;
-    const DEBOUNCE_DELAY = 350;
-    const MAX_RESULTS = 5;
+    const MIN_CHARS = 1;
+    const DEBOUNCE_MS = 300;
 
-    useEffect(() => {
-        if (!isScriptLoaded || typeof window === 'undefined') return;
+    useEffect(() => { setInputValue(value ?? ''); }, [value]);
+
+    const handleScriptLoad = useCallback(() => {
         if (!window.google?.maps?.places) return;
-
-        if (!autocompleteServiceRef.current) {
-            autocompleteServiceRef.current = new window.google.maps.places.AutocompleteService();
-        }
-
-        if (!placesServiceRef.current) {
-            const container = document.createElement('div');
-            placesServiceRef.current = new window.google.maps.places.PlacesService(container);
-        }
-    }, [isScriptLoaded]);
-
-    useEffect(() => {
-        return () => {
-            if (debounceTimerRef.current) {
-                window.clearTimeout(debounceTimerRef.current);
-            }
-        };
+        autocompleteServiceRef.current = new window.google.maps.places.AutocompleteService();
+        const div = document.createElement('div');
+        placesServiceRef.current = new window.google.maps.places.PlacesService(div);
+        setIsScriptLoaded(true);
     }, []);
 
+    const search = useCallback((query: string) => {
+        if (!autocompleteServiceRef.current || !isScriptLoaded) return;
+        const id = ++requestIdRef.current;
+        setIsFetching(true);
+        setPredictions([]);
+
+        autocompleteServiceRef.current!.getPlacePredictions(
+            { input: query, componentRestrictions: { country: 'vn' }, types: ['address'] },
+            (results, status) => {
+                if (id !== requestIdRef.current) return;
+                setIsFetching(false);
+                if (status === 'OK' && results) setPredictions(results.slice(0, 5));
+            }
+        );
+    }, [isScriptLoaded]);
+
+    const debouncedSearch = useCallback((q: string) => {
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+        debounceRef.current = setTimeout(() => search(q), DEBOUNCE_MS);
+    }, [search]);
+
     useEffect(() => {
-        if (!isFocused) {
-            if (isFetchingPredictions) {
-                setIsFetchingPredictions(false);
-            }
+        const normalizedValue =
+            typeof inputValue === 'string'
+                ? inputValue
+                : inputValue !== undefined && inputValue !== null
+                    ? String(inputValue)
+                    : '';
+        const q = normalizedValue.trim();
+        if (disabled || !isFocused || !isScriptLoaded || q.length < MIN_CHARS) {
+            if (debounceRef.current) clearTimeout(debounceRef.current);
             setPredictions([]);
-            if (debounceTimerRef.current) {
-                window.clearTimeout(debounceTimerRef.current);
-            }
+            setIsFetching(false);
             return;
         }
+        debouncedSearch(q);
+    }, [inputValue, isFocused, isScriptLoaded, disabled, debouncedSearch]);
 
-        if (!autocompleteServiceRef.current || !window.google?.maps?.places) {
-            if (isFetchingPredictions) {
-                setIsFetchingPredictions(false);
-            }
+    const handleSelect = useCallback((p: google.maps.places.AutocompletePrediction) => {
+        const finalize = (addr: string) => {
+            setInputValue(addr);
+            onChange(addr);
             setPredictions([]);
-            return;
-        }
-
-        const trimmedValue = value?.trim() ?? '';
-
-        if (!trimmedValue || trimmedValue.length < MIN_QUERY_LENGTH) {
-            if (isFetchingPredictions) {
-                setIsFetchingPredictions(false);
-            }
-            setPredictions([]);
-            if (debounceTimerRef.current) {
-                window.clearTimeout(debounceTimerRef.current);
-            }
-            return;
-        }
-
-        if (debounceTimerRef.current) {
-            window.clearTimeout(debounceTimerRef.current);
-        }
-
-        debounceTimerRef.current = window.setTimeout(() => {
-            setIsFetchingPredictions(true);
-
-            autocompleteServiceRef.current?.getPlacePredictions(
-                {
-                    input: trimmedValue,
-                    componentRestrictions: { country: 'vn' },
-                    types: ['address'],
-                },
-                (results, status) => {
-                    setIsFetchingPredictions(false);
-
-                    if (status !== window.google.maps.places.PlacesServiceStatus.OK || !results) {
-                        setPredictions([]);
-                        return;
-                    }
-
-                    setPredictions(results.slice(0, MAX_RESULTS));
-                },
-            );
-        }, DEBOUNCE_DELAY);
-
-        return () => {
-            if (debounceTimerRef.current) {
-                window.clearTimeout(debounceTimerRef.current);
-            }
-        };
-    }, [value, isFocused, isFetchingPredictions]);
-
-    const handleSelectPrediction = useCallback(
-        (prediction: google.maps.places.AutocompletePrediction) => {
-            if (!window.google?.maps?.places) {
-                onChange(prediction.description);
-                setPredictions([]);
-                setIsFocused(false);
-                textareaRef.current?.focus();
-                return;
-            }
-
-            const handleResult = (formattedAddress: string | undefined) => {
-                onChange(formattedAddress ?? prediction.description);
-                setPredictions([]);
-                setIsFocused(false);
-                textareaRef.current?.focus();
-            };
-
-            if (!placesServiceRef.current) {
-                handleResult(prediction.description);
-                return;
-            }
-
-            placesServiceRef.current.getDetails(
-                {
-                    placeId: prediction.place_id,
-                    fields: ['formatted_address', 'geometry', 'address_components'],
-                },
-                (place, status) => {
-                    if (status === window.google.maps.places.PlacesServiceStatus.OK && place?.formatted_address) {
-                        handleResult(place.formatted_address);
-                        return;
-                    }
-
-                    handleResult(prediction.description);
-                },
-            );
-        },
-        [onChange],
-    );
-
-    const handleTextareaFocus = () => {
-        if (isScriptError) return;
-        setIsFocused(true);
-    };
-
-    const handleTextareaBlur = () => {
-        window.setTimeout(() => {
             setIsFocused(false);
-        }, 150);
-    };
+        };
 
-    const showSuggestions = isFocused && (predictions.length > 0 || isFetchingPredictions);
-    const canUseAutocomplete = Boolean(apiKey) && !isScriptError;
+        if (!placesServiceRef.current || !isScriptLoaded) {
+            finalize(p.description);
+            return;
+        }
+
+        placesServiceRef.current!.getDetails(
+            { placeId: p.place_id, fields: ['formatted_address'] },
+            (place, status) => {
+                finalize(status === 'OK' && place?.formatted_address ? place.formatted_address : p.description);
+            }
+        );
+    }, [onChange, isScriptLoaded]);
+
+    const canUse = Boolean(apiKey) && !isScriptError;
 
     return (
-        <div className='relative'>
-            {canUseAutocomplete && (
+        <div className="relative">
+            {canUse && (
                 <Script
-                    id='google-maps-places-script'
                     src={`https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`}
-                    onLoad={() => setIsScriptLoaded(true)}
-                    onError={() => {
-                        console.error('Không thể tải Google Maps Places API. Tính năng gợi ý địa chỉ sẽ bị vô hiệu.');
-                        setIsScriptError(true);
-                    }}
-                    strategy='lazyOnload'
+                    onLoad={handleScriptLoad}
+                    onError={() => setIsScriptError(true)}
+                    strategy="lazyOnload"
                 />
             )}
 
             <Textarea
                 ref={textareaRef}
-                value={value}
-                onChange={(event) => {
-                    onChange(event.target.value);
-                }}
-                onFocus={handleTextareaFocus}
-                onBlur={handleTextareaBlur}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onFocus={() => !disabled && setIsFocused(true)}
+                onBlur={() => setTimeout(() => setIsFocused(false), 200)}
                 placeholder={placeholder}
                 rows={rows}
-                autoComplete='off'
+                disabled={disabled || !canUse}
+                className="resize-none"
             />
 
-            {canUseAutocomplete && showSuggestions && (
-                <div className='absolute left-0 right-0 top-full z-30 mt-1 overflow-hidden rounded-md border border-border bg-background shadow-lg'>
-                    {isFetchingPredictions && (
-                        <div className='px-3 py-2 text-sm text-muted-foreground'>Đang gợi ý địa chỉ...</div>
-                    )}
-
-                    {!isFetchingPredictions && predictions.length === 0 && (
-                        <div className='px-3 py-2 text-sm text-muted-foreground'>Không tìm thấy địa chỉ phù hợp</div>
-                    )}
-
-                    {predictions.map((prediction) => (
+            {canUse && isFocused && (isFetching || predictions.length > 0) && !disabled && (
+                <div className="absolute left-0 right-0 top-full z-30 mt-1 overflow-hidden rounded-md border border-border bg-background shadow-lg">
+                    {isFetching && <div className="px-3 py-2 text-sm text-muted-foreground">Đang tìm...</div>}
+                    {predictions.map(p => (
                         <button
-                            key={prediction.place_id}
-                            type='button'
-                            className='flex w-full flex-col items-start px-3 py-2 text-left text-sm hover:bg-muted'
-                            onMouseDown={(event) => {
-                                event.preventDefault();
-                            }}
-                            onClick={() => handleSelectPrediction(prediction)}
+                            key={p.place_id}
+                            type="button"
+                            className="w-full px-3 py-2 text-left text-sm hover:bg-accent transition-colors"
+                            onMouseDown={e => e.preventDefault()}
+                            onClick={() => handleSelect(p)}
                         >
-                            <span className='font-medium'>{prediction.structured_formatting.main_text}</span>
-                            <span className='text-xs text-muted-foreground'>
-                                {prediction.structured_formatting.secondary_text ?? prediction.description}
-                            </span>
+                            <div className="font-medium">{p.structured_formatting.main_text}</div>
+                            <div className="text-xs text-muted-foreground">{p.structured_formatting.secondary_text}</div>
                         </button>
                     ))}
                 </div>

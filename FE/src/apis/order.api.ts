@@ -319,7 +319,9 @@ export interface AssignChefResponse {
 
 export const assignChefToOrder = async (orderId: number): Promise<AssignChefResponse> => {
   try {
-    const response = await fetch(`/api/orders/manager/assign/cheff/${orderId}`, {
+    const url = `/api/orders/manager/assign/cheff/${orderId}`;
+
+    const response = await fetch(url, {
       method: 'PUT',
       credentials: 'include',
     });
@@ -335,9 +337,9 @@ export const assignChefToOrder = async (orderId: number): Promise<AssignChefResp
     }
 
     const data = await response.json();
-    return { success: data === true || data === 'true' || data.success === true };
+    const success = data === true || data === 'true' || data.success === true;
+    return { success };
   } catch (error) {
-    console.error('assignChefToOrder error:', error);
     throw error;
   }
 };

@@ -248,6 +248,37 @@ export const getCustomerInformation = async (userId: number) => {
   return response.json();
 };
 
+export interface SaveCustomerInformationPayload {
+  userId: number;
+  name: string;
+  address: string;
+  phoneNumber: string;
+  isDefault?: boolean;
+}
+
+export const saveCustomerInformation = async (payload: SaveCustomerInformationPayload) => {
+  const response = await fetch(`/api/customer/infomation`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw {
+      response: {
+        data: errorBody,
+        status: response.status,
+      },
+    };
+  }
+
+  return response.json();
+};
+
 
 
 // =====================================  employee ================================
