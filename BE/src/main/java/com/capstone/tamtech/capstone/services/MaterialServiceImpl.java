@@ -5,13 +5,19 @@ import com.capstone.tamtech.capstone.entities.Material;
 import com.capstone.tamtech.capstone.entities.MaterialType;
 import com.capstone.tamtech.capstone.entities.MaterialWarehouse;
 import com.capstone.tamtech.capstone.exception.ResourceNotFoundException;
+import com.capstone.tamtech.capstone.payload.PagedResponse;
 import com.capstone.tamtech.capstone.payload.request.MaterialRequest;
+import com.capstone.tamtech.capstone.payload.request.MaterialSearchRequest;
 import com.capstone.tamtech.capstone.repositories.MaterialRepository;
 import com.capstone.tamtech.capstone.repositories.MaterialTypeRepository;
 import com.capstone.tamtech.capstone.repositories.MaterialWarehouseRepository;
 import com.capstone.tamtech.capstone.repositories.ProductRecipesRepository;
 import com.capstone.tamtech.capstone.services.impl.MaterialService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,10 +40,67 @@ public class MaterialServiceImpl implements MaterialService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<MaterialDTO> getAllMaterials(boolean includeDeleted) {
-        List<Material> materials = includeDeleted ? materialRepository.findAll()
-                : materialRepository.findByIsDeletedFalse();
-        return materials.stream().map(this::toDTO).toList();
+    public PagedResponse<MaterialDTO> getAllMaterials(MaterialSearchRequest searchRequest) {
+        Pageable pageable = createPageable(searchRequest);
+
+        Page<Material> materialPage;
+        if (searchRequest.getIncludeDeleted() != null && searchRequest.getIncludeDeleted()) {
+            materialPage = materialRepository.findAll(pageable);
+        } else {
+            materialPage = materialRepository.findByIsDeletedFalse(pageable);
+        }
+
+        List<MaterialDTO> content = materialPage.getContent().stream()
+                .map(this::toDTO)
+                .toList();
+
+        return createPagedResponse(materialPage, content);
+    }
+
+    private Pageable createPageable(MaterialSearchRequest searchRequest) {
+        int page = searchRequest.getPage() != null && searchRequest.getPage() >= 0
+                ? searchRequest.getPage()
+                : 0;
+        int size = searchRequest.getSize() != null && searchRequest.getSize() > 0
+                ? searchRequest.getSize()
+                : 10;
+
+        if (size > 100) {
+            size = 100;
+        }
+
+        String sortBy = mapSortField(searchRequest.getSortBy());
+        Sort.Direction direction = Sort.Direction.fromString(
+                searchRequest.getSortDirection() != null ? searchRequest.getSortDirection() : "ASC");
+
+        return PageRequest.of(page, size, Sort.by(direction, sortBy));
+    }
+
+    private String mapSortField(String sortBy) {
+        if (sortBy == null || sortBy.isEmpty()) {
+            return "name";
+        }
+
+        return switch (sortBy.toLowerCase()) {
+            case "name", "materialname" -> "name";
+            case "id", "materialid" -> "id";
+            case "materialtype", "type" -> "materialType.name";
+            case "createddate", "createdate" -> "id";
+            default -> "name";
+        };
+    }
+
+    private <T> PagedResponse<T> createPagedResponse(Page<?> page, List<T> content) {
+        PagedResponse<T> response = new PagedResponse<>();
+        response.setContent(content);
+        response.setPageNumber(page.getNumber());
+        response.setPageSize(page.getSize());
+        response.setTotalElements(page.getTotalElements());
+        response.setTotalPages(page.getTotalPages());
+        response.setLast(page.isLast());
+        response.setFirst(page.isFirst());
+        response.setEmpty(page.isEmpty());
+        return response;
     }
 
     @Override

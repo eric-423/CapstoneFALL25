@@ -1,8 +1,10 @@
 package com.capstone.tamtech.capstone.controllers;
 
 import com.capstone.tamtech.capstone.dto.UserManagementDTO;
+import com.capstone.tamtech.capstone.payload.PagedResponse;
 import com.capstone.tamtech.capstone.payload.ResponseData;
 import com.capstone.tamtech.capstone.payload.request.UserCreateRequest;
+import com.capstone.tamtech.capstone.payload.request.UserSearchRequest;
 import com.capstone.tamtech.capstone.payload.request.UserUpdateRequest;
 import com.capstone.tamtech.capstone.services.impl.UserManagementService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,8 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/users")
 @CrossOrigin(origins = "*")
@@ -24,14 +24,18 @@ public class UserManagementController {
     @Autowired
     private UserManagementService userManagementService;
 
-    @Operation(summary = "Lấy danh sách tất cả người dùng", description = "Trả về danh sách tất cả người dùng trong hệ thống")
+    @Operation(summary = "Lấy danh sách tất cả người dùng (có phân trang)", description = "Trả về danh sách tất cả người dùng trong hệ thống với phân trang")
     @GetMapping
-    public ResponseEntity<?> getAllUsers() {
+    public ResponseEntity<?> getAllUsers(UserSearchRequest searchRequest) {
         try {
-            List<UserManagementDTO> users = userManagementService.getAllUsers();
+            if (searchRequest == null) {
+                searchRequest = new UserSearchRequest();
+            }
+            PagedResponse<UserManagementDTO> pagedResponse = userManagementService.getAllUsers(searchRequest);
             ResponseData responseData = new ResponseData();
-            responseData.setData(users);
-            responseData.setDesc("Retrieved " + users.size() + " user(s)");
+            responseData.setData(pagedResponse);
+            responseData.setDesc("Retrieved " + pagedResponse.getContent().size() + " user(s) from page "
+                    + (pagedResponse.getPageNumber() + 1));
             return new ResponseEntity<>(responseData, HttpStatus.OK);
         } catch (Exception e) {
             ResponseData responseData = new ResponseData();

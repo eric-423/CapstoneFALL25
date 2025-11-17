@@ -3,12 +3,19 @@ package com.capstone.tamtech.capstone.services;
 import com.capstone.tamtech.capstone.dto.MaterialTypeDTO;
 import com.capstone.tamtech.capstone.entities.MaterialType;
 import com.capstone.tamtech.capstone.exception.ResourceNotFoundException;
+import com.capstone.tamtech.capstone.payload.PagedResponse;
 import com.capstone.tamtech.capstone.payload.request.MaterialTypeRequest;
+import com.capstone.tamtech.capstone.payload.request.MaterialTypeSearchRequest;
 import com.capstone.tamtech.capstone.repositories.MaterialRepository;
 import com.capstone.tamtech.capstone.repositories.MaterialTypeRepository;
 import com.capstone.tamtech.capstone.services.impl.MaterialTypeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -22,10 +29,66 @@ public class MaterialTypeServiceImpl implements MaterialTypeService {
     private MaterialRepository materialRepository;
 
     @Override
-    public List<MaterialTypeDTO> getAllMaterialTypes(boolean includeDeleted) {
-        List<MaterialType> materialTypes = includeDeleted ? materialTypeRepository.findAll()
-                : materialTypeRepository.findByIsDeletedFalse();
-        return materialTypes.stream().map(this::toDTO).toList();
+    @Transactional(readOnly = true)
+    public PagedResponse<MaterialTypeDTO> getAllMaterialTypes(MaterialTypeSearchRequest searchRequest) {
+        Pageable pageable = createPageable(searchRequest);
+
+        Page<MaterialType> materialTypePage;
+        if (searchRequest.getIncludeDeleted() != null && searchRequest.getIncludeDeleted()) {
+            materialTypePage = materialTypeRepository.findAll(pageable);
+        } else {
+            materialTypePage = materialTypeRepository.findByIsDeletedFalse(pageable);
+        }
+
+        List<MaterialTypeDTO> content = materialTypePage.getContent().stream()
+                .map(this::toDTO)
+                .toList();
+
+        return createPagedResponse(materialTypePage, content);
+    }
+
+    private Pageable createPageable(MaterialTypeSearchRequest searchRequest) {
+        int page = searchRequest.getPage() != null && searchRequest.getPage() >= 0
+                ? searchRequest.getPage()
+                : 0;
+        int size = searchRequest.getSize() != null && searchRequest.getSize() > 0
+                ? searchRequest.getSize()
+                : 10;
+
+        if (size > 100) {
+            size = 100;
+        }
+
+        String sortBy = mapSortField(searchRequest.getSortBy());
+        Sort.Direction direction = Sort.Direction.fromString(
+                searchRequest.getSortDirection() != null ? searchRequest.getSortDirection() : "ASC");
+
+        return PageRequest.of(page, size, Sort.by(direction, sortBy));
+    }
+
+    private String mapSortField(String sortBy) {
+        if (sortBy == null || sortBy.isEmpty()) {
+            return "name";
+        }
+
+        return switch (sortBy.toLowerCase()) {
+            case "name", "typename" -> "name";
+            case "id", "typeid" -> "id";
+            default -> "name";
+        };
+    }
+
+    private <T> PagedResponse<T> createPagedResponse(Page<?> page, List<T> content) {
+        PagedResponse<T> response = new PagedResponse<>();
+        response.setContent(content);
+        response.setPageNumber(page.getNumber());
+        response.setPageSize(page.getSize());
+        response.setTotalElements(page.getTotalElements());
+        response.setTotalPages(page.getTotalPages());
+        response.setLast(page.isLast());
+        response.setFirst(page.isFirst());
+        response.setEmpty(page.isEmpty());
+        return response;
     }
 
     @Override
