@@ -14,9 +14,9 @@ import TodayOffersSection from "./today.offers.home";
 const icon = [
   {
     key: 1,
-    name: "Best Seller",
+    name: "Thực đơn",
     source: require("@/assets/icons/com-tam.png"),
-    targetScreen: "bestseller",
+    targetScreen: "order",
   },
   {
     key: 2,
@@ -34,7 +34,7 @@ const icon = [
     key: 4,
     name: "Đơn Hàng",
     source: require("@/assets/icons/don-hang.png"),
-    targetScreen: "order",
+    targetScreen: "order.history",
   },
   {
     key: 5,

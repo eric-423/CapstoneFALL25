@@ -179,38 +179,30 @@ const OrderPage = () => {
     });
   };
 
-  const handleSearch = () => {
-    if (!searchText.trim()) {
+  const handleSearch = (searchValue?: string) => {
+    const valueToSearch = searchValue || searchText;
+    if (!valueToSearch.trim()) {
       setSearchResults([]);
       setIsSearching(false);
       return;
     }
 
     setIsSearching(true);
-    const searchId = parseInt(searchText.trim());
+    const searchId = parseInt(valueToSearch.trim());
 
     if (isNaN(searchId)) {
       setSearchResults([]);
       setIsSearching(false);
-      Alert.alert("Lỗi", "Vui lòng nhập số ID đơn hàng hợp lệ");
       return;
     }
-
     const foundOrder = orderHistory.find((order) => order.orderId === searchId);
-
     if (foundOrder) {
       setSearchResults([foundOrder]);
     } else {
       setSearchResults([]);
-      Alert.alert(
-        "Không tìm thấy",
-        `Không tìm thấy đơn hàng với ID: ${searchId}`
-      );
     }
-
     setIsSearching(false);
   };
-
   const clearSearch = () => {
     setSearchText("");
     setSearchResults([]);
@@ -234,6 +226,18 @@ const OrderPage = () => {
       fetchOrderHistoryWithToken();
     }
   }, [token, fetchOrderHistoryWithToken]);
+  useEffect(() => {
+    if (searchText.trim()) {
+      const timeoutId = setTimeout(() => {
+        handleSearch(searchText);
+      }, 500);
+
+      return () => clearTimeout(timeoutId);
+    } else {
+      setSearchResults([]);
+      setIsSearching(false);
+    }
+  }, [searchText, orderHistory]);
 
   return (
     <View style={{ flex: 1, backgroundColor: APP_COLOR.BACKGROUND_ORANGE }}>
@@ -280,36 +284,6 @@ const OrderPage = () => {
                   onChangeText={setSearchText}
                   keyboardType="numeric"
                 />
-                {searchText.length > 0 && (
-                  <TouchableOpacity
-                    onPress={clearSearch}
-                    style={{ marginRight: 10 }}
-                  >
-                    <Text
-                      style={{
-                        color: APP_COLOR.ORANGE,
-                        fontFamily: FONTS.bold,
-                      }}
-                    >
-                      Xóa
-                    </Text>
-                  </TouchableOpacity>
-                )}
-                <TouchableOpacity
-                  onPress={handleSearch}
-                  style={{
-                    backgroundColor: APP_COLOR.ORANGE,
-                    paddingHorizontal: 15,
-                    paddingVertical: 10,
-                    borderRadius: 20,
-                  }}
-                >
-                  <Text
-                    style={{ color: APP_COLOR.WHITE, fontFamily: FONTS.bold }}
-                  >
-                    Tìm
-                  </Text>
-                </TouchableOpacity>
               </View>
             </View>
           </View>
@@ -401,7 +375,7 @@ const OrderPage = () => {
                             }}
                           >
                             <Text style={styles.text}>
-                              X{item.itemCount || 1} Sản phẩm
+                              {item.itemCount || 1} Sản phẩm
                             </Text>
                             <Text
                               style={[
@@ -547,7 +521,7 @@ const OrderPage = () => {
                             }}
                           >
                             <Text style={styles.text}>
-                              X{item.itemCount || 1} Sản phẩm
+                              {item.itemCount || 1} Sản phẩm
                             </Text>
                             <Text
                               style={[

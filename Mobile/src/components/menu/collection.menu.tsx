@@ -470,7 +470,6 @@ const CollectionMenu = (props: IProps) => {
               <Text style={styles.viewAllText}>Xem tất cả &gt;</Text>
             </View>
           </Pressable>
-
           <FlatList
             data={restaurants}
             contentContainerStyle={styles.flatListContent}
@@ -659,7 +658,7 @@ const styles = StyleSheet.create({
   },
   itemContainer: {
     backgroundColor: APP_COLOR.WHITE,
-    width: 370,
+    width: 355,
     height: 100,
     flexDirection: "row",
     borderRadius: 10,

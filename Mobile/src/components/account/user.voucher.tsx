@@ -6,7 +6,16 @@ interface IVoucher {
   code: string;
   description: string;
   date: string;
-  promotionId?: number;
+  promotionId?: string | number;
+  name?: string;
+  fullDescription?: string;
+  discountAmount?: number;
+  minOrderAmount?: number;
+  usageCount?: number;
+  maxNumberOfUses?: number;
+  isActive?: boolean;
+  promotionTypeName?: string;
+  endDateRaw?: string;
 }
 const VoucherComponent = (props: IVoucher) => {
   return (
@@ -28,32 +37,26 @@ const VoucherComponent = (props: IVoucher) => {
           borderLeftWidth: 3,
         }}
       >
-        <View
+        <Text
           style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginHorizontal: 10,
+            color: APP_COLOR.BROWN,
+            fontFamily: FONTS.bold,
+            marginLeft: 5,
           }}
         >
-          <Text
-            style={{
-              color: APP_COLOR.BROWN,
-              fontFamily: FONTS.bold,
-            }}
-          >
-            {props.code}
-          </Text>
-          <Text
-            style={{
-              fontFamily: FONTS.regular,
-              fontSize: 11,
-              color: APP_COLOR.BROWN,
-            }}
-          >
-            HSD: <Text style={{ fontFamily: FONTS.bold }}>{props.date}</Text>
-          </Text>
-        </View>
+          {props.code}
+        </Text>
+        <Text
+          style={{
+            fontFamily: FONTS.regular,
+            fontSize: 15,
+            color: APP_COLOR.BROWN,
+            marginLeft: 10,
+          }}
+        >
+          HSD: <Text style={{ fontFamily: FONTS.bold }}>{props.date}</Text>
+        </Text>
+
         <Text
           style={{
             color: APP_COLOR.BROWN,
@@ -85,7 +88,19 @@ const VoucherComponent = (props: IVoucher) => {
             if (props.promotionId) {
               router.push({
                 pathname: "/(user)/voucher/[id]",
-                params: { id: props.promotionId },
+                params: {
+                  id: props.promotionId.toString(),
+                  name: props.name || props.code,
+                  code: props.code,
+                  description: props.fullDescription || props.description,
+                  discountAmount: props.discountAmount?.toString() || "0",
+                  minOrderAmount: props.minOrderAmount?.toString() || "0",
+                  usageCount: props.usageCount?.toString() || "0",
+                  maxNumberOfUses: props.maxNumberOfUses?.toString() || "1",
+                  isActive: props.isActive?.toString() || "true",
+                  endDate: props.endDateRaw || props.date,
+                  promotionTypeName: props.promotionTypeName || "",
+                },
               });
             }
           }}

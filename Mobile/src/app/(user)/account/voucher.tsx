@@ -4,93 +4,27 @@ import { APP_COLOR } from "@/utils/constant";
 import { StyleSheet, Text, View, SectionList } from "react-native";
 import VoucherComponent from "@/components/account/user.voucher";
 import CustomerPoint from "@/components/account/user.point";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { jwtDecode } from "jwt-decode";
+import { getCustomerPromotion } from "@/utils/api";
+import Toast from "react-native-root-toast";
+import { useCurrentApp } from "@/context/app.context";
 const Voucher = () => {
   const [vouchers, setVouchers] = useState<any[]>([]);
   const [groupedVouchers, setGroupedVouchers] = useState<any[]>([]);
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
-  const [decodeToken, setDecodeToken] = useState<any>("");
-  const sampleVouchers = [
-    {
-      promotionId: 1,
-      type: "Khách hàng mới",
-      name: "WELCOME10",
-      discountAmount: 50000,
-      endDate: "2024-12-31",
-      code: "WELCOME10",
-    },
-    {
-      promotionId: 2,
-      type: "Khách hàng mới",
-      name: "SALE20",
-      discountAmount: 100000,
-      endDate: "2024-12-25",
-      code: "SALE20",
-    },
-    {
-      promotionId: 3,
-      type: "Deal hời",
-      name: "NEWUSER15",
-      discountAmount: 75000,
-      endDate: "2024-12-20",
-      code: "NEWUSER15",
-    },
-    {
-      promotionId: 4,
-      type: "Deal hời",
-      name: "HOLIDAY50",
-      discountAmount: 200000,
-      endDate: "2025-01-15",
-      code: "HOLIDAY50",
-    },
-    {
-      promotionId: 5,
-      type: "Deal hời",
-      name: "COMBO30",
-      discountAmount: 150000,
-      endDate: "2024-12-30",
-      code: "COMBO30",
-    },
-    {
-      promotionId: 6,
-      type: "Ưu đãi đặc biệt",
-      name: "VIP100",
-      discountAmount: 500000,
-      endDate: "2025-02-28",
-      code: "VIP100",
-    },
-    {
-      promotionId: 7,
-      type: "Ưu đãi đặc biệt",
-      name: "GOLD200",
-      discountAmount: 300000,
-      endDate: "2025-01-20",
-      code: "GOLD200",
-    },
-    {
-      promotionId: 8,
-      type: "Khách hàng mới",
-      name: "FIRST50",
-      discountAmount: 25000,
-      endDate: "2024-12-15",
-      code: "FIRST50",
-    },
-  ];
-  const decodeAndSetToken = async () => {
-    try {
-      const token = await AsyncStorage.getItem("access_token");
-      if (token) {
-        const decoded = jwtDecode(token);
-        setDecodeToken(decoded);
-      } else {
-        setDecodeToken("");
-      }
-    } catch (error) {
-      console.error("Error retrieving or decoding access token:", error);
-      setDecodeToken("");
+  const { appState } = useCurrentApp();
+
+  const formatDiscountDescription = (
+    promotionTypeName: string,
+    value: number
+  ) => {
+    if (promotionTypeName === "Giảm giá theo %") {
+      return `Giảm ${value}%`;
+    } else if (promotionTypeName === "Giảm giá cố định") {
+      return `Giảm ${value.toLocaleString("vi-VN")}đ`;
+    } else if (promotionTypeName === "Miễn phí vận chuyển") {
+      return "Miễn phí vận chuyển";
     }
+    return `Giảm ${value.toLocaleString("vi-VN")}đ`;
   };
 
   const groupVouchersByType = (voucherList: any[]) => {
@@ -107,34 +41,63 @@ const Voucher = () => {
       data: grouped[type],
     }));
   };
+
   useEffect(() => {
     const fetchVouchers = async () => {
       try {
         setIsLoading(true);
-        setTimeout(() => {
-          setVouchers(sampleVouchers);
-          setGroupedVouchers(groupVouchersByType(sampleVouchers));
-          setIsLoading(false);
-        }, 500);
-      } catch (e) {
+        const response = await getCustomerPromotion();
+        if (response.data && response.data.status === 0 && response.data.data) {
+          const mappedVouchers = response.data.data.map((promotion: any) => ({
+            promotionId: promotion.id,
+            type: promotion.promotionTypeName || "Khác",
+            name: promotion.name,
+            code: promotion.name,
+            discountAmount: promotion.value,
+            endDate: promotion.endDate,
+            description: promotion.description,
+            minimumOrderValue: promotion.minimumOrderValue,
+            userPromotionStatus: promotion.userPromotionStatus,
+            usageCount: promotion.usageCount,
+            promotionTypeName: promotion.promotionTypeName,
+          }));
+          const availableVouchers = mappedVouchers.filter(
+            (v: any) => v.userPromotionStatus === "AVAILABLE"
+          );
+
+          setVouchers(availableVouchers);
+          setGroupedVouchers(groupVouchersByType(availableVouchers));
+        } else {
+          setVouchers([]);
+          setGroupedVouchers([]);
+        }
+      } catch (error: any) {
+        console.error("Error fetching vouchers:", error);
         setVouchers([]);
         setGroupedVouchers([]);
+        Toast.show(error?.response?.data?.desc || "Không thể tải mã ưu đãi", {
+          duration: Toast.durations.LONG,
+          textColor: "white",
+          backgroundColor: APP_COLOR.CANCEL,
+          opacity: 1,
+        });
+      } finally {
         setIsLoading(false);
       }
     };
+
     fetchVouchers();
-    decodeAndSetToken();
   }, []);
   return (
     <View style={styles.container}>
       <View style={{ marginHorizontal: 10, marginTop: 10 }}>
         <CustomerPoint
-          fullName={decodeToken.fullName}
-          phoneNumber={decodeToken.phoneNumber}
-          email={decodeToken.email}
+          fullName={appState?.userInfo?.fullName || ""}
+          phoneNumber={appState?.userInfo?.phoneNumber || ""}
+          memberPoint={appState?.userInfo?.memberPoint || 0}
         />
       </View>
-      {!isLoggedIn ? (
+      {!appState?.userInfo?.id ? (
         <View
           style={{
             flex: 1,
@@ -173,13 +136,25 @@ const Voucher = () => {
               renderItem={({ item }) => (
                 <VoucherComponent
                   code={item.name}
-                  description={`Giảm ${item.discountAmount.toLocaleString()}đ`}
+                  name={item.name}
+                  description={formatDiscountDescription(
+                    item.promotionTypeName,
+                    item.discountAmount
+                  )}
+                  fullDescription={item.description}
                   date={
                     item.endDate
-                      ? new Date(item.endDate).toLocaleDateString()
+                      ? new Date(item.endDate).toLocaleDateString("vi-VN")
                       : ""
                   }
                   promotionId={item.promotionId}
+                  discountAmount={item.discountAmount}
+                  minOrderAmount={item.minimumOrderValue}
+                  usageCount={item.usageCount}
+                  maxNumberOfUses={item.usageCount || 1}
+                  isActive={item.userPromotionStatus === "AVAILABLE"}
+                  promotionTypeName={item.promotionTypeName}
+                  endDateRaw={item.endDate}
                 />
               )}
               renderSectionHeader={({ section: { title } }) => (

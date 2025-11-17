@@ -1,6 +1,3 @@
-import ShareInput from "@/components/input/share.input";
-import { UpdateUserSchema } from "@/utils/validate.schema";
-import { Formik } from "formik";
 import {
   View,
   Text,
@@ -10,7 +7,7 @@ import {
   Dimensions,
 } from "react-native";
 import { jwtDecode } from "jwt-decode";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import ShareButton from "../button/share.button";
 import { APP_COLOR } from "@/utils/constant";
@@ -19,7 +16,9 @@ import logo from "@/assets/logo.png";
 import { useFocusEffect } from "expo-router";
 import Toast from "react-native-root-toast";
 import footerFrame from "@/assets/frame_footer.png";
-import axios from "axios";
+import { GetCustomerInformation } from "@/utils/api";
+import { useCurrentApp } from "@/context/app.context";
+import ItemAddress from "../order/item.address";
 
 interface DecodedToken {
   id?: number;
@@ -34,6 +33,8 @@ const UserInfo = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [token, setToken] = useState<string | null>(null);
+  const [customerInformation, setCustomerInformation] = useState<any>(null);
+  const { appState } = useCurrentApp();
   const getAccessToken = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -62,59 +63,24 @@ const UserInfo = () => {
       setIsLoading(false);
     }
   }, []);
-
+  const fetchCustomerInformation = useCallback(async () => {
+    try {
+      const res = await GetCustomerInformation(appState?.userInfo?.id || 0);
+      setCustomerInformation(res.data.data);
+    } catch (error) {
+      console.error("Error fetching customer information:", error);
+    }
+  }, [appState?.userInfo?.id]);
   useFocusEffect(
     useCallback(() => {
       getAccessToken();
-    }, [getAccessToken])
+      fetchCustomerInformation();
+    }, [getAccessToken, fetchCustomerInformation])
   );
 
-  // const handleUpdateUser = async (
-  //   id: number,
-  //   fullName: string,
-  //   email: string,
-  //   phone_number: string,
-  //   date_of_birth: string
-  // ) => {
-  //   if (!decodeToken) {
-  //     Toast.show("User information not available.", {
-  //       duration: Toast.durations.LONG,
-  //       textColor: "white",
-  //       backgroundColor: APP_COLOR.CANCEL,
-  //       opacity: 1,
-  //     });
-  //     return;
-  //   }
-  //   setIsSubmitting(true);
-  //   try {
-  //     const response = await axios.put(
-  //       `https://wdp301-su25.space/api/profiles/${id}`,
-  //       {
-  //         fullName,
-  //         email,
-  //         phone_number,
-  //         date_of_birth,
-  //       },
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       }
-  //     );
-  //     router.push("/(tabs)/account");
-  //   } catch (error) {
-  //     console.error("Error updating user:", error);
-  //     Toast.show("Failed to update user information.", {
-  //       duration: Toast.durations.LONG,
-  //       textColor: "white",
-  //       backgroundColor: APP_COLOR.CANCEL,
-  //       opacity: 1,
-  //     });
-  //   } finally {
-  //     setIsSubmitting(false);
-  //   }
-  // };
-
+  useEffect(() => {
+    fetchCustomerInformation();
+  }, [fetchCustomerInformation]);
   if (isLoading) {
     return (
       <View style={styles.mainContainer}>
@@ -124,15 +90,6 @@ const UserInfo = () => {
       </View>
     );
   }
-
-  // if (!decodeToken) {
-  //   return (
-  //     <View style={styles.container}>
-  //       <Text>No user information available.</Text>
-  //     </View>
-  //   );
-  // }
-
   return (
     <View style={styles.mainContainer}>
       <View style={styles.topSection}>
@@ -145,103 +102,36 @@ const UserInfo = () => {
             <Image source={logo} style={styles.logo} />
             <Text style={styles.title}>Thay đổi thông tin của bạn</Text>
           </View>
-
-          <Formik
-            enableReinitialize
-            validationSchema={UpdateUserSchema}
-            initialValues={{
-              id: decodeToken?.id || 0,
-              fullName: decodeToken?.fullName || "",
-              phone_number: decodeToken?.phone_number || "",
-              email: decodeToken?.email || "",
-              date_of_birth: decodeToken?.date_of_birth || "",
-            }}
-            onSubmit={(values) => {
-              // handleUpdateUser(
-              //   values.fullName,
-              //   values.phoneNumber,
-              //   values.email,
-              //   values.password,
-              //   values.date_of_birth
-              // );
-            }}
-          >
-            {({
-              handleChange,
-              handleBlur,
-              handleSubmit,
-              values,
-              errors,
-              touched,
-            }) => (
-              <View style={styles.formContainer}>
-                <View style={{ gap: 10 }}>
-                  <ShareInput
-                    title="Họ và Tên"
-                    onChangeText={handleChange("fullName")}
-                    onBlur={handleBlur("fullName")}
-                    value={values.fullName}
-                    error={errors.fullName}
-                    touched={touched.fullName}
-                  />
-                  <ShareInput
-                    title="Email"
-                    onChangeText={handleChange("email")}
-                    onBlur={handleBlur("email")}
-                    value={values.email}
-                    error={errors.email}
-                    touched={touched.email}
-                  />
-                </View>
-
-                <View style={styles.inputRow}>
-                  <View style={styles.inputHalf}>
-                    <ShareInput
-                      title="Số điện thoại"
-                      onChangeText={handleChange("phone_number")}
-                      onBlur={handleBlur("phone_number")}
-                      value={values.phone_number}
-                      error={errors.phone_number}
-                      touched={touched.phone_number}
-                    />
-                  </View>
-                  <View style={styles.inputHalf}>
-                    <ShareInput
-                      title="Ngày sinh"
-                      onChangeText={handleChange("date_of_birth")}
-                      onBlur={handleBlur("date_of_birth")}
-                      value={values.date_of_birth}
-                      error={errors.date_of_birth}
-                      touched={touched.date_of_birth}
-                      isDatePicker
-                    />
-                  </View>
-                </View>
-              </View>
-            )}
-          </Formik>
+          {customerInformation ? (
+            customerInformation.map((item: any, index: number) => (
+              <ItemAddress
+                key={item.id || `address-${index}`}
+                cusName={item.fullName}
+                cusPhone={item.phone}
+                cusAddress={item.address}
+                isDefault={item.isDefault}
+                informationId={item.informationId}
+                onDeleted={fetchCustomerInformation}
+              />
+            ))
+          ) : (
+            <View style={{ alignItems: "center", paddingVertical: 20 }}>
+              <Text
+                style={{
+                  color: APP_COLOR.BROWN,
+                  fontFamily: FONTS.regular,
+                  fontSize: 16,
+                  textAlign: "center",
+                }}
+              >
+                Chưa có thông tin nào. Vui lòng thêm thông tin mới.
+              </Text>
+            </View>
+          )}
         </ScrollView>
       </View>
 
       <View style={styles.bottomSection}>
-        <View style={styles.buttonContainer}>
-          <ShareButton
-            title={"Lưu thay đổi"}
-            btnStyle={styles.saveButton}
-            textStyle={styles.saveButtonText}
-            onPress={() =>
-              // handleUpdateUser(
-              //   values.id,
-              //   values.fullName,
-              //   values.email,
-              //   values.phone_number,
-              //   values.date_of_birth
-              // )
-              console.log("change pass")
-            }
-            loading={isSubmitting}
-          />
-        </View>
         <Image source={footerFrame} style={styles.footerImage} />
       </View>
     </View>
@@ -255,7 +145,6 @@ const styles = StyleSheet.create({
   },
   topSection: {
     flex: 1,
-    paddingHorizontal: 15,
   },
   bottomSection: {
     minHeight: 150,

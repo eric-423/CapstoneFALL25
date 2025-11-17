@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Pressable,
   StyleSheet,
@@ -16,8 +16,12 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import Feather from "@expo/vector-icons/Feather";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
-import { router } from "expo-router";
-import { GetBranchNearLocation, ReverseGeocodeGoogle } from "@/utils/api";
+import { router, useFocusEffect } from "expo-router";
+import {
+  GetBranchNearLocation,
+  GetCustomerInformation,
+  ReverseGeocodeGoogle,
+} from "@/utils/api";
 import AntDesign from "@expo/vector-icons/AntDesign";
 interface HeaderHomeProps {
   pageName: string;
@@ -93,7 +97,7 @@ const styles = StyleSheet.create({
     backgroundColor: APP_COLOR.WHITE,
     borderRadius: 12,
     maxHeight: 300,
-    width: "55%",
+    width: "75%",
     zIndex: 1000,
     shadowColor: "#000",
     shadowOffset: {
@@ -108,12 +112,11 @@ const styles = StyleSheet.create({
 });
 
 const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
-  const [location, setLocation] = useState<string | null>(null);
   const {
     cart,
     locationReal,
     setLocationReal,
-    branchId,
+    appState,
     setBranchId,
     setBranchName,
   } = useCurrentApp();
@@ -125,62 +128,54 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
     const plusCodePattern = /^[A-Z0-9]{2,}\+[A-Z0-9]{2,}(\s*,\s*|\s+)/i;
     return address.replace(plusCodePattern, "").trim();
   };
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!locationReal) return;
-      try {
-        const res = await GetBranchNearLocation(locationReal);
-        const branches = res.data?.data || res.data || [];
-        setBranchInfo(branches);
-        if (branches.length > 0) {
-          setSelectedBranch((prevSelected: any) => {
-            if (prevSelected?.id) {
-              const foundBranch = branches.find(
-                (b: any) => b.id === prevSelected.id
-              );
-              if (foundBranch) {
-                return foundBranch;
-              }
-            }
-            const firstBranch = branches[0];
-            if (firstBranch?.id) {
-              setBranchId(firstBranch.id);
-            }
-            return firstBranch;
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching branch data:", error);
-      }
-    };
-
-    fetchData();
-  }, [locationReal, setBranchId]);
-  useEffect(() => {
-    const getLocation = async () => {
-      try {
-        let { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== "granted") {
-          setLocation("Không có quyền truy cập vị trí");
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+      const fetchCustomerInformation = async () => {
+        if (!appState?.userInfo?.id) {
           return;
         }
-        const locationData = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.Balanced,
-        });
-        const { latitude, longitude } = locationData.coords;
-        const address = await ReverseGeocodeGoogle(latitude, longitude);
-        setLocation(address);
-        if (address && !locationReal) {
-          setLocationReal(address);
+        const res = await GetCustomerInformation(appState.userInfo.id);
+        const filteredData = Array.isArray(res.data.data)
+          ? res.data.data.filter((item: any) => item.isDefault === true)
+          : res.data.data;
+        setLocationReal(filteredData[0].address);
+      };
+      const fetchData = async () => {
+        if (!locationReal) return;
+        try {
+          const res = await GetBranchNearLocation(locationReal);
+          if (!isActive) return;
+          const branches = res.data?.data || res.data || [];
+          setBranchInfo(branches);
+          if (branches.length > 0) {
+            setSelectedBranch((prevSelected: any) => {
+              if (prevSelected?.id) {
+                const foundBranch = branches.find(
+                  (b: any) => b.id === prevSelected.id
+                );
+                if (foundBranch) {
+                  return foundBranch;
+                }
+              }
+              const firstBranch = branches[0];
+              if (firstBranch?.id) {
+                setBranchId(firstBranch.id);
+              }
+              return firstBranch;
+            });
+          }
+        } catch (error) {
+          console.error("Error fetching branch data:", error);
         }
-      } catch (error) {
-        console.warn("Location error:", error);
-        setLocation("Lỗi khi lấy vị trí");
-      }
-    };
-
-    getLocation();
-  }, []);
+      };
+      fetchData();
+      fetchCustomerInformation();
+      return () => {
+        isActive = false;
+      };
+    }, [locationReal, setBranchId, appState?.userInfo?.id])
+  );
 
   const handleSelectBranch = (branch: any) => {
     setSelectedBranch(branch);
@@ -197,7 +192,10 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
         return (
           <View style={styles.container}>
             <Entypo name="location-pin" size={50} color={APP_COLOR.BROWN} />
-            <View style={{ width: "55%" }}>
+            <Pressable
+              style={{ width: "55%" }}
+              onPress={() => router.navigate("/(user)/order/address.create")}
+            >
               <Text
                 style={{
                   fontFamily: FONTS.bold,
@@ -213,13 +211,9 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
                   color: APP_COLOR.BROWN,
                 }}
               >
-                {locationReal
-                  ? removePlusCode(locationReal)
-                  : location
-                  ? removePlusCode(location)
-                  : "Đang lấy vị trí..."}
+                {locationReal ? locationReal : "Đang lấy vị trí..."}
               </Text>
-            </View>
+            </Pressable>
 
             <View
               style={{ alignItems: "flex-end", flexDirection: "row", gap: 10 }}
@@ -411,6 +405,8 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
                             selectedBranch?.id === item?.id &&
                               styles.selectedBranchName,
                           ]}
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
                         >
                           {item?.name || "Chi nhánh"}
                         </Text>

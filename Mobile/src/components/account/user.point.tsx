@@ -6,6 +6,7 @@ import { FONTS } from "@/theme/typography";
 interface ICustomerPointProps {
   fullName: string;
   phoneNumber: string;
+  memberPoint: number;
 }
 const CustomerPoint = (props: ICustomerPointProps) => {
   return (
@@ -58,7 +59,7 @@ const CustomerPoint = (props: ICustomerPointProps) => {
             }}
           >
             {" "}
-            Đổi 53 điểm
+            Đổi {props.memberPoint} điểm
           </Text>
         </View>
       </Pressable>

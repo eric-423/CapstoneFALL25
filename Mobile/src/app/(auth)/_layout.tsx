@@ -55,6 +55,18 @@ export default function AuthLayout() {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="change.info"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="store"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }
