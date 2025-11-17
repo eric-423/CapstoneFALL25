@@ -93,6 +93,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/materials/{id}").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(HttpMethod.DELETE, "/api/materials/{id}").hasAnyRole("ADMIN", "MANAGER")
 
+                        .requestMatchers(HttpMethod.GET, "/api/trainings")
+                        .hasAnyRole("MANAGER", "ADMIN", "CHEFF", "WAITER")
+                        .requestMatchers(HttpMethod.GET, "/api/trainings/{id}")
+                        .hasAnyRole("MANAGER", "ADMIN", "CHEFF", "WAITER")
+                        .requestMatchers(HttpMethod.POST, "/api/trainings").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.PUT, "/api/trainings/{id}").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/trainings/{id}").hasAnyRole("ADMIN", "MANAGER")
+
                         .requestMatchers("/api/combos/search").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/combos/{id}").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/combos").hasAnyRole("ADMIN", "MANAGER")
@@ -106,6 +114,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/order-statuses/{id}").hasAnyRole("ADMIN", "MANAGER")
 
                         .requestMatchers("/api/products/search").permitAll()
+                        .requestMatchers("/api/products/all-branch/search").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers("/api/product-types", "/api/product-types/{id}").permitAll()
                         .requestMatchers("/api/payment-method").permitAll()
                         .requestMatchers("/api/orders/shipping/fee").permitAll()
