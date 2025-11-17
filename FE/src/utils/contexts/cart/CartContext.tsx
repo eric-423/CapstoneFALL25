@@ -22,11 +22,11 @@ import { CartState } from './cart.type';
 const CartContext = createContext<CartContextType>({
   ...initialCartState,
   dispatch: () => null,
-  addItem: () => {},
-  removeItem: () => {},
-  updateQuantity: () => {},
-  updateItem: () => {},
-  clearCart: () => {},
+  addItem: () => { },
+  removeItem: () => { },
+  updateQuantity: () => { },
+  updateItem: () => { },
+  clearCart: () => { },
   getTotalItems: () => 0,
   getTotalPrice: () => 0,
 });

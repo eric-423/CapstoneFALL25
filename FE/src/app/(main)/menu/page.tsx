@@ -8,9 +8,17 @@ import useScrollTop from '@/utils/hooks/useScrollTop';
 import useGetProductSearch from '@/utils/hooks/useGetProductSearch';
 import { ProductType } from '@/apis/product.api';
 import { getCustomerInformation } from '@/apis/user.api';
-import { CustomerInformation, getNearbyBranches, NearbyBranch } from '@/apis/branch.api';
+import {
+    Branch as ApiBranch,
+    CustomerInformation,
+    GET_BRANCHES_QUERY_KEY,
+    GET_BRANCHES_STALE_TIME,
+    getBranches,
+    getNearbyBranches,
+    NearbyBranch,
+} from '@/apis/branch.api';
 import { useAuth } from '@/utils/hooks';
-import { useSampleProductTypes, useSampleBranches } from '@/utils/hooks/useSampleData';
+import { useSampleProductTypes } from '@/utils/hooks/useSampleData';
 
 import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
@@ -37,7 +45,13 @@ export default function MenuPage() {
     const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
 
     const { productTypes, isLoading: isLoadingProductTypes } = useSampleProductTypes();
-    const { branches: sampleBranches, isLoading: isLoadingSampleBranches } = useSampleBranches();
+    const { data: branchesData = [], isLoading: isLoadingBranchesData } = useQuery<ApiBranch[]>({
+        queryKey: [GET_BRANCHES_QUERY_KEY],
+        queryFn: () => getBranches(),
+        staleTime: GET_BRANCHES_STALE_TIME,
+        refetchOnMount: false,
+        refetchOnWindowFocus: false,
+    });
 
     const { data: customerInformationData = [], isLoading: isLoadingCustomerInfos } = useQuery({
         queryKey: ['customer-informations', user?.id],
@@ -79,18 +93,25 @@ export default function MenuPage() {
         } as Branch));
     }, [nearbyBranchesData]);
 
+    const apiBranches = useMemo(() => {
+        if (!Array.isArray(branchesData)) return [];
+        return branchesData.map(
+            (branch): Branch => ({
+                branchId: branch.id,
+                branchName: branch.name,
+                address: branch.address ?? '',
+                phone: branch.phone ?? '',
+                isActive: branch.active,
+            }),
+        );
+    }, [branchesData]);
+
     const displayBranches = useMemo(() => {
         if (nearbyBranches.length) {
             return nearbyBranches;
         }
-        return (sampleBranches || []).map((branch: Branch) => ({
-            branchId: branch.branchId,
-            branchName: branch.branchName,
-            address: branch.address,
-            phone: branch.phone,
-            isActive: branch.isActive,
-        })) as Branch[];
-    }, [nearbyBranches, sampleBranches]);
+        return apiBranches;
+    }, [apiBranches, nearbyBranches]);
 
     const {
         products: productList,
@@ -105,7 +126,7 @@ export default function MenuPage() {
         isActive: true,
     });
 
-    const isLoadingBranches = isLoadingSampleBranches || isLoadingProductTypes || isLoadingCustomerInfos || isLoadingNearbyBranches;
+    const isLoadingBranches = isLoadingBranchesData || isLoadingProductTypes || isLoadingCustomerInfos || isLoadingNearbyBranches;
 
     useEffect(() => {
         if (isLoadingBranches) return;

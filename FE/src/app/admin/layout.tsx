@@ -22,8 +22,6 @@ import {
     MessageSquare,
     Settings,
     LogOut,
-    User,
-    Edit,
     Package,
     BookOpen,
     GraduationCap,
@@ -42,7 +40,7 @@ const MenuItem = memo(({
     index,
     totalItems
 }: {
-    item: { href: string; label: string; icon: any };
+    item: { href: string; label: string; icon: React.ElementType };
     isActive: boolean;
     isCollapsed: boolean;
     index: number;
@@ -178,18 +176,25 @@ export default function AdminLayout({
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [sidebarOpen]);
 
+    // Memoize barcode scanner callbacks
+    const handleBarcodeSuccess = useCallback((orderId: number) => {
+        console.log('Assign chef thành công cho order:', orderId);
+    }, []);
+
+    const handleBarcodeError = useCallback((error: Error) => {
+        console.error('Lỗi khi assign chef:', error);
+    }, []);
+
+    const handleBarcodeAlreadyHandled = useCallback((orderId: number) => {
+        console.warn('Chef khác đã nhận order:', orderId);
+    }, []);
+
     // Global barcode scanner - hoạt động ở mọi trang admin
     useBarcodeScanner({
         enabled: true,
-        onSuccess: (orderId) => {
-            console.log('✅ Assign chef thành công cho order:', orderId);
-        },
-        onError: (error) => {
-            console.error('❌ Lỗi khi assign chef:', error);
-        },
-        onChefBusy: (orderId) => {
-            console.warn('⚠️ Chef đang bận cho order:', orderId);
-        },
+        onSuccess: handleBarcodeSuccess,
+        onError: handleBarcodeError,
+        onAlreadyHandled: handleBarcodeAlreadyHandled,
     });
 
     return (

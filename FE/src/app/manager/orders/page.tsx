@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { ManagerGuard } from '@/components/guards';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -129,21 +129,15 @@ const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat('vi-VN').format(amount) + 'đ';
 };
 
-const handlePrintInvoice = async (order: BranchOrderResponse) => {
-    console.log('Bắt đầu in hóa đơn cho order:', order.id);
-    console.log('PRINT_CONFIG.useServerPrint:', PRINT_CONFIG.useServerPrint);
 
+const handlePrintInvoice = async (order: BranchOrderResponse) => {
     if (PRINT_CONFIG.useServerPrint) {
-        console.log(' Đang gọi server action để in...');
         try {
             const result = await printBillAction(order.id);
-            console.log('Kết quả từ server:', result);
             if (result.success) {
-                console.log('In hóa đơn thành công!');
                 alert('In hóa đơn thành công!');
                 return;
             } else {
-                console.warn('Server print thất bại, fallback về browser print:', result.error);
                 const useBrowserPrint = confirm(
                     `Không thể kết nối máy in: ${result.error}\n\n` +
                     `Bạn có muốn in qua trình duyệt không?`
@@ -166,160 +160,80 @@ const handlePrintInvoice = async (order: BranchOrderResponse) => {
 
     console.log('Dùng browser print mode...');
 
-    try {
-        const response = await fetch(`/api/orders/${order.id}/bill/download`, {
-            method: 'GET',
-            credentials: 'include',
-        });
+    console.log('Dùng browser print mode...');
 
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ error: 'Failed to download bill' }));
-            console.error('Error downloading bill:', errorData);
-            alert('Không thể tải hóa đơn. Vui lòng thử lại.');
-            return;
-        }
+    try {
+        const response = await fetch(`/api/orders/${order.id}/bill/download`, { credentials: 'include' });
+        if (!response.ok) throw new Error('Download failed');
 
         const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
+        const url = URL.createObjectURL(blob);
 
         const iframe = document.createElement('iframe');
-        iframe.style.position = 'fixed';
-        iframe.style.right = '0';
-        iframe.style.bottom = '0';
-        iframe.style.width = '0';
-        iframe.style.height = '0';
-        iframe.style.border = '0';
-        iframe.style.opacity = '0';
-        iframe.style.pointerEvents = 'none';
+        iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;opacity:0;';
         document.body.appendChild(iframe);
-
         iframe.src = url;
 
-        const simulateEnterKey = () => {
-            try {
-                const enterEventDown = new KeyboardEvent('keydown', {
-                    key: 'Enter',
-                    code: 'Enter',
-                    keyCode: 13,
-                    which: 13,
-                    bubbles: true,
-                    cancelable: false,
-                });
-
-                const enterEventPress = new KeyboardEvent('keypress', {
-                    key: 'Enter',
-                    code: 'Enter',
-                    keyCode: 13,
-                    which: 13,
-                    bubbles: true,
-                    cancelable: false,
-                });
-
-                const enterEventUp = new KeyboardEvent('keyup', {
-                    key: 'Enter',
-                    code: 'Enter',
-                    keyCode: 13,
-                    which: 13,
-                    bubbles: true,
-                    cancelable: false,
-                });
-
-                window.dispatchEvent(enterEventDown);
-                window.dispatchEvent(enterEventPress);
-                window.dispatchEvent(enterEventUp);
-
-                document.dispatchEvent(enterEventDown);
-                document.dispatchEvent(enterEventPress);
-                document.dispatchEvent(enterEventUp);
-
-                if (iframe.contentWindow) {
-                    iframe.contentWindow.dispatchEvent(enterEventDown);
-                    iframe.contentWindow.dispatchEvent(enterEventPress);
-                    iframe.contentWindow.dispatchEvent(enterEventUp);
-
-                    if (iframe.contentWindow.document) {
-                        iframe.contentWindow.document.dispatchEvent(enterEventDown);
-                        iframe.contentWindow.document.dispatchEvent(enterEventPress);
-                        iframe.contentWindow.document.dispatchEvent(enterEventUp);
-                    }
-                }
-            } catch (error) {
-                console.error('Error simulating Enter key:', error);
-            }
+        let cleaned = false;
+        const cleanup = () => {
+            if (cleaned) return;
+            cleaned = true;
+            iframe.parentNode && document.body.removeChild(iframe);
+            URL.revokeObjectURL(url);
         };
 
-        const triggerPrint = () => {
-            try {
-                if (iframe.contentWindow) {
-                    iframe.contentWindow.focus();
+        const ensureScanner = () => {
+            window.focus();
+            document.body.focus();
 
-                    setTimeout(() => {
-                        console.log('🖨️ isKioskMode:', PRINT_CONFIG.isKioskMode);
+            const input = document.createElement('input');
+            input.style.cssText = 'position:fixed;left:-9999px;opacity:0;';
+            input.autofocus = true;
+            document.body.appendChild(input);
+            input.focus();
 
-                        if (PRINT_CONFIG.isKioskMode) {
-                            console.log('🖨️ Kiosk mode: Tự động in không dialog');
-                            iframe.contentWindow?.print();
+            const remove = () => input.parentNode && document.body.removeChild(input);
+            setTimeout(remove, 6000);
 
-                            setTimeout(() => {
-                                iframe.contentWindow?.print();
-                            }, 500);
-                        } else {
-                            console.log('🖨️ Normal mode: Hiện dialog print');
-                            iframe.contentWindow?.print();
-
-                            setTimeout(() => {
-                                simulateEnterKey();
-
-                                setTimeout(() => {
-                                    simulateEnterKey();
-                                }, 200);
-
-                                setTimeout(() => {
-                                    simulateEnterKey();
-                                }, 400);
-                            }, 300);
-                        }
-                    }, 100);
+            input.addEventListener('input', (e) => {
+                const v = (e.target as HTMLInputElement).value;
+                if (v.length > 6) {
+                    window.dispatchEvent(new CustomEvent('barcodeScanned', { detail: v }));
+                    remove();
                 }
-            } catch (error) {
-                console.error('Error triggering print:', error);
-            }
+            });
+
+            input.addEventListener('blur', () => setTimeout(() => input.focus(), 100));
         };
 
-        iframe.onload = () => {
-            setTimeout(() => {
-                triggerPrint();
-
-                if (PRINT_CONFIG.autoClose) {
-                    const cleanup = () => {
-                        setTimeout(() => {
-                            if (iframe.parentNode) {
-                                document.body.removeChild(iframe);
-                            }
-                            window.URL.revokeObjectURL(url);
-                        }, 1000);
-                    };
-
-                    iframe.contentWindow?.addEventListener('afterprint', cleanup, { once: true });
-
-                    setTimeout(() => {
-                        if (iframe.parentNode) {
-                            document.body.removeChild(iframe);
-                            window.URL.revokeObjectURL(url);
-                        }
-                    }, 5000);
-                }
-            }, 1000);
+        const printAndFocus = () => {
+            if (!iframe.contentWindow) return;
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print();
+            if (PRINT_CONFIG.isKioskMode) setTimeout(() => iframe.contentWindow?.print(), 300);
+            setTimeout(ensureScanner, 700);
         };
 
-        setTimeout(() => {
-            if (iframe.contentDocument?.readyState === 'complete') {
-                triggerPrint();
+        const onVisible = () => {
+            if (document.visibilityState === 'visible') {
+                ensureScanner();
+                document.removeEventListener('visibilitychange', onVisible);
             }
-        }, 1500);
+        };
+        document.addEventListener('visibilitychange', onVisible);
+
+        iframe.onload = () => setTimeout(printAndFocus, 800);
+        setTimeout(() => iframe.contentDocument?.readyState === 'complete' && printAndFocus(), 1500);
+
+        // Dọn dẹp an toàn
+        setTimeout(cleanup, 10000);
+        const afterPrint = () => { ensureScanner(); cleanup(); };
+        iframe.contentWindow?.addEventListener('afterprint', afterPrint);
+        window.addEventListener('afterprint', afterPrint);
+
     } catch (error) {
-        console.error('Error printing invoice:', error);
-        alert('Có lỗi xảy ra khi in hóa đơn. Vui lòng thử lại.');
+        console.error('Print error:', error);
+        alert('Lỗi in hóa đơn. Vui lòng thử lại.');
     }
 };
 
@@ -349,35 +263,39 @@ export default function ManagerOrdersPage() {
         fetchStatuses();
     }, []);
 
-    useEffect(() => {
-        const fetchOrders = async () => {
-            setLoadingOrders(true);
-            try {
-                const status = selectedStatus === 'ALL' ? undefined : selectedStatus;
-                console.log('Fetching orders with status:', status || 'ALL (no filter)');
-                const response = await getBranchOrders(status);
-                if (response && response.status === 0 && response.data && Array.isArray(response.data)) {
-                    setOrders(response.data);
-                } else {
-                    console.warn('Invalid response format for branch orders:', response);
-                    setOrders([]);
-                }
-            } catch (error: unknown) {
-                console.error('Error fetching orders:', error);
-                const err = error as { message?: string; response?: { status?: number; data?: unknown } };
-                console.error('Error details:', {
-                    message: err?.message,
-                    status: err?.response?.status,
-                    data: err?.response?.data,
-                });
+    const fetchOrders = useCallback(async () => {
+        setLoadingOrders(true);
+        try {
+            const status = selectedStatus === 'ALL' ? undefined : selectedStatus;
+            const response = await getBranchOrders(status);
+            if (response && response.status === 0 && response.data && Array.isArray(response.data)) {
+                setOrders(response.data);
+            } else {
                 setOrders([]);
-            } finally {
-                setLoadingOrders(false);
-                setLoading(false);
             }
-        };
-        fetchOrders();
+        } catch (error: unknown) {
+            console.error('Error fetching branch orders:', error);
+            setOrders([]);
+        } finally {
+            setLoadingOrders(false);
+            setLoading(false);
+        }
     }, [selectedStatus]);
+
+    useEffect(() => {
+        fetchOrders();
+    }, [fetchOrders]);
+
+    useEffect(() => {
+        const handleRefreshOrders = () => {
+            fetchOrders();
+        };
+
+        window.addEventListener('refreshOrders', handleRefreshOrders);
+        return () => {
+            window.removeEventListener('refreshOrders', handleRefreshOrders);
+        };
+    }, [fetchOrders]);
 
     const handleAssignShipper = async (orderId: number) => {
         if (assigningShipper.has(orderId)) {

@@ -1,7 +1,7 @@
 'use client';
 
 import { createOrderApiRoute, CreateOrderPayload } from '@/apis/order.api';
-import { getCustomerInformation } from '@/apis/user.api';
+import { getCustomerInformation, saveCustomerInformation } from '@/apis/user.api';
 import ControlledDateTimePicker from '@/components/common/controlled-date-time-picker';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { Button } from '@/components/ui/button';
@@ -58,7 +58,7 @@ type CustomerInformationResponse = {
 };
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
     Clock,
     CreditCard,
@@ -87,28 +87,13 @@ import { CheckoutFormData, checkoutSchema } from './schema';
 export default function CheckoutPage() {
     useScrollTop();
 
+    const queryClient = useQueryClient();
     const { items, getTotalPrice } = useCart();
     const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
     const router = useRouter();
     const tokenFullName = user?.fullName?.trim();
     const isMountedRef = useRef(false);
     const skipAutoSelectRef = useRef(false);
-
-    // const [cookies] = useCookies([configs.cookies.accessToken, configs.cookies.refreshToken, 'token']);
-
-
-    const getAuthToken = useCallback(async () => {
-
-        const response = await fetch('/api/auth/me', {
-            method: 'GET',
-            credentials: 'include',
-        });
-        const data = await response.json();
-        return data.token;
-
-    }, []);
-
-
 
     useEffect(() => {
         isMountedRef.current = true;
@@ -122,6 +107,7 @@ export default function CheckoutPage() {
     const [selectedInfoId, setSelectedInfoId] = useState<number | 'new' | null>(null);
     const [shippingFee, setShippingFee] = useState<number | null>(null);
     const [isFetchingShippingFee, setIsFetchingShippingFee] = useState(false);
+    const [addressLabel, setAddressLabel] = useState<'Nhà Riêng' | 'Công Ty'>('Nhà Riêng');
 
 
 
@@ -290,6 +276,15 @@ export default function CheckoutPage() {
 
     const fulfillmentMethod = form.watch('fulfillmentMethod');
     const isDelivery = fulfillmentMethod === 'delivery';
+    const isCreatingNewAddress = isDelivery && (selectedInfoId === 'new' || customerInformations.length === 0);
+
+    useEffect(() => {
+        if (!isMountedRef.current) return;
+        if (!isDelivery) return;
+        if (!customerInformations.length) {
+            setSelectedInfoId('new');
+        }
+    }, [customerInformations.length, isDelivery]);
 
     useEffect(() => {
         if (!isMountedRef.current) return;
@@ -357,6 +352,10 @@ export default function CheckoutPage() {
         if (!isDelivery) {
             skipAutoSelectRef.current = false;
         }
+
+        if (selectedInfoId !== 'new') {
+            setAddressLabel('Nhà Riêng');
+        }
     }, [form, isDelivery, selectedInfoId, tokenFullName, user?.phoneNumber]);
 
     const handleSelectSavedAddress = useCallback(
@@ -382,6 +381,50 @@ export default function CheckoutPage() {
         form.setValue('customerName', user?.fullName || '', { shouldValidate: true });
         setShippingFee(null);
     }, [form, user?.phoneNumber, user?.fullName]);
+
+    const { mutateAsync: saveAddressMutation, isPending: isSavingAddress } = useMutation({
+        mutationFn: saveCustomerInformation,
+        onSuccess: async () => {
+            toast.success('Đã lưu địa chỉ giao hàng mới');
+            await queryClient.invalidateQueries({ queryKey: ['customer-informations', user?.id] });
+            skipAutoSelectRef.current = false;
+            setSelectedInfoId(null);
+        },
+        onError: (error: unknown) => {
+            const errorMessage =
+                (error as { response?: { data?: { desc?: string } } })?.response?.data?.desc ||
+                'Không thể lưu địa chỉ. Vui lòng thử lại.';
+            toast.error(errorMessage);
+        },
+    });
+
+    const handleSaveNewAddress = useCallback(async () => {
+        if (!user?.id) {
+            toast.error('Bạn cần đăng nhập để lưu địa chỉ.');
+            return;
+        }
+
+        const address = form.getValues('deliveryAddress')?.trim();
+        const phoneValue = form.getValues('customerPhone')?.trim() || user.phoneNumber || '';
+
+        if (!address) {
+            toast.error('Vui lòng nhập địa chỉ giao hàng.');
+            return;
+        }
+
+        if (!phoneValue) {
+            toast.error('Vui lòng nhập số điện thoại liên hệ.');
+            return;
+        }
+
+        await saveAddressMutation({
+            userId: user.id,
+            name: addressLabel,
+            address,
+            phoneNumber: phoneValue,
+            isDefault: customerInformations.length === 0,
+        });
+    }, [addressLabel, customerInformations.length, form, saveAddressMutation, user?.id, user?.phoneNumber]);
 
 
 
@@ -421,14 +464,6 @@ export default function CheckoutPage() {
             return;
         }
 
-        const token = getAuthToken();
-        if (!token) {
-            setShippingFee(null);
-            setIsFetchingShippingFee(false);
-            setErrorShippingFee('Bạn cần đăng nhập để tính phí giao hàng.');
-            return;
-        }
-
         const controller = new AbortController();
 
         const timeoutId = window.setTimeout(async () => {
@@ -442,11 +477,9 @@ export default function CheckoutPage() {
                     branchAddress: branchAddr,
                 });
 
-                const response = await fetch(`https://tam-tac.com/api/orders/shipping/fee?${params.toString()}`, {
-                    headers: {
-                        accept: '*/*',
-                        Authorization: `Bearer ${token}`,
-                    },
+                const response = await fetch(`/api/orders/shipping/fee?${params.toString()}`, {
+                    method: 'GET',
+                    credentials: 'include',
                     signal: controller.signal,
                 });
 
@@ -489,7 +522,7 @@ export default function CheckoutPage() {
             clearTimeout(timeoutId);
             controller.abort();
         };
-    }, [deliveryAddressValue, getAuthToken, isDelivery, selectedBranch]);
+    }, [deliveryAddressValue, isDelivery, selectedBranch]);
 
     useEffect(() => {
         if (fulfillmentMethod === 'pickup') {
@@ -545,10 +578,24 @@ export default function CheckoutPage() {
 
 
     const isOrderSubmitting = isSubmitting || isPlacingOrderPending;
+    const isShippingDistanceExceeded = isDelivery && errorShippingFee === SHIPPING_DISTANCE_LIMIT_MESSAGE;
     const isOrderButtonDisabled = useMemo(() => {
         const isDeliveryAndLoading = isDelivery && isLoadingCustomerInfos;
-        return items.length === 0 || isOrderSubmitting || !form.formState.isValid || isDeliveryAndLoading;
-    }, [form.formState.isValid, isDelivery, isLoadingCustomerInfos, isOrderSubmitting, items.length]);
+        return (
+            items.length === 0 ||
+            isOrderSubmitting ||
+            !form.formState.isValid ||
+            isDeliveryAndLoading ||
+            isShippingDistanceExceeded
+        );
+    }, [
+        form.formState.isValid,
+        isDelivery,
+        isLoadingCustomerInfos,
+        isOrderSubmitting,
+        isShippingDistanceExceeded,
+        items.length,
+    ]);
 
 
     const branchName = selectedBranch?.branchName || STORE_INFO.name;
@@ -749,39 +796,41 @@ export default function CheckoutPage() {
                                                                 </FormLabel>
                                                             </div>
 
-                                                            {isLoadingCustomerInfos ? (
+                                                                {isLoadingCustomerInfos ? (
                                                                 <p className='text-sm text-muted-foreground'>
                                                                     Đang tải địa chỉ giao hàng của bạn...
                                                                 </p>
-                                                            ) : customerInformations.length > 0 ? (
+                                                            ) : (
                                                                 <>
-                                                                    <div className='flex flex-wrap gap-2 items-center'>
-                                                                        {customerInformations.map((info) => (
+                                                                    {customerInformations.length > 0 ? (
+                                                                        <div className='flex flex-wrap gap-2 items-center'>
+                                                                            {customerInformations.map((info) => (
+                                                                                <Button
+                                                                                    key={info.informationId}
+                                                                                    type='button'
+                                                                                    variant={
+                                                                                        selectedInfoId === info.informationId ? 'default' : 'outline'
+                                                                                    }
+                                                                                    className='rounded-full text-xs md:text-sm'
+                                                                                    onClick={() => handleSelectSavedAddress(info)}
+                                                                                >
+                                                                                    {info.fullName || `Địa chỉ ${info.informationId}`}
+                                                                                </Button>
+                                                                            ))}
                                                                             <Button
-                                                                                key={info.informationId}
                                                                                 type='button'
-                                                                                variant={
-                                                                                    selectedInfoId === info.informationId ? 'default' : 'outline'
-                                                                                }
-                                                                                className='rounded-full text-xs md:text-sm'
-                                                                                onClick={() => handleSelectSavedAddress(info)}
+                                                                                variant='ghost'
+                                                                                className='text-primary px-3'
+                                                                                onClick={handleAddNewAddress}
                                                                             >
-                                                                                {info.fullName || `Địa chỉ ${info.informationId}`}
+                                                                                + Thêm địa chỉ mới
                                                                             </Button>
-                                                                        ))}
-                                                                        <Button
-                                                                            type='button'
-                                                                            variant='ghost'
-                                                                            className='text-primary px-3'
-                                                                            onClick={handleAddNewAddress}
-                                                                        >
-                                                                            + Thêm địa chỉ mới
-                                                                        </Button>
-                                                                    </div>
-
-
-
-                                                                    {/* dùng auto chỗ nài nè  */}
+                                                                        </div>
+                                                                    ) : (
+                                                                        <p className='text-sm text-muted-foreground'>
+                                                                            Bạn chưa có địa chỉ đã lưu. Vui lòng nhập địa chỉ giao hàng mới.
+                                                                        </p>
+                                                                    )}
 
                                                                     <AddressAutocomplete
                                                                         value={field.value ?? ''}
@@ -795,18 +844,44 @@ export default function CheckoutPage() {
                                                                             }
                                                                         }}
                                                                         placeholder='Ví dụ: Số nhà, đường, phường/xã, quận/huyện, thành phố'
-                                                                        rows={3}
+                                                                       rows={3}
+                                                                       disabled={selectedInfoId !== 'new'}
                                                                     />
 
-
-
-
-
+                                                                    {isCreatingNewAddress && (
+                                                                        <div className='space-y-3'>
+                                                                            <div className='flex flex-wrap gap-4 pt-2'>
+                                                                                {[
+                                                                                    { label: 'Nhà riêng', value: 'Nhà Riêng' as const },
+                                                                                    { label: 'Công ty', value: 'Công Ty' as const },
+                                                                                ].map((option) => (
+                                                                                    <label key={option.value} className='flex items-center gap-2 text-sm cursor-pointer'>
+                                                                                        <input
+                                                                                            type='radio'
+                                                                                            name='addressLabel'
+                                                                                            value={option.value}
+                                                                                            checked={addressLabel === option.value}
+                                                                                            onChange={() => setAddressLabel(option.value)}
+                                                                                        />
+                                                                                        {option.label}
+                                                                                    </label>
+                                                                                ))}
+                                                                            </div>
+                                                                            <div className='flex flex-wrap items-center gap-3'>
+                                                                                <Button
+                                                                                    type='button'
+                                                                                    onClick={handleSaveNewAddress}
+                                                                                    disabled={isSavingAddress}
+                                                                                >
+                                                                                    {isSavingAddress ? 'Đang lưu...' : 'Lưu địa chỉ này'}
+                                                                                </Button>
+                                                                                <p className='text-xs text-muted-foreground max-w-xs'>
+                                                                                    Địa chỉ sẽ được lưu cho những lần đặt sau.
+                                                                                </p>
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
                                                                 </>
-                                                            ) : (
-                                                                <p className='text-sm text-muted-foreground'>
-                                                                    Bạn chưa có địa chỉ đã lưu. Vui lòng nhập địa chỉ giao hàng mới.
-                                                                </p>
                                                             )}
                                                             {form.getFieldState(field.name).error && (
                                                                 <p className='text-red-500 text-sm'>
