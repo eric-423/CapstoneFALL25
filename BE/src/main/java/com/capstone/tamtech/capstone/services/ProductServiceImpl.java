@@ -80,6 +80,28 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public PagedResponse<ProductDTO> searchProductForAllBranch(ProductSearchRequest searchRequest) {
+
+        Pageable pageable = createPageable(searchRequest);
+
+        Page<Product> productPage = productRepository.getAllProduct(
+                searchRequest.getKeyword(),
+                searchRequest.getProductTypeId(),
+                searchRequest.getIsActive(),
+                searchRequest.getMinPrice(),
+                searchRequest.getMaxPrice(),
+                pageable);
+
+
+        List<ProductDTO> productDTOs = productPage.getContent().stream()
+                .map(product -> toDTO(product))
+                .collect(Collectors.toList());
+
+        return createPagedResponse(productPage, productDTOs);
+    }
+
+    @Override
     public ProductDTO createProduct(ProductCreateRequest productCreateRequest) {
         Product product = new Product();
 

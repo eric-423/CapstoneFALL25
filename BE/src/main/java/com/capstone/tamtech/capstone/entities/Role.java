@@ -25,5 +25,8 @@ public class Role {
     private boolean isInternal;
 
     @OneToMany(mappedBy = "role", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE,CascadeType.REFRESH,CascadeType.DETACH})
+    private List<Trainings> trainingsList;
+
+    @OneToMany(mappedBy = "role", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE,CascadeType.REFRESH,CascadeType.DETACH})
     private List<RoleHistory> roleHistoryList;
 }
