@@ -257,8 +257,8 @@ public class PromotionServiceImpl implements PromotionService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<PromotionDTO> getCustomerPromotions(String customerEmail) {
-        Users customer = usersRepository.findByEmail(customerEmail)
+    public List<PromotionDTO> getCustomerPromotions(String phoneNumber) {
+        Users customer = usersRepository.findByPhoneNumber(phoneNumber)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
 
         List<UserPromotion> userPromotions = userPromotionRepository.findByIdUserId(customer.getId());
@@ -275,8 +275,8 @@ public class PromotionServiceImpl implements PromotionService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<PromotionDTO> getAvailablePromotions(String customerEmail) {
-        Users customer = usersRepository.findByEmail(customerEmail)
+    public List<PromotionDTO> getAvailablePromotions(String phoneNumber) {
+        Users customer = usersRepository.findByPhoneNumber(phoneNumber)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
 
         List<UserPromotion> userPromotions = userPromotionRepository.findAvailablePromotionsByUserId(customer.getId());
@@ -327,8 +327,8 @@ public class PromotionServiceImpl implements PromotionService {
 
     @Override
     @Transactional(readOnly = true)
-    public boolean validatePromotionForCustomer(String customerEmail, String promotionCode, double orderValue) {
-        Users customer = usersRepository.findByEmail(customerEmail)
+    public boolean validatePromotionForCustomer(String phoneNumber, String promotionCode, double orderValue) {
+        Users customer = usersRepository.findByPhoneNumber(phoneNumber)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
 
         PromotionValidationResult result = validateAndApplyPromotion(

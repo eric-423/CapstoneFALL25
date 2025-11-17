@@ -690,6 +690,13 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public boolean deliveredOrder(int orderId) {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
+
+        if(order.getStatus().getName().equals("DELIVERED")) {
+            throw new RuntimeException("Order has already been delivered");
+        }
+        OrderStatus orderStatus = orderStatusRepository.findByName("DELIVERED")
+                .orElseThrow(() -> new RuntimeException("OrderStatus DELIVERED not found"));
+        order.setStatus(orderStatus);
         Users shipper = order.getShipper();
         shipper.setIsBusy(false);
 
