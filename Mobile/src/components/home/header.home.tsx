@@ -218,13 +218,35 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
             <View
               style={{ alignItems: "flex-end", flexDirection: "row", gap: 10 }}
             >
-              <View style={styles.notificationWrapper}>
-                <Feather
-                  name="shopping-cart"
+              <Pressable
+                onPress={() => router.navigate("/(user)/order/cart")}
+                style={styles.notificationWrapper}
+              >
+                <SimpleLineIcons
+                  name="handbag"
                   size={24}
                   color={APP_COLOR.WHITE}
                 />
-              </View>
+                <View
+                  style={{
+                    backgroundColor: APP_COLOR.ORANGE,
+                    width: 25,
+                    height: 25,
+                    borderRadius: 50,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    position: "absolute",
+                    left: 30,
+                    top: -5,
+                  }}
+                >
+                  <Text
+                    style={{ color: APP_COLOR.WHITE, fontFamily: FONTS.bold }}
+                  >
+                    {cart?.mock_restaurant_1?.quantity || 0}
+                  </Text>
+                </View>
+              </Pressable>
               <View
                 style={{
                   backgroundColor: APP_COLOR.ORANGE,
@@ -440,7 +462,7 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
           <View style={styles.container}>
             <View
               style={{
-                width: "87%",
+                width: "85%",
                 flexDirection: "row",
                 alignItems: "center",
               }}

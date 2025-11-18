@@ -26,6 +26,7 @@ const WelcomePage = () => {
   const { setAppState } = useCurrentApp();
   const [loading, setLoading] = useState<boolean>(false);
   const [fogotPasword, setFogotPassword] = useState(false);
+  const [error, setError] = useState();
   const handleLogin = useCallback(
     async (phoneNumber: string, password: string, resetForm: any) => {
       try {
@@ -51,18 +52,13 @@ const WelcomePage = () => {
           });
         }
       } catch (error: any) {
-        console.log("Lỗi khi đăng nhập", error);
         setLoading(false);
+
         const errorMessage =
           error?.response?.data?.message ||
           error?.message ||
           "Đăng nhập thất bại. Vui lòng thử lại.";
-        Toast.show(errorMessage, {
-          duration: Toast.durations.LONG,
-          textColor: "white",
-          backgroundColor: APP_COLOR.CANCEL,
-          opacity: 1,
-        });
+        setError(errorMessage);
         setFogotPassword(true);
       }
     },
@@ -107,6 +103,18 @@ const WelcomePage = () => {
                 title="Đăng nhập với"
                 textStyle={typography.bodyMedium}
               />
+              {error && (
+                <Text
+                  style={{
+                    color: APP_COLOR.CANCEL,
+                    fontSize: 14,
+                    fontFamily: FONTS.semiBold,
+                    textAlign: "center",
+                  }}
+                >
+                  {error}
+                </Text>
+              )}
               <View>
                 <Formik
                   validationSchema={CustomerSignInSchema}

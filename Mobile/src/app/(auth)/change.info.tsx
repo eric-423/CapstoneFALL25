@@ -1,7 +1,15 @@
-import { View, Text, StyleSheet, Image } from "react-native";
-import { useCallback, useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TextInput,
+  TouchableOpacity,
+  Keyboard,
+} from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
 import ShareButton from "@/components/button/share.button";
-import { APP_COLOR } from "@/utils/constant";
+import { APP_COLOR, GOOGLE_API_KEY } from "@/utils/constant";
 import { FONTS } from "@/theme/typography";
 import logo from "@/assets/logo.png";
 import { useFocusEffect, useLocalSearchParams, router } from "expo-router";
@@ -17,6 +25,8 @@ import { UpdateUserSchema } from "@/utils/validate.schema";
 import { FontAwesome } from "@expo/vector-icons";
 import CheckBox from "react-native-check-box";
 import Toast from "react-native-root-toast";
+import axios from "axios";
+import debounce from "debounce";
 
 const ChangeInfoPage = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -24,6 +34,10 @@ const ChangeInfoPage = () => {
   const [customerInformation, setCustomerInformation] = useState<any>(null);
   const { appState } = useCurrentApp();
   const { id } = useLocalSearchParams();
+  const addressInputRef = useRef<TextInput>(null);
+  const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const fetchCustomerInformation = useCallback(async () => {
     try {
       const resCusInfor = await GetDetailCustomerInformation(
@@ -41,6 +55,103 @@ const ChangeInfoPage = () => {
     useCallback(() => {
       fetchCustomerInformation();
     }, [fetchCustomerInformation])
+  );
+
+  const fetchAddressSuggestions = useCallback(
+    debounce(async (input: string) => {
+      if (!input || input.length < 3) {
+        setAddressSuggestions([]);
+        setShowSuggestions(false);
+        return;
+      }
+      try {
+        setIsLoadingSuggestions(true);
+        const location = "10.8231,106.6297";
+        const radius = 50000;
+        const response = await axios.get(
+          `https://maps.googleapis.com/maps/api/place/autocomplete/json`,
+          {
+            params: {
+              input,
+              key: GOOGLE_API_KEY,
+              language: "vi",
+              location,
+              radius,
+              components: "country:vn",
+            },
+          }
+        );
+        if (response.data.predictions?.length > 0) {
+          setAddressSuggestions(response.data.predictions);
+          setShowSuggestions(true);
+        } else {
+          setAddressSuggestions([]);
+          setShowSuggestions(false);
+        }
+      } catch (error) {
+        console.error("Error fetching address suggestions:", error);
+        setAddressSuggestions([]);
+        setShowSuggestions(false);
+      } finally {
+        setIsLoadingSuggestions(false);
+      }
+    }, 300),
+    []
+  );
+
+  const handleAddressChange = useCallback(
+    (
+      text: string,
+      setFieldValue: (
+        field: string,
+        value: any,
+        shouldValidate?: boolean
+      ) => void
+    ) => {
+      setFieldValue("address", text);
+      fetchAddressSuggestions(text);
+    },
+    [fetchAddressSuggestions]
+  );
+
+  const handleSelectSuggestion = useCallback(
+    async (
+      placeId: string,
+      description: string,
+      setFieldValue: (
+        field: string,
+        value: any,
+        shouldValidate?: boolean
+      ) => void
+    ) => {
+      try {
+        addressInputRef.current?.setNativeProps({ text: description });
+        setFieldValue("address", description);
+        setShowSuggestions(false);
+        setAddressSuggestions([]);
+        Keyboard.dismiss();
+
+        const response = await axios.get(
+          `https://maps.googleapis.com/maps/api/place/details/json`,
+          {
+            params: {
+              place_id: placeId,
+              key: GOOGLE_API_KEY,
+              language: "vi",
+              fields: "formatted_address",
+            },
+          }
+        );
+
+        const fullAddress =
+          response.data.result?.formatted_address || description;
+        addressInputRef.current?.setNativeProps({ text: fullAddress });
+        setFieldValue("address", fullAddress);
+      } catch (error) {
+        console.error("Error fetching place details:", error);
+      }
+    },
+    []
   );
 
   const handleUpdateCustomerInformation = async (
@@ -149,14 +260,92 @@ const ChangeInfoPage = () => {
                 error={errors.name}
                 touched={touched.name}
               />
-              <ShareInput
-                title="Địa chỉ"
-                onChangeText={handleChange("address")}
-                onBlur={handleBlur("address")}
-                value={values.address}
-                error={errors.address}
-                touched={touched.address}
-              />
+              <View>
+                <Text
+                  style={{
+                    fontFamily: FONTS.semiBold,
+                    color: APP_COLOR.BROWN,
+                    marginBottom: 8,
+                  }}
+                >
+                  Địa chỉ
+                </Text>
+                <View style={{ position: "relative" }}>
+                  <TextInput
+                    ref={addressInputRef}
+                    style={styles.addressInput}
+                    placeholder="Nhập địa chỉ của bạn"
+                    placeholderTextColor={APP_COLOR.ORANGE}
+                    value={values.address}
+                    onChangeText={(text) =>
+                      handleAddressChange(text, setFieldValue)
+                    }
+                    onFocus={() => {
+                      if (
+                        values.address.length >= 3 &&
+                        addressSuggestions.length > 0
+                      ) {
+                        setShowSuggestions(true);
+                      }
+                    }}
+                    onBlur={() => {
+                      setTimeout(() => setShowSuggestions(false), 200);
+                    }}
+                    multiline
+                  />
+                  {typeof errors.address === "string" && touched.address && (
+                    <Text style={styles.errorText}>{errors.address}</Text>
+                  )}
+                  {showSuggestions && (
+                    <View style={styles.suggestionContainer}>
+                      {isLoadingSuggestions ? (
+                        <Text
+                          style={{
+                            fontFamily: FONTS.regular,
+                            color: APP_COLOR.BROWN,
+                            padding: 10,
+                          }}
+                        >
+                          Đang tải gợi ý...
+                        </Text>
+                      ) : addressSuggestions.length > 0 ? (
+                        addressSuggestions.map((suggestion) => (
+                          <TouchableOpacity
+                            key={suggestion.place_id}
+                            style={styles.suggestionItem}
+                            onPress={() =>
+                              handleSelectSuggestion(
+                                suggestion.place_id,
+                                suggestion.description,
+                                setFieldValue
+                              )
+                            }
+                          >
+                            <Text
+                              style={{
+                                fontFamily: FONTS.regular,
+                                color: APP_COLOR.BROWN,
+                              }}
+                            >
+                              {suggestion.description}
+                            </Text>
+                          </TouchableOpacity>
+                        ))
+                      ) : (
+                        <Text
+                          style={{
+                            fontFamily: FONTS.regular,
+                            color: APP_COLOR.BROWN,
+                            padding: 10,
+                          }}
+                        >
+                          Không có gợi ý nào
+                        </Text>
+                      )}
+                    </View>
+                  )}
+                </View>
+              </View>
               <ShareInput
                 title="Số điện thoại"
                 onChangeText={handleChange("phoneNumber")}
@@ -314,6 +503,47 @@ const styles = StyleSheet.create({
     height: 200,
     resizeMode: "contain",
     zIndex: 1,
+  },
+  addressInput: {
+    backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
+    borderRadius: 8,
+    padding: 12,
+    fontFamily: FONTS.regular,
+    fontSize: 16,
+    color: APP_COLOR.BROWN,
+    borderWidth: 1,
+    borderColor: APP_COLOR.BROWN,
+    minHeight: 60,
+    textAlignVertical: "top",
+  },
+  errorText: {
+    color: APP_COLOR.CANCEL,
+    fontFamily: FONTS.regular,
+    fontSize: 12,
+    marginTop: 4,
+  },
+  suggestionContainer: {
+    position: "absolute",
+    top: "100%",
+    left: 0,
+    right: 0,
+    backgroundColor: APP_COLOR.WHITE,
+    borderRadius: 8,
+    marginTop: 5,
+    maxHeight: 200,
+    borderWidth: 1,
+    borderColor: APP_COLOR.BROWN,
+    zIndex: 1000,
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  suggestionItem: {
+    padding: 10,
+    borderBottomWidth: 0.5,
+    borderBottomColor: APP_COLOR.BROWN,
   },
 });
 

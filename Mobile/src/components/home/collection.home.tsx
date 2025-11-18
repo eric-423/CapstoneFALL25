@@ -33,6 +33,8 @@ interface IPropsProduct {
   quantitySold: number;
   revenue: number;
   type: string;
+  imageUrl: string;
+  averageRating: number;
 }
 
 interface ModalContextType {
@@ -95,7 +97,13 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
   // }, []);
 
   return (
-    <ModalContext.Provider value={{ showProductModal, hideProductModal }}>
+    <ModalContext.Provider
+      value={{
+        showProductModal,
+        hideProductModal,
+        handleQuantityChange: () => {},
+      }}
+    >
       {children}
     </ModalContext.Provider>
   );
@@ -205,9 +213,9 @@ const CollectionHome = (props: IProps) => {
                     <Image
                       style={styles.itemImage}
                       source={
-                        typeof item.image === "string"
-                          ? { uri: item.image }
-                          : (item.image as any)
+                        typeof item.imageUrl === "string"
+                          ? { uri: item.imageUrl }
+                          : (item.imageUrl as any)
                       }
                     />
                     <View style={styles.ratingContainer}>

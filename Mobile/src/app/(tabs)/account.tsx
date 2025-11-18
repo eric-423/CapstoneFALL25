@@ -294,7 +294,16 @@ const AccountPage = () => {
             color={APP_COLOR.BROWN}
           />
         </Pressable>
-        <Pressable onPress={() => handleLogout()} style={[styles.btnStyle]}>
+        <Pressable
+          onPress={() => {
+            if (appState) {
+              handleLogout();
+            } else {
+              Alert.alert("Lỗi", "Bạn chưa đăng nhập");
+            }
+          }}
+          style={[styles.btnStyle]}
+        >
           <View
             style={{
               flexDirection: "row",

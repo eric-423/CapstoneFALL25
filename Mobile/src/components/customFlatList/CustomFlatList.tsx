@@ -1,6 +1,6 @@
 import React, { JSX } from "react";
 import { useCustomFlatListHook } from "@/components/customFlatList/hooks/useCustomFlatListHook";
-import { Animated, FlatListProps, View } from "react-native";
+import { Animated, FlatListProps, ScrollView, View } from "react-native";
 
 type CustomFlatListProps<T> = Omit<FlatListProps<T>, "ListHeaderComponent"> & {
   HeaderComponent: JSX.Element;
@@ -20,7 +20,7 @@ function CustomFlatList<T>({
   ] = useCustomFlatListHook();
 
   return (
-    <View style={style}>
+    <ScrollView contentContainerStyle={style}>
       <Animated.View
         style={styles.stickyElement}
         onLayout={onLayoutStickyElement}
@@ -54,7 +54,7 @@ function CustomFlatList<T>({
         )}
         showsVerticalScrollIndicator={false}
       />
-    </View>
+    </ScrollView>
   );
 }
 

@@ -114,7 +114,7 @@ const Voucher = () => {
               textAlign: "center",
             }}
           >
-            Hãy đăng nhập để nhận ưu đãi
+            Vui lòng đăng nhập để xem ưu đãi của bạn.
           </Text>
         </View>
       ) : (

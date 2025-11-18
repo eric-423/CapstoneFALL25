@@ -102,29 +102,46 @@ const UserInfo = () => {
             <Image source={logo} style={styles.logo} />
             <Text style={styles.title}>Thay đổi thông tin của bạn</Text>
           </View>
-          {customerInformation ? (
-            customerInformation.map((item: any, index: number) => (
-              <ItemAddress
-                key={item.id || `address-${index}`}
-                cusName={item.fullName}
-                cusPhone={item.phone}
-                cusAddress={item.address}
-                isDefault={item.isDefault}
-                informationId={item.informationId}
-                onDeleted={fetchCustomerInformation}
-              />
-            ))
+          {appState ? (
+            <View>
+              {customerInformation ? (
+                customerInformation.map((item: any, index: number) => (
+                  <ItemAddress
+                    key={item.id || `address-${index}`}
+                    cusName={item.fullName}
+                    cusPhone={item.phone}
+                    cusAddress={item.address}
+                    isDefault={item.isDefault}
+                    informationId={item.informationId}
+                    onDeleted={fetchCustomerInformation}
+                  />
+                ))
+              ) : (
+                <View style={{ alignItems: "center", paddingVertical: 20 }}>
+                  <Text
+                    style={{
+                      color: APP_COLOR.BROWN,
+                      fontFamily: FONTS.regular,
+                      fontSize: 16,
+                      textAlign: "center",
+                    }}
+                  >
+                    Chưa có thông tin nào. Vui lòng thêm thông tin mới.
+                  </Text>
+                </View>
+              )}
+            </View>
           ) : (
-            <View style={{ alignItems: "center", paddingVertical: 20 }}>
+            <View>
               <Text
                 style={{
+                  textAlign: "center",
                   color: APP_COLOR.BROWN,
                   fontFamily: FONTS.regular,
                   fontSize: 16,
-                  textAlign: "center",
                 }}
               >
-                Chưa có thông tin nào. Vui lòng thêm thông tin mới.
+                Vui lòng đăng nhập để sử dụng tính năng
               </Text>
             </View>
           )}

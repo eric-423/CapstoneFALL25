@@ -12,7 +12,6 @@ export const PopupSale = ({ onClose }: { onClose: () => void }) => {
     <Pressable
       style={{
         position: "absolute",
-        top: -250,
         left: 0,
         right: 0,
         bottom: 0,

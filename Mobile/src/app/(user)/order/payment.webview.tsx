@@ -14,12 +14,12 @@ const PaymentWebViewPage = () => {
   const [error, setError] = useState<string | null>(null);
   const { setCart } = useCurrentApp();
   const handleNavigationStateChange = (navState: any) => {
-    const url = navState.url.toLowerCase();
+    const url = (navState.url || "").toLowerCase();
     if (url.includes("success") || url.includes("callback")) {
       console.log("Payment success detected:", url);
       router.replace("/(auth)/order.success");
-    } else if (navState.url && navState.url.includes("payment-cancel")) {
-      setCart([]);
+    } else if (url.includes("payment-cancel") || url.includes("cancel")) {
+      setCart({});
       router.replace("/(tabs)");
     }
   };

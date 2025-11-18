@@ -21,6 +21,7 @@ import { FONTS } from "@/theme/typography";
 import { GetProductByProductType, GetCombo } from "@/utils/api";
 import { router } from "expo-router";
 const { width: sWidth } = Dimensions.get("window");
+const comboPlaceholder = require("@/assets/splash.png");
 
 interface IProps {
   part?: "product" | "combo";
@@ -41,6 +42,12 @@ interface IPropsProduct {
   description: string;
   price: number;
   averageRating: number;
+  isCombo?: boolean;
+  comboId?: number;
+  branchName?: string;
+  startDate?: string;
+  endDate?: string;
+  active?: boolean;
 }
 
 interface ModalContextType {
@@ -163,8 +170,27 @@ const CollectionMenu = (props: IProps) => {
         setLoading(true);
         if (part === "combo") {
           const res = await GetCombo(branchId);
-          console.log(res.data.content);
-          setRestaurants(res.data.content);
+          const combos = res?.data?.content || [];
+          const mappedCombos: IPropsProduct[] = combos.map((combo: any) => ({
+            ProductType: {
+              name: combo.branchName || "Combo",
+              productTypeId: -1,
+            },
+            productDescription: combo.description || "",
+            name: combo.name,
+            productId: `combo_${combo.comboId}`,
+            image: combo.imageUrl || comboPlaceholder,
+            description: combo.description || "",
+            price: combo.price || 0,
+            averageRating: 5,
+            isCombo: true,
+            comboId: combo.comboId,
+            branchName: combo.branchName,
+            startDate: combo.startDate,
+            endDate: combo.endDate,
+            active: combo.active,
+          }));
+          setRestaurants(mappedCombos);
         } else {
           const res = await GetProductByProductType(branchId, id || 0);
           const mapped: IPropsProduct[] = (res?.data?.content || []).map(

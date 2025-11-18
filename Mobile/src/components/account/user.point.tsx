@@ -24,7 +24,7 @@ const CustomerPoint = (props: ICustomerPointProps) => {
       <View style={{ width: "70%" }}>
         <CusInfoText
           title="Họ và tên"
-          info={props.fullName ? props.fullName : "Tấm Tắc"}
+          info={props.fullName ? props.fullName : "Chưa có thông tin"}
         />
         <CusInfoText
           title="SĐT"

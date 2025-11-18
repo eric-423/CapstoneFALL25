@@ -67,6 +67,12 @@ export default function AuthLayout() {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="voucher"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }
