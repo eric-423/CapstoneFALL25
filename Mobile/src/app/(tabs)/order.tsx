@@ -8,7 +8,6 @@ import CollectionMenu, {
 } from "@/components/menu/collection.menu";
 import { useCurrentApp } from "@/context/app.context";
 import { GetProductType } from "@/utils/api";
-import { FONTS } from "@/theme/typography";
 interface IProductType {
   id: number;
   name: string;
@@ -17,8 +16,6 @@ const OrderScreen = () => {
   const { branchId } = useCurrentApp();
   const [productType, setProductType] = useState<IProductType[]>([]);
   const [activeTab, setActiveTab] = useState<"Danh mục" | "Combo">("Danh mục");
-  const [comboData, setComboData] = useState<IProductType[]>([]);
-
   useEffect(() => {
     const fetchProductType = async () => {
       const res = await GetProductType();
@@ -26,7 +23,6 @@ const OrderScreen = () => {
     };
     fetchProductType();
   }, []);
-
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: APP_COLOR.BACKGROUND_ORANGE }}

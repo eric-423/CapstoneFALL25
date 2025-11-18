@@ -6,17 +6,21 @@ import { APP_COLOR } from "@/utils/constant";
 import { AntDesign } from "@expo/vector-icons";
 import HeaderHome from "@/components/home/header.home";
 import { FONTS } from "@/theme/typography";
+import { useCurrentApp } from "@/context/app.context";
 
 const PaymentWebViewPage = () => {
   const { paymentUrl } = useLocalSearchParams<{ paymentUrl: string }>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+  const { setCart } = useCurrentApp();
   const handleNavigationStateChange = (navState: any) => {
-    const url = navState.url.toLowerCase();
+    const url = (navState.url || "").toLowerCase();
     if (url.includes("success") || url.includes("callback")) {
       console.log("Payment success detected:", url);
       router.replace("/(auth)/order.success");
+    } else if (url.includes("payment-cancel") || url.includes("cancel")) {
+      setCart({});
+      router.replace("/(tabs)");
     }
   };
 

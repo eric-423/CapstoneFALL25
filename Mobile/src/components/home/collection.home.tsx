@@ -6,13 +6,10 @@ import {
   FlatList,
   Pressable,
   Dimensions,
-  ScrollView,
 } from "react-native";
 import { APP_COLOR } from "@/utils/constant";
 import { useEffect, useState, createContext, useContext } from "react";
-import { router } from "expo-router";
 import ContentLoader, { Rect } from "react-content-loader/native";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useCurrentApp } from "@/context/app.context";
 import {
@@ -20,11 +17,8 @@ import {
   currencyFormatter,
 } from "@/utils/cart";
 import React from "react";
-import Animated, { FadeIn, SlideInDown } from "react-native-reanimated";
 import { FONTS } from "@/theme/typography";
-import axios from "axios";
 import { TopSellingProduct } from "@/utils/api";
-
 const { width: sWidth } = Dimensions.get("window");
 
 interface IProps {
@@ -39,6 +33,8 @@ interface IPropsProduct {
   quantitySold: number;
   revenue: number;
   type: string;
+  imageUrl: string;
+  averageRating: number;
 }
 
 interface ModalContextType {
@@ -101,7 +97,13 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
   // }, []);
 
   return (
-    <ModalContext.Provider value={{ showProductModal, hideProductModal }}>
+    <ModalContext.Provider
+      value={{
+        showProductModal,
+        hideProductModal,
+        handleQuantityChange: () => {},
+      }}
+    >
       {children}
     </ModalContext.Provider>
   );
@@ -144,7 +146,6 @@ const CollectionHome = (props: IProps) => {
   useEffect(() => {
     const fetchData = async () => {
       const res = await TopSellingProduct(branchId as number);
-      console.log("res", res.data.data.topItems);
       setRestaurants(res.data.data.topItems as unknown as never[]);
       setLoading(true);
       const timer = setTimeout(() => {
@@ -187,7 +188,6 @@ const CollectionHome = (props: IProps) => {
               <Text style={styles.viewAllText}>Xem tất cả &gt;</Text>
             </View>
           </Pressable>
-
           <FlatList
             data={restaurants}
             horizontal
@@ -213,9 +213,9 @@ const CollectionHome = (props: IProps) => {
                     <Image
                       style={styles.itemImage}
                       source={
-                        typeof item.image === "string"
-                          ? { uri: item.image }
-                          : (item.image as any)
+                        typeof item.imageUrl === "string"
+                          ? { uri: item.imageUrl }
+                          : (item.imageUrl as any)
                       }
                     />
                     <View style={styles.ratingContainer}>

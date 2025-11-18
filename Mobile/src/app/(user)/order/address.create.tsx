@@ -12,7 +12,8 @@ import {
 import { ScrollView } from "react-native-gesture-handler";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useCurrentApp } from "@/context/app.context";
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef } from "react";
+import { useFocusEffect } from "expo-router";
 import { AddNewCustomerInformation, GetCustomerInformation } from "@/utils/api";
 import axios from "axios";
 import debounce from "debounce";
@@ -42,9 +43,11 @@ const AddressCreatePage = () => {
     }
   }, [appState?.userInfo?.id]);
 
-  useEffect(() => {
-    fetchCustomerInformation();
-  }, [fetchCustomerInformation]);
+  useFocusEffect(
+    useCallback(() => {
+      fetchCustomerInformation();
+    }, [fetchCustomerInformation])
+  );
 
   const fetchAddressSuggestions = useCallback(
     debounce(async (input: string) => {

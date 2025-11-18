@@ -319,7 +319,67 @@ export const GetAllOrder = async () => {
   const token = await AsyncStorage.getItem("access_token");
   return axios.get(`${BASE_URL}/orders/customer/my-orders?status=ALL`, {
     headers: {
+      accept: "application/json",
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+  });
+};
+
+export const GetDetailCustomerInformation = async (
+  Cusid: number,
+  InforId: number
+) => {
+  const token = await AsyncStorage.getItem("access_token");
+  return axios.get(`${BASE_URL}/customers/${Cusid}/informations/${InforId}`, {
+    headers: {
       accept: "*/*",
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+  });
+};
+
+export const UpdateCustomerInformation = async (
+  customerId: number,
+  informationId: number,
+  payload: {
+    name: string;
+    address: string;
+    phoneNumber: string;
+    isDefault: boolean;
+  }
+) => {
+  const token = await AsyncStorage.getItem("access_token");
+  return axios.put(
+    `${BASE_URL}/customers/${customerId}/informations/${informationId}`,
+    payload,
+    {
+      headers: {
+        accept: "*/*",
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    }
+  );
+};
+
+export const getCustomerPromotion = async () => {
+  const token = await AsyncStorage.getItem("access_token");
+  return axios.get(`${BASE_URL}/promotions/customer/my-promotions`, {
+    headers: {
+      accept: "application/json",
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+  });
+};
+
+export const getOrderById = async (orderId: number) => {
+  const token = await AsyncStorage.getItem("access_token");
+  return axios.get(`${BASE_URL}/orders/${orderId}`, {
+    headers: {
+      accept: "application/json",
       "Content-Type": "application/json",
       ...(token && { Authorization: `Bearer ${token}` }),
     },

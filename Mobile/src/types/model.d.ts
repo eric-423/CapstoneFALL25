@@ -71,6 +71,7 @@ declare global {
       fullName: string;
       phoneNumber: string;
       address: string;
+      memberPoint: number;
     };
     token: string;
   }

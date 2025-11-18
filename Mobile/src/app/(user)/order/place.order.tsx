@@ -439,14 +439,19 @@ const PlaceOrderPage = () => {
                 setLoading(true);
                 const orderItemList = Object.values(
                   cart[restaurant._id].items
-                ).map((item) => ({
-                  productId: Number(item.data.productId) || 0,
-                  comboId: 0,
-                  quantity: item.quantity,
-                  price:
-                    (item.data.basePrice || item.data.price) * item.quantity,
-                  note: "",
-                }));
+                ).map((item: any) => {
+                  const isCombo = item?.data?.isCombo;
+                  const unitPrice = Number(
+                    item?.data?.basePrice || item?.data?.price || 0
+                  );
+                  return {
+                    productId: isCombo ? 0 : Number(item?.data?.productId) || 0,
+                    comboId: isCombo ? Number(item?.data?.comboId) || 0 : 0,
+                    quantity: item?.quantity || 0,
+                    price: unitPrice * (item?.quantity || 0),
+                    note: "",
+                  };
+                });
                 const payload = {
                   customerId: appState.userInfo.id,
                   promotionCode: values.promotionCode || "",

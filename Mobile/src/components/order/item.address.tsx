@@ -3,6 +3,7 @@ import { FONTS } from "@/theme/typography";
 import { DeleteCustomerInformation } from "@/utils/api";
 import { APP_COLOR } from "@/utils/constant";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { router } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 import CheckBox from "react-native-check-box";
 import Swipeable from "react-native-gesture-handler/Swipeable";
@@ -57,7 +58,7 @@ const ItemAddress = ({
   );
   return (
     <Swipeable renderRightActions={renderRightActions} overshootRight={false}>
-      <View
+      <Pressable
         style={{
           flexDirection: "row",
           alignItems: "center",
@@ -67,6 +68,18 @@ const ItemAddress = ({
           paddingVertical: 10,
           borderBottomColor: APP_COLOR.GRAY,
           borderBottomWidth: 0.5,
+        }}
+        onPress={() => {
+          router.push({
+            pathname: "/(auth)/change.info",
+            params: {
+              id: informationId,
+              cusName: cusName,
+              cusPhone: cusPhone,
+              cusAddress: cusAddress,
+              isDefault: isDefault ? "true" : "false",
+            },
+          });
         }}
       >
         <CheckBox
@@ -107,6 +120,7 @@ const ItemAddress = ({
               fontFamily: FONTS.regular,
               fontSize: 14,
               color: APP_COLOR.BROWN,
+              width: "50%",
             }}
           >
             {cusAddress}
@@ -129,20 +143,7 @@ const ItemAddress = ({
             </Text>
           )}
         </View>
-
-        <Text
-          style={{
-            fontFamily: FONTS.semiBold,
-            fontSize: 14,
-            color: APP_COLOR.GRAY,
-            position: "absolute",
-            right: 10,
-            top: 10,
-          }}
-        >
-          Sửa
-        </Text>
-      </View>
+      </Pressable>
     </Swipeable>
   );
 };

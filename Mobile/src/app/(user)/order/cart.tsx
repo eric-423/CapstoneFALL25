@@ -1,72 +1,100 @@
+import React, { useMemo } from "react";
+import { View, ScrollView, Text } from "react-native";
+import AntDesign from "@expo/vector-icons/AntDesign";
+import { router } from "expo-router";
 import HeaderHome from "@/components/home/header.home";
 import ItemCart from "@/components/order/item.cart";
-import AntDesign from "@expo/vector-icons/AntDesign";
-import { APP_COLOR } from "@/utils/constant";
-import { View, ScrollView, Text } from "react-native";
-import { FONTS } from "@/theme/typography";
-import { currencyFormatter } from "@/utils/cart";
 import ShareButton from "@/components/button/share.button";
-import { router } from "expo-router";
+import { APP_COLOR } from "@/utils/constant";
+import { FONTS } from "@/theme/typography";
+import { currencyFormatter, calculateTotalPrice } from "@/utils/cart";
+import { useCurrentApp } from "@/context/app.context";
+import Toast from "react-native-root-toast";
 
-const sampleCartItems = [
-  {
-    id: 1,
-    image: require("@/assets/icons/com-tam.png"),
-    title: "Cơm tấm sườn bì chả",
-    quantity: 2,
-    price: 250000,
-    description: "Cơm tấm sườn bì chả",
-  },
-  {
-    id: 2,
-    image: require("@/assets/icons/com-tam.png"),
-    title: "Bún bò Huế",
-    quantity: 1,
-    price: 180000,
-    description: "Bún bò Huế",
-  },
-  {
-    id: 3,
-    image: require("@/assets/icons/com-tam.png"),
-    title: "Phở bò tái",
-    quantity: 1,
-    price: 120000,
-    description: "Phở bò tái",
-  },
-  {
-    id: 4,
-    image: require("@/assets/icons/com-tam.png"),
-    title: "Cà phê sữa đá",
-    quantity: 3,
-    price: 25000,
-    description: "Cà phê sữa đá",
-  },
-];
+const fallbackImage = require("@/assets/icons/com-tam.png");
 
 const CartPage = () => {
+  const { cart, restaurant, locationReal, appState } = useCurrentApp();
+  const restaurantId = restaurant?._id;
+  const restaurantCart = restaurantId ? cart?.[restaurantId] : undefined;
+
+  const cartItems = useMemo(() => {
+    if (!restaurantCart?.items) return [];
+    return Object.entries(restaurantCart.items).map(([key, item]: any) => {
+      const data = item?.data || {};
+      const unitPrice = Number(
+        data.basePrice || data.price || data.productPrice || 0
+      );
+      const imageSource =
+        typeof data.image === "string"
+          ? { uri: data.image }
+          : data.image || fallbackImage;
+      return {
+        id: key,
+        image: imageSource,
+        title: data.title || data.name || data.productName || "Sản phẩm",
+        quantity: item?.quantity || 0,
+        price: unitPrice * (item?.quantity || 0),
+        description:
+          data.description || data.productDescription || "Không có mô tả",
+      };
+    });
+  }, [restaurantCart]);
+
+  const totalAmount =
+    restaurantCart?.sum ?? calculateTotalPrice(cart, restaurantId);
+  const isCartEmpty = cartItems.length === 0;
+  const shippingAddress =
+    locationReal || "Chưa có địa chỉ giao hàng. Vui lòng cập nhật.";
+
+  const handleCheckout = () => {
+    if (isCartEmpty) return;
+    router.navigate("/(user)/order/place.order");
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: APP_COLOR.BACKGROUND_ORANGE }}>
       <HeaderHome pageName="cartPage" />
       <ScrollView style={{ flex: 1, padding: 16 }}>
-        {sampleCartItems.map((item) => (
-          <ItemCart
-            key={item.id}
-            image={item.image}
-            title={item.title}
-            quantity={item.quantity}
-            price={item.price}
-            description={item.description}
-          />
-        ))}
+        {isCartEmpty ? (
+          <View
+            style={{
+              paddingVertical: 40,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: FONTS.regular,
+                color: APP_COLOR.BROWN,
+              }}
+            >
+              Chưa có món nào trong giỏ hàng.
+            </Text>
+          </View>
+        ) : (
+          cartItems.map((item) => (
+            <ItemCart
+              key={item.id}
+              image={item.image}
+              title={item.title}
+              quantity={item.quantity}
+              price={item.price}
+              description={item.description}
+            />
+          ))
+        )}
       </ScrollView>
       <View
         style={{
-          flex: 0.5,
+          flex: 0.55,
           justifyContent: "flex-start",
           borderRadius: 20,
           borderWidth: 1,
           borderColor: APP_COLOR.BROWN,
           padding: 10,
+          backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
         }}
       >
         <View
@@ -87,7 +115,6 @@ const CartPage = () => {
           >
             Giao hàng
           </Text>
-          <AntDesign name="caret-down" size={22} color={APP_COLOR.BROWN} />
         </View>
         <View
           style={{
@@ -104,9 +131,8 @@ const CartPage = () => {
           }}
         >
           <Text style={{ fontFamily: FONTS.regular, color: APP_COLOR.BROWN }}>
-            85 Cô Giang, Q1, TP.HCM
+            {shippingAddress}
           </Text>
-          <AntDesign name="edit" size={24} color={APP_COLOR.BROWN} />
         </View>
         <View
           style={{
@@ -133,7 +159,7 @@ const CartPage = () => {
               fontSize: 24,
             }}
           >
-            {currencyFormatter(100000)}
+            {currencyFormatter(totalAmount || 0)}
           </Text>
         </View>
         <View
@@ -144,10 +170,24 @@ const CartPage = () => {
         >
           <ShareButton
             title="Tiến hành đặt hàng"
-            onPress={() => router.navigate("/order/place.order")}
+            onPress={() => {
+              if (appState) {
+                handleCheckout();
+              } else {
+                router.navigate("/(auth)/welcome");
+                Toast.show("Vui lòng đăng nhập để tiến hành đặt hàng", {
+                  duration: Toast.durations.LONG,
+                  textColor: "white",
+                  backgroundColor: APP_COLOR.CANCEL,
+                  opacity: 1,
+                  position: 30,
+                });
+              }
+            }}
             btnStyle={{
               width: 300,
               justifyContent: "center",
+              opacity: isCartEmpty ? 0.5 : 1,
             }}
             textStyle={{
               color: APP_COLOR.WHITE,
@@ -157,7 +197,11 @@ const CartPage = () => {
           />
         </View>
       </View>
+      <View
+        style={{ height: 30, backgroundColor: APP_COLOR.BACKGROUND_ORANGE }}
+      ></View>
     </View>
   );
 };
+
 export default CartPage;
