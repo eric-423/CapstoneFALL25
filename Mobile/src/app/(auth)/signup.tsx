@@ -45,7 +45,7 @@ const handleSignUp = async (
 
     router.replace({
       pathname: "/(auth)/verify",
-      params: { phoneNumber, channel },
+      params: { phoneNumber, channel, password },
     });
   } catch (error: any) {
     let errorMessage = "Đăng ký thất bại. Vui lòng thử lại.";

@@ -15,7 +15,9 @@ import Toast from "react-native-root-toast";
 import { FONTS } from "@/theme/typography";
 import logo from "@/assets/logo.png";
 import footerFrame from "@/assets/frame_footer.png";
-import { SendOTP, TTLOtp, VeryfyOTP } from "@/utils/api";
+import { LoginCustomers, SendOTP, TTLOtp, VeryfyOTP } from "@/utils/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useCurrentApp } from "@/context/app.context";
 
 const styles = StyleSheet.create({
   container: {
@@ -72,7 +74,8 @@ const VerifyPage = () => {
   const [countdown, setCountdown] = useState<number>(0);
   const otpRef = useRef<OTPTextView>(null);
   const [code, setCode] = useState<string>("");
-  const { phoneNumber, channel } = useLocalSearchParams();
+  const { phoneNumber, channel, password } = useLocalSearchParams();
+  const { setAppState } = useCurrentApp();
   useEffect(() => {
     if (typeof phoneNumber !== "string" || !phoneNumber) return;
 
@@ -117,7 +120,25 @@ const VerifyPage = () => {
           opacity: 1,
           position: -35,
         });
-        router.replace("/(auth)/welcome");
+        const res = await LoginCustomers(
+          phoneNumber as string,
+          password as string
+        );
+        if (res.data) {
+          await AsyncStorage.setItem("access_token", res.data.token);
+          setAppState(res.data);
+          router.replace({
+            pathname: "/(tabs)",
+            params: { access_token: res.data.token, isLogin: 1 },
+          });
+        } else {
+          Toast.show("Đăng nhập không thành công", {
+            duration: Toast.durations.LONG,
+            textColor: "white",
+            backgroundColor: APP_COLOR.ORANGE,
+            opacity: 1,
+          });
+        }
       } else {
         Toast.show("Mã OTP không hợp lệ", {
           duration: Toast.durations.LONG,
@@ -183,7 +204,7 @@ const VerifyPage = () => {
               textAlign: "center",
             }}
           >
-            Mã OTP đã được gửi về số điện thoại {phoneNumber}
+            Mã OTP đã được gửi về zalo số điện thoại {phoneNumber}
           </Text>
         )}
         <View style={{ marginVertical: 20 }}>

@@ -23,7 +23,6 @@ const ChangePasswordPage = () => {
   const handleUpdatePassword = async (newPassword: string) => {
     try {
       console.log(inputOtp, phoneNumber, newPassword);
-
       const res = await ChangePassword(
         inputOtp as string,
         phoneNumber as string,

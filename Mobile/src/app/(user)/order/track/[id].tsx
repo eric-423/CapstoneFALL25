@@ -15,7 +15,6 @@ import MapView, {
   Region,
   PROVIDER_GOOGLE,
 } from "react-native-maps";
-import Feather from "@expo/vector-icons/Feather";
 import ShareButton from "@/components/button/share.button";
 import { useShipperLocationForCustomer } from "@/hooks/useShipperLocationForCustomer";
 import { APP_COLOR } from "@/utils/constant";
