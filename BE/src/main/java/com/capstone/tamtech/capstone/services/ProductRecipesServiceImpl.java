@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -37,7 +38,8 @@ public class ProductRecipesServiceImpl implements ProductRecipesService {
 
     @Override
     public List<ProductRecipesDTO> getRecipesByProductId(int productId) {
-        List<ProductRecipes> recipes = productRecipesRepository.findByKeyProductRecipes_ProductIdOrderByCreatedAtDesc(productId);
+        List<ProductRecipes> recipes = productRecipesRepository
+                .findByKeyProductRecipes_ProductIdOrderByCreatedAtDesc(productId);
         return recipes.stream().map(this::toDTO).toList();
     }
 
@@ -119,6 +121,46 @@ public class ProductRecipesServiceImpl implements ProductRecipesService {
                         "Recipe not found for productId: " + productId + " and materialId: " + materialId));
 
         productRecipesRepository.delete(recipe);
+    }
+
+    @Override
+    @Transactional
+    public List<ProductRecipesDTO> updateManyRecipeForOneProduct(int productId, List<ProductRecipesRequest> requests) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
+
+        List<ProductRecipes> existingRecipes = productRecipesRepository.findByKeyProductRecipesProductId(productId);
+        if (!existingRecipes.isEmpty()) {
+            productRecipesRepository.deleteAll(existingRecipes);
+        }
+
+        if (requests == null || requests.isEmpty()) {
+            return List.of();
+        }
+
+        List<ProductRecipes> recipesToSave = new ArrayList<>();
+        for (ProductRecipesRequest request : requests) {
+            int materialId = request.getMaterialId();
+            Material material = materialRepository.findById(materialId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Material not found with id: " + materialId));
+
+            KeyProductRecipes key = new KeyProductRecipes();
+            key.setProductId(productId);
+            key.setMaterialId(materialId);
+
+            ProductRecipes recipe = new ProductRecipes();
+            recipe.setKeyProductRecipes(key);
+            recipe.setProduct(product);
+            recipe.setMaterial(material);
+            recipe.setQuantity(request.getQuantity());
+
+            recipesToSave.add(recipe);
+        }
+
+        return productRecipesRepository.saveAll(recipesToSave)
+                .stream()
+                .map(this::toDTO)
+                .toList();
     }
 
     private ProductRecipesDTO toDTO(ProductRecipes recipe) {

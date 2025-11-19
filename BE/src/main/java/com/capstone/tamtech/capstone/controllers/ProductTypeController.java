@@ -2,6 +2,7 @@ package com.capstone.tamtech.capstone.controllers;
 
 import com.capstone.tamtech.capstone.dto.ProductTypeDTO;
 import com.capstone.tamtech.capstone.payload.ResponseData;
+import com.capstone.tamtech.capstone.payload.request.ProductTypeRequest;
 import com.capstone.tamtech.capstone.services.impl.ProductTypeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,7 +24,7 @@ public class ProductTypeController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<?> createProductType(@RequestBody ProductTypeDTO productTypeDTO) {
+    public ResponseEntity<?> createProductType(@RequestBody ProductTypeRequest productTypeDTO) {
         ResponseData responseData = new ResponseData();
         responseData.setData(productTypeService.createProductType(productTypeDTO));
         return new ResponseEntity<>(responseData, HttpStatus.CREATED);

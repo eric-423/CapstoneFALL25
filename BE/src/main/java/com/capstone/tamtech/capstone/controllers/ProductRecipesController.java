@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -40,6 +41,42 @@ public class ProductRecipesController {
         }
     }
 
+    @PostMapping("/create-many/{productId}")
+    public ResponseEntity<?> createManyRecipeForOneProduct(@RequestBody List<ProductRecipesRequest> requests) {
+        ResponseData responseData = new ResponseData();
+        try {
+            List<ProductRecipesDTO> result = new ArrayList<>();
+            for (ProductRecipesRequest request : requests) {
+                result.add(productRecipesService.createRecipe(request));
+            }
+            responseData.setDesc("Created " + requests.size() + " recipe(s) successfully");
+            responseData.setData(result);
+            return new ResponseEntity<>(responseData, HttpStatus.CREATED);
+        } catch (Exception e) {
+            responseData.setDesc("Error: " + e.getMessage());
+            return new ResponseEntity<>(responseData, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PutMapping("/update-many/{productId}")
+    public ResponseEntity<?> updateManyRecipeForOneProduct(
+            @PathVariable int productId,
+            @RequestBody List<ProductRecipesRequest> requests) {
+        ResponseData responseData = new ResponseData();
+        try {
+            List<ProductRecipesRequest> normalizedRequests = requests == null ? new ArrayList<>() : requests;
+            normalizedRequests.forEach(request -> request.setProductId(productId));
+
+            List<ProductRecipesDTO> result = productRecipesService.updateManyRecipeForOneProduct(productId,
+                    normalizedRequests);
+            responseData.setDesc("Replaced recipe list with " + result.size() + " item(s)");
+            responseData.setData(result);
+            return new ResponseEntity<>(responseData, HttpStatus.OK);
+        } catch (Exception e) {
+            responseData.setDesc("Error: " + e.getMessage());
+            return new ResponseEntity<>(responseData, HttpStatus.BAD_REQUEST);
+        }
+    }
 
     @Operation(summary = "Lấy công thức theo Product ID", description = "Trả về danh sách công thức của một sản phẩm")
     @GetMapping("/product/{productId}")

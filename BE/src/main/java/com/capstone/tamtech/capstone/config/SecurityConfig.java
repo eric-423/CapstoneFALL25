@@ -113,6 +113,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/order-statuses/{id}").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(HttpMethod.DELETE, "/api/order-statuses/{id}").hasAnyRole("ADMIN", "MANAGER")
 
+
                         .requestMatchers("/api/products/search").permitAll()
                         .requestMatchers("/api/products/all-branch/search").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers("/api/product-types", "/api/product-types/{id}").permitAll()
@@ -134,7 +135,7 @@ public class SecurityConfig {
 
                         .requestMatchers(HttpMethod.GET, "/api/recipes/**")
                         .hasAnyRole("MANAGER", "ADMIN", "CHEFF", "WAITER")
-                        .requestMatchers(HttpMethod.POST, "/api/recipes").hasAnyRole("MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/recipes/**").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/recipes/**").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/recipes/**").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers("/api/orders/manager/**").hasAnyRole("MANAGER", "ADMIN")
