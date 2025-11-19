@@ -45,9 +45,6 @@ function BannerHome() {
   return (
     <View>
       <Carousel
-        style={{
-          marginTop: Platform.OS === "android" ? 60 : 0,
-        }}
         ref={ref}
         width={width / 1}
         height={width / 2.5}

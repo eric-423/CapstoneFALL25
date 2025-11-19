@@ -9,14 +9,12 @@ import {
 
 type ICustomFlatListStyles = {
   header: StyleProp<ViewStyle>;
-  stickyElement: StyleProp<ViewStyle>;
   topElement?: StyleProp<ViewStyle>;
 };
 
 type TUseCustomFlatListHook = [
   Animated.Value,
   ICustomFlatListStyles,
-  (event: LayoutChangeEvent) => void,
   (event: LayoutChangeEvent) => void,
   (event: LayoutChangeEvent) => void
 ];
@@ -27,15 +25,14 @@ export const useCustomFlatListHook = (): TUseCustomFlatListHook => {
   const scrollY = useRef(new Animated.Value(0)).current;
   const [heights, setHeights] = useState({
     header: 0,
-    sticky: 0,
     topList: 0,
   });
 
   const styles: ICustomFlatListStyles = {
     header: {
-      marginBottom: heights.sticky + heights.topList,
+      marginBottom: heights.topList,
     },
-    stickyElement: {
+    topElement: {
       left: 0,
       marginTop: heights.header,
       position: "absolute",
@@ -44,30 +41,8 @@ export const useCustomFlatListHook = (): TUseCustomFlatListHook => {
         {
           translateY: scrollY.interpolate({
             extrapolate: "clamp",
-            inputRange: [-window.height, heights.header],
-            outputRange: [window.height, -heights.header],
-          }),
-        },
-      ],
-      zIndex: 2,
-    },
-    topElement: {
-      left: 0,
-      marginTop: heights.header + heights.sticky,
-      position: "absolute",
-      right: 0,
-      transform: [
-        {
-          translateY: scrollY.interpolate({
-            extrapolate: "clamp",
-            inputRange: [
-              -window.height,
-              heights.header + heights.sticky + heights.topList,
-            ],
-            outputRange: [
-              window.height,
-              -(heights.header + heights.sticky + heights.topList),
-            ],
+            inputRange: [-window.height, heights.header + heights.topList],
+            outputRange: [window.height, -(heights.header + heights.topList)],
           }),
         },
       ],
@@ -83,15 +58,5 @@ export const useCustomFlatListHook = (): TUseCustomFlatListHook => {
     setHeights({ ...heights, topList: event.nativeEvent.layout.height });
   };
 
-  const onLayoutTopStickyElement = (event: LayoutChangeEvent): void => {
-    setHeights({ ...heights, sticky: event.nativeEvent.layout.height });
-  };
-
-  return [
-    scrollY,
-    styles,
-    onLayoutHeaderElement,
-    onLayoutTopListElement,
-    onLayoutTopStickyElement,
-  ];
+  return [scrollY, styles, onLayoutHeaderElement, onLayoutTopListElement];
 };

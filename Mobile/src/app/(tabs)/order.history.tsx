@@ -1,6 +1,6 @@
 import { currencyFormatter } from "@/utils/cart";
 import { jwtDecode } from "jwt-decode";
-import { APP_COLOR, STATUS_COLORS } from "@/utils/constant";
+import { APP_COLOR, APP_FONT, STATUS_COLORS } from "@/utils/constant";
 import EvilIcons from "@expo/vector-icons/EvilIcons";
 import { useCallback, useState, useEffect } from "react";
 import {
@@ -281,7 +281,14 @@ const OrderPage = () => {
                 Đang tải...
               </Text>
             ) : orderHistory.length === 0 ? (
-              <Text style={{ textAlign: "center", marginTop: 20 }}>
+              <Text
+                style={{
+                  textAlign: "center",
+                  marginTop: 20,
+                  fontFamily: FONTS.regular,
+                  color: APP_COLOR.BROWN,
+                }}
+              >
                 Không có đơn hàng nào
               </Text>
             ) : searchResults.length > 0 ? (

@@ -91,25 +91,16 @@ const IconItem = ({ item }: any) => {
     </TouchableOpacity>
   );
 };
-
 const TopListHome = () => {
   const topRowData = icon.filter((_, index) => index % 2 === 0);
   const bottomRowData = icon.filter((_, index) => index % 2 !== 0);
   return (
     <View>
       <BannerHome />
-      <TodayOffersSection
-        offers={sampleOffers}
-        onPressSeeMore={() => {
-          router.push("/(tabs)/blog");
-        }}
-      />
+      <TodayOffersSection offers={sampleOffers} />
       <View style={{ paddingHorizontal: 10 }}>
         <View style={styles.header}>
           <Text style={styles.title}>Danh mục</Text>
-          <TouchableOpacity onPress={() => console.log("Xem thêm")}>
-            <Text style={styles.seeMoreText}>Xem tất cả &gt;</Text>
-          </TouchableOpacity>
         </View>
         <ScrollView
           horizontal

@@ -173,21 +173,8 @@ const CollectionHome = (props: IProps) => {
         </ContentLoader>
       ) : (
         <View style={styles.container}>
-          <Pressable
-            onPress={() =>
-              // router.navigate({
-              //   pathname: "/(auth)/restaurants",
-              //   params: { id },
-              // })
-              console.log("hihi")
-            }
-            style={styles.headerContainer}
-          >
-            <Text style={styles.headerText}>{name}</Text>
-            <View style={styles.viewAllContainer}>
-              <Text style={styles.viewAllText}>Xem tất cả &gt;</Text>
-            </View>
-          </Pressable>
+          <Text style={styles.headerText}>{name}</Text>
+
           <FlatList
             data={restaurants}
             horizontal
@@ -341,7 +328,7 @@ const styles = StyleSheet.create({
   },
   itemQuantitySold: {
     color: APP_COLOR.ORANGE,
-    fontFamily: FONTS.semiBold,
+    fontFamily: FONTS.regular,
     fontSize: 15,
     position: "relative",
     bottom: 10,

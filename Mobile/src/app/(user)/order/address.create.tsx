@@ -14,11 +14,17 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { useCurrentApp } from "@/context/app.context";
 import { useState, useCallback, useRef } from "react";
 import { useFocusEffect } from "expo-router";
-import { AddNewCustomerInformation, GetCustomerInformation } from "@/utils/api";
+import {
+  AddNewCustomerInformation,
+  GetCustomerInformation,
+  ReverseGeocodeGoogle,
+} from "@/utils/api";
 import axios from "axios";
 import debounce from "debounce";
 import CheckBox from "react-native-check-box";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import * as Location from "expo-location";
+import Toast from "react-native-root-toast";
 const AddressCreatePage = () => {
   const { appState } = useCurrentApp();
   const [customerInformation, setCustomerInformation] = useState<any>(null);
@@ -139,6 +145,40 @@ const AddressCreatePage = () => {
     }
   };
 
+  const handleUseCurrentLocation = useCallback(async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Toast.show("Vui lòng cho phép ứng dụng truy cập vị trí.", {
+          duration: Toast.durations.SHORT,
+          backgroundColor: APP_COLOR.CANCEL,
+          textColor: APP_COLOR.WHITE,
+        });
+        return;
+      }
+      const position = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+      const formattedAddress = await ReverseGeocodeGoogle(
+        position.coords.latitude,
+        position.coords.longitude
+      );
+      if (formattedAddress) {
+        addressInputRef.current?.setNativeProps({ text: formattedAddress });
+        setShowSuggestions(false);
+        setAddressSuggestions([]);
+        updateAddressField(formattedAddress, false);
+      }
+    } catch (error) {
+      console.error("Error getting current location:", error);
+      Toast.show("Không thể lấy vị trí hiện tại. Vui lòng thử lại.", {
+        duration: Toast.durations.SHORT,
+        backgroundColor: APP_COLOR.CANCEL,
+        textColor: APP_COLOR.WHITE,
+      });
+    }
+  }, [updateAddressField]);
+
   const handleAddAddress = async () => {
     try {
       await AddNewCustomerInformation(appState?.userInfo?.id || 0, {
@@ -170,6 +210,7 @@ const AddressCreatePage = () => {
           fontSize: 20,
           color: APP_COLOR.BROWN,
           textAlign: "center",
+          marginTop: 30,
         }}
       >
         Chọn địa chỉ nhận hàng
@@ -209,6 +250,8 @@ const AddressCreatePage = () => {
             padding: 10,
             justifyContent: "center",
             marginBottom: 10,
+            marginHorizontal: 10,
+            borderRadius: 10,
           }}
           onPress={() => setModalVisible(true)}
         >
@@ -338,16 +381,35 @@ const AddressCreatePage = () => {
                 />
               </View>
               <View style={{ marginBottom: 20 }}>
-                <Text
+                <View
                   style={{
-                    fontFamily: FONTS.regular,
-                    fontSize: 14,
-                    color: APP_COLOR.BROWN,
-                    marginBottom: 5,
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
                   }}
                 >
-                  Địa chỉ
-                </Text>
+                  <Text
+                    style={{
+                      fontFamily: FONTS.regular,
+                      fontSize: 14,
+                      color: APP_COLOR.BROWN,
+                      marginBottom: 5,
+                    }}
+                  >
+                    Địa chỉ
+                  </Text>
+                  <Pressable onPress={handleUseCurrentLocation}>
+                    <Text
+                      style={{
+                        fontFamily: FONTS.regular,
+                        fontSize: 14,
+                        color: APP_COLOR.ORANGE,
+                      }}
+                    >
+                      Lấy địa chỉ hiện tại
+                    </Text>
+                  </Pressable>
+                </View>
                 <View style={{ position: "relative" }}>
                   <TextInput
                     ref={addressInputRef}

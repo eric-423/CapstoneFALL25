@@ -23,6 +23,7 @@ import {
   ReverseGeocodeGoogle,
 } from "@/utils/api";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import Toast from "react-native-root-toast";
 interface HeaderHomeProps {
   pageName: string;
 }
@@ -88,6 +89,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.regular,
     fontSize: 16,
     color: APP_COLOR.GRAY,
+    textAlign: "center",
   },
   dropdownMenu: {
     position: "absolute",
@@ -123,11 +125,33 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
   const [branchInfo, setBranchInfo] = useState<any[]>([]);
   const [isBranchDropdownOpen, setIsBranchDropdownOpen] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState<any>(null);
-  const removePlusCode = (address: string): string => {
-    if (!address) return address;
-    const plusCodePattern = /^[A-Z0-9]{2,}\+[A-Z0-9]{2,}(\s*,\s*|\s+)/i;
-    return address.replace(plusCodePattern, "").trim();
-  };
+  const getDeviceLocationAddress = useCallback(async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Toast.show("Ứng dụng cần quyền truy cập vị trí để gợi ý chi nhánh.", {
+          duration: Toast.durations.SHORT,
+          backgroundColor: APP_COLOR.CANCEL,
+          textColor: APP_COLOR.WHITE,
+        });
+        return null;
+      }
+      const position = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
+      const formattedAddress = await ReverseGeocodeGoogle(
+        position.coords.latitude,
+        position.coords.longitude
+      );
+      if (formattedAddress) {
+        setLocationReal(formattedAddress);
+      }
+      return formattedAddress;
+    } catch (error) {
+      console.error("Error getting device location:", error);
+      return null;
+    }
+  }, [setLocationReal]);
   useFocusEffect(
     useCallback(() => {
       let isActive = true;
@@ -142,23 +166,34 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
         setLocationReal(filteredData[0].address);
       };
       const fetchData = async () => {
-        if (!locationReal) return;
+        let currentLocation = locationReal;
+        if (!currentLocation) {
+          currentLocation = await getDeviceLocationAddress();
+        }
+        if (!currentLocation) return;
         try {
-          const res = await GetBranchNearLocation(locationReal);
+          const res = await GetBranchNearLocation(currentLocation);
           if (!isActive) return;
           const branches = res.data?.data || res.data || [];
-          setBranchInfo(branches);
-          if (branches.length > 0) {
+          const nearbyBranches = branches.filter((branch: any) => {
+            if (typeof branch?.distanceInMeters === "number") {
+              return branch.distanceInMeters <= 5000;
+            }
+            return true;
+          });
+          const dataSource = nearbyBranches.length > 0 ? nearbyBranches : [];
+          setBranchInfo(dataSource);
+          if (dataSource.length > 0) {
             setSelectedBranch((prevSelected: any) => {
               if (prevSelected?.id) {
-                const foundBranch = branches.find(
+                const foundBranch = dataSource.find(
                   (b: any) => b.id === prevSelected.id
                 );
                 if (foundBranch) {
                   return foundBranch;
                 }
               }
-              const firstBranch = branches[0];
+              const firstBranch = dataSource[0];
               if (firstBranch?.id) {
                 setBranchId(firstBranch.id);
               }
@@ -174,7 +209,12 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
       return () => {
         isActive = false;
       };
-    }, [locationReal, setBranchId, appState?.userInfo?.id])
+    }, [
+      locationReal,
+      setBranchId,
+      appState?.userInfo?.id,
+      getDeviceLocationAddress,
+    ])
   );
 
   const handleSelectBranch = (branch: any) => {
@@ -448,7 +488,7 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
                   ) : (
                     <View style={styles.emptyContainer}>
                       <Text style={styles.emptyText}>
-                        Không tìm thấy chi nhánh nào
+                        Không tìm thấy chi nhánh nào gần bạn
                       </Text>
                     </View>
                   )}

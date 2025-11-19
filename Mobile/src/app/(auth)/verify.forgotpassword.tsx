@@ -75,12 +75,11 @@ const VerifyForgotPassword = () => {
   const { phoneNumber, channel } = useLocalSearchParams();
   useEffect(() => {
     if (typeof phoneNumber !== "string" || !phoneNumber) return;
-
     const channelStr = channel as string;
     const getCountdown = async () => {
       try {
         const res = await TTLOtp(channelStr, phoneNumber);
-        setCountdown(res?.data?.ttl ?? res?.data?.data ?? 0);
+        setCountdown(res?.data?.data ?? 0);
       } catch (err: any) {
         console.log(
           "TTL OTP error:",
@@ -186,7 +185,7 @@ const VerifyForgotPassword = () => {
               textAlign: "center",
             }}
           >
-            Mã OTP đã được gửi về số điện thoại {phoneNumber}
+            Mã OTP đã được gửi về zalo số điện thoại {phoneNumber}
           </Text>
         )}
         <View style={{ marginVertical: 20 }}>
