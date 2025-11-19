@@ -25,7 +25,7 @@ public interface PromotionService {
 
     List<PromotionDTO> getCustomerPromotions(String customerEmail);
 
-    List<PromotionDTO> getAvailablePromotions(String customerEmail);
+    List<PromotionDTO> getAvailablePromotions(String phone);
 
     List<PromotionDTO> getAllPromotions();
 
@@ -34,4 +34,6 @@ public interface PromotionService {
     void updatePromotionStatus(String promotionCode, boolean status);
 
     boolean validatePromotionForCustomer(String customerEmail, String promotionCode, double orderValue);
+
+    List<PromotionDTO> getAvailablePromotionsByOrderAmount(String phoneNumber, double orderAmount);
 }

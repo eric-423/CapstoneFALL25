@@ -75,8 +75,8 @@ public class PromotionController {
     @GetMapping("/customer/available")
     public ResponseEntity<?> getAvailablePromotions(Authentication authentication) {
         try {
-            String email = authentication.getName();
-            List<PromotionDTO> promotions = promotionService.getAvailablePromotions(email);
+            String phone = authentication.getName();
+            List<PromotionDTO> promotions = promotionService.getAvailablePromotions(phone);
 
             ResponseData responseData = new ResponseData();
             responseData.setData(promotions);
@@ -113,6 +113,24 @@ public class PromotionController {
             ResponseData responseData = new ResponseData();
             responseData.setData(promotion);
             responseData.setDesc("Retrieved promotion successfully");
+            return new ResponseEntity<>(responseData, HttpStatus.OK);
+        } catch (Exception e) {
+            ResponseData responseData = new ResponseData();
+            responseData.setDesc(e.getMessage());
+            return new ResponseEntity<>(responseData, HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @GetMapping("/available/order-amout")
+    public ResponseEntity<?> getAvailablePromotionByOrderAmount(Authentication authentication, @RequestParam double orderAmount) {
+        try {
+            String phoneNumber = authentication.getName();
+
+            List<PromotionDTO> promotions = promotionService.getAvailablePromotionsByOrderAmount(phoneNumber, orderAmount);
+
+            ResponseData responseData = new ResponseData();
+            responseData.setData(promotions);
+            responseData.setDesc("Retrieved available promotions by order amount successfully");
             return new ResponseEntity<>(responseData, HttpStatus.OK);
         } catch (Exception e) {
             ResponseData responseData = new ResponseData();

@@ -339,6 +339,33 @@ public class PromotionServiceImpl implements PromotionService {
         return result.isValid();
     }
 
+    @Override
+    public List<PromotionDTO> getAvailablePromotionsByOrderAmount(String phoneNumber, double orderAmount) {
+        Users users = usersRepository.findByPhoneNumber(phoneNumber)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+
+        List<Promotion> promotions = promotionRepository
+                .findByUserPromotions_User_IdAndUserPromotions_UsageCountGreaterThanAndMinimumOrderValueGreaterThanEqual(
+                        users.getId(), 0, orderAmount);
+
+        List<PromotionDTO> result = new ArrayList<>();
+        for (Promotion promotion : promotions) {
+            if (!promotion.isStatus() || !isPromotionDateValid(promotion)) {
+                continue;
+            }
+
+            UserPromotionKey key = new UserPromotionKey(users.getId(), promotion.getId());
+            Optional<UserPromotion> userPromotionOptional = userPromotionRepository.findById(key);
+            if (userPromotionOptional.isEmpty() || userPromotionOptional.get().getUsageCount() <= 0) {
+                continue;
+            }
+
+            result.add(convertToDTO(promotion, userPromotionOptional.get()));
+        }
+
+        return result;
+    }
+
     private PromotionDTO convertToDTO(Promotion promotion, UserPromotion userPromotion) {
         PromotionDTO dto = new PromotionDTO();
         dto.setId(promotion.getId());
