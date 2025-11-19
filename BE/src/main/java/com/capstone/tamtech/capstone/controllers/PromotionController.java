@@ -144,8 +144,8 @@ public class PromotionController {
             @RequestParam double orderValue,
             Authentication authentication) {
         try {
-            String email = authentication.getName();
-            boolean isValid = promotionService.validatePromotionForCustomer(email, promotionCode, orderValue);
+            String phoneNumber = authentication.getName();
+            boolean isValid = promotionService.validatePromotionForCustomer(phoneNumber, promotionCode, orderValue);
 
             ResponseData responseData = new ResponseData();
             responseData.setData(isValid);

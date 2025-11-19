@@ -49,7 +49,7 @@ public class PromotionServiceImpl implements PromotionService {
             return PromotionValidationResult.invalid("Mã khuyến mãi không được để trống");
         }
 
-        Optional<Promotion> promotionOptional = promotionRepository.findByNameIgnoreCase(promotionCode.trim());
+        Optional<Promotion> promotionOptional = promotionRepository.findById(UUID.fromString(promotionCode.trim()));
         if (promotionOptional.isEmpty()) {
             return PromotionValidationResult.invalid("Mã khuyến mãi không tồn tại");
         }
@@ -215,7 +215,7 @@ public class PromotionServiceImpl implements PromotionService {
     @Override
     @Transactional
     public int assignPromotionToUsers(AssignPromotionRequest request) {
-        Promotion promotion = promotionRepository.findByNameIgnoreCase(request.getPromotionCode())
+        Promotion promotion = promotionRepository.findById(UUID.fromString(request.getPromotionCode()))
                 .orElseThrow(() -> new ResourceNotFoundException("Promotion not found"));
 
         int assignedCount = 0;
@@ -311,7 +311,7 @@ public class PromotionServiceImpl implements PromotionService {
     @Override
     @Transactional(readOnly = true)
     public PromotionDTO getPromotionByCode(String promotionCode) {
-        Promotion promotion = promotionRepository.findByNameIgnoreCase(promotionCode)
+        Promotion promotion = promotionRepository.findById(UUID.fromString(promotionCode))
                 .orElseThrow(() -> new ResourceNotFoundException("Promotion not found"));
         return convertToDTO(promotion, null);
     }
@@ -319,7 +319,7 @@ public class PromotionServiceImpl implements PromotionService {
     @Override
     @Transactional
     public void updatePromotionStatus(String promotionCode, boolean status) {
-        Promotion promotion = promotionRepository.findByNameIgnoreCase(promotionCode)
+        Promotion promotion = promotionRepository.findById(UUID.fromString(promotionCode))
                 .orElseThrow(() -> new ResourceNotFoundException("Promotion not found"));
         promotion.setStatus(status);
         promotionRepository.save(promotion);
