@@ -5,6 +5,7 @@ export const GET_PRODUCT_TYPE_STALE_TIME = 1000 * 60 * 30;
 export const GET_PRODUCTS_QUERY_KEY = 'GET_PRODUCTS_QUERY_KEY';
 export const GET_PRODUCTS_BY_BRANCH_QUERY_KEY = 'GET_PRODUCTS_BY_BRANCH_QUERY_KEY';
 export const GET_PRODUCT_SEARCH_QUERY_KEY = 'GET_PRODUCT_SEARCH_QUERY_KEY';
+export const GET_TOP_SELLING_QUERY_KEY = 'GET_TOP_SELLING_QUERY_KEY';
 
 export interface SuccessResponse<T> {
   data: T;
@@ -30,7 +31,21 @@ export interface Product {
 
 export interface ProductType {
   id: number;
-  name: string; 
+  name: string;
+}
+
+export interface TopSellingItem {
+  type: string;
+  id: number;
+  name: string;
+  quantitySold: number;
+  revenue: number;
+  imageUrl: string;
+}
+
+export interface TopSellingResponse {
+  topItems: TopSellingItem[];
+  message: string;
 }
 
 // Interface cho response thực tế từ API
@@ -164,7 +179,7 @@ export const getProduct = async (
     sortDirection,
   };
 
-  // Chỉ thêm productTypeId vào params nếu nó được định nghĩa và khác 0
+
   if (productTypeId !== undefined && productTypeId !== 0) {
     params.productTypeId = productTypeId;
   }
@@ -173,8 +188,8 @@ export const getProduct = async (
     params,
   });
 
-  // Response thực tế trả về trực tiếp ProductSearchResponse, không có wrapper
-  // Kiểm tra nếu response có wrapper data hoặc trả về trực tiếp
+
+
   const responseData: ProductSearchResponse = data?.data || data;
 
   if (!responseData || !responseData.content) {
@@ -249,4 +264,20 @@ export const searchProducts = async (
     empty: response.data.content.length === 0,
   };
 }
+
+export interface TopSellingApiResponse {
+  status: number;
+  desc: string | null;
+  data: TopSellingResponse;
+}
+
+export const getTopSellingProducts = async (branchId: number, limit: number = 1): Promise<TopSellingApiResponse> => {
+  const { data } = await http.get('/statistics/top-selling', {
+    params: {
+      branchId,
+      limit,
+    },
+  });
+  return data;
+};
 

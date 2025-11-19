@@ -15,12 +15,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
     const [queryClient] = useState(() => new QueryClient({
         defaultOptions: {
             queries: {
-                retry: 2, // Reduced from 3 to 2 for faster failure handling
-                staleTime: 5 * 60 * 1000, // 5 minutes
-                gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+                retry: 2,
+                staleTime: 5 * 60 * 1000,
+                gcTime: 10 * 60 * 1000,
                 refetchOnWindowFocus: false,
-                refetchOnMount: false, // Prevent refetch on mount if data is fresh
-                refetchOnReconnect: true, // Only refetch on reconnect
+                refetchOnMount: false,
+                refetchOnReconnect: true,
             },
         },
     }));
@@ -32,17 +32,19 @@ export function Providers({ children }: { children: React.ReactNode }) {
                     <AuthProvider>
                         <CartProvider>
                             {children}
-                            <ToastContainer
-                                position='top-right'
-                                className={'mt-15'}
-                                autoClose={3000}
-                                hideProgressBar={true}
-                                newestOnTop={false}
-                                pauseOnHover={false}
-                                closeOnClick
-                                theme='light'
-                            />
                         </CartProvider>
+                        <ToastContainer
+                            position='top-center'
+                            className={'mt-15'}
+                            autoClose={3000}
+                            hideProgressBar={true}
+                            newestOnTop={false}
+                            pauseOnHover={false}
+                            closeOnClick
+                            closeButton={false}
+                            icon={false}
+                            theme='light'
+                        />
                     </AuthProvider>
                 </CookiesProvider>
             </QueryClientProvider>

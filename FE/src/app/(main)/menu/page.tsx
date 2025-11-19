@@ -3,10 +3,10 @@
 import image from '@/assets/images/Home - Banner.jpg';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import StyledHeading from '@/components/common/styled-heading';
-import InfiniteScroll from '@/components/ui/infinite-scroll';
+import { Button } from '@/components/ui/button';
 import useScrollTop from '@/utils/hooks/useScrollTop';
 import useGetProductSearch from '@/utils/hooks/useGetProductSearch';
-import { ProductType } from '@/apis/product.api';
+import { GET_TOP_SELLING_QUERY_KEY, Product, ProductType, getTopSellingProducts } from '@/apis/product.api';
 import { getCustomerInformation } from '@/apis/user.api';
 import {
     Branch as ApiBranch,
@@ -21,7 +21,7 @@ import { useAuth } from '@/utils/hooks';
 import { useSampleProductTypes } from '@/utils/hooks/useSampleData';
 
 import Image from 'next/image';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
 import BranchList from './components/branch-list';
@@ -43,6 +43,7 @@ export default function MenuPage() {
     const { user } = useAuth();
     const [productType, setProductType] = useState<ProductType>({ id: 0, name: 'Tất cả' });
     const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
+    const [pageAnimating, setPageAnimating] = useState(false);
 
     const { productTypes, isLoading: isLoadingProductTypes } = useSampleProductTypes();
     const { data: branchesData = [], isLoading: isLoadingBranchesData } = useQuery<ApiBranch[]>({
@@ -116,15 +117,41 @@ export default function MenuPage() {
     const {
         products: productList,
         isLoading: isLoadingProducts,
-        nextPage,
-        hasMore,
         resetAndRefetch,
+        page,
+        goToPage,
+        totalPages,
     } = useGetProductSearch({
         size: 12,
         productTypeId: productType.id === 0 ? undefined : productType.id,
         branchId: selectedBranch?.branchId || 1,
         isActive: true,
+        appendPages: false,
     });
+
+    const { data: topSellingData } = useQuery({
+        queryKey: [GET_TOP_SELLING_QUERY_KEY, selectedBranch?.branchId],
+        queryFn: () => getTopSellingProducts(selectedBranch?.branchId || 1, 1),
+        enabled: Boolean(selectedBranch?.branchId),
+        refetchOnWindowFocus: false,
+    });
+
+    const featuredProduct = useMemo<Product | null>(() => {
+        const topItem = topSellingData?.data?.topItems?.[0];
+        if (!topItem) return null;
+        const estimatedPrice =
+            topItem.quantitySold && topItem.quantitySold > 0
+                ? Math.round(topItem.revenue / topItem.quantitySold)
+                : topItem.revenue || 0;
+        return {
+            productId: topItem.id,
+            productName: topItem.name,
+            productDescription: `Đã bán ${topItem.quantitySold} phần trong tuần qua`,
+            productImage: topItem.imageUrl,
+            productPrice: estimatedPrice,
+            productType: 'Best Seller',
+        } as Product;
+    }, [topSellingData]);
 
     const isLoadingBranches = isLoadingBranchesData || isLoadingProductTypes || isLoadingCustomerInfos || isLoadingNearbyBranches;
 
@@ -144,9 +171,78 @@ export default function MenuPage() {
         });
     }, [displayBranches, isLoadingBranches]);
 
+    const scrollToTop = useCallback(() => {
+        if (typeof window !== 'undefined') {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+            document.getElementById('hero-section')?.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, []);
+
     useEffect(() => {
-        document.getElementById('hero-section')?.scrollIntoView({ behavior: 'smooth' });
-    }, [productType, selectedBranch]);
+        scrollToTop();
+    }, [productType, selectedBranch, scrollToTop]);
+
+    useEffect(() => {
+        setPageAnimating(true);
+        const timer = setTimeout(() => setPageAnimating(false), 400);
+        return () => clearTimeout(timer);
+    }, [page]);
+
+    const paginationPages = useMemo(() => {
+        if (totalPages <= 1) return [];
+
+        const pages: Array<number | 'ellipsis'> = [];
+
+        if (totalPages <= 5) {
+            for (let i = 0; i < totalPages; i++) {
+                pages.push(i);
+            }
+            return pages;
+        }
+
+        const firstPage = 0;
+        const lastPage = totalPages - 1;
+        const start = Math.max(1, page - 1);
+        const end = Math.min(totalPages - 2, page + 1);
+
+        pages.push(firstPage);
+
+        if (start > 1) {
+            pages.push('ellipsis');
+        }
+
+        for (let i = start; i <= end; i++) {
+            pages.push(i);
+        }
+
+        if (end < totalPages - 2) {
+            pages.push('ellipsis');
+        }
+
+        pages.push(lastPage);
+
+        return pages;
+    }, [page, totalPages]);
+
+    const handlePageChange = (targetPage: number) => {
+        if (targetPage === page) return;
+        goToPage(targetPage);
+    };
+
+    const handlePrevPage = () => {
+        if (page === 0) return;
+        goToPage(page - 1);
+    };
+
+    const handleNextPage = () => {
+        if (page >= totalPages - 1) return;
+        goToPage(page + 1);
+    };
+
+    useEffect(() => {
+        scrollToTop();
+    }, [page, scrollToTop]);
 
     return (
         <div className='min-h-screen'>
@@ -201,7 +297,7 @@ export default function MenuPage() {
                                 </div>
                             </div>
                             <div className='lg:w-3/4' id='menu-content'>
-                                {productList?.length > 0 && productType.id === 0 && <FeaturedProduct product={productList[0]} />}
+                                {featuredProduct && productType.id === 0 && page === 0 && <FeaturedProduct product={featuredProduct} />}
                                 <div>
                                     <div className='flex items-center justify-between mb-6'>
                                         <h2 className='text-xl font-bold'>
@@ -220,12 +316,50 @@ export default function MenuPage() {
                                         </div>
                                     ) : (
                                         <>
-                                            <ProductList products={productList} />
-                                            <div>
-                                                <InfiniteScroll hasMore={hasMore} isLoading={isLoadingProducts} next={nextPage}>
-                                                    {isLoadingProducts && <LoadingSpinner className='my-10 h-8 w-8 animate-spin' />}
-                                                </InfiniteScroll>
+                                            <div className={`transition-all duration-500 ${pageAnimating ? 'animate-slide-up' : ''}`}>
+                                                <ProductList products={productList} />
                                             </div>
+                                            {totalPages > 1 && (
+                                                <div className='mt-10 flex flex-col items-center gap-4'>
+                                                    <div className='flex flex-wrap items-center justify-center gap-2'>
+                                                        <Button
+                                                            className='rounded-xl font-semibold px-4 py-2 h-10 bg-[#EC6426]/30 text-[#D95714] hover:bg-[#EC6426]/50 transition-colors disabled:bg-[#F7D7BF] disabled:text-white disabled:cursor-not-allowed'
+                                                            disabled={page === 0}
+                                                            onClick={handlePrevPage}
+                                                        >
+                                                            Trước
+                                                        </Button>
+                                                        {paginationPages.map((item, idx) =>
+                                                            item === 'ellipsis' ? (
+                                                                <span key={`ellipsis-${idx}`} className='px-2 text-primary font-semibold'>
+                                                                    ...
+                                                                </span>
+                                                            ) : (
+                                                                <Button
+                                                                    key={item}
+                                                                    className={`h-10 w-10 rounded-xl font-semibold transition-colors duration-200 ${item === page
+                                                                        ? 'bg-[#EC6426] text-white shadow-lg'
+                                                                        : 'bg-[#EC6426]/30 text-[#EC6426] hover:bg-[#EC6426]/50'
+                                                                        }`}
+                                                                    onClick={() => handlePageChange(item)}
+                                                                >
+                                                                    {item + 1}
+                                                                </Button>
+                                                            )
+                                                        )}
+                                                        <Button
+                                                            className='rounded-xl font-semibold px-4 py-2 h-10 bg-[#EC6426]/30 text-[#D95714] hover:bg-[#EC6426]/50 transition-colors disabled:bg-[#F7D7BF] disabled:text-white disabled:cursor-not-allowed'
+                                                            disabled={page >= totalPages - 1}
+                                                            onClick={handleNextPage}
+                                                        >
+                                                            Sau
+                                                        </Button>
+                                                    </div>
+                                                    <p className='text-sm text-gray-500'>
+                                                        Trang <span className='font-semibold text-primary'>{page + 1}</span> / {totalPages}
+                                                    </p>
+                                                </div>
+                                            )}
                                         </>
                                     )}
                                 </div>

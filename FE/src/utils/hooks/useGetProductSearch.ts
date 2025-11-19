@@ -14,6 +14,7 @@ type useGetProductSearchProps = {
   maxPrice?: number;
   sortBy?: SortBy;
   sortDirection?: 'ASC' | 'DESC';
+  appendPages?: boolean;
 };
 
 const useGetProductSearch = ({
@@ -26,6 +27,7 @@ const useGetProductSearch = ({
   maxPrice,
   sortBy,
   sortDirection,
+  appendPages = true,
 }: useGetProductSearchProps) => {
   const queryClient = useQueryClient();
   const [productList, setProductList] = useState<Product[]>([]);
@@ -81,6 +83,14 @@ const useGetProductSearch = ({
     setPage((prev) => prev + 1);
   };
 
+  const prevPage = () => {
+    setPage((prev) => Math.max(0, prev - 1));
+  };
+
+  const goToPage = (pageNumber: number) => {
+    setPage(Math.max(0, pageNumber));
+  };
+
   const resetAndRefetch = async () => {
     setPage(0);
     setProductList([]);
@@ -96,13 +106,18 @@ const useGetProductSearch = ({
       return;
     }
 
+    if (!appendPages) {
+      setProductList(fetchedProducts.data.content);
+      return;
+    }
+
     const currentPage = fetchedProducts.data.number;
     if (currentPage === 0) {
       setProductList(fetchedProducts.data.content);
     } else {
       setProductList((prev) => [...prev, ...fetchedProducts.data.content]);
     }
-  }, [fetchedProducts, dataUpdatedAt]);
+  }, [appendPages, fetchedProducts, dataUpdatedAt]);
 
   // Reset page và productList khi các tham số thay đổi (trừ page)
   // và invalidate queries để trigger refetch
@@ -131,8 +146,12 @@ const useGetProductSearch = ({
     products: productList,
     isLoading: isLoadingProducts,
     nextPage,
+    prevPage,
+    goToPage,
+    page,
     hasMore: fetchedProducts ? !fetchedProducts.data.last : false,
     totalElements: fetchedProducts?.data.totalElements || 0,
+    totalPages: fetchedProducts?.data.totalPages || 0,
     refetch,
     resetAndRefetch,
   };

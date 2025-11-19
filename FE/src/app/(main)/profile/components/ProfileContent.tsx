@@ -2,9 +2,27 @@
 
 import { ProtectedLayout } from '@/components/layouts/ProtectedLayout';
 import { useAuthContext } from '@/utils/contexts/AuthContext';
+import { useMemo } from 'react';
+import { useCustomerOrders } from '@/utils/hooks/useCustomerOrders';
 
 export default function ProfileContent() {
     const { user } = useAuthContext();
+    const { orders, isLoadingOrders } = useCustomerOrders({ realtime: false, initialStatus: 'ALL' });
+
+    const { totalEarnedPoints, totalUsedPoints } = useMemo(() => {
+        return orders.reduce(
+            (acc, order) => {
+                const earned = typeof order.pointEarned === 'number' ? order.pointEarned : 0;
+                const used = typeof order.pointUsed === 'number' ? order.pointUsed : 0;
+                acc.totalEarnedPoints += earned;
+                acc.totalUsedPoints += used;
+                return acc;
+            },
+            { totalEarnedPoints: 0, totalUsedPoints: 0 },
+        );
+    }, [orders]);
+
+    const formatPoints = (value: number) => `${value.toLocaleString()} điểm`;
 
     return (
         <ProtectedLayout>
@@ -35,23 +53,30 @@ export default function ProfileContent() {
                                             {user.phoneNumber}
                                         </div>
                                     </div>
+                                </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700">
-                                            Vai trò
-                                        </label>
-                                        <div className="mt-1 p-3 border border-gray-300 rounded-md bg-gray-50">
-                                            {user.role}
-                                        </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="border border-orange-100 bg-orange-50 rounded-xl p-4 shadow-sm">
+                                        <p className="text-sm font-semibold text-[#C04A00] uppercase tracking-wide">
+                                            Tổng điểm đã kiếm
+                                        </p>
+                                        <p className="mt-2 text-3xl font-bold text-[#EC6426]">
+                                            {isLoadingOrders ? '...' : formatPoints(totalEarnedPoints)}
+                                        </p>
+                                        <p className="text-xs text-gray-500 mt-1">
+                                            Tích từ tất cả các đơn hàng đã hoàn tất
+                                        </p>
                                     </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700">
-                                            Người dùng mới
-                                        </label>
-                                        <div className="mt-1 p-3 border border-gray-300 rounded-md bg-gray-50">
-                                            {user.isNewUser ? 'Có' : 'Không'}
-                                        </div>
+                                    <div className="border border-orange-100 bg-white rounded-xl p-4 shadow-sm">
+                                        <p className="text-sm font-semibold text-[#8A3D00] uppercase tracking-wide">
+                                            Tổng điểm đã dùng
+                                        </p>
+                                        <p className="mt-2 text-3xl font-bold text-[#C04A00]">
+                                            {isLoadingOrders ? '...' : formatPoints(totalUsedPoints)}
+                                        </p>
+                                        <p className="text-xs text-gray-500 mt-1">
+                                            Các điểm đã quy đổi ưu đãi/giảm giá
+                                        </p>
                                     </div>
                                 </div>
 

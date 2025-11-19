@@ -45,6 +45,15 @@ export default function ProfileContent() {
     const userData = user;
     const isLoadingUserData = isAuthLoading;
 
+    const totalPoints = orders.reduce(
+        (acc, order) => {
+            acc.earned += typeof order.pointEarned === 'number' ? order.pointEarned : 0;
+            acc.used += typeof order.pointUsed === 'number' ? order.pointUsed : 0;
+            return acc;
+        },
+        { earned: 0, used: 0 },
+    );
+
     return (
         <div className='py-8 px-4'>
             <div className='container mx-auto max-w-4xl'>
@@ -53,110 +62,114 @@ export default function ProfileContent() {
                     <p className='mt-2'>Quản lý thông tin tài khoản và lịch sử đơn hàng của bạn</p>
                 </div>
 
-                <Tabs value={activeTab} onValueChange={setActiveTab} className='space-y-6'>
-                    <div className='block sm:hidden'>
-                        <Select value={activeTab} onValueChange={setActiveTab}>
-                            <SelectTrigger className='w-full border-foreground'>
-                                <SelectValue>
-                                    {activeTab === 'profile' && (
+                <div className='bg-[#FDE3CF] rounded-xl shadow-2xl border border-orange-100/50 p-6'>
+                    <Tabs value={activeTab} onValueChange={setActiveTab} className='space-y-6'>
+                        <div className='block sm:hidden'>
+                            <Select value={activeTab} onValueChange={setActiveTab}>
+                                <SelectTrigger className='w-full border-foreground'>
+                                    <SelectValue>
+                                        {activeTab === 'profile' && (
+                                            <div className='flex items-center gap-2'>
+                                                <User className='h-4 w-4' />
+                                                Thông tin cá nhân
+                                            </div>
+                                        )}
+                                        {activeTab === 'password' && (
+                                            <div className='flex items-center gap-2'>
+                                                <Lock className='h-4 w-4' />
+                                                Đổi mật khẩu
+                                            </div>
+                                        )}
+                                        {activeTab === 'orders' && (
+                                            <div className='flex items-center gap-2'>
+                                                <ShoppingBag className='h-4 w-4' />
+                                                Lịch sử đơn hàng
+                                            </div>
+                                        )}
+                                    </SelectValue>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value='profile'>
                                         <div className='flex items-center gap-2'>
                                             <User className='h-4 w-4' />
                                             Thông tin cá nhân
                                         </div>
-                                    )}
-                                    {activeTab === 'password' && (
+                                    </SelectItem>
+                                    <SelectItem value='password'>
                                         <div className='flex items-center gap-2'>
                                             <Lock className='h-4 w-4' />
                                             Đổi mật khẩu
                                         </div>
-                                    )}
-                                    {activeTab === 'orders' && (
+                                    </SelectItem>
+                                    <SelectItem value='orders'>
                                         <div className='flex items-center gap-2'>
                                             <ShoppingBag className='h-4 w-4' />
                                             Lịch sử đơn hàng
                                         </div>
-                                    )}
-                                </SelectValue>
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value='profile'>
-                                    <div className='flex items-center gap-2'>
-                                        <User className='h-4 w-4' />
-                                        Thông tin cá nhân
-                                    </div>
-                                </SelectItem>
-                                <SelectItem value='password'>
-                                    <div className='flex items-center gap-2'>
-                                        <Lock className='h-4 w-4' />
-                                        Đổi mật khẩu
-                                    </div>
-                                </SelectItem>
-                                <SelectItem value='orders'>
-                                    <div className='flex items-center gap-2'>
-                                        <ShoppingBag className='h-4 w-4' />
-                                        Lịch sử đơn hàng
-                                    </div>
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <TabsList className='hidden sm:grid w-full grid-cols-3 h-11 bg-secondary/30 rounded-lg p-1'>
-                        <TabsTrigger
-                            value='profile'
-                            className='flex items-center gap-2 data-[state=active]:bg-foreground/80 data-[state=active]:text-white'
-                        >
-                            <User className='h-4 w-4' />
-                            Thông tin cá nhân
-                        </TabsTrigger>
-                        <TabsTrigger
-                            value='password'
-                            className='flex items-center gap-2 data-[state=active]:bg-foreground/80 data-[state=active]:text-white'
-                        >
-                            <Lock className='h-4 w-4' />
-                            Đổi mật khẩu
-                        </TabsTrigger>
-                        <TabsTrigger
-                            value='orders'
-                            className='flex items-center gap-2 data-[state=active]:bg-foreground/80 data-[state=active]:text-white'
-                        >
-                            <ShoppingBag className='h-4 w-4' />
-                            Lịch sử đơn hàng
-                        </TabsTrigger>
-                    </TabsList>
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <TabsList className='hidden sm:grid w-full grid-cols-3 h-11 bg-secondary/30 rounded-lg p-1'>
+                            <TabsTrigger
+                                value='profile'
+                                className='flex items-center gap-2 data-[state=active]:bg-foreground/80 data-[state=active]:text-white'
+                            >
+                                <User className='h-4 w-4' />
+                                Thông tin cá nhân
+                            </TabsTrigger>
+                            <TabsTrigger
+                                value='password'
+                                className='flex items-center gap-2 data-[state=active]:bg-foreground/80 data-[state=active]:text-white'
+                            >
+                                <Lock className='h-4 w-4' />
+                                Đổi mật khẩu
+                            </TabsTrigger>
+                            <TabsTrigger
+                                value='orders'
+                                className='flex items-center gap-2 data-[state=active]:bg-foreground/80 data-[state=active]:text-white'
+                            >
+                                <ShoppingBag className='h-4 w-4' />
+                                Lịch sử đơn hàng
+                            </TabsTrigger>
+                        </TabsList>
 
-                    {/* Profile Information Tab */}
-                    <TabsContent value='profile'>
-                        {userData ? (
-                            <ProfileInfoSection
-                                isLoading={isLoadingUserData}
-                                user={userData}
-                                totalOrders={totalOrdersCount || orders.length}
+                        {/* Profile Information Tab */}
+                        <TabsContent value='profile'>
+                            {userData ? (
+                                <ProfileInfoSection
+                                    isLoading={isLoadingUserData}
+                                    user={userData}
+                                    totalOrders={totalOrdersCount || orders.length}
+                                    totalEarnedPoints={totalPoints.earned}
+                                    totalUsedPoints={totalPoints.used}
+                                />
+                            ) : (
+                                <div className='p-4 text-center'>
+                                    <p>Vui lòng đăng nhập để xem thông tin cá nhân</p>
+                                </div>
+                            )}
+                        </TabsContent>
+
+                        {/* Change Password Tab */}
+                        <TabsContent value='password'>
+                            <PasswordChangeSection />
+                        </TabsContent>
+
+                        {/* Order History Tab */}
+                        <TabsContent value='orders'>
+                            <OrderHistorySection
+                                orders={orders}
+                                isLoadingOrders={isLoadingOrders}
+                                isFetchingOrders={isFetchingOrders}
+                                isRealtimeConnected={isRealtimeConnected}
+                                lastRealtimeUpdate={realtimeStatus}
+                                statusFilter={statusFilter}
+                                onStatusChange={(status) => setStatusFilter(status)}
                             />
-                        ) : (
-                            <div className='p-4 text-center'>
-                                <p>Vui lòng đăng nhập để xem thông tin cá nhân</p>
-                            </div>
-                        )}
-                    </TabsContent>
-
-                    {/* Change Password Tab */}
-                    <TabsContent value='password'>
-                        <PasswordChangeSection />
-                    </TabsContent>
-
-                    {/* Order History Tab */}
-                    <TabsContent value='orders'>
-                        <OrderHistorySection
-                            orders={orders}
-                            isLoadingOrders={isLoadingOrders}
-                            isFetchingOrders={isFetchingOrders}
-                            isRealtimeConnected={isRealtimeConnected}
-                            lastRealtimeUpdate={realtimeStatus}
-                            statusFilter={statusFilter}
-                            onStatusChange={(status) => setStatusFilter(status)}
-                        />
-                    </TabsContent>
-                </Tabs>
+                        </TabsContent>
+                    </Tabs>
+                </div>
             </div>
         </div>
     );

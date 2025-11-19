@@ -325,6 +325,28 @@ export const saveCustomerInformation = async (payload: SaveCustomerInformationPa
   return response.json();
 };
 
+export const deleteCustomerInformation = async (userId: number, informationId: number) => {
+  const response = await fetch(`/api/customer/infomation/${informationId}?userId=${userId}`, {
+    method: 'DELETE',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw {
+      response: {
+        data: errorBody,
+        status: response.status,
+      },
+    };
+  }
+
+  return response.json();
+};
+
 
 
 // =====================================  employee ================================

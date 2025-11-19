@@ -22,8 +22,8 @@ const FeaturedProduct = ({ product }: FeaturedProductProps) => {
         <div className='mb-10 relative w-full'>
             <div className='absolute top-0 right-0 z-20 w-[200px] h-[200px] pointer-events-none overflow-hidden'>
                 <div className='absolute top-6 right-[-45px] rotate-35'>
-                    <div className='bg-gradient-to-br from-secondary to-primary text-white text-[18px] font-extrabold px-12 py-1 shadow-md tracking-wide rounded-sm'>
-                        SIGNATURE
+                    <div className='bg-gradient-to-br from-secondary to-primary text-white text-[14px] font-extrabold px-12 py-1 shadow-md tracking-wide rounded-sm'>
+                        BEST SELLER
                     </div>
                 </div>
             </div>
@@ -62,14 +62,14 @@ const FeaturedProduct = ({ product }: FeaturedProductProps) => {
 
                             {/* Description */}
                             <p className='text-foreground leading-relaxed text-sm sm:text-base'>
-                                Món cơm tấm đặc biệt với sườn nướng mềm, topping tự chọn và đồ chua. Phục vụ kèm canh và nước ngọt.
+                                {product?.productDescription || 'Món cơm tấm đặc biệt với sườn nướng mềm, topping tự chọn và đồ chua. Phục vụ kèm canh và nước ngọt.'}
                             </p>
 
                             {/* Price and Favorite */}
                             <div className='flex items-center justify-between py-2'>
                                 <div className='flex flex-col'>
                                     <span className='text-3xl sm:text-4xl font-bold text-primary'>
-                                        {product?.productPrice.toLocaleString()}đ
+                                        {(product?.productPrice ?? 0).toLocaleString()}đ
                                     </span>
                                 </div>
                                 {/* <Button

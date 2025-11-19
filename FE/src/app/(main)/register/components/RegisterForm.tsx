@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -47,18 +47,38 @@ export default function RegisterForm() {
 
     const [phoneForVerify, setPhoneForVerify] = useState<string | null>(null);
     const [passwordForAutoLogin, setPasswordForAutoLogin] = useState<string | null>(null);
+    const [otpFeedback, setOtpFeedback] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
 
 
 
+
+    const clearPendingLoginState = useCallback(() => {
+        if (typeof window === 'undefined') return;
+        sessionStorage.removeItem('pendingLoginPhone');
+        sessionStorage.removeItem('pendingLoginPassword');
+    }, []);
 
     useEffect(() => {
 
         if (typeof window !== 'undefined') {
             const params = new URLSearchParams(window.location.search);
             const phoneFromQuery = params.get('phone');
+
+            const pendingLoginPhone = sessionStorage.getItem('pendingLoginPhone');
+            const pendingLoginPassword = sessionStorage.getItem('pendingLoginPassword');
+
             if (phoneFromQuery && phoneFromQuery.match(/^[0-9]{10}$/)) {
                 setStep('otp');
                 setVerificationIdentifier(phoneFromQuery);
+                setPhoneForVerify(phoneFromQuery);
+            } else if (pendingLoginPhone && pendingLoginPhone.match(/^[0-9]{10}$/)) {
+                setStep('otp');
+                setVerificationIdentifier(pendingLoginPhone);
+                setPhoneForVerify(pendingLoginPhone);
+            }
+
+            if (pendingLoginPassword) {
+                setPasswordForAutoLogin(pendingLoginPassword);
             }
         }
 
@@ -79,7 +99,7 @@ export default function RegisterForm() {
     const handleRegister = async (data: RegisterFormData) => {
         setLoading(true);
         try {
-            await registerCustomer({
+        await registerCustomer({
                 fullName: data.fullName,
                 phoneNumber: data.phone,
                 password: data.password,
@@ -128,15 +148,20 @@ export default function RegisterForm() {
             return;
         }
 
+        setOtpFeedback(null);
         setLoading(true);
         try {
 
             await verifyOTP('zalo', identifier, inputOtp);
 
-            toast.success('Xác thực thành công!');
+            clearPendingLoginState();
 
             const autoLoginSuccess = await autoLoginAfterRegister(identifier);
             if (!autoLoginSuccess) {
+                setOtpFeedback({
+                    type: 'error',
+                    text: 'Xác thực thành công, vui lòng đăng nhập lại.',
+                });
                 router.push('/login');
             }
 
@@ -145,8 +170,10 @@ export default function RegisterForm() {
             const errorMessage =
                 (error as { response?: { data?: { desc?: string } } })?.response?.data?.desc ||
                 'Mã OTP không đúng hoặc đã hết hạn!';
-            toast.error(errorMessage);
-
+            setOtpFeedback({
+                type: 'error',
+                text: errorMessage,
+            });
             setOtp('');
 
         } finally {
@@ -175,7 +202,6 @@ export default function RegisterForm() {
             console.error('Auto login after register failed:', error);
         }
 
-        toast.info('Đăng ký thành công, vui lòng đăng nhập lại.');
         return false;
     };
 
@@ -273,7 +299,9 @@ export default function RegisterForm() {
                                     <div>
                                         <div className="relative">
                                             <Input
-                                                {...register('password')}
+                                                {...register('password', {
+                                                    setValueAs: (value) => value?.trim() ?? '',
+                                                })}
                                                 type={showPassword ? 'text' : 'password'}
                                                 placeholder="Mật khẩu"
                                                 className={`rounded-lg border ${errors.password
@@ -301,7 +329,9 @@ export default function RegisterForm() {
                                     <div>
                                         <div className="relative">
                                             <Input
-                                                {...register('confirmPassword')}
+                                                {...register('confirmPassword', {
+                                                    setValueAs: (value) => value?.trim() ?? '',
+                                                })}
                                                 type={showConfirmPassword ? 'text' : 'password'}
                                                 placeholder="Xác nhận mật khẩu"
                                                 className={`rounded-lg border ${errors.confirmPassword
@@ -366,6 +396,14 @@ export default function RegisterForm() {
                                     <p className="text-gray-600 text-sm max-w-sm mx-auto mb-4">
                                         Mã xác thực đang được gửi qua Zalo. Bạn vui lòng kiểm tra thông báo trong Zalo để lấy mã và nhập bên dưới nhé.
                                     </p>
+                            {otpFeedback && (
+                                <p
+                                    className={`text-sm font-medium ${otpFeedback.type === 'error' ? 'text-red-600' : 'text-green-600'
+                                        } mb-4`}
+                                >
+                                    {otpFeedback.text}
+                                </p>
+                            )}
 
                                     <div className="flex justify-center mb-6">
                                         <InputOTP
