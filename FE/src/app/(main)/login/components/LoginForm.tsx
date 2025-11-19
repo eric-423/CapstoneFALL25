@@ -1,21 +1,25 @@
 'use client';
 
 import { GuestLayout } from '@/components/layouts/GuestLayout';
-import { loginCustomerViaApiRoute } from '@/apis/user.api';
+import { loginCustomerViaApiRoute, sendOtp } from '@/apis/user.api';
 import { Input } from '@/components/ui/input';
 import { useAuthContext } from '@/utils/contexts/AuthContext';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 
 export default function LoginForm() {
+    const router = useRouter();
     const [phone, setPhone] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
+    const [resendOtpLoading, setResendOtpLoading] = useState(false);
     const [errors, setErrors] = useState<{ phone?: string; password?: string }>({});
+    const [globalMessage, setGlobalMessage] = useState<{ type: 'error' | 'info'; text: string } | null>(null);
     const { redirectAfterLogin } = useAuthContext();
 
     useEffect(() => {
@@ -36,6 +40,7 @@ export default function LoginForm() {
     const handleSubmit = async (e: React.FormEvent) => {
 
         e.preventDefault();
+        setGlobalMessage(null);
         setErrors({});
 
         // Client-side validation để cải thiện UX
@@ -68,9 +73,56 @@ export default function LoginForm() {
                 redirectAfterLogin(role);
             }
         } catch (error: unknown) {
-            console.log(error);
+
+            const apiErrorMessage =
+                (error as { response?: { data?: { error?: string; message?: string } } })?.response?.data?.error ||
+                (error as { response?: { data?: { error?: string; message?: string } } })?.response?.data?.message ||
+                'Đăng nhập thất bại. Vui lòng thử lại.';
+
+            let feedbackMessage: string | null = apiErrorMessage;
+
+            if (apiErrorMessage.includes('Số điện thoại chưa được xác thực')) {
+                setErrors(prev => ({ ...prev, phone: apiErrorMessage }));
+                feedbackMessage = null;
+            }
+
+            if (feedbackMessage) {
+                setGlobalMessage({ type: 'error', text: feedbackMessage });
+            }
+
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleResendOtp = async () => {
+        if (!validatePhone(phone)) {
+            setErrors(prev => ({
+                ...prev,
+                phone: 'Vui lòng nhập số điện thoại hợp lệ (cần 10 số)',
+            }));
+            setGlobalMessage({ type: 'error', text: 'Vui lòng nhập số điện thoại hợp lệ trước.' });
+            return;
+        }
+
+        setGlobalMessage(null);
+        setResendOtpLoading(true);
+        try {
+            await sendOtp('zalo', phone);
+            if (typeof window !== 'undefined') {
+                sessionStorage.setItem('pendingLoginPhone', phone);
+                sessionStorage.setItem('pendingLoginPassword', password);
+            }
+            router.push(`/register?phone=${encodeURIComponent(phone)}`);
+            return;
+        } catch (error: unknown) {
+            const errorMessage =
+                (error as { response?: { data?: { desc?: string; message?: string } } })?.response?.data?.desc ||
+                (error as { response?: { data?: { desc?: string; message?: string } } })?.response?.data?.message ||
+                'Không thể gửi OTP. Vui lòng thử lại.';
+            setGlobalMessage({ type: 'error', text: errorMessage });
+        } finally {
+            setResendOtpLoading(false);
         }
     };
 
@@ -119,6 +171,14 @@ export default function LoginForm() {
                             <p className="mt-3 text-sm text-gray-600">
                                 Đồng bộ trải nghiệm với ứng dụng Tấm Tắc: đặt món, theo dõi đơn và tích điểm dễ dàng.
                             </p>
+                            {globalMessage && (
+                                <p
+                                    className={`mt-4 text-sm font-medium ${globalMessage.type === 'error' ? 'text-red-600' : 'text-gray-700'
+                                        }`}
+                                >
+                                    {globalMessage.text}
+                                </p>
+                            )}
                         </div>
 
                         <form className="space-y-5" onSubmit={handleSubmit}>
@@ -143,12 +203,11 @@ export default function LoginForm() {
                                         {errors.phone === 'Số điện thoại chưa được xác thực. Vui lòng xác thực số điện thoại trước khi đăng nhập.' && (
                                             <button
                                                 type="button"
-                                                className="mt-2 ml-2 text-sm text-[#FF6B35] underline"
-                                                onClick={() => {
-                                                    window.location.href = `/register?phone=${encodeURIComponent(phone)}`;
-                                                }}
+                                                className="mt-2 ml-2 text-sm text-[#FF6B35] underline disabled:opacity-50"
+                                                onClick={handleResendOtp}
+                                                disabled={resendOtpLoading}
                                             >
-                                                Gửi lại mã xác thực
+                                                {resendOtpLoading ? 'Đang gửi...' : 'Gửi lại mã xác thực'}
                                             </button>
                                         )}
                                     </>

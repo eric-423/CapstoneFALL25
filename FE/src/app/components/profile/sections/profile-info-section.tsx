@@ -3,19 +3,28 @@
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { Card, CardContent } from '@/components/ui/card';
 import { UserAuthData } from '@/utils/types/user.type';
+import AddressManagementSection from './address-management-section';
 
 import { Calendar, CircleUserRound, LucideUser, Mail, Phone, ShoppingBag } from 'lucide-react';
 
 interface ProfileInfoSectionProps {
     user: UserAuthData;
     totalOrders?: number;
+    totalEarnedPoints?: number;
+    totalUsedPoints?: number;
     isLoading?: boolean;
 }
 
-export default function ProfileInfoSection({ user, totalOrders, isLoading }: ProfileInfoSectionProps) {
+export default function ProfileInfoSection({
+    user,
+    totalOrders,
+    totalEarnedPoints = 0,
+    totalUsedPoints = 0,
+    isLoading,
+}: ProfileInfoSectionProps) {
     return (
         <div className='space-y-6'>
-            <Card>
+            <Card className='bg-transparent shadow-none border-0'>
                 {isLoading ? (
                     <div className='p-4 text-center'>
                         <LoadingSpinner />
@@ -41,20 +50,22 @@ export default function ProfileInfoSection({ user, totalOrders, isLoading }: Pro
                                 </div>
                                 <p className='text-2xl font-bold text-blue-900 mt-1'>{totalOrders || 0}</p>
                             </div>
-                            <div className='bg-green-50 p-4 rounded-lg'>
+                            <div className='bg-orange-50 p-4 rounded-lg'>
                                 <div className='flex items-center gap-2'>
-                                    <LucideUser className='h-5 w-5 text-green-600' />
-                                    <span className='text-sm font-medium text-green-600'>Vai trò</span>
+                                    <LucideUser className='h-5 w-5 text-[#C04A00]' />
+                                    <span className='text-sm font-medium text-[#C04A00]'>Điểm đã kiếm</span>
                                 </div>
-                                <p className='text-lg font-semibold text-green-900 mt-1'>{user?.role || 'Khách hàng'}</p>
+                                <p className='text-2xl font-bold text-[#EC6426] mt-1'>
+                                    {totalEarnedPoints.toLocaleString()} điểm
+                                </p>
                             </div>
-                            <div className='bg-purple-50 p-4 rounded-lg'>
+                            <div className='bg-rose-50 p-4 rounded-lg'>
                                 <div className='flex items-center gap-2'>
-                                    <LucideUser className='h-5 w-5 text-purple-600' />
-                                    <span className='text-sm font-medium text-purple-600'>Trạng thái</span>
+                                    <LucideUser className='h-5 w-5 text-rose-600' />
+                                    <span className='text-sm font-medium text-rose-600'>Điểm đã dùng</span>
                                 </div>
-                                <p className='text-lg font-semibold text-purple-900 mt-1'>
-                                    {user?.isNewUser ? 'Người dùng mới' : 'Đã kích hoạt'}
+                                <p className='text-2xl font-bold text-rose-800 mt-1'>
+                                    {totalUsedPoints.toLocaleString()} điểm
                                 </p>
                             </div>
                         </div>
@@ -64,6 +75,9 @@ export default function ProfileInfoSection({ user, totalOrders, isLoading }: Pro
                     </CardContent>
                 )}
             </Card>
+
+            {/* Address Management Section */}
+            {user?.id && <AddressManagementSection userId={user.id} />}
         </div>
     );
 }
