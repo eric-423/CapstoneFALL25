@@ -2,6 +2,7 @@ package com.capstone.tamtech.capstone.services;
 
 import com.capstone.tamtech.capstone.dto.ProductTypeDTO;
 import com.capstone.tamtech.capstone.entities.ProductType;
+import com.capstone.tamtech.capstone.payload.request.ProductTypeRequest;
 import com.capstone.tamtech.capstone.repositories.ProductTypeRepository;
 import com.capstone.tamtech.capstone.services.impl.ProductTypeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,9 +42,10 @@ public class ProductTypeServiceImpl implements ProductTypeService {
     }
 
     @Override
-    public ProductTypeDTO createProductType(ProductTypeDTO productTypeDTO) {
+    public ProductTypeDTO createProductType(ProductTypeRequest productTypeRequest) {
         ProductType productType = new ProductType();
-        productType.setName(productTypeDTO.getName());
+        productType.setName(productTypeRequest.getName());
+        productType.setImageUrl(productTypeRequest.getImageUrl());
         productType = productTypeRepository.save(productType);
 
         return toDTO(productType);

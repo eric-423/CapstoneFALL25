@@ -169,6 +169,7 @@ public class ProductController {
                 @ApiResponse(responseCode = "400", description = "Tham số không hợp lệ (thiếu branchId hoặc giá trị không đúng)"),
                 @ApiResponse(responseCode = "404", description = "Không tìm thấy chi nhánh với ID được cung cấp")
         })
+
         @GetMapping("/all-branch/search")
         public ResponseEntity<PagedResponse<ProductDTO>> searchProductAllBranch(
 

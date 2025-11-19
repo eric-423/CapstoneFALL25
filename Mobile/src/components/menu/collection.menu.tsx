@@ -280,9 +280,6 @@ const CollectionMenu = (props: IProps) => {
               style={styles.headerContainer}
             >
               <Text style={styles.headerText}>{name || "Combo"}</Text>
-              <View style={styles.viewAllContainer}>
-                <Text style={styles.viewAllText}>Xem tất cả &gt;</Text>
-              </View>
             </Pressable>
             <FlatList
               data={restaurants}
@@ -481,21 +478,7 @@ const CollectionMenu = (props: IProps) => {
         </ContentLoader>
       ) : (
         <View style={styles.container}>
-          <Pressable
-            onPress={() =>
-              // router.navigate({
-              //   pathname: "/(auth)/restaurants",
-              //   params: { id },
-              // })
-              console.log("hihi")
-            }
-            style={styles.headerContainer}
-          >
-            <Text style={styles.headerText}>{name}</Text>
-            <View style={styles.viewAllContainer}>
-              <Text style={styles.viewAllText}>Xem tất cả &gt;</Text>
-            </View>
-          </Pressable>
+          <Text style={styles.headerText}>{name}</Text>
           <FlatList
             data={restaurants}
             contentContainerStyle={styles.flatListContent}

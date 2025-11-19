@@ -52,21 +52,10 @@ const TodayOffersSection: React.FC<TodayOffersSectionProps> = ({
   onPressSeeMore,
   offers = [],
 }) => {
-  const handleSeeMore = () => {
-    if (onPressSeeMore) {
-      onPressSeeMore();
-    } else {
-      router.push("/(tabs)/blog");
-    }
-  };
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>{title}</Text>
-        <TouchableOpacity onPress={handleSeeMore}>
-          <Text style={styles.seeMoreText}>Xem tất cả &gt;</Text>
-        </TouchableOpacity>
       </View>
       <ScrollView
         horizontal

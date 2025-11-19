@@ -32,7 +32,6 @@ const WelcomePage = () => {
       try {
         setLoading(true);
         const res = await LoginCustomers(phoneNumber, password);
-        console.log("Login response:", res);
         setLoading(false);
         if (res.data) {
           await AsyncStorage.setItem("access_token", res.data.token);
@@ -77,7 +76,7 @@ const WelcomePage = () => {
         });
         router.replace({
           pathname: "/(auth)/verify.forgotpassword",
-          params: { phoneNumber },
+          params: { phoneNumber, channel: "zalo" },
         });
       }
     } catch (error) {

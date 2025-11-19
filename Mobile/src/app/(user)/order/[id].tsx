@@ -456,11 +456,11 @@ const OrderDetailsPage = () => {
             <View style={styles.detailsContainer}>
               <Text style={styles.totalLabel}>Điểm tích lũy</Text>
               <Text style={styles.totalLabel}>
-                {orderDetails?.order_amount ||
+                {(orderDetails?.order_amount ||
                   0 +
                     (orderDetails?.order_shipping_fee || 0) -
                     (orderDetails?.order_discount_value || 0) ||
-                  0 / 1000}{" "}
+                  0 / 1000) / 1000}{" "}
                 điểm
               </Text>
             </View>

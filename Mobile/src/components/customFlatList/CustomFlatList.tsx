@@ -4,30 +4,16 @@ import { Animated, FlatListProps, ScrollView, View } from "react-native";
 
 type CustomFlatListProps<T> = Omit<FlatListProps<T>, "ListHeaderComponent"> & {
   HeaderComponent: JSX.Element;
-  StickyElementComponent: JSX.Element;
   TopListElementComponent: JSX.Element;
 };
 function CustomFlatList<T>({
   style,
   ...props
 }: CustomFlatListProps<T>): React.ReactElement {
-  const [
-    scrollY,
-    styles,
-    onLayoutHeaderElement,
-    onLayoutTopListElement,
-    onLayoutStickyElement,
-  ] = useCustomFlatListHook();
-
+  const [scrollY, styles, onLayoutHeaderElement, onLayoutTopListElement] =
+    useCustomFlatListHook();
   return (
     <ScrollView contentContainerStyle={style}>
-      <Animated.View
-        style={styles.stickyElement}
-        onLayout={onLayoutStickyElement}
-      >
-        {props.StickyElementComponent}
-      </Animated.View>
-
       <Animated.View
         style={styles.topElement}
         onLayout={onLayoutTopListElement}

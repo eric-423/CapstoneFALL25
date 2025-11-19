@@ -37,7 +37,7 @@ const OrderSuccess = () => {
           />
           <ShareButton
             title="Theo Dõi Đơn"
-            onPress={() => router.navigate("/(tabs)/order")}
+            onPress={() => router.navigate("/(tabs)/order.history")}
             btnStyle={{ backgroundColor: APP_COLOR.BROWN }}
             textStyle={styles.btnText}
           />

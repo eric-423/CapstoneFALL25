@@ -8,22 +8,11 @@ import TopListHome from "@/components/home/top.list.home";
 import { useCurrentApp } from "@/context/app.context";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { StyleSheet, Pressable, Text, View, ScrollView } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { APP_COLOR } from "@/utils/constant";
-import {
-  calculateTotalPrice,
-  calculateTotalQuantity,
-  currencyFormatter,
-} from "@/utils/cart";
-import Animated, {
-  FadeIn,
-  SlideInDown,
-  FadeOut,
-} from "react-native-reanimated";
-import AntDesign from "@expo/vector-icons/AntDesign";
+import { currencyFormatter } from "@/utils/cart";
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import Toast from "react-native-root-toast";
-import { FONTS } from "@/theme/typography";
 import { PopupSale } from "@/app/(auth)/popup.sale";
 
 interface ITem {
@@ -37,7 +26,6 @@ const HomePage = () => {
   const [mounted, setMounted] = useState(false);
   const [showPriceUpdate, setShowPriceUpdate] = useState(false);
   const [priceUpdateAmount, setPriceUpdateAmount] = useState(0);
-  const { restaurant, cart } = useCurrentApp();
   const [collectionData, setCollectionData] = useState([]);
   const { branchId, setBranchId } = useCurrentApp();
   const { access_token } = useLocalSearchParams();
@@ -100,7 +88,6 @@ const HomePage = () => {
           </ModalProvider>
         )}
         HeaderComponent={<HeaderHome pageName="homePage" />}
-        StickyElementComponent={<SearchHome />}
         TopListElementComponent={<TopListHome />}
       />
       {showPriceUpdate && (
