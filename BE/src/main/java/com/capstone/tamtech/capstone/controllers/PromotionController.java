@@ -75,8 +75,8 @@ public class PromotionController {
     @GetMapping("/customer/available")
     public ResponseEntity<?> getAvailablePromotions(Authentication authentication) {
         try {
-            String email = authentication.getName();
-            List<PromotionDTO> promotions = promotionService.getAvailablePromotions(email);
+            String phone = authentication.getName();
+            List<PromotionDTO> promotions = promotionService.getAvailablePromotions(phone);
 
             ResponseData responseData = new ResponseData();
             responseData.setData(promotions);
@@ -121,6 +121,24 @@ public class PromotionController {
         }
     }
 
+    @GetMapping("/available/order-amout")
+    public ResponseEntity<?> getAvailablePromotionByOrderAmount(Authentication authentication, @RequestParam double orderAmount) {
+        try {
+            String phoneNumber = authentication.getName();
+
+            List<PromotionDTO> promotions = promotionService.getAvailablePromotionsByOrderAmount(phoneNumber, orderAmount);
+
+            ResponseData responseData = new ResponseData();
+            responseData.setData(promotions);
+            responseData.setDesc("Retrieved available promotions by order amount successfully");
+            return new ResponseEntity<>(responseData, HttpStatus.OK);
+        } catch (Exception e) {
+            ResponseData responseData = new ResponseData();
+            responseData.setDesc(e.getMessage());
+            return new ResponseEntity<>(responseData, HttpStatus.NOT_FOUND);
+        }
+    }
+
     @PutMapping("/{promotionCode}/status")
     public ResponseEntity<?> updatePromotionStatus(
             @PathVariable String promotionCode,
@@ -144,8 +162,8 @@ public class PromotionController {
             @RequestParam double orderValue,
             Authentication authentication) {
         try {
-            String email = authentication.getName();
-            boolean isValid = promotionService.validatePromotionForCustomer(email, promotionCode, orderValue);
+            String phoneNumber = authentication.getName();
+            boolean isValid = promotionService.validatePromotionForCustomer(phoneNumber, promotionCode, orderValue);
 
             ResponseData responseData = new ResponseData();
             responseData.setData(isValid);

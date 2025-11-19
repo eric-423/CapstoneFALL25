@@ -143,6 +143,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/promotions/create").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers("/api/promotions/assign").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers("/api/promotions/all").hasAnyRole("MANAGER", "ADMIN")
+                        .requestMatchers("/api/promotions/available/order-amout").hasAnyRole("MANAGER", "ADMIN","CHEFF","WAITER","CUSTOMER","STAFF")
                         .requestMatchers("/api/promotions/*").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers("/api/promotions/*/status").hasAnyRole("MANAGER", "ADMIN")
 
