@@ -16,6 +16,7 @@ public class ProductDTO implements Serializable {
     private int productQuantity;
     private List<RecipeItem> recipe;
     private boolean status;
+    private double calories;
 
     @Data
     public static class RecipeItem implements Serializable {

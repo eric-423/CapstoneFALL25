@@ -48,4 +48,7 @@ public class ProductSearchDTO implements Serializable {
 
     @Schema(description = "Ngày cập nhật sản phẩm", example = "2024-01-15T14:20:00")
     private Date updatedDate;
+
+    @Schema(description = "Lượng calories của sản phẩm", example = "450")
+    private double calories;
 }

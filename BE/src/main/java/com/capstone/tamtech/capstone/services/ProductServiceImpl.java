@@ -189,7 +189,8 @@ public class ProductServiceImpl implements ProductService {
         productDTO.setProductImage(product.getImage());
         productDTO.setProductPrice(product.getPrice());
         productDTO.setProductType(product.getProductType().getName());
-
+        productDTO.setStatus(product.isActive());
+        productDTO.setCalories(getCalories(product.getId()));
         return productDTO;
     }
 
@@ -241,7 +242,17 @@ public class ProductServiceImpl implements ProductService {
                 .quantityInBranch(quantityMap.getOrDefault(product.getId(), 0))
                 .createdDate(product.getCreatedDate())
                 .updatedDate(product.getUpdateDate())
+                .calories(getCalories(product.getId()))
                 .build();
+    }
+
+    private double getCalories(int productId){
+        double calories = 0;
+        List<ProductRecipes> productRecipesList = productRecipesRepository.findByKeyProductRecipesProductId(productId);
+        for(ProductRecipes productRecipes : productRecipesList) {
+            calories += productRecipes.getMaterial().getCaloriesPerUnit() * productRecipes.getQuantity();
+        }
+        return calories;
     }
 
     private <T> PagedResponse<T> createPagedResponse(Page<?> page, List<T> content) {
