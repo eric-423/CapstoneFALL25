@@ -9,6 +9,35 @@ export interface Branch {
   parent: boolean;
 }
 
+export interface BranchDetail {
+  id: number;
+  name: string;
+  address: string;
+  phoneNumber: string;
+  isActive: boolean;
+  isParent: boolean;
+}
+
+export interface BranchStatistics {
+  totalBranches: number;
+  activeBranches: number;
+  inactiveBranches: number;
+  parentBranches: number;
+  branches: BranchDetail[];
+}
+
+export interface CreateBranchRequest {
+  name: string;
+  address: string;
+  phoneNumber: string;
+}
+
+export interface UpdateBranchRequest {
+  name: string;
+  address: string;
+  phoneNumber: string;
+}
+
 export interface NearbyBranch {
   branchId: number;
   name: string;
@@ -73,4 +102,73 @@ export const getNearbyBranches = async (address: string, limit = 20): Promise<Ne
   if (Array.isArray(result)) return result;
   if (Array.isArray(result?.data)) return result.data;
   return [];
+};
+
+// Admin Branch Management APIs
+export const getBranchStatistics = async (): Promise<BranchStatistics> => {
+  const response = await fetch('/api/branches/statistics', {
+    method: 'GET',
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch branch statistics');
+  }
+
+  const result = await response.json();
+  return result.data || result;
+};
+
+export const createBranch = async (data: CreateBranchRequest): Promise<BranchDetail> => {
+  const response = await fetch('/api/branches', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to create branch');
+  }
+
+  const result = await response.json();
+  return result.data || result;
+};
+
+export const updateBranch = async (branchId: number, data: UpdateBranchRequest): Promise<BranchDetail> => {
+  const response = await fetch(`/api/branches/${branchId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to update branch');
+  }
+
+  const result = await response.json();
+  return result.data || result;
+};
+
+export const deactivateBranch = async (branchId: number): Promise<void> => {
+  const response = await fetch(`/api/branches/${branchId}/deactivate`, {
+    method: 'PUT',
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to deactivate branch');
+  }
+};
+
+export const activateBranch = async (branchId: number): Promise<void> => {
+  const response = await fetch(`/api/branches/${branchId}/activate`, {
+    method: 'PUT',
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to activate branch');
+  }
 };

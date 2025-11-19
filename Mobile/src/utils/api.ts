@@ -144,6 +144,61 @@ export const ReverseGeocodeGoogle = async (
   }
 };
 
+export const geocodeAddress = async (address: string) => {
+  try {
+    const response = await axios.get(
+      `https://maps.googleapis.com/maps/api/geocode/json`,
+      {
+        params: {
+          address,
+          key: GOOGLE_API_KEY,
+          language: "vi",
+        },
+      }
+    );
+
+    if (
+      response.data.status === "OK" &&
+      response.data.results &&
+      response.data.results.length > 0
+    ) {
+      const { lat, lng } = response.data.results[0].geometry.location;
+      return { latitude: lat, longitude: lng };
+    }
+
+    throw new Error(response.data.status || "Không thể xác định tọa độ");
+  } catch (error) {
+    console.error("Google Geocoding API error:", error);
+    throw error;
+  }
+};
+
+export const getDirections = async (
+  origin: { latitude: number; longitude: number },
+  destination: { latitude: number; longitude: number }
+) => {
+  const response = await axios.get(
+    `https://maps.googleapis.com/maps/api/directions/json`,
+    {
+      params: {
+        origin: `${origin.latitude},${origin.longitude}`,
+        destination: `${destination.latitude},${destination.longitude}`,
+        mode: "driving",
+        key: GOOGLE_API_KEY,
+      },
+    }
+  );
+
+  if (
+    response.data.status === "OK" &&
+    response.data.routes &&
+    response.data.routes.length > 0
+  ) {
+    return response.data.routes[0].overview_polyline.points as string;
+  }
+
+  throw new Error(response.data.status || "Không lấy được dữ liệu tuyến đường");
+};
 export const GetBranchNearLocation = async (realLocation: string) => {
   return axios.get(
     `${BASE_URL}/branches/nearby?address=${realLocation}&limit=5`,
@@ -319,7 +374,67 @@ export const GetAllOrder = async () => {
   const token = await AsyncStorage.getItem("access_token");
   return axios.get(`${BASE_URL}/orders/customer/my-orders?status=ALL`, {
     headers: {
+      accept: "application/json",
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+  });
+};
+
+export const GetDetailCustomerInformation = async (
+  Cusid: number,
+  InforId: number
+) => {
+  const token = await AsyncStorage.getItem("access_token");
+  return axios.get(`${BASE_URL}/customers/${Cusid}/informations/${InforId}`, {
+    headers: {
       accept: "*/*",
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+  });
+};
+
+export const UpdateCustomerInformation = async (
+  customerId: number,
+  informationId: number,
+  payload: {
+    name: string;
+    address: string;
+    phoneNumber: string;
+    isDefault: boolean;
+  }
+) => {
+  const token = await AsyncStorage.getItem("access_token");
+  return axios.put(
+    `${BASE_URL}/customers/${customerId}/informations/${informationId}`,
+    payload,
+    {
+      headers: {
+        accept: "*/*",
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    }
+  );
+};
+
+export const getCustomerPromotion = async () => {
+  const token = await AsyncStorage.getItem("access_token");
+  return axios.get(`${BASE_URL}/promotions/customer/my-promotions`, {
+    headers: {
+      accept: "application/json",
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+  });
+};
+
+export const getOrderById = async (orderId: number) => {
+  const token = await AsyncStorage.getItem("access_token");
+  return axios.get(`${BASE_URL}/orders/${orderId}`, {
+    headers: {
+      accept: "application/json",
       "Content-Type": "application/json",
       ...(token && { Authorization: `Bearer ${token}` }),
     },

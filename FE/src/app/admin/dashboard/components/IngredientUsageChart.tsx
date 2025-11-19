@@ -1,13 +1,14 @@
 'use client';
 
+import { MaterialUsage } from '@/apis/statistics.api';
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 interface IngredientUsageChartProps {
-    data: { name: string; usage: number; unit: string }[];
+    data?: MaterialUsage[];
 }
 
-export function IngredientUsageChart({ data }: IngredientUsageChartProps) {
+export function IngredientUsageChart({ data = [] }: IngredientUsageChartProps) {
     const colors = ['#EC6426', '#F8A91F', '#3B82F6', '#10B981', '#8B5CF6'];
 
     return (
@@ -17,7 +18,7 @@ export function IngredientUsageChart({ data }: IngredientUsageChartProps) {
                 <BarChart data={data}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                     <XAxis
-                        dataKey="name"
+                        dataKey="materialName"
                         tick={{ fontSize: 12 }}
                         angle={-15}
                         textAnchor="end"
@@ -36,7 +37,7 @@ export function IngredientUsageChart({ data }: IngredientUsageChartProps) {
                             fontSize: '12px',
                         }}
                     />
-                    <Bar dataKey="usage" radius={[8, 8, 0, 0]}>
+                    <Bar dataKey="quantityUsed" radius={[8, 8, 0, 0]}>
                         {data.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
                         ))}

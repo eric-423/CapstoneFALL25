@@ -1,5 +1,5 @@
 import { useCurrentApp } from "@/context/app.context";
-import { API_URL, APP_COLOR } from "@/utils/constant";
+import { APP_COLOR } from "@/utils/constant";
 import {
   View,
   Text,
@@ -39,7 +39,16 @@ const getCurrentDateTime = (): string => {
 const ScreenWidth = Dimensions.get("screen").width;
 const AccountPage = () => {
   const [decodeToken, setDecodeToken] = useState<any>("");
-  const { appState, setAppState, cart, setCart } = useCurrentApp();
+  const {
+    appState,
+    setAppState,
+    setCart,
+    setRestaurant,
+    setBranchId,
+    setSelectedProductTypeId,
+    setLocationReal,
+    setBranchName,
+  } = useCurrentApp();
   const [time, setTime] = useState("");
   const decodeAndSetToken = async () => {
     try {
@@ -58,7 +67,6 @@ const AccountPage = () => {
 
   useEffect(() => {
     setTime(getCurrentDateTime());
-    setAppState(1);
   }, [setAppState]);
 
   useEffect(() => {
@@ -80,8 +88,13 @@ const AccountPage = () => {
         text: "Xác nhận",
         onPress: async () => {
           setCart({});
+          setAppState(null);
+          setRestaurant(null);
+          setBranchId(1);
+          setSelectedProductTypeId(null);
+          setLocationReal("");
+          setBranchName(null);
           await AsyncStorage.removeItem("access_token");
-          setAppState(0);
           router.replace("/(tabs)");
         },
       },
@@ -96,7 +109,7 @@ const AccountPage = () => {
       }}
     >
       <View style={styles.headerContainer}>
-        <View>
+        <View style={{ marginTop: 10 }}>
           <Text
             style={[
               styles.text,
@@ -194,8 +207,9 @@ const AccountPage = () => {
       <View style={styles.buttonContainer}>
         {appState && (
           <CustomerPoint
-            fullName={decodeToken.name}
-            phoneNumber={decodeToken.phone}
+            fullName={appState?.userInfo?.fullName || ""}
+            phoneNumber={appState?.userInfo?.phoneNumber || ""}
+            memberPoint={appState?.userInfo?.memberPoint || 0}
           />
         )}
         <Pressable
@@ -280,7 +294,16 @@ const AccountPage = () => {
             color={APP_COLOR.BROWN}
           />
         </Pressable>
-        <Pressable onPress={() => handleLogout()} style={[styles.btnStyle]}>
+        <Pressable
+          onPress={() => {
+            if (appState) {
+              handleLogout();
+            } else {
+              Alert.alert("Lỗi", "Bạn chưa đăng nhập");
+            }
+          }}
+          style={[styles.btnStyle]}
+        >
           <View
             style={{
               flexDirection: "row",
@@ -366,13 +389,14 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     flexDirection: "row",
-    marginHorizontal: 10,
+    marginTop: 20,
     paddingBottom: 3,
     marginBottom: 3,
     borderBottomColor: APP_COLOR.BROWN,
     borderBottomWidth: 0.5,
     alignItems: "center",
     justifyContent: "space-between",
+    marginHorizontal: 5,
   },
   loginBtnText: {
     ...typography.labelLarge,

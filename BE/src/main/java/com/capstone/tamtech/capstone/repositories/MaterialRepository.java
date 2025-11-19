@@ -1,6 +1,8 @@
 package com.capstone.tamtech.capstone.repositories;
 
 import com.capstone.tamtech.capstone.entities.Material;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -15,4 +17,8 @@ public interface MaterialRepository extends JpaRepository<Material, Integer> {
     List<Material> findByMaterialTypeId(int materialTypeId);
 
     List<Material> findByIsDeletedFalse();
+
+    Page<Material> findByIsDeletedFalse(Pageable pageable);
+
+    Page<Material> findAll(Pageable pageable);
 }

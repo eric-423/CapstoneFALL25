@@ -20,6 +20,34 @@ export interface UpdateUserData {
   roleId?: number;
 }
 
+export interface UserSearchRequest {
+  name?: string;
+  phone?: string;
+  email?: string;
+  role?: string;
+  branchId?: number;
+  status?: boolean;
+  page?: number;
+  size?: number;
+  sortBy?: string;
+  sortDirection?: 'ASC' | 'DESC';
+}
+
+export interface PaginatedUserResponse {
+  status: number;
+  desc: string;
+  data: {
+    content: any[];
+    pageNumber: number;
+    pageSize: number;
+    totalElements: number;
+    totalPages: number;
+    last: boolean;
+    first: boolean;
+    empty: boolean;
+  };
+}
+
 export interface UserResponse {
   status: number;
   desc: string | null;
@@ -111,14 +139,32 @@ export const refetchUserData = (token: string) => {
 
 
 // ADMIN USER CRUD
-export const getAllUsers = async (page = 0, size = 10000, isActive = true, roleId?: number) => {
-  const token = localStorage.getItem('access_token');
-  let url = `/users/admin/get-all-user?page=${page}&size=${size}&isActive=${isActive}`;
-  if (roleId) url += `&roleId=${roleId}`;
-  const response = await http.get(url, {
-    headers: { Authorization: `Bearer ${token}` },
+export const getAllUsers = async (searchRequest?: UserSearchRequest) => {
+  const params = new URLSearchParams();
+
+  if (searchRequest) {
+    if (searchRequest.name) params.append('name', searchRequest.name);
+    if (searchRequest.phone) params.append('phone', searchRequest.phone);
+    if (searchRequest.email) params.append('email', searchRequest.email);
+    if (searchRequest.role) params.append('role', searchRequest.role);
+    if (searchRequest.branchId !== undefined) params.append('branchId', searchRequest.branchId.toString());
+    if (searchRequest.status !== undefined) params.append('status', searchRequest.status.toString());
+    if (searchRequest.page !== undefined) params.append('page', searchRequest.page.toString());
+    if (searchRequest.size !== undefined) params.append('size', searchRequest.size.toString());
+    if (searchRequest.sortBy) params.append('sortBy', searchRequest.sortBy);
+    if (searchRequest.sortDirection) params.append('sortDirection', searchRequest.sortDirection);
+  }
+
+  const response = await fetch(`/api/users?${params.toString()}`, {
+    method: 'GET',
+    credentials: 'include',
   });
-  return response.data;
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch users');
+  }
+
+  return response.json();
 };
 
 export const createUser = async (data: CreateUserData): Promise<UserResponse> => {

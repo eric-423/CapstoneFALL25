@@ -1,8 +1,10 @@
 package com.capstone.tamtech.capstone.controllers;
 
 import com.capstone.tamtech.capstone.dto.MaterialDTO;
+import com.capstone.tamtech.capstone.payload.PagedResponse;
 import com.capstone.tamtech.capstone.payload.ResponseData;
 import com.capstone.tamtech.capstone.payload.request.MaterialRequest;
+import com.capstone.tamtech.capstone.payload.request.MaterialSearchRequest;
 import com.capstone.tamtech.capstone.services.impl.MaterialService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -11,8 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/materials")
@@ -23,14 +23,18 @@ public class MaterialController {
     @Autowired
     private MaterialService materialService;
 
-    @Operation(summary = "Lấy danh sách nguyên liệu", description = "Trả về danh sách nguyên liệu. Set includeDeleted=true để lấy cả những nguyên liệu đã bị xóa.")
+    @Operation(summary = "Lấy danh sách nguyên liệu (có phân trang)", description = "Trả về danh sách nguyên liệu với phân trang. Set includeDeleted=true để lấy cả những nguyên liệu đã bị xóa.")
     @GetMapping
-    public ResponseEntity<?> getMaterials(@RequestParam(defaultValue = "false") boolean includeDeleted) {
+    public ResponseEntity<?> getMaterials(MaterialSearchRequest searchRequest) {
         try {
-            List<MaterialDTO> materials = materialService.getAllMaterials(includeDeleted);
+            if (searchRequest == null) {
+                searchRequest = new MaterialSearchRequest();
+            }
+            PagedResponse<MaterialDTO> pagedResponse = materialService.getAllMaterials(searchRequest);
             ResponseData responseData = new ResponseData();
-            responseData.setData(materials);
-            responseData.setDesc("Retrieved " + materials.size() + " material(s)");
+            responseData.setData(pagedResponse);
+            responseData.setDesc("Retrieved " + pagedResponse.getContent().size() + " material(s) from page "
+                    + (pagedResponse.getPageNumber() + 1));
             return new ResponseEntity<>(responseData, HttpStatus.OK);
         } catch (Exception e) {
             ResponseData responseData = new ResponseData();

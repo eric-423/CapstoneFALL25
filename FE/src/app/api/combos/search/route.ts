@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 
 export async function GET(request: NextRequest) {
     try {
@@ -10,7 +11,7 @@ export async function GET(request: NextRequest) {
             params.append(key, value);
         });
 
-        // Forward to external API (public endpoint, no auth required)
+        // Forward to external API (no auth)
         const response = await fetch(
             `${process.env.NEXT_PUBLIC_BASE_URL}/combos/search?${params.toString()}`,
             {
@@ -21,7 +22,11 @@ export async function GET(request: NextRequest) {
         );
 
         if (!response.ok) {
-            throw new Error('Failed to search combos');
+            const errorData = await response.json().catch(() => ({ error: 'Failed to search combos' }));
+            return NextResponse.json(
+                errorData,
+                { status: response.status }
+            );
         }
 
         const data = await response.json();
@@ -29,7 +34,7 @@ export async function GET(request: NextRequest) {
     } catch (error) {
         console.error('Combos Search API Error:', error);
         return NextResponse.json(
-            { error: 'Failed to search combos' },
+            { error: error instanceof Error ? error.message : 'Failed to search combos' },
             { status: 500 }
         );
     }

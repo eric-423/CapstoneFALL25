@@ -1,17 +1,18 @@
 package com.capstone.tamtech.capstone.services.impl;
 
 import com.capstone.tamtech.capstone.dto.MaterialTypeDTO;
-
-import java.util.List;
+import com.capstone.tamtech.capstone.payload.PagedResponse;
+import com.capstone.tamtech.capstone.payload.request.MaterialTypeRequest;
+import com.capstone.tamtech.capstone.payload.request.MaterialTypeSearchRequest;
 
 public interface MaterialTypeService {
-    List<MaterialTypeDTO> getAllMaterialTypes(boolean includeDeleted);
+    PagedResponse<MaterialTypeDTO> getAllMaterialTypes(MaterialTypeSearchRequest searchRequest);
 
     MaterialTypeDTO getMaterialTypeById(int id);
 
-    MaterialTypeDTO createMaterialType(MaterialTypeDTO request);
+    MaterialTypeDTO createMaterialType(MaterialTypeRequest request);
 
-    MaterialTypeDTO updateMaterialType(int id, MaterialTypeDTO request);
+    MaterialTypeDTO updateMaterialType(int id, MaterialTypeRequest request);
 
     void deleteMaterialType(int id);
 }

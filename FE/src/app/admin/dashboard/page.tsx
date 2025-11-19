@@ -3,16 +3,16 @@
 import { DollarSign, ShoppingCart, Store, Users, TrendingUp, Package, BookOpen, GraduationCap, AlertTriangle, Activity, Clock, CheckCircle, TrendingDown, Zap } from 'lucide-react';
 import { DashboardCard } from './components/DashboardCard';
 import { RevenueChart } from './components/RevenueChart';
-import { TopDishesChart } from './components/TopDishesChart';
+import { OrderChannelsChart } from './components/OrderChannelsChart';
+import { CustomerGrowthChart } from './components/CustomerGrowthChart';
+import { ServiceTimeChart } from './components/ServiceTimeChart';
 import { RecentOrdersTable } from './components/RecentOrdersTable';
-import { IngredientUsageChart } from './components/IngredientUsageChart';
-import { SupplierDistributionChart } from './components/SupplierDistributionChart';
 import { RecentRecipesCards } from './components/RecentRecipesCards';
 import { TrainingStatusCard } from './components/TrainingStatusCard';
 import { AlertsPanel } from './components/AlertsPanel';
 import { ActivitiesTimeline } from './components/ActivitiesTimeline';
 import { useAdminContext } from '@/utils/contexts/AdminContext';
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
     getRevenueStatistics,
@@ -20,23 +20,12 @@ import {
     getNewCustomerStatistics,
     getServiceTimeStatistics,
     getRevenue7Days,
-    getTopMaterials,
-    getTopSellingItems,
-    type RevenueStatistics,
-    type OrderCountStatistics,
-    type NewCustomerStatistics,
-    type ServiceTimeStatistics,
-    type Revenue7Days as Revenue7DaysType,
-    type TopMaterials,
-    type TopSellingItems,
 } from '@/apis/statistics.api';
+import { getBranches } from '@/apis/branch.api';
 import {
     kpiData,
     revenueData,
-    topDishesData,
     recentOrders,
-    ingredientUsageData,
-    supplierDistributionData,
     recentRecipesData,
     trainingStatsData,
     recentActivitiesData,
@@ -50,6 +39,10 @@ export default function DashboardPage() {
     // Memoize branch IDs to prevent unnecessary refetches
     const branchId = useMemo(() => selectedBranch?.id ? parseInt(selectedBranch.id) : 1, [selectedBranch?.id]);
     const branchIdOrUndefined = useMemo(() => selectedBranch?.id ? parseInt(selectedBranch.id) : undefined, [selectedBranch?.id]);
+
+    const [serviceBranchId, setServiceBranchId] = useState<number | null>(null);
+    const [serviceComparisonType, setServiceComparisonType] = useState<'DAILY' | 'MONTHLY'>('DAILY');
+    const [serviceDate, setServiceDate] = useState('');
 
     // Use React Query for all statistics with proper caching
     const { data: revenueStats, isLoading: isLoadingRevenue } = useQuery({
@@ -76,12 +69,46 @@ export default function DashboardPage() {
         refetchOnMount: false,
     });
 
+    const { data: branchMasterData, isLoading: isLoadingBranchMaster } = useQuery({
+        queryKey: ['admin-dashboard-branches'],
+        queryFn: () => getBranches(),
+        staleTime: 30 * 60 * 1000,
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
+    });
+
+    useEffect(() => {
+        if (selectedBranch?.id) {
+            const parsedId = parseInt(selectedBranch.id);
+            if (!Number.isNaN(parsedId)) {
+                setServiceBranchId(parsedId);
+            }
+        }
+    }, [selectedBranch?.id]);
+
+    useEffect(() => {
+        if (!serviceBranchId && branchMasterData && branchMasterData.length > 0) {
+            setServiceBranchId(branchMasterData[0].id);
+        }
+    }, [branchMasterData, serviceBranchId]);
+
+    const effectiveServiceBranchId = serviceBranchId ?? branchId;
+    const serviceDateParam = serviceDate ? serviceDate : undefined;
+
+    const branchOptions = useMemo(() => (
+        (branchMasterData ?? []).map((branch) => ({
+            value: branch.id,
+            label: branch.name,
+        }))
+    ), [branchMasterData]);
+
     const { data: serviceTimeStats, isLoading: isLoadingServiceTime } = useQuery({
-        queryKey: ['dashboard-service-time', branchId, timePeriod],
-        queryFn: () => getServiceTimeStatistics(branchId),
+        queryKey: ['dashboard-service-time', effectiveServiceBranchId, serviceComparisonType, serviceDateParam ?? ''],
+        queryFn: () => getServiceTimeStatistics(effectiveServiceBranchId, serviceDateParam, serviceComparisonType),
         staleTime: 2 * 60 * 1000,
         refetchOnWindowFocus: false,
         refetchOnMount: false,
+        enabled: Boolean(effectiveServiceBranchId),
     });
 
     const { data: revenue7DaysData, isLoading: isLoadingRevenue7Days } = useQuery({
@@ -92,25 +119,9 @@ export default function DashboardPage() {
         refetchOnMount: false,
     });
 
-    const { data: topMaterialsData, isLoading: isLoadingTopMaterials } = useQuery({
-        queryKey: ['dashboard-top-materials', branchIdOrUndefined],
-        queryFn: () => getTopMaterials(branchIdOrUndefined, 5),
-        staleTime: 5 * 60 * 1000, // 5 minutes - less frequently changing
-        refetchOnWindowFocus: false,
-        refetchOnMount: false,
-    });
-
-    const { data: topSellingData, isLoading: isLoadingTopSelling } = useQuery({
-        queryKey: ['dashboard-top-selling', branchIdOrUndefined],
-        queryFn: () => getTopSellingItems(branchIdOrUndefined, 5),
-        staleTime: 5 * 60 * 1000,
-        refetchOnWindowFocus: false,
-        refetchOnMount: false,
-    });
-
     // Combined loading state
-    const isLoading = isLoadingRevenue || isLoadingOrderCount || isLoadingNewCustomers || 
-                     isLoadingServiceTime || isLoadingRevenue7Days || isLoadingTopMaterials || isLoadingTopSelling;
+    const isLoading = isLoadingRevenue || isLoadingOrderCount || isLoadingNewCustomers ||
+        isLoadingServiceTime || isLoadingRevenue7Days;
 
     // Memoize operational KPIs to prevent unnecessary recalculations
     const operationalKPIs = useMemo(() => {
@@ -145,7 +156,7 @@ export default function DashboardPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="min-h-screen bg-[#EFE6DB]">
             <div className="max-w-[1800px] mx-auto space-y-4">
                 {/* Header - Compact */}
                 <div className="flex items-center justify-between">
@@ -262,7 +273,7 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
-                {/* ROW 3: Analytics Charts - 2x2 Grid */}
+                {/* ROW 3: Analytics Charts */}
                 <div>
                     <div className="flex items-center gap-2 mb-2">
                         <Package className="w-4 h-4 text-[#EC6426]" />
@@ -276,9 +287,19 @@ export default function DashboardPage() {
                             }))
                             : revenueData}
                         />
-                        <TopDishesChart data={topDishesData} />
-                        <IngredientUsageChart data={ingredientUsageData} />
-                        <SupplierDistributionChart data={supplierDistributionData} />
+                        <OrderChannelsChart data={orderCountStats} />
+                        <CustomerGrowthChart data={newCustomerStats} />
+                        <ServiceTimeChart
+                            data={serviceTimeStats}
+                            branches={branchOptions}
+                            selectedBranchId={serviceBranchId}
+                            onBranchChange={setServiceBranchId}
+                            comparisonType={serviceComparisonType}
+                            onComparisonTypeChange={setServiceComparisonType}
+                            selectedDate={serviceDate}
+                            onDateChange={setServiceDate}
+                            isBranchLoading={isLoadingBranchMaster}
+                        />
                     </div>
                 </div>
 

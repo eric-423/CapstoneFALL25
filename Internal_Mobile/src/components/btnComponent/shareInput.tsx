@@ -36,7 +36,6 @@ const ShareInput = (props: IProps) => {
   const [isShowPassword, setIsShowPassword] = useState<boolean>(false);
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
   const [date, setDate] = useState(new Date());
-
   const {
     title,
     keyboardType,

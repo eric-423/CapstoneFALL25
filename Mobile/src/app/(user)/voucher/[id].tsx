@@ -12,20 +12,33 @@ import {
 import { useState } from "react";
 
 const VoucherDetailsPage = () => {
-  const { id } = useLocalSearchParams();
+  const params = useLocalSearchParams();
   const screenWidth = Dimensions.get("window").width;
   const [voucher, setVoucher] = useState<any>({
-    code: "VOUCHER2024",
-    name: "Giảm giá 20% cho đơn hàng đầu tiên",
-    description: "Áp dụng cho tất cả sản phẩm trong menu",
-    discountAmount: 50000,
-    endDate: "2024-12-31T23:59:59Z",
-    minOrderAmount: 100000,
-    NumberCurrentUses: 0,
-    maxNumberOfUses: 1,
-    isActive: true,
+    code: (params.code as string) || "VOUCHER",
+    name: (params.name as string) || "Mã ưu đãi",
+    description: (params.description as string) || "Mô tả ưu đãi",
+    discountAmount: Number(params.discountAmount) || 0,
+    endDate: (params.endDate as string) || "",
+    minOrderAmount: Number(params.minOrderAmount) || 0,
+    NumberCurrentUses: Number(params.usageCount) || 0,
+    maxNumberOfUses: Number(params.maxNumberOfUses) || 1,
+    isActive: params.isActive === "true" || false,
+    promotionTypeName: (params.promotionTypeName as string) || "",
     barcode: "https://via.placeholder.com/300x200/FF6B35/FFFFFF?text=BARCODE",
   });
+  const formatDiscount = () => {
+    const promotionTypeName = params.promotionTypeName as string;
+    const discountAmount = voucher.discountAmount;
+    if (promotionTypeName === "Giảm giá theo %") {
+      return `${discountAmount}%`;
+    } else if (promotionTypeName === "Giảm giá cố định") {
+      return `${discountAmount.toLocaleString("vi-VN")}đ`;
+    } else if (promotionTypeName === "Miễn phí vận chuyển") {
+      return "Miễn phí vận chuyển";
+    }
+    return `${discountAmount.toLocaleString("vi-VN")}đ`;
+  };
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: APP_COLOR.WHITE }}>
@@ -82,7 +95,7 @@ const VoucherDetailsPage = () => {
               fontSize: 13,
             }}
           >
-            {voucher.code}
+            {voucher.promotionTypeName}
           </Text>
         </View>
         <Text
@@ -112,43 +125,123 @@ const VoucherDetailsPage = () => {
             marginBottom: 5,
           }}
         >
-          Giảm: {voucher.discountAmount?.toLocaleString()}đ
+          Giảm: {formatDiscount()}
         </Text>
         <Text
           style={{
             fontFamily: FONTS.regular,
             color: APP_COLOR.BROWN,
             fontSize: 13,
+            marginBottom: 5,
           }}
         >
           HSD:{" "}
           {voucher.endDate
-            ? new Date(voucher.endDate).toLocaleDateString()
+            ? new Date(voucher.endDate).toLocaleDateString("vi-VN")
             : ""}
         </Text>
       </View>
-      <View style={{ marginHorizontal: 10 }}>
+      <View style={{ marginHorizontal: 10, marginBottom: 40 }}>
         <Text
           style={{
-            fontFamily: FONTS.medium,
+            fontFamily: FONTS.bold,
             color: APP_COLOR.BROWN,
-            fontSize: 16,
-            marginTop: 10,
+            fontSize: 18,
+            marginBottom: 15,
           }}
         >
           Quy định sử dụng ưu đãi
         </Text>
-        <View style={{ marginTop: 10, marginHorizontal: 10 }}>
-          <Text style={styles.text}>
-            + Đơn tối thiểu: {voucher.minOrderAmount?.toLocaleString()}đ
-          </Text>
-          <Text style={styles.text}>
-            + Số lần sử dụng: {voucher.NumberCurrentUses} /{" "}
-            {voucher.maxNumberOfUses}
-          </Text>
-          <Text style={styles.text}>
-            + Trạng thái: {voucher.isActive ? "Còn hiệu lực" : "Hết hạn"}
-          </Text>
+        <View
+          style={{
+            backgroundColor: APP_COLOR.WHITE,
+            borderRadius: 10,
+            padding: 15,
+            shadowColor: "#000",
+            shadowOffset: {
+              width: 0,
+              height: 1,
+            },
+            shadowOpacity: 0.1,
+            shadowRadius: 2,
+            elevation: 2,
+          }}
+        >
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Mã ưu đãi:</Text>
+            <Text style={styles.value}>{voucher.code}</Text>
+          </View>
+          <View style={styles.divider} />
+
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Mô tả:</Text>
+            <Text style={[styles.value, { flex: 1, textAlign: "right" }]}>
+              {voucher.description}
+            </Text>
+          </View>
+          <View style={styles.divider} />
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Loại khuyến mãi:</Text>
+            <Text style={styles.value}>
+              {voucher.promotionTypeName || "Không xác định"}
+            </Text>
+          </View>
+          <View style={styles.divider} />
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Giá trị giảm:</Text>
+            <Text style={[styles.value, { color: APP_COLOR.ORANGE }]}>
+              {formatDiscount()}
+            </Text>
+          </View>
+          <View style={styles.divider} />
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Đơn tối thiểu:</Text>
+            <Text style={styles.value}>
+              {voucher.minOrderAmount?.toLocaleString("vi-VN")}đ
+            </Text>
+          </View>
+          <View style={styles.divider} />
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Hạn sử dụng:</Text>
+            <Text style={styles.value}>
+              {voucher.endDate
+                ? new Date(voucher.endDate).toLocaleDateString("vi-VN")
+                : "Không có"}
+            </Text>
+          </View>
+          <View style={styles.divider} />
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Số lần đã sử dụng:</Text>
+            <Text style={styles.value}>
+              {voucher.NumberCurrentUses} / {voucher.maxNumberOfUses}
+            </Text>
+          </View>
+          <View style={styles.divider} />
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Trạng thái:</Text>
+            <View
+              style={{
+                paddingHorizontal: 10,
+                paddingVertical: 5,
+                borderRadius: 15,
+                backgroundColor: voucher.isActive
+                  ? APP_COLOR.DONE + "20"
+                  : APP_COLOR.CANCEL + "20",
+              }}
+            >
+              <Text
+                style={[
+                  styles.value,
+                  {
+                    color: voucher.isActive ? APP_COLOR.DONE : APP_COLOR.CANCEL,
+                    fontFamily: FONTS.bold,
+                  },
+                ]}
+              >
+                {voucher.isActive ? "Còn hiệu lực" : "Hết hạn"}
+              </Text>
+            </View>
+          </View>
         </View>
       </View>
     </ScrollView>
@@ -158,6 +251,29 @@ const styles = StyleSheet.create({
   text: {
     fontFamily: FONTS.regular,
     marginVertical: 2.5,
+  },
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 8,
+  },
+  label: {
+    fontFamily: FONTS.medium,
+    color: APP_COLOR.BROWN,
+    fontSize: 14,
+    flex: 1,
+  },
+  value: {
+    fontFamily: FONTS.regular,
+    color: APP_COLOR.BROWN,
+    fontSize: 14,
+    textAlign: "right",
+  },
+  divider: {
+    height: 1,
+    backgroundColor: APP_COLOR.GRAY + "30",
+    marginVertical: 5,
   },
 });
 export default VoucherDetailsPage;

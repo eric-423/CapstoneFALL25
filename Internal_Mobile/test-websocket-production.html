@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test WebSocket - Shipper Location Tracking</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .status {
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            font-weight: bold;
+            text-align: center;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .disconnected {
+            background: #ffebee;
+            color: #c62828;
+            border: 2px solid #ef5350;
+        }
+
+        .connected {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 2px solid #4caf50;
+        }
+
+        .connecting {
+            background: #fff3e0;
+            color: #e65100;
+            border: 2px solid #ff9800;
+        }
+
+        .section {
+            background: #f8f9fa;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .section h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        button.danger {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+        }
+
+        button.success {
+            background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+        }
+
+        button.info {
+            background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+        }
+
+        .log {
+            max-height: 500px;
+            overflow-y: auto;
+            border: 2px solid #e0e0e0;
+            padding: 15px;
+            background: #fafafa;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .log-entry {
+            padding: 10px;
+            margin: 5px 0;
+            border-left: 4px solid #2196f3;
+            background: white;
+            border-radius: 4px;
+            word-wrap: break-word;
+        }
+
+        .log-entry.success {
+            border-left-color: #4caf50;
+            background: #e8f5e9;
+        }
+
+        .log-entry.error {
+            border-left-color: #f44336;
+            background: #ffebee;
+        }
+
+        .log-entry.warning {
+            border-left-color: #ff9800;
+            background: #fff3e0;
+        }
+
+        .log-entry.info {
+            border-left-color: #2196f3;
+            background: #e3f2fd;
+        }
+
+        .log-time {
+            color: #666;
+            font-size: 11px;
+            margin-right: 10px;
+        }
+
+        .subscription-status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        .subscription-status.active {
+            background: #4caf50;
+            color: white;
+        }
+
+        .subscription-status.inactive {
+            background: #ccc;
+            color: #666;
+        }
+
+        .preset-locations {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .preset-btn {
+            padding: 8px 12px;
+            font-size: 12px;
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .preset-btn:hover {
+            background: #bdbdbd;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚚 WebSocket Test - Shipper Location Tracking</h1>
+            <p>Test WebSocket connection for real-time shipper location updates</p>
+        </div>
+
+        <div class="content">
+            <div id="status" class="status disconnected">🔴 Disconnected</div>
+
+            <!-- Connection Settings -->
+            <div class="section">
+                <h3>🔌 Connection Settings</h3>
+                <div class="form-group">
+                    <label for="wsUrl">WebSocket URL:</label>
+                    <input type="text" id="wsUrl" value="https://tam-tac.com/ws"
+                        placeholder="https://your-domain.com/ws">
+                </div>
+                <div class="form-group">
+                    <label for="orderId">Order ID:</label>
+                    <input type="number" id="orderId" value="1" min="1" placeholder="Enter order ID">
+                </div>
+                <div class="button-group">
+                    <button id="connectBtn" onclick="connect()" class="success">🔗 Connect</button>
+                    <button id="disconnectBtn" onclick="disconnect()" disabled class="danger">❌ Disconnect</button>
+                    <button onclick="clearMessages()" class="info">🗑️ Clear Log</button>
+                </div>
+            </div>
+
+            <!-- Location Update -->
+            <div class="section">
+                <h3>📍 Send Location Update</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="latitude">Latitude:</label>
+                        <input type="number" id="latitude" value="10.762622" step="0.000001" placeholder="10.762622">
+                    </div>
+                    <div class="form-group">
+                        <label for="longitude">Longitude:</label>
+                        <input type="number" id="longitude" value="106.660172" step="0.000001" placeholder="106.660172">
+                    </div>
+                </div>
+                <div class="preset-locations">
+                    <button class="preset-btn" onclick="setLocation(10.762622, 106.660172)">📍 Ho Chi Minh City</button>
+                    <button class="preset-btn" onclick="setLocation(21.0285, 105.8542)">📍 Ha Noi</button>
+                    <button class="preset-btn" onclick="setLocation(16.0544, 108.2022)">📍 Da Nang</button>
+                    <button class="preset-btn" onclick="setLocation(10.7769, 106.7009)">📍 District 1, HCM</button>
+                </div>
+                <div class="button-group">
+                    <button onclick="sendLocation()" class="info" id="sendLocationBtn">📤 Send Location Update</button>
+                    <button onclick="startAutoUpdate()" class="info" id="autoUpdateBtn">🔄 Start Auto Update</button>
+                    <button onclick="stopAutoUpdate()" class="danger" id="stopAutoBtn" style="display: none;">⏹️ Stop
+                        Auto Update</button>
+                </div>
+            </div>
+
+            <!-- Subscriptions -->
+            <div class="section">
+                <h3>📡 Subscriptions</h3>
+                <div class="button-group">
+                    <button onclick="subscribeOrderLocation()" class="info" id="subscribeLocationBtn">
+                        📍 Subscribe to Location Updates
+                        <span class="subscription-status inactive" id="locationSubStatus">Not Subscribed</span>
+                    </button>
+                    <button onclick="unsubscribeOrderLocation()" class="danger" id="unsubscribeLocationBtn"
+                        style="display: none;">
+                        ❌ Unsubscribe from Location
+                    </button>
+                </div>
+            </div>
+
+            <!-- Message Log -->
+            <div class="section">
+                <h3>📨 Message Log</h3>
+                <div id="messages" class="log">
+                    <div class="log-entry info">
+                        <span class="log-time">[System]</span>
+                        Page loaded. Configure settings and click "Connect" to start testing.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let stompClient = null;
+        let locationSubscription = null;
+        let autoUpdateInterval = null;
+        let isLocationSubscribed = false;
+
+        function connect() {
+            const wsUrl = document.getElementById('wsUrl').value.trim();
+            const orderId = document.getElementById('orderId').value;
+
+            if (!wsUrl) {
+                log('❌ Please enter a WebSocket URL', 'error');
+                return;
+            }
+
+            if (!orderId || orderId < 1) {
+                log('❌ Please enter a valid Order ID', 'error');
+                return;
+            }
+
+            setStatus('connecting', '🟡 Connecting...');
+            log(`🔄 Attempting to connect to: ${wsUrl}`, 'info');
+
+            try {
+                // SockJS với options để handle CORS
+                const socket = new SockJS(wsUrl, null, {
+                    transports: ['websocket', 'xhr-streaming', 'xhr-polling'],
+                    withCredentials: false
+                });
+
+                stompClient = Stomp.over(socket);
+
+                // Disable debug để giảm log
+                stompClient.debug = function (str) {
+                    // Chỉ log errors
+                    if (str.includes('ERROR') || str.includes('error') || str.includes('Error')) {
+                        console.error(str);
+                        log('❌ STOMP Error: ' + str, 'error');
+                    }
+                };
+
+                // Connect với headers
+                stompClient.connect({},
+                    function (frame) {
+                        setStatus('connected', '🟢 Connected Successfully');
+                        log('✅ Connected to WebSocket successfully!', 'success');
+                        log(`📋 Connection frame: ${JSON.stringify(frame.headers, null, 2)}`, 'info');
+
+                        // Auto subscribe to location updates
+                        subscribeOrderLocation();
+
+                        document.getElementById('connectBtn').disabled = true;
+                        document.getElementById('disconnectBtn').disabled = false;
+                        document.getElementById('sendLocationBtn').disabled = false;
+                    },
+                    function (error) {
+                        setStatus('disconnected', '🔴 Connection Failed');
+                        log('❌ Connection error: ' + (error.headers?.message || error), 'error');
+                        console.error('Connection error:', error);
+
+                        document.getElementById('connectBtn').disabled = false;
+                        document.getElementById('disconnectBtn').disabled = true;
+                        document.getElementById('sendLocationBtn').disabled = true;
+                    }
+                );
+            } catch (error) {
+                setStatus('disconnected', '🔴 Connection Error');
+                log('❌ Error creating connection: ' + error.message, 'error');
+                console.error('Error:', error);
+            }
+        }
+
+        function disconnect() {
+            stopAutoUpdate();
+            unsubscribeOrderLocation();
+
+            if (stompClient !== null) {
+                try {
+                    stompClient.disconnect();
+                    log('🔌 Disconnected from WebSocket', 'info');
+                } catch (error) {
+                    log('⚠️ Error during disconnect: ' + error.message, 'warning');
+                }
+            }
+            setStatus('disconnected', '🔴 Disconnected');
+            document.getElementById('connectBtn').disabled = false;
+            document.getElementById('disconnectBtn').disabled = true;
+            document.getElementById('sendLocationBtn').disabled = true;
+            stompClient = null;
+        }
+
+        function subscribeOrderLocation() {
+            const orderId = document.getElementById('orderId').value;
+
+            if (!stompClient || !stompClient.connected) {
+                log('❌ Not connected. Please connect first.', 'error');
+                return;
+            }
+
+            if (isLocationSubscribed) {
+                log('⚠️ Already subscribed to location updates', 'warning');
+                return;
+            }
+
+            try {
+                const topic = `/topic/order/${orderId}/location`;
+                locationSubscription = stompClient.subscribe(topic, function (message) {
+                    try {
+                        const location = JSON.parse(message.body);
+                        log(`📍 Location Update Received:`, 'success');
+                        log(`   Order ID: ${location.orderId}`, 'info');
+                        log(`   Shipper: ${location.shipperName || 'N/A'} (ID: ${location.shipperId || 'N/A'})`, 'info');
+                        log(`   Coordinates: ${location.latitude}, ${location.longitude}`, 'info');
+                        log(`   Address: ${location.customerAddress || 'N/A'}`, 'info');
+                        log(`   Timestamp: ${new Date(location.timestamp).toLocaleString()}`, 'info');
+                        log(`   Full Data: ${JSON.stringify(location, null, 2)}`, 'info');
+                    } catch (error) {
+                        log('❌ Error parsing location message: ' + error.message, 'error');
+                        log('Raw message: ' + message.body, 'error');
+                    }
+                });
+
+                isLocationSubscribed = true;
+                document.getElementById('locationSubStatus').textContent = 'Subscribed';
+                document.getElementById('locationSubStatus').className = 'subscription-status active';
+                document.getElementById('subscribeLocationBtn').style.display = 'none';
+                document.getElementById('unsubscribeLocationBtn').style.display = 'inline-block';
+                log(`✅ Subscribed to ${topic}`, 'success');
+            } catch (error) {
+                log('❌ Error subscribing: ' + error.message, 'error');
+                console.error('Subscribe error:', error);
+            }
+        }
+
+        function unsubscribeOrderLocation() {
+            if (locationSubscription) {
+                try {
+                    locationSubscription.unsubscribe();
+                    locationSubscription = null;
+                    isLocationSubscribed = false;
+                    document.getElementById('locationSubStatus').textContent = 'Not Subscribed';
+                    document.getElementById('locationSubStatus').className = 'subscription-status inactive';
+                    document.getElementById('subscribeLocationBtn').style.display = 'inline-block';
+                    document.getElementById('unsubscribeLocationBtn').style.display = 'none';
+                    log('✅ Unsubscribed from location updates', 'info');
+                } catch (error) {
+                    log('❌ Error unsubscribing: ' + error.message, 'error');
+                }
+            }
+        }
+
+        function sendLocation() {
+            const orderId = parseInt(document.getElementById('orderId').value);
+            const latitude = parseFloat(document.getElementById('latitude').value);
+            const longitude = parseFloat(document.getElementById('longitude').value);
+
+            if (!stompClient || !stompClient.connected) {
+                log('❌ Not connected. Please connect first.', 'error');
+                return;
+            }
+
+            if (!orderId || orderId < 1) {
+                log('❌ Please enter a valid Order ID', 'error');
+                return;
+            }
+
+            if (isNaN(latitude) || isNaN(longitude)) {
+                log('❌ Please enter valid latitude and longitude', 'error');
+                return;
+            }
+
+            try {
+                const location = {
+                    orderId: orderId,
+                    latitude: latitude,
+                    longitude: longitude
+                };
+
+                const destination = "/app/shipper/location";
+                stompClient.send(destination, {}, JSON.stringify(location));
+                log(`📤 Sent location update to ${destination}:`, 'success');
+                log(`   Order ID: ${orderId}`, 'info');
+                log(`   Latitude: ${latitude}`, 'info');
+                log(`   Longitude: ${longitude}`, 'info');
+                log(`   Full payload: ${JSON.stringify(location, null, 2)}`, 'info');
+            } catch (error) {
+                log('❌ Error sending location: ' + error.message, 'error');
+                console.error('Send error:', error);
+            }
+        }
+
+        function setLocation(lat, lng) {
+            document.getElementById('latitude').value = lat;
+            document.getElementById('longitude').value = lng;
+            log(`📍 Location set to: ${lat}, ${lng}`, 'info');
+        }
+
+        function startAutoUpdate() {
+            if (autoUpdateInterval) {
+                log('⚠️ Auto update already running', 'warning');
+                return;
+            }
+
+            if (!stompClient || !stompClient.connected) {
+                log('❌ Not connected. Please connect first.', 'error');
+                return;
+            }
+
+            log('🔄 Starting auto location update (every 3 seconds)...', 'info');
+            autoUpdateInterval = setInterval(() => {
+                const lat = parseFloat(document.getElementById('latitude').value);
+                const lng = parseFloat(document.getElementById('longitude').value);
+
+                // Add small random variation to simulate movement
+                const variation = 0.0001;
+                const newLat = lat + (Math.random() - 0.5) * variation;
+                const newLng = lng + (Math.random() - 0.5) * variation;
+
+                document.getElementById('latitude').value = newLat.toFixed(6);
+                document.getElementById('longitude').value = newLng.toFixed(6);
+                sendLocation();
+            }, 3000);
+
+            document.getElementById('autoUpdateBtn').style.display = 'none';
+            document.getElementById('stopAutoBtn').style.display = 'inline-block';
+        }
+
+        function stopAutoUpdate() {
+            if (autoUpdateInterval) {
+                clearInterval(autoUpdateInterval);
+                autoUpdateInterval = null;
+                log('⏹️ Stopped auto location update', 'info');
+                document.getElementById('autoUpdateBtn').style.display = 'inline-block';
+                document.getElementById('stopAutoBtn').style.display = 'none';
+            }
+        }
+
+        function setStatus(state, text) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = 'status ' + state;
+            statusDiv.textContent = text;
+        }
+
+        function log(message, type = 'info') {
+            console.log(`[${type.toUpperCase()}] ${message}`);
+            const time = new Date().toLocaleTimeString('vi-VN');
+            const logDiv = document.getElementById('messages');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry ' + type;
+            entry.innerHTML = `<span class="log-time">[${time}]</span> ${escapeHtml(message)}`;
+            logDiv.insertBefore(entry, logDiv.firstChild);
+
+            // Keep only last 100 entries
+            while (logDiv.children.length > 100) {
+                logDiv.removeChild(logDiv.lastChild);
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function clearMessages() {
+            document.getElementById('messages').innerHTML = '';
+            log('🗑️ Message log cleared', 'info');
+        }
+
+        // Handle page unload
+        window.onbeforeunload = function () {
+            disconnect();
+        };
+
+        // Handle Enter key in inputs
+        document.addEventListener('DOMContentLoaded', function () {
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') {
+                        if (input.id === 'wsUrl' || input.id === 'orderId') {
+                            connect();
+                        } else if (input.id === 'latitude' || input.id === 'longitude') {
+                            sendLocation();
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

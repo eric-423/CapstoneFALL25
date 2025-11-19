@@ -11,23 +11,18 @@ import {
   Text,
   TouchableOpacity,
   View,
-  Modal,
   TextInput,
   ScrollView,
 } from "react-native";
 import { FONTS } from "@/theme/typography";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { formatDateToDDMMYYYY } from "@/utils/cart";
 import HeaderHome from "@/components/home/header.home";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { GetAllOrder } from "@/utils/api";
+import { useCurrentApp } from "@/context/app.context";
 
-interface Bank {
-  id: number;
-  name: string;
-  code: string;
-}
 interface IOrderHistoryCus {
   orderId: number;
   order_create_at: string;
@@ -70,44 +65,38 @@ interface ApiOrderResponse {
 }
 const mapOrderStatus = (status: string): string => {
   const statusMap: Record<string, string> = {
-    CREATED: "Pending",
-    IN_PROCESS: "Paid",
-    APPROVED: "Approved",
-    PREPARING: "Preparing",
-    COOKED: "Cooked",
-    DELIVERING: "Delivering",
-    DELIVERED: "Delivered",
-    CANCELED: "Canceled",
+    CREATED: "Chờ thanh toán",
+    IN_PROCESS: "Đã thanh toán",
+    APPROVED: "Đã xác nhận",
+    PREPARING: "Đang chuẩn bị",
+    COOKED: "Đã nấu xong",
+    SHIPPING: "Đang giao",
+    DELIVERED: "Đã giao",
+    COMPLETED: "Đã hoàn thành",
+    CANCEL: "Đã hủy",
   };
   return statusMap[status] || status;
 };
 
 const OrderPage = () => {
   const [orderHistory, setOrderHistory] = useState<IOrderHistoryCus[]>([]);
-  const [decodeToken, setDecodeToken] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [cancelModalVisible, setCancelModalVisible] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
-  const [cancelReason, setCancelReason] = useState("");
-  const [bankName, setBankName] = useState("");
-  const [bankNumber, setBankNumber] = useState("");
   const [searchText, setSearchText] = useState("");
   const [searchResults, setSearchResults] = useState<IOrderHistoryCus[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [selectedBank, setSelectedBank] = useState<Bank | null>(null);
-  const [isBankDropdownVisible, setIsBankDropdownVisible] = useState(false);
-
+  const { appState } = useCurrentApp();
   const statusMap: Record<string, StatusInfo> = {
-    Pending: { text: "Chờ thanh toán", color: STATUS_COLORS.PENDING },
-    Paid: { text: "Đã thanh toán", color: STATUS_COLORS.APPROVED },
-    Approved: { text: "Đã xác nhận", color: STATUS_COLORS.APPROVED },
-    Preparing: { text: "Đang chuẩn bị", color: STATUS_COLORS.PREPARING },
-    Cooked: { text: "Đã nấu xong", color: STATUS_COLORS.COOKED },
-    Delivering: { text: "Đang giao", color: STATUS_COLORS.DELIVERING },
-    Delivered: { text: "Đã giao", color: STATUS_COLORS.DELIVERED },
-    Canceled: { text: "Đã hủy", color: STATUS_COLORS.CANCELED },
+    CREATED: { text: "Chờ thanh toán", color: STATUS_COLORS.PENDING },
+    PAID: { text: "Đã thanh toán", color: STATUS_COLORS.APPROVED },
+    IN_PROCESS: { text: "Đã xác nhận", color: STATUS_COLORS.APPROVED },
+    COOKING: { text: "Đang chuẩn bị", color: STATUS_COLORS.COOKING },
+    COOKED: { text: "Đã nấu xong", color: STATUS_COLORS.COOKED },
+    SHIPPING: { text: "Đang giao hàng", color: STATUS_COLORS.DELIVERING },
+    DELIVERED: { text: "Đã giao hàng", color: STATUS_COLORS.DELIVERED },
+    COMPLETED: { text: "Đã hoàn thành", color: STATUS_COLORS.DONE },
+    CANCEL: { text: "Đã hủy", color: STATUS_COLORS.CANCELED },
   };
 
   const fetchOrderHistoryWithToken = useCallback(async () => {
@@ -115,16 +104,12 @@ const OrderPage = () => {
       setIsLoading(true);
       setError(null);
       const storedToken = await AsyncStorage.getItem("access_token");
-      setToken(storedToken);
-
       if (!storedToken) {
         setOrderHistory([]);
         setIsLoading(false);
         return;
       }
-
       const response = await GetAllOrder();
-
       if (response.data && response.data.status === 0 && response.data.data) {
         const orders: IOrderHistoryCus[] = response.data.data.map(
           (order: ApiOrderResponse) => ({
@@ -157,26 +142,6 @@ const OrderPage = () => {
     }
   }, []);
 
-  const BankDropdown = () => {
-    return (
-      <View style={styles.dropdownContainer}>
-        <TouchableOpacity
-          style={styles.dropdownButton}
-          onPress={() => setIsBankDropdownVisible(!isBankDropdownVisible)}
-        >
-          <Text style={styles.dropdownButtonText}>
-            {selectedBank ? selectedBank.name : "Chọn ngân hàng"}
-          </Text>
-          <MaterialCommunityIcons
-            name={isBankDropdownVisible ? "chevron-up" : "chevron-down"}
-            size={20}
-            color={APP_COLOR.BROWN}
-          />
-        </TouchableOpacity>
-      </View>
-    );
-  };
-
   const StatusBadge = ({ status }: { status: string }) => {
     const statusInfo = statusMap[status] || {
       text: status,
@@ -200,15 +165,8 @@ const OrderPage = () => {
 
   const handleCancelOrder = (id: number) => {
     setSelectedOrderId(id);
-    setCancelModalVisible(true);
   };
 
-  const handleConfirmCancel = async () => {
-    if (!selectedOrderId || !cancelReason || !bankName || !bankNumber) {
-      Alert.alert("Lỗi", "Vui lòng điền đầy đủ thông tin");
-      return;
-    }
-  };
   const handleFeedback = (id: number) => {
     router.navigate({
       pathname: "/(user)/order/[id]",
@@ -216,65 +174,58 @@ const OrderPage = () => {
     });
   };
 
-  const handleSearch = () => {
-    if (!searchText.trim()) {
+  const handleTrackOrder = (id: number) => {
+    router.navigate({
+      pathname: "/(user)/order/track/[id]",
+      params: { id: id.toString() },
+    });
+  };
+
+  const handleSearch = (searchValue?: string) => {
+    const valueToSearch = searchValue || searchText;
+    if (!valueToSearch.trim()) {
       setSearchResults([]);
       setIsSearching(false);
       return;
     }
 
     setIsSearching(true);
-    const searchId = parseInt(searchText.trim());
+    const searchId = parseInt(valueToSearch.trim());
 
     if (isNaN(searchId)) {
       setSearchResults([]);
       setIsSearching(false);
-      Alert.alert("Lỗi", "Vui lòng nhập số ID đơn hàng hợp lệ");
       return;
     }
-
     const foundOrder = orderHistory.find((order) => order.orderId === searchId);
-
     if (foundOrder) {
       setSearchResults([foundOrder]);
     } else {
       setSearchResults([]);
-      Alert.alert(
-        "Không tìm thấy",
-        `Không tìm thấy đơn hàng với ID: ${searchId}`
-      );
     }
-
     setIsSearching(false);
   };
-
-  const clearSearch = () => {
-    setSearchText("");
-    setSearchResults([]);
-    setIsSearching(false);
-  };
-
-  useEffect(() => {
-    const getToken = async () => {
-      const storedToken = await AsyncStorage.getItem("access_token");
-      setToken(storedToken);
-      if (storedToken) {
-        const decoded = jwtDecode<any>(storedToken);
-        setDecodeToken(decoded);
-      }
-    };
-    getToken();
-  }, []);
-
-  useEffect(() => {
-    if (token) {
+  useFocusEffect(
+    useCallback(() => {
       fetchOrderHistoryWithToken();
+    }, [fetchOrderHistoryWithToken])
+  );
+  useEffect(() => {
+    if (searchText.trim()) {
+      const timeoutId = setTimeout(() => {
+        handleSearch(searchText);
+      }, 500);
+
+      return () => clearTimeout(timeoutId);
+    } else {
+      setSearchResults([]);
+      setIsSearching(false);
     }
-  }, [token, fetchOrderHistoryWithToken]);
+  }, [searchText, orderHistory]);
 
   return (
     <View style={{ flex: 1, backgroundColor: APP_COLOR.BACKGROUND_ORANGE }}>
-      {token ? (
+      {appState ? (
         <View style={{ flex: 1, paddingBottom: 40 }}>
           <View
             style={{
@@ -317,37 +268,6 @@ const OrderPage = () => {
                   onChangeText={setSearchText}
                   keyboardType="numeric"
                 />
-                {searchText.length > 0 && (
-                  <TouchableOpacity
-                    onPress={clearSearch}
-                    style={{ marginRight: 10 }}
-                  >
-                    <Text
-                      style={{
-                        color: APP_COLOR.ORANGE,
-                        fontFamily: FONTS.bold,
-                      }}
-                    >
-                      Xóa
-                    </Text>
-                  </TouchableOpacity>
-                )}
-                <TouchableOpacity
-                  onPress={handleSearch}
-                  style={{
-                    backgroundColor: APP_COLOR.ORANGE,
-                    paddingHorizontal: 15,
-                    paddingVertical: 8,
-                    borderRadius: 20,
-                    marginRight: 10,
-                  }}
-                >
-                  <Text
-                    style={{ color: APP_COLOR.WHITE, fontFamily: FONTS.bold }}
-                  >
-                    Tìm
-                  </Text>
-                </TouchableOpacity>
               </View>
             </View>
           </View>
@@ -439,7 +359,7 @@ const OrderPage = () => {
                             }}
                           >
                             <Text style={styles.text}>
-                              X{item.itemCount || 1} Sản phẩm
+                              {item.itemCount || 1} Sản phẩm
                             </Text>
                             <Text
                               style={[
@@ -484,6 +404,7 @@ const OrderPage = () => {
                               </Text>
                             </TouchableOpacity>
                           )}
+
                           {item.status === "Paid" && (
                             <TouchableOpacity
                               style={[
@@ -584,7 +505,7 @@ const OrderPage = () => {
                             }}
                           >
                             <Text style={styles.text}>
-                              X{item.itemCount || 1} Sản phẩm
+                              {item.itemCount || 1} Sản phẩm
                             </Text>
                             <Text
                               style={[
@@ -629,6 +550,25 @@ const OrderPage = () => {
                               </Text>
                             </TouchableOpacity>
                           )}
+                          {(item.status === "Đang giao" ||
+                            item.status === "Đang giao hàng") && (
+                            <TouchableOpacity
+                              style={[
+                                styles.button,
+                                { backgroundColor: APP_COLOR.ORANGE },
+                              ]}
+                              onPress={() => handleTrackOrder(item.orderId)}
+                            >
+                              <Text
+                                style={[
+                                  styles.buttonText,
+                                  { color: APP_COLOR.WHITE },
+                                ]}
+                              >
+                                Theo dõi đơn
+                              </Text>
+                            </TouchableOpacity>
+                          )}
                           {item.status === "Paid" && (
                             <TouchableOpacity
                               style={[
@@ -656,7 +596,7 @@ const OrderPage = () => {
               ))
             )}
           </ScrollView>
-          <Pressable onPress={() => router.navigate("/(auth)/qrcode")}>
+          <Pressable onPress={() => router.navigate("/(auth)/qrcode" as any)}>
             <View
               style={{
                 position: "absolute",
@@ -695,75 +635,17 @@ const OrderPage = () => {
         <View
           style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
         >
-          <Text style={{ color: APP_COLOR.BROWN, fontFamily: FONTS.regular }}>
+          <Text
+            style={{
+              color: APP_COLOR.BROWN,
+              fontFamily: FONTS.regular,
+              fontSize: 16,
+            }}
+          >
             Vui lòng đăng nhập để xem lịch sử đơn hàng.
           </Text>
         </View>
       )}
-      <Modal
-        visible={cancelModalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setCancelModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Hủy đơn hàng</Text>
-            <Text style={styles.modalSubtitle}>
-              Vui lòng điền thông tin để hoàn tiền
-            </Text>
-
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Lý do hủy:</Text>
-              <TextInput
-                style={styles.textInput}
-                value={cancelReason}
-                onChangeText={setCancelReason}
-                placeholder="Nhập lý do hủy đơn hàng"
-                multiline
-              />
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Tên ngân hàng:</Text>
-              <BankDropdown />
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Số tài khoản:</Text>
-              <TextInput
-                style={styles.textInput}
-                value={bankNumber}
-                onChangeText={setBankNumber}
-                placeholder="Nhập số tài khoản ngân hàng"
-                keyboardType="numeric"
-              />
-            </View>
-
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.cancelButton]}
-                onPress={() => {
-                  setCancelModalVisible(false);
-                  setSelectedOrderId(null);
-                  setCancelReason("");
-                  setBankName("");
-                  setBankNumber("");
-                  setSelectedBank(null);
-                }}
-              >
-                <Text style={styles.cancelButtonText}>Hủy</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.confirmButton]}
-                onPress={handleConfirmCancel}
-              >
-                <Text style={styles.confirmButtonText}>Xác nhận</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 };

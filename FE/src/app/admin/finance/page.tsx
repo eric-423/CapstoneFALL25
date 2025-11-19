@@ -31,7 +31,6 @@ export default function FinancePage() {
     const [selectedPeriod, setSelectedPeriod] = useState<'day' | 'week' | 'month' | 'year'>('day');
     const [selectedBranches, setSelectedBranches] = useState<string[]>([]);
     const [showBranchDropdown, setShowBranchDropdown] = useState(false);
-    const [showTotalRevenue, setShowTotalRevenue] = useState(true);
     const revenueData = generateRevenueData(selectedPeriod);
     const todayGrowth = ((stats.todayRevenue - stats.yesterdayRevenue) / stats.yesterdayRevenue * 100).toFixed(1);
 
@@ -44,37 +43,9 @@ export default function FinancePage() {
         );
     };
 
-    // Calculate summary statistics based on what's displayed
-    const calculateSummaryStats = () => {
-        if (showTotalRevenue && selectedBranches.length === 0) {
-            // Show total revenue stats
-            return {
-                label: 'Tổng doanh thu',
-                data: revenueData.map(d => d.revenue / 1000000)
-            };
-        } else if (selectedBranches.length > 0) {
-            // Show combined stats of selected branches
-            return {
-                label: selectedBranches.length === 1 ? selectedBranches[0] : `${selectedBranches.length} chi nhánh`,
-                data: revenueData.map(item => {
-                    return selectedBranches.reduce((sum, branchName) => {
-                        const value = item[branchName as keyof typeof item];
-                        return sum + (typeof value === 'number' ? value / 1000000 : 0);
-                    }, 0);
-                })
-            };
-        } else {
-            // Fallback to total revenue
-            return {
-                label: 'Tổng doanh thu',
-                data: revenueData.map(d => d.revenue / 1000000)
-            };
-        }
-    };
-
-    const summaryStats = calculateSummaryStats(); return (
+    return (
         <AdminGuard>
-            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+            <div className="min-h-screen bg-[#EFE6DB]">
                 <div className="max-w-[1800px] mx-auto space-y-4">
                     {/* Header - Compact */}
                     <div className="flex justify-between items-center">
@@ -254,20 +225,6 @@ export default function FinancePage() {
                                                 </div>
                                             )}
                                         </div>
-                                        {/* Toggle Total Revenue */}
-                                        <span className="text-xs font-semibold text-gray-700">
-                                            Tổng DT
-                                        </span>
-                                        <button
-                                            onClick={() => setShowTotalRevenue(!showTotalRevenue)}
-                                            className={`relative inline-flex items-center h-5 w-9 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#EC6426] focus:ring-offset-1 ${showTotalRevenue ? 'bg-[#EC6426]' : 'bg-gray-300'
-                                                }`}
-                                        >
-                                            <span
-                                                className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-lg transition-transform duration-200 ${showTotalRevenue ? 'translate-x-5' : 'translate-x-0.5'
-                                                    }`}
-                                            />
-                                        </button>
                                     </div>
                                     {selectedBranches.length > 0 && (
                                         <button
@@ -372,19 +329,17 @@ export default function FinancePage() {
                                                 return null;
                                             }}
                                         />
-                                        <Legend wrapperStyle={{ fontSize: '12px', fontWeight: '600' }} iconType="circle" />
+                                        <Legend wrapperStyle={{ fontSize: '14px', fontWeight: '600' }} iconType="circle" />
 
-                                        {/* Total Revenue Line - Conditional */}
-                                        {showTotalRevenue && (
-                                            <Area
-                                                type="monotone"
-                                                dataKey="Tổng doanh thu"
-                                                stroke="#EC6426"
-                                                strokeWidth={3}
-                                                fill="url(#totalRevenueGradient)"
-                                                animationDuration={1000}
-                                            />
-                                        )}
+                                        {/* Total Revenue Line */}
+                                        <Area
+                                            type="monotone"
+                                            dataKey="Tổng doanh thu"
+                                            stroke="#EC6426"
+                                            strokeWidth={3}
+                                            fill="url(#totalRevenueGradient)"
+                                            animationDuration={1000}
+                                        />
 
                                         {/* Branch Lines */}
                                         {selectedBranches.map((branchName) => {
@@ -405,32 +360,31 @@ export default function FinancePage() {
                                 </ResponsiveContainer>
                             </div>
 
-                            {/* Summary Stats - Dynamic based on displayed data */}
+                            {/* Summary Stats */}
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 pt-4 border-t border-gray-100">
                                 <div className="text-center">
                                     <p className="text-xs text-gray-500 font-semibold mb-0.5">Cao nhất</p>
                                     <p className="text-base font-bold text-[#EC6426]">
-                                        {Math.max(...summaryStats.data).toFixed(1)}M
+                                        {Math.max(...revenueData.map(d => d.revenue / 1000000)).toFixed(1)}M
                                     </p>
                                 </div>
                                 <div className="text-center">
                                     <p className="text-xs text-gray-500 font-semibold mb-0.5">Thấp nhất</p>
                                     <p className="text-base font-bold text-gray-600">
-                                        {Math.min(...summaryStats.data).toFixed(1)}M
+                                        {Math.min(...revenueData.map(d => d.revenue / 1000000)).toFixed(1)}M
                                     </p>
                                 </div>
                                 <div className="text-center">
                                     <p className="text-xs text-gray-500 font-semibold mb-0.5">Trung bình</p>
                                     <p className="text-base font-bold text-gray-700">
-                                        {(summaryStats.data.reduce((sum, val) => sum + val, 0) / summaryStats.data.length).toFixed(1)}M
+                                        {(revenueData.reduce((sum, d) => sum + d.revenue, 0) / revenueData.length / 1000000).toFixed(1)}M
                                     </p>
                                 </div>
                                 <div className="text-center">
                                     <p className="text-xs text-gray-500 font-semibold mb-0.5">Tổng</p>
                                     <p className="text-base font-bold bg-gradient-to-r from-[#EC6426] to-[#F8A91F] bg-clip-text text-transparent">
-                                        {summaryStats.data.reduce((sum, val) => sum + val, 0).toFixed(1)}M
+                                        {(revenueData.reduce((sum, d) => sum + d.revenue, 0) / 1000000).toFixed(1)}M
                                     </p>
-                                    <p className="text-[10px] text-gray-400 mt-0.5">{summaryStats.label}</p>
                                 </div>
                             </div>
                         </Card>

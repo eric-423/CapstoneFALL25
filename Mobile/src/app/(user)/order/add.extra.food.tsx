@@ -321,7 +321,7 @@ const AddExtraFoodContent = () => {
               cart[restaurant?._id as string]?.sum || 0
             )}`}
             onPress={() => {
-              router.navigate("/order/place.order");
+              router.navigate("/(user)/order/cart");
             }}
           />
         </View>
