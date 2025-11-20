@@ -5,7 +5,14 @@ import { ManagerGuard } from '@/components/guards';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingBag, Eye, CheckCircle, Clock, Printer, Package, Truck, XCircle, MapPin, Phone, User, Calendar, DollarSign, CreditCard } from 'lucide-react';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { ShoppingBag, Eye, CheckCircle, Clock, Printer, Package, Truck, XCircle, MapPin, Phone, User, Calendar, DollarSign, CreditCard, Building2, ChefHat } from 'lucide-react';
 import { getOrderStatuses, getBranchOrders, assignShipperToOrder, BranchOrderResponse } from '@/apis/order.api';
 import { AdminPageLayout, AdminPageHeader, AdminStatsCard, AdminStatsGrid } from '@/app/admin/components/AdminPageLayout';
 import { printBillAction } from '@/app/actions/printBill';
@@ -178,7 +185,9 @@ const handlePrintInvoice = async (order: BranchOrderResponse) => {
         const cleanup = () => {
             if (cleaned) return;
             cleaned = true;
-            iframe.parentNode && document.body.removeChild(iframe);
+            if (iframe.parentNode) {
+                document.body.removeChild(iframe);
+            }
             URL.revokeObjectURL(url);
         };
 
@@ -244,20 +253,21 @@ export default function ManagerOrdersPage() {
     const [loading, setLoading] = useState(true);
     const [loadingOrders, setLoadingOrders] = useState(false);
     const [assigningShipper, setAssigningShipper] = useState<Set<number>>(new Set());
+    const [selectedOrder, setSelectedOrder] = useState<BranchOrderResponse | null>(null);
 
     useEffect(() => {
         const fetchStatuses = async () => {
             try {
                 const response = await getOrderStatuses();
                 if (response && response.status === 0 && response.data && Array.isArray(response.data)) {
-                    setOrderStatuses(response.data);
+                    setOrderStatuses(response.data.filter((status) => status.toUpperCase() !== 'PAID'));
                 } else {
                     console.warn('Invalid response format for order statuses:', response);
-                    setOrderStatuses(['ALL', 'CREATED', 'IN_PROCESS', 'DELIVERING', 'COMPLETED', 'CANCELLED', 'PAID']);
+                    setOrderStatuses(['ALL', 'CREATED', 'IN_PROCESS', 'DELIVERING', 'COMPLETED', 'CANCELLED']);
                 }
             } catch (error) {
                 console.error('Error fetching order statuses:', error);
-                setOrderStatuses(['ALL', 'CREATED', 'IN_PROCESS', 'DELIVERING', 'COMPLETED', 'CANCELLED', 'PAID']);
+                setOrderStatuses(['ALL', 'CREATED', 'IN_PROCESS', 'DELIVERING', 'COMPLETED', 'CANCELLED']);
             }
         };
         fetchStatuses();
@@ -541,6 +551,7 @@ export default function ManagerOrdersPage() {
                                                         variant="outline"
                                                         size="sm"
                                                         className="flex-1 lg:flex-none whitespace-nowrap border-2 border-gray-300 text-gray-700 hover:bg-gray-100 transition-all duration-300 rounded-xl font-semibold"
+                                                        onClick={() => setSelectedOrder(order)}
                                                     >
                                                         <Eye size={16} className="mr-1 flex-shrink-0" strokeWidth={2.5} />
                                                         <span className="truncate">Chi tiết</span>
@@ -567,6 +578,186 @@ export default function ManagerOrdersPage() {
                     )}
                 </Card>
             </AdminPageLayout>
+
+            <Dialog
+                open={!!selectedOrder}
+                onOpenChange={(isOpen) => {
+                    if (!isOpen) setSelectedOrder(null);
+                }}
+            >
+                <DialogContent className="w-[90vw] sm:w-[90vw] lg:w-[50vw] max-w-[95vw] sm:max-w-5xl lg:max-w-6xl max-h-[90vh] overflow-y-auto bg-[#FFF9F3] rounded-3xl border-none p-4 sm:p-6 shadow-[0_20px_50px_rgba(12,21,55,0.2)]">
+                    {selectedOrder && (
+                        <>
+                            <DialogHeader>
+                                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                    <div>
+                                        <DialogTitle className="text-2xl font-bold flex items-center gap-3">
+                                            Chi tiết đơn #{selectedOrder.id}
+                                            <Badge className={`px-3 py-1 text-xs font-semibold rounded-lg border-2 ${getStatusBadgeClass(selectedOrder.orderStatus)}`}>
+                                                {getStatusIcon(selectedOrder.orderStatus)}
+                                                {getStatusLabel(selectedOrder.orderStatus)}
+                                            </Badge>
+                                        </DialogTitle>
+                                        <DialogDescription>
+                                            Toàn bộ thông tin đơn hàng tại chi nhánh của bạn.
+                                        </DialogDescription>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2">
+                                        {selectedOrder.table && (
+                                            <Badge className="bg-blue-50 text-blue-700 border-blue-200 border-2 px-3 py-1 text-xs font-semibold rounded-xl">
+                                                Tại bàn
+                                            </Badge>
+                                        )}
+                                        {selectedOrder.pickUp && (
+                                            <Badge className="bg-purple-50 text-purple-700 border-purple-200 border-2 px-3 py-1 text-xs font-semibold rounded-xl">
+                                                Mang đi
+                                            </Badge>
+                                        )}
+                                        {!selectedOrder.table && !selectedOrder.pickUp && (
+                                            <Badge className="bg-green-50 text-green-700 border-green-200 border-2 px-3 py-1 text-xs font-semibold rounded-xl flex items-center gap-1">
+                                                <Truck size={12} />
+                                                Giao hàng
+                                            </Badge>
+                                        )}
+                                    </div>
+                                </div>
+                            </DialogHeader>
+
+                            <div className="space-y-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <Card className="p-4 bg-gray-50 border border-gray-100 rounded-xl">
+                                        <h3 className="font-semibold text-gray-800 mb-3">Thông tin khách hàng</h3>
+                                        <div className="space-y-2 text-sm text-gray-600">
+                                            <div className="flex items-center gap-2">
+                                                <User size={16} />
+                                                <span className="font-semibold">{selectedOrder.customerName}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Phone size={16} />
+                                                <span>{selectedOrder.customerPhone}</span>
+                                            </div>
+                                            {selectedOrder.address && (
+                                                <div className="flex items-start gap-2">
+                                                    <MapPin size={16} className="mt-0.5" />
+                                                    <span>{selectedOrder.address}</span>
+                                                </div>
+                                            )}
+                                            <div className="flex items-start gap-2">
+                                                <Building2 size={16} className="mt-0.5" />
+                                                <span>
+                                                    {selectedOrder.branchName}
+                                                    {selectedOrder.branchAddress && <>, {selectedOrder.branchAddress}</>}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </Card>
+
+                                    <Card className="p-4 bg-gray-50 border border-gray-100 rounded-xl">
+                                        <h3 className="font-semibold text-gray-800 mb-3">Thời gian xử lý</h3>
+                                        <div className="space-y-2 text-sm text-gray-600">
+                                            <div className="flex items-center gap-2">
+                                                <Calendar size={16} />
+                                                <span className="font-semibold">Đặt:</span>
+                                                <span>{formatDate(selectedOrder.orderDate)}</span>
+                                            </div>
+                                            {selectedOrder.paymentTime && (
+                                                <div className="flex items-center gap-2">
+                                                    <CreditCard size={16} />
+                                                    <span className="font-semibold">Thanh toán:</span>
+                                                    <span>{formatDate(selectedOrder.paymentTime)}</span>
+                                                </div>
+                                            )}
+                                            {selectedOrder.deliveryAt && (
+                                                <div className="flex items-center gap-2">
+                                                    <Truck size={16} />
+                                                    <span className="font-semibold">Giao:</span>
+                                                    <span>{formatDate(selectedOrder.deliveryAt)}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </Card>
+                                </div>
+
+                                {(selectedOrder.waiterName || selectedOrder.chefName || selectedOrder.shipperName) && (
+                                    <Card className="p-4 border border-gray-100 rounded-xl">
+                                        <h3 className="font-semibold text-gray-800 mb-3">Nhân sự liên quan</h3>
+                                        <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                                            {selectedOrder.waiterName && (
+                                                <div className="flex items-center gap-2">
+                                                    <User size={14} />
+                                                    <span><span className="font-semibold">Nhân viên:</span> {selectedOrder.waiterName}</span>
+                                                </div>
+                                            )}
+                                            {selectedOrder.chefName && (
+                                                <div className="flex items-center gap-2">
+                                                    <ChefHat size={14} />
+                                                    <span><span className="font-semibold">Đầu bếp:</span> {selectedOrder.chefName}</span>
+                                                </div>
+                                            )}
+                                            {selectedOrder.shipperName && (
+                                                <div className="flex items-center gap-2">
+                                                    <Truck size={14} />
+                                                    <span><span className="font-semibold">Shipper:</span> {selectedOrder.shipperName}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </Card>
+                                )}
+
+                                <Card className="p-4 border border-gray-100 rounded-xl">
+                                    <h3 className="font-semibold text-gray-800 mb-3">Tổng hợp thanh toán</h3>
+                                    <div className="space-y-2 text-sm">
+                                        <div className="flex justify-between text-gray-600">
+                                            <span>Tổng tiền hàng:</span>
+                                            <span className="font-semibold">{formatCurrency(selectedOrder.subTotal ?? 0)}</span>
+                                        </div>
+                                        {selectedOrder.shippingFee !== undefined && selectedOrder.shippingFee !== null && (
+                                            <div className="flex justify-between text-gray-600">
+                                                <span>Phí vận chuyển:</span>
+                                                <span className="font-semibold">{formatCurrency(selectedOrder.shippingFee ?? 0)}</span>
+                                            </div>
+                                        )}
+                                        {selectedOrder.discountValue !== undefined && selectedOrder.discountValue !== null && (
+                                            <div className="flex justify-between text-green-600">
+                                                <span>Giảm giá:</span>
+                                                <span className="font-semibold">
+                                                    {selectedOrder.discountValue === 0 ? '0đ' : `-${formatCurrency(selectedOrder.discountValue ?? 0)}`}
+                                                </span>
+                                            </div>
+                                        )}
+                                        {selectedOrder.promotionCode && (
+                                            <div className="flex justify-between text-gray-600">
+                                                <span>Mã khuyến mãi:</span>
+                                                <span className="font-semibold">{selectedOrder.promotionCode}</span>
+                                            </div>
+                                        )}
+                                        {selectedOrder.pointUsed !== undefined && selectedOrder.pointUsed !== null && (
+                                            <div className="flex justify-between text-gray-600">
+                                                <span>Điểm đã dùng:</span>
+                                                <span className="font-semibold">
+                                                    {selectedOrder.pointUsed === 0 ? '0 điểm' : `-${selectedOrder.pointUsed.toLocaleString('vi-VN')} điểm`}
+                                                </span>
+                                            </div>
+                                        )}
+                                        {selectedOrder.pointEarned !== undefined && selectedOrder.pointEarned !== null && (
+                                            <div className="flex justify-between text-green-600">
+                                                <span>Điểm nhận được:</span>
+                                                <span className="font-semibold">
+                                                    {selectedOrder.pointEarned === 0 ? '0 điểm' : `+${selectedOrder.pointEarned.toLocaleString('vi-VN')} điểm`}
+                                                </span>
+                                            </div>
+                                        )}
+                                        <div className="flex justify-between pt-2 mt-2 border-t-2 border-gray-200">
+                                            <span className="font-bold text-base">Tổng thanh toán:</span>
+                                            <span className="font-bold text-xl text-[#EC6426]">{formatCurrency(selectedOrder.amount)}</span>
+                                        </div>
+                                    </div>
+                                </Card>
+                            </div>
+                        </>
+                    )}
+                </DialogContent>
+            </Dialog>
         </ManagerGuard>
     );
 }

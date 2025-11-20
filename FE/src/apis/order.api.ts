@@ -104,6 +104,9 @@ export interface OrderResponse {
   rated?: boolean;
   pickupTime: string;
   payment_code?: string;
+  orderDate?: string;
+  paymentTime?: string | null;
+  deliveryAt?: string | null;
 }
 
 
