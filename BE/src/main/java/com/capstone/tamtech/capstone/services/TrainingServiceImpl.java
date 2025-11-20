@@ -8,6 +8,7 @@ import com.capstone.tamtech.capstone.exception.ResourceNotFoundException;
 import com.capstone.tamtech.capstone.payload.PagedResponse;
 import com.capstone.tamtech.capstone.payload.request.TrainingRequest;
 import com.capstone.tamtech.capstone.payload.request.TrainingSearchRequest;
+import com.capstone.tamtech.capstone.repositories.LessonRepository;
 import com.capstone.tamtech.capstone.repositories.RoleRepository;
 import com.capstone.tamtech.capstone.repositories.TrainingRepository;
 import com.capstone.tamtech.capstone.repositories.UserTrainingRepository;
@@ -35,28 +36,36 @@ public class TrainingServiceImpl implements TrainingService {
     @Autowired
     private UserTrainingRepository userTrainingRepository;
 
+    @Autowired
+    private LessonRepository lessonRepository;
+
     @Override
     @Transactional(readOnly = true)
     public PagedResponse<TrainingDTO> getAllTrainings(TrainingSearchRequest searchRequest) {
+        if (searchRequest == null) {
+            searchRequest = new TrainingSearchRequest();
+        }
         Pageable pageable = createPageable(searchRequest);
 
-        Page<Trainings> trainingPage;
-        if (searchRequest.getRoleId() != null) {
-            if (searchRequest.getIncludeInactive() != null && searchRequest.getIncludeInactive()) {
-                trainingPage = trainingRepository.findByRoleId(searchRequest.getRoleId(), pageable);
-            } else {
-                trainingPage = trainingRepository.findByRoleIdAndIsActiveTrue(searchRequest.getRoleId(), pageable);
-            }
-        } else {
-            if (searchRequest.getIncludeInactive() != null && searchRequest.getIncludeInactive()) {
-                trainingPage = trainingRepository.findAll(pageable);
-            } else {
-                trainingPage = trainingRepository.findByIsActiveTrue(pageable);
-            }
+        Boolean isActiveFilter = searchRequest.getIsActive();
+        if (isActiveFilter == null) {
+            boolean includeInactive = searchRequest.getIncludeInactive() != null && searchRequest.getIncludeInactive();
+            isActiveFilter = includeInactive ? null : Boolean.TRUE;
         }
 
+        String keyword = searchRequest.getKeyword();
+        if (keyword != null && keyword.isBlank()) {
+            keyword = null;
+        }
+
+        Page<Trainings> trainingPage = trainingRepository.searchTrainings(
+                searchRequest.getRoleId(),
+                isActiveFilter,
+                keyword,
+                pageable);
+
         List<TrainingDTO> content = trainingPage.getContent().stream()
-                .map(this::toDTO)
+                .map(training -> toDTO(training, true))
                 .toList();
 
         return createPagedResponse(trainingPage, content);
@@ -67,7 +76,13 @@ public class TrainingServiceImpl implements TrainingService {
     public TrainingDTO getTrainingById(int id) {
         Trainings training = trainingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Training not found"));
-        return toDTO(training);
+        return toDTO(training, true);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public TrainingDTO getTrainingDetail(int id) {
+        return getTrainingById(id);
     }
 
     @Override
@@ -132,7 +147,18 @@ public class TrainingServiceImpl implements TrainingService {
         training.setUpdateAt(new Date());
 
         Trainings updated = trainingRepository.save(training);
-        return toDTO(updated);
+        return toDTO(updated, true);
+    }
+
+    @Override
+    @Transactional
+    public TrainingDTO updateTrainingStatus(int id, boolean isActive) {
+        Trainings training = trainingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Training not found"));
+        training.setIsActive(isActive);
+        training.setUpdateAt(new Date());
+        Trainings saved = trainingRepository.save(training);
+        return toDTO(saved, true);
     }
 
     @Override
@@ -198,6 +224,10 @@ public class TrainingServiceImpl implements TrainingService {
     }
 
     private TrainingDTO toDTO(Trainings training) {
+        return toDTO(training, false);
+    }
+
+    private TrainingDTO toDTO(Trainings training, boolean includeStats) {
         TrainingDTO dto = new TrainingDTO();
         dto.setId(training.getId());
         dto.setName(training.getName());
@@ -210,6 +240,11 @@ public class TrainingServiceImpl implements TrainingService {
         if (training.getRole() != null) {
             dto.setRoleId(training.getRole().getId());
             dto.setRoleName(training.getRole().getName());
+        }
+
+        if (includeStats) {
+            dto.setLessonCount(lessonRepository.countByTraining_Id(training.getId()));
+            dto.setTotalLessonPoint(lessonRepository.sumPointsByTrainingId(training.getId()));
         }
 
         return dto;

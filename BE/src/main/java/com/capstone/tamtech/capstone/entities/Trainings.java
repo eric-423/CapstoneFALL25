@@ -46,4 +46,7 @@ public class Trainings {
     @OneToMany(mappedBy = "training", fetch = FetchType.LAZY, cascade = {PERSIST, MERGE, REFRESH, DETACH})
     private java.util.List<UserTraining> userTrainingList;
 
+    @OneToMany(mappedBy = "training", fetch = FetchType.LAZY, cascade = {PERSIST, MERGE, REFRESH, DETACH})
+    private java.util.List<Lessons> lessonsList;
+
 }
