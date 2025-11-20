@@ -1,11 +1,10 @@
 'use client';
 
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { STORE_INFO } from '@/utils/mockupData';
 
-import { ArrowRight, CheckCircle2, Home, ShoppingBag, XCircle } from 'lucide-react';
+import { CheckCircle2, Home, ShoppingBag, XCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export function PaymentResultContent({ isSuccess = true }) {
@@ -40,37 +39,35 @@ export function PaymentResultContent({ isSuccess = true }) {
                     </p>
                 </div>
 
-                {/* Status Badge */}
-                <div className='text-center mb-6'>
-                    <Badge
-                        className={`text-sm px-4 py-2 ${isSuccess ? 'bg-green-600 hover:bg-green-800' : 'bg-red-600 hover:bg-red-700'
-                            }`}
-                    >
-                        {isSuccess ? 'Đã thanh toán' : 'Thanh toán thất bại'}
-                    </Badge>
-                </div>
-
                 {/* Action Buttons */}
                 <div className='space-y-3'>
                     {isSuccess ? (
                         <>
-                            <div className='grid grid-cols-1 md:grid-cols-3 gap-3'>
-                                <Button variant='outline' className='py-3' onClick={() => router.push('/')}>
+                            <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
+                                <Button
+                                    variant='outline'
+                                    className='py-3 bg-black/30 hover:bg-black/70'
+                                    onClick={() => router.push('/')}
+                                >
                                     <Home className='h-4 w-4 mr-2' />
                                     Về trang chủ
                                 </Button>
-                                <Button variant='outline' className='py-3' onClick={() => router.push('/menu')}>
+                                <Button
+                                    variant='outline'
+                                    className='py-3 bg-black/30 hover:bg-black/70'
+                                    onClick={() => router.push('/menu')}
+                                >
                                     <ShoppingBag className='h-4 w-4 mr-2' />
                                     Tiếp tục đặt hàng
                                 </Button>
 
-                                <Button
+                                {/* <Button
                                     className='w-full bg-primary hover:bg-primary/90 text-white py-3'
                                     onClick={() => router.push('/profile')}
                                 >
                                     Xem chi tiết đơn hàng
                                     <ArrowRight className='h-4 w-4' />
-                                </Button>
+                                </Button> */}
                             </div>
                         </>
                     ) : (
@@ -86,18 +83,11 @@ export function PaymentResultContent({ isSuccess = true }) {
                 </div>
 
                 {/* Additional Info */}
-                <Card className={`mt-6 shadow-sm  border-none ${isSuccess ? 'bg-secondary' : 'bg-foreground'}`}>
+                <Card className='mt-6 shadow-sm bg-primary/90 mb-20 mt-15'>
                     <CardContent className='p-0 text-center'>
-                        <p className='text-lg text-white'>
-                            {isSuccess ? (
-                                <span className=' font-bold'>Cảm ơn bạn đã tin tưởng Tấm Tắc!</span>
-                            ) : (
-                                <>
-                                    Nếu bạn cần hỗ trợ, vui lòng liên hệ:
-                                    <br />
-                                    <span className='text-secondary font-bold'>{STORE_INFO.phone}</span>
-                                </>
-                            )}
+                        <p className='text-lg text-white'>Nếu bạn cần hỗ trợ, vui lòng liên hệ:
+                            <br />
+                            <span className='text-primary-foreground font-bold'>{STORE_INFO.phone}</span>
                         </p>
                     </CardContent>
                 </Card>

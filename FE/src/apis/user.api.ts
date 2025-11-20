@@ -347,6 +347,46 @@ export const deleteCustomerInformation = async (userId: number, informationId: n
   return response.json();
 };
 
+export interface UpdateCustomerInformationPayload {
+  userId: number;
+  informationId: number;
+  name: string;
+  address: string;
+  phoneNumber: string;
+  isDefault?: boolean;
+}
+
+export const updateCustomerInformation = async (payload: UpdateCustomerInformationPayload) => {
+  const response = await fetch(
+    `/api/customer/infomation/${payload.informationId}?userId=${payload.userId}`,
+    {
+      method: 'PUT',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: payload.name,
+        address: payload.address,
+        phoneNumber: payload.phoneNumber,
+        isDefault: payload.isDefault,
+      }),
+    },
+  );
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw {
+      response: {
+        data: errorBody,
+        status: response.status,
+      },
+    };
+  }
+
+  return response.json();
+};
+
 
 
 // =====================================  employee ================================

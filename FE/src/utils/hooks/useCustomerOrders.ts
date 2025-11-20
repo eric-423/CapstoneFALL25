@@ -60,6 +60,10 @@ interface RawOrder {
   orderItemList?: RawOrderItem[];
   items?: RawOrderItem[];
   itemCount?: number;
+  table?: boolean;
+  shipperName?: string | null;
+  waiterName?: string | null;
+  chefName?: string | null;
   customerDTO?: {
     id: number;
     fullName: string;
@@ -199,11 +203,17 @@ const normalizeOrder = (order: RawOrder): OrderResponse => {
     promotionCode,
     pointUsed,
     pointEarned,
+    shipperName: order.shipperName ?? null,
+    waiterName: order.waiterName ?? null,
+    chefName: order.chefName ?? null,
     paymentStatus: normalizedStatus === 'UNPAID' ? 'UNPAID' : normalizedStatus === 'PAID' ? 'PAID' : 'PAID',
     orderStatus: normalizedStatus,
     rated: items.some((item) => item.feedback !== null && item.feedback !== undefined),
     payment_code: order.payment_code || order.paymentCode || '',
     pickupTime,
+    orderDate: order.orderDate || orderDate,
+    paymentTime: order.paymentTime ?? null,
+    deliveryAt: order.deliveryAt || order.delivery_at || null,
   } as OrderResponse;
 };
 

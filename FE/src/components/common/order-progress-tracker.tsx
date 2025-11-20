@@ -34,7 +34,7 @@ const ORDER_STATUSES = [
     color: 'text-yellow-600',
     bgColor: 'bg-yellow-100',
     borderColor: 'border-yellow-300',
-    percent: 4,
+    percent: 0,
   },
   {
     key: 'IN_PROCESS',
@@ -43,7 +43,7 @@ const ORDER_STATUSES = [
     color: 'text-blue-600',
     bgColor: 'bg-blue-100',
     borderColor: 'border-blue-300',
-    percent: 20,
+    percent: 10,
   },
   {
     key: 'COOKING',
@@ -52,7 +52,7 @@ const ORDER_STATUSES = [
     color: 'text-orange-600',
     bgColor: 'bg-orange-100',
     borderColor: 'border-orange-300',
-    percent: 35,
+    percent: 20,
   },
   {
     key: 'COOKED',
@@ -150,16 +150,16 @@ export default function OrderProgressTracker({ currentStatus, className }: Order
     );
   }
 
-  // Map status từ backend sang status trong progress tracker
+
   const mappedStatus = mapStatusToProgressStatus(normalizedStatus);
   const currentIndex = ORDER_STATUSES.findIndex((status) => status.key === mappedStatus);
 
-  // Nếu không tìm thấy status, thử tìm trực tiếp với normalizedStatus
+
   const finalIndex = currentIndex === -1
     ? ORDER_STATUSES.findIndex((status) => status.key === normalizedStatus)
     : currentIndex;
 
-  // Nếu vẫn không tìm thấy, fallback về index 0 (CREATED)
+
   const safeIndex = finalIndex === -1 ? 0 : finalIndex;
   const progressValue = ORDER_STATUSES[safeIndex]?.percent ?? 0;
 
@@ -167,9 +167,9 @@ export default function OrderProgressTracker({ currentStatus, className }: Order
   return (
     <div className={cn('w-full space-y-4 ', className)}>
       {/* Progress Bar */}
-      <div className='relative mx-5'>
+      <div className='relative px-5'>
         <Progress value={progressValue} className='h-2' />
-        <div className='absolute inset-0 flex justify-between items-center'>
+        <div className='absolute inset-0 flex justify-between items-center px-5'>
           {ORDER_STATUSES.map((status, index) => {
             const Icon = status.icon;
             const isCompleted = index <= safeIndex;
@@ -179,10 +179,13 @@ export default function OrderProgressTracker({ currentStatus, className }: Order
               <div
                 key={status.key}
                 className={cn(
-                  'flex items-center justify-center w-8 h-8 rounded-full border-2 bg-card transition-all duration-300 mx-5',
+                  'flex items-center justify-center w-8 h-8 rounded-full border-2 bg-card transition-all duration-300 relative',
                   isCompleted ? `${status.borderColor} ${status.bgColor}` : 'border-gray-300 bg-gray-100',
                   isCurrent && 'ring-2 ring-offset-2 ring-primary/50',
                 )}
+                style={{
+                  transform: 'translateX(0)',
+                }}
               >
                 <Icon
                   className={cn('h-4 w-4 transition-colors duration-300', isCompleted ? status.color : 'text-gray-400')}
@@ -194,7 +197,7 @@ export default function OrderProgressTracker({ currentStatus, className }: Order
       </div>
 
       {/* Status Labels */}
-      <div className='flex justify-between text-xs'>
+      <div className='flex justify-between text-xs px-5'>
         {ORDER_STATUSES.map((status, index) => {
           const isCompleted = index <= safeIndex;
           const isCurrent = index === safeIndex;
@@ -203,13 +206,13 @@ export default function OrderProgressTracker({ currentStatus, className }: Order
             <div
               key={status.key}
               className={cn(
-                'flex flex-col space-y-1 flex-1 items-center transition-all duration-300',
+                'flex flex-col space-y-1 items-center transition-all duration-300 w-8',
                 isCurrent && 'transform scale-105',
               )}
             >
               <span
                 className={cn(
-                  'font-medium transition-colors duration-300 text-center max-w-[80px] break-words',
+                  'font-medium transition-colors duration-300 text-center whitespace-nowrap',
                   isCompleted ? status.color : 'text-gray-500',
                   isCurrent && 'font-semibold',
                 )}
