@@ -100,6 +100,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/trainings").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(HttpMethod.PUT, "/api/trainings/{id}").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(HttpMethod.DELETE, "/api/trainings/{id}").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers("/api/trainings/admin/**").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers("/api/lessons/admin/**").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers("/api/documents/admin/**").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers("/api/user-trainings/admin/**").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers("/api/me/**").hasAnyRole("ADMIN", "MANAGER", "STAFF", "CHEFF", "WAITER")
+                        .requestMatchers("/api/user-trainings/me/**")
+                        .hasAnyRole("ADMIN", "MANAGER", "STAFF", "CHEFF", "WAITER")
 
                         .requestMatchers("/api/combos/search").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/combos/{id}").permitAll()
@@ -112,7 +119,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/order-statuses").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(HttpMethod.PUT, "/api/order-statuses/{id}").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(HttpMethod.DELETE, "/api/order-statuses/{id}").hasAnyRole("ADMIN", "MANAGER")
-
 
                         .requestMatchers("/api/products/search").permitAll()
                         .requestMatchers("/api/products/all-branch/search").hasAnyRole("MANAGER", "ADMIN")
@@ -143,7 +149,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/promotions/create").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers("/api/promotions/assign").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers("/api/promotions/all").hasAnyRole("MANAGER", "ADMIN")
-                        .requestMatchers("/api/promotions/available/order-amout").hasAnyRole("MANAGER", "ADMIN","CHEFF","WAITER","CUSTOMER","STAFF")
+                        .requestMatchers("/api/promotions/available/order-amout")
+                        .hasAnyRole("MANAGER", "ADMIN", "CHEFF", "WAITER", "CUSTOMER", "STAFF")
                         .requestMatchers("/api/promotions/*").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers("/api/promotions/*/status").hasAnyRole("MANAGER", "ADMIN")
 

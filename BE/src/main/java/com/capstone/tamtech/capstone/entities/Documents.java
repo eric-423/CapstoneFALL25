@@ -20,9 +20,13 @@ public class Documents {
     private String name;
 
     @Column(name = "url")
-    private String url;
+    private String refLink;
 
-    @ManyToOne(fetch = jakarta.persistence.FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH})
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String description;
+
+    @ManyToOne(fetch = jakarta.persistence.FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE,
+            CascadeType.REFRESH, CascadeType.DETACH })
     @JoinColumn(name = "lesson_id")
     private Lessons lesson;
 }
