@@ -20,4 +20,6 @@ public class TrainingDTO implements Serializable {
     private Boolean isActive;
     private Integer roleId;
     private String roleName;
+    private Integer lessonCount;
+    private Integer totalLessonPoint;
 }

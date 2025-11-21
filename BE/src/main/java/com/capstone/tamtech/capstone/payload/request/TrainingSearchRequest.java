@@ -17,6 +17,12 @@ public class TrainingSearchRequest {
     @Schema(description = "Filter theo role ID", example = "1")
     private Integer roleId;
 
+    @Schema(description = "Filter theo trạng thái hoạt động", example = "true")
+    private Boolean isActive;
+
+    @Schema(description = "Từ khóa tìm kiếm theo tên/ghi chú", example = "Pha chế cơ bản")
+    private String keyword;
+
     @Schema(description = "Số trang (bắt đầu từ 0)", example = "0", defaultValue = "0")
     private Integer page = 0;
 

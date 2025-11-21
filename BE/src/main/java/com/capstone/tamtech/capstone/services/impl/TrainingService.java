@@ -10,9 +10,13 @@ public interface TrainingService {
 
     TrainingDTO getTrainingById(int id);
 
+    TrainingDTO getTrainingDetail(int id);
+
     TrainingDTO createTraining(TrainingRequest request);
 
     TrainingDTO updateTraining(int id, TrainingRequest request);
+
+    TrainingDTO updateTrainingStatus(int id, boolean isActive);
 
     void deleteTraining(int id);
 }
