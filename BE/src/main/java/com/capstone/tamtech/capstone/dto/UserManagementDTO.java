@@ -27,4 +27,5 @@ public class UserManagementDTO implements Serializable {
     private Boolean isBusy;
     private Integer memberAssociationId;
     private String memberAssociationName;
+    private Integer branchId;
 }
