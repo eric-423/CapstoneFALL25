@@ -3,7 +3,6 @@
 import { Button } from '@/components/ui/button';
 import { useAuthContext } from '@/utils/contexts/AuthContext';
 import { AdminProvider } from '@/utils/contexts/AdminContext';
-import { AdminHeader } from '@/app/admin/components/AdminHeader';
 import { useBarcodeScanner, type BarcodeProcessContext } from '@/utils/hooks/useBarcodeScanner';
 import { assignChefToOrder, assignShipperToOrder, getBranchOrders } from '@/apis/order.api';
 import Link from 'next/link';
@@ -291,7 +290,6 @@ export default function ManagerLayout({
                             </div>
                         </div>
 
-                        <AdminHeader />
                         <div className="p-4 sm:p-6 max-w-full overflow-x-hidden">
                             {children}
                         </div>

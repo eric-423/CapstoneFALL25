@@ -15,6 +15,7 @@ export interface User {
     emailVerified: boolean;
     phoneVerified: boolean;
     isBusy: boolean;
+    branchId: number | null;
     memberAssociationId: number | null;
     memberAssociationName: string | null;
 }
@@ -170,26 +171,6 @@ export const updateUser = async (userId: number, data: UpdateUserRequest): Promi
 
     const result = await response.json();
     return result.data || result;
-};
-
-/**
- * Xóa user
- */
-export const deleteUser = async (userId: number): Promise<void> => {
-    const response = await fetch(`/api/users/${userId}`, {
-        method: 'DELETE',
-        credentials: 'include',
-    });
-
-    if (!response.ok) {
-        const errorBody = await response.json().catch(() => ({}));
-        throw {
-            response: {
-                data: errorBody,
-                status: response.status,
-            },
-        };
-    }
 };
 
 /**

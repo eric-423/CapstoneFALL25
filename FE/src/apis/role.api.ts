@@ -104,26 +104,3 @@ export async function updateRole(roleId: number, data: UpdateRoleRequest) {
     const result = await response.json();
     return result.data as Role;
 }
-
-/**
- * Xóa role
- */
-export async function deleteRole(roleId: number) {
-    const response = await fetch(`/api/roles/${roleId}`, {
-        method: 'DELETE',
-        credentials: 'include',
-    });
-
-    if (!response.ok) {
-        const errorBody = await response.json().catch(() => ({}));
-        throw {
-            response: {
-                data: errorBody,
-                status: response.status,
-            },
-        };
-    }
-
-    const result = await response.json();
-    return result;
-}

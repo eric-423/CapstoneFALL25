@@ -4,9 +4,6 @@
 import { Button } from '@/components/ui/button';
 import { useAuthContext } from '@/utils/contexts/AuthContext';
 import { AdminProvider } from '@/utils/contexts/AdminContext';
-import { AdminHeader } from './components/AdminHeader';
-import { GlobalSearchCommand } from './components/GlobalSearchCommand';
-import { GlobalSearchKeyboardHandler } from './components/GlobalSearchKeyboardHandler';
 import { BranchesLoader } from './components/BranchesLoader';
 import { useBarcodeScanner, type BarcodeProcessContext } from '@/utils/hooks/useBarcodeScanner';
 import Link from 'next/link';
@@ -131,8 +128,7 @@ export default function AdminLayout({
         { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/admin/users', label: 'Người dùng', icon: Users },
         { href: '/admin/branches', label: 'Chi nhánh', icon: Store },
-        { href: '/admin/warehouses', label: 'Kho', icon: Warehouse },
-        { href: '/admin/materials', label: 'Nguyên liệu', icon: Package },
+        { href: '/admin/warehouses', label: 'Kho & Nguyên liệu', icon: Warehouse },
         { href: '/admin/recipes', label: 'Công thức', icon: BookOpen },
         { href: '/admin/combos', label: 'Combo', icon: Gift },
         { href: '/admin/training', label: 'Khóa đào tạo', icon: GraduationCap },
@@ -199,10 +195,8 @@ export default function AdminLayout({
 
     return (
         <AdminProvider>
-            <GlobalSearchKeyboardHandler />
             <BranchesLoader />
             <div className="min-h-screen bg-[#EFE6DB]">
-                <GlobalSearchCommand />
                 <div className="flex relative">
                     {/* Mobile Overlay */}
                     {sidebarOpen && (
@@ -280,10 +274,10 @@ export default function AdminLayout({
                                 {/* Animated Active Circle Indicator */}
                                 {!isCollapsed && (
                                     <div
-                                        className="absolute left-[11px] w-3 h-3 rounded-full bg-[#F8A91F] shadow-[0_0_12px_rgba(248,169,31,0.8)] border-2 border-white z-20 pointer-events-none transition-all duration-200 ease-out"
+                                        className="absolute left-[9.5px] w-3 h-3 rounded-full bg-[#F8A91F] shadow-[0_0_12px_rgba(248,169,31,0.8)] border-2 border-white z-20 pointer-events-none transition-all duration-200 ease-out"
                                         style={{
                                             top: `${activeIndex * 48 + (activeIndex * 6) + 24}px`,
-                                            transform: 'translate(-50%, -50%)'
+                                            transform: 'translateY(-50%)'
                                         }}
                                     ></div>
                                 )}
@@ -331,7 +325,6 @@ export default function AdminLayout({
                             </div>
                         </div>
 
-                        <AdminHeader />
                         <div className="p-4 sm:p-6 max-w-full overflow-x-hidden">
                             {children}
                         </div>

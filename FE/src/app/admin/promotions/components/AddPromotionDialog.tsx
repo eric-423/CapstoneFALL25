@@ -28,8 +28,8 @@ interface PromotionFormData {
 }
 
 const PROMOTION_TYPES = [
-    { value: 'PERCENTAGE', label: 'Phần trăm', icon: '%', color: 'from-blue-500 to-blue-600' },
-    { value: 'FIXED', label: 'Số tiền cố định', icon: '₫', color: 'from-green-500 to-green-600' },
+    { value: 'PERCENTAGE', label: 'Phần trăm', icon: '%', color: 'from-[#78A243] to-[#DA7339]' },
+    { value: 'FIXED', label: 'Số tiền cố định', icon: '₫', color: 'from-[#DA7339] to-[#EBD187]' },
 ];
 
 export function AddPromotionDialog() {
