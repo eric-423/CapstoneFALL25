@@ -41,9 +41,7 @@ public class UserManagementServiceImpl implements UserManagementService {
         Pageable pageable = createPageable(searchRequest);
 
         Page<Users> userPage = usersRepository.searchUsers(
-                searchRequest.getName(),
-                searchRequest.getPhone(),
-                searchRequest.getEmail(),
+                searchRequest.getKeyword(),
                 searchRequest.getRole(),
                 searchRequest.getBranchId(),
                 searchRequest.getStatus(),
@@ -285,6 +283,11 @@ public class UserManagementServiceImpl implements UserManagementService {
         if (user.getMemberAssociation() != null) {
             dto.setMemberAssociationId(user.getMemberAssociation().getId());
             dto.setMemberAssociationName(user.getMemberAssociation().getName());
+        }
+
+        assert user.getRoleHistories() != null;
+        if (user.getRoleHistories().get(user.getRoleHistories().size() - 1).getBranch() != null) {
+            dto.setBranchId(user.getRoleHistories().get(0).getBranch().getId());
         }
 
         return dto;

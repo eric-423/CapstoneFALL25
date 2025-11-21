@@ -127,6 +127,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/orders/shipping/fee").permitAll()
                         .requestMatchers("/api/orders/payment/webhook").permitAll()
                         .requestMatchers("/api/orders/dining-table/create").permitAll()
+                        .requestMatchers("/api/orders/dining-table/update/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/api/orders/*/shipper-location").permitAll()
 

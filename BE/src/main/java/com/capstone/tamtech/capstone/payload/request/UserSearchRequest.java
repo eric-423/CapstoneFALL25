@@ -11,14 +11,8 @@ import lombok.NoArgsConstructor;
 @Schema(description = "Request tìm kiếm và phân trang người dùng")
 public class UserSearchRequest {
 
-    @Schema(description = "Từ khóa tìm kiếm theo tên (fullName)", example = "Nguyễn Văn")
-    private String name;
-
-    @Schema(description = "Tìm kiếm theo số điện thoại", example = "0123456789")
-    private String phone;
-
-    @Schema(description = "Tìm kiếm theo email", example = "user@example.com")
-    private String email;
+    @Schema(description = "Từ khóa tìm kiếm (tìm trong tên, số điện thoại, email)", example = "Nguyễn Văn")
+    private String keyword;
 
     @Schema(description = "Filter theo role name (ADMIN, MANAGER, CHEFF, WAITER, SHIPPER, CUSTOMER)", example = "ADMIN")
     private String role;

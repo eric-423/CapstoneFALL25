@@ -26,11 +26,26 @@ public class UserManagementController {
 
     @Operation(summary = "Lấy danh sách tất cả người dùng (có phân trang)", description = "Trả về danh sách tất cả người dùng trong hệ thống với phân trang")
     @GetMapping
-    public ResponseEntity<?> getAllUsers(UserSearchRequest searchRequest) {
+    public ResponseEntity<?> getAllUsers(
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "role", required = false) String role,
+            @RequestParam(value = "branchId", required = false) Integer branchId,
+            @RequestParam(value = "status", required = false) Boolean status,
+            @RequestParam(value = "page", required = false, defaultValue = "0") Integer page,
+            @RequestParam(value = "size", required = false, defaultValue = "10") Integer size,
+            @RequestParam(value = "sortBy", required = false, defaultValue = "id") String sortBy,
+            @RequestParam(value = "sortDirection", required = false, defaultValue = "ASC") String sortDirection) {
         try {
-            if (searchRequest == null) {
-                searchRequest = new UserSearchRequest();
-            }
+            UserSearchRequest searchRequest = new UserSearchRequest();
+            searchRequest.setKeyword(keyword);
+            searchRequest.setRole(role);
+            searchRequest.setBranchId(branchId);
+            searchRequest.setStatus(status);
+            searchRequest.setPage(page);
+            searchRequest.setSize(size);
+            searchRequest.setSortBy(sortBy);
+            searchRequest.setSortDirection(sortDirection);
+
             PagedResponse<UserManagementDTO> pagedResponse = userManagementService.getAllUsers(searchRequest);
             ResponseData responseData = new ResponseData();
             responseData.setData(pagedResponse);
