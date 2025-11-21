@@ -1,7 +1,9 @@
 package com.capstone.tamtech.capstone.services;
 
 import com.capstone.tamtech.capstone.dto.UserManagementDTO;
+import com.capstone.tamtech.capstone.dto.UserStatisticsDTO;
 import com.capstone.tamtech.capstone.entities.MemberAssociation;
+import com.capstone.tamtech.capstone.entities.RoleHistory;
 import com.capstone.tamtech.capstone.entities.Users;
 import com.capstone.tamtech.capstone.exception.ResourceNotFoundException;
 import com.capstone.tamtech.capstone.payload.PagedResponse;
@@ -41,9 +43,7 @@ public class UserManagementServiceImpl implements UserManagementService {
         Pageable pageable = createPageable(searchRequest);
 
         Page<Users> userPage = usersRepository.searchUsers(
-                searchRequest.getName(),
-                searchRequest.getPhone(),
-                searchRequest.getEmail(),
+                searchRequest.getKeyword(),
                 searchRequest.getRole(),
                 searchRequest.getBranchId(),
                 searchRequest.getStatus(),
@@ -254,6 +254,22 @@ public class UserManagementServiceImpl implements UserManagementService {
         return toDTO(updated);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public UserStatisticsDTO getUserStatistics(Integer branchId) {
+        long activeUsers = usersRepository.countActiveUsersByBranch(branchId);
+        long inactiveUsers = usersRepository.countInactiveUsersByBranch(branchId);
+        long totalUsers = activeUsers + inactiveUsers;
+
+        UserStatisticsDTO statistics = new UserStatisticsDTO();
+        statistics.setActiveUsers(activeUsers);
+        statistics.setInactiveUsers(inactiveUsers);
+        statistics.setTotalUsers(totalUsers);
+        statistics.setBranchId(branchId);
+
+        return statistics;
+    }
+
     private UserManagementDTO toDTO(Users user) {
         UserManagementDTO dto = new UserManagementDTO();
         dto.setId(user.getId());
@@ -285,6 +301,13 @@ public class UserManagementServiceImpl implements UserManagementService {
         if (user.getMemberAssociation() != null) {
             dto.setMemberAssociationId(user.getMemberAssociation().getId());
             dto.setMemberAssociationName(user.getMemberAssociation().getName());
+        }
+
+        if (user.getRoleHistories() != null && !user.getRoleHistories().isEmpty()) {
+            RoleHistory latestRole = user.getRoleHistories().get(user.getRoleHistories().size() - 1);
+            if (latestRole.getBranch() != null) {
+                dto.setBranchId(latestRole.getBranch().getId());
+            }
         }
 
         return dto;

@@ -14,9 +14,9 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        // Forward to external API
+
         const response = await fetch(
-            `${process.env.NEXT_PUBLIC_BASE_URL}/roles`,
+            `${process.env.NEXT_PUBLIC_API_URL}/roles`,
             {
                 headers: {
                     'Content-Type': 'application/json',
