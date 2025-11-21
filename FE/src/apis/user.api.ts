@@ -21,9 +21,7 @@ export interface UpdateUserData {
 }
 
 export interface UserSearchRequest {
-  name?: string;
-  phone?: string;
-  email?: string;
+  keyword?: string;
   role?: string;
   branchId?: number;
   status?: boolean;
@@ -45,6 +43,17 @@ export interface PaginatedUserResponse {
     last: boolean;
     first: boolean;
     empty: boolean;
+  };
+}
+
+export interface UserStatisticsResponse {
+  status: number;
+  desc: string;
+  data: {
+    activeUsers: number;
+    inactiveUsers: number;
+    totalUsers: number;
+    branchId: number | null;
   };
 }
 
@@ -143,9 +152,7 @@ export const getAllUsers = async (searchRequest?: UserSearchRequest) => {
   const params = new URLSearchParams();
 
   if (searchRequest) {
-    if (searchRequest.name) params.append('name', searchRequest.name);
-    if (searchRequest.phone) params.append('phone', searchRequest.phone);
-    if (searchRequest.email) params.append('email', searchRequest.email);
+    if (searchRequest.keyword) params.append('keyword', searchRequest.keyword);
     if (searchRequest.role) params.append('role', searchRequest.role);
     if (searchRequest.branchId !== undefined) params.append('branchId', searchRequest.branchId.toString());
     if (searchRequest.status !== undefined) params.append('status', searchRequest.status.toString());
@@ -167,6 +174,25 @@ export const getAllUsers = async (searchRequest?: UserSearchRequest) => {
   return response.json();
 };
 
+export const getUserStatistics = async (branchId?: number): Promise<UserStatisticsResponse> => {
+  const params = new URLSearchParams();
+
+  if (branchId !== undefined) {
+    params.append('branchId', branchId.toString());
+  }
+
+  const response = await fetch(`/api/users/statistics?${params.toString()}`, {
+    method: 'GET',
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch user statistics');
+  }
+
+  return response.json();
+};
+
 export const createUser = async (data: CreateUserData): Promise<UserResponse> => {
   const token = localStorage.getItem('access_token');
   const response = await http.post<UserResponse>('/users/admin/create', data, {
@@ -178,14 +204,6 @@ export const createUser = async (data: CreateUserData): Promise<UserResponse> =>
 export const updateUser = async (userId: number, data: UpdateUserData): Promise<UserResponse> => {
   const token = localStorage.getItem('access_token');
   const response = await http.put<UserResponse>(`/users/admin/update/${userId}`, data, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return response.data;
-};
-
-export const deleteUser = async (userId: number) => {
-  const token = localStorage.getItem('access_token');
-  const response = await http.delete(`/users/admin/delete/${userId}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return response.data;

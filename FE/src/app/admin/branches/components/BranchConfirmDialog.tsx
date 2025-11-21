@@ -54,7 +54,7 @@ export function BranchConfirmDialog({
 
     return (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-            <Card className={`w-full max-w-md bg-white shadow-2xl rounded-2xl border-2 ${currentConfig.borderColor} overflow-hidden animate-in zoom-in-95 duration-200`}>
+            <Card className={`w-full max-w-md bg-white shadow-2xl rounded-2xl border-2 ${currentConfig.borderColor} overflow-hidden animate-in zoom-in-95 duration-200 py-0`}>
                 {/* Header */}
                 <div className="p-6 border-b-2 border-gray-100">
                     <div className="flex items-start gap-4">

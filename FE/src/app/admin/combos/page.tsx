@@ -19,7 +19,8 @@ import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { AdminPageLayout, AdminPageHeader, AdminStatsCard, AdminStatsGrid } from '../components/AdminPageLayout';
+import { AdminPageLayout, AdminPageHeader } from '../components/AdminPageLayout';
+import { AdminCard } from '../components/AdminCard';
 import { searchCombos, deleteCombo, getComboById, type Combo, type ComboSearchParams, type ComboDetail } from '@/apis/combo.api';
 import { useAdminContext } from '@/utils/contexts/AdminContext';
 import { ComboFormDialog } from './components/ComboFormDialog';
@@ -28,20 +29,25 @@ export default function CombosManagementPage() {
     const { branches } = useAdminContext();
     const [combos, setCombos] = useState<Combo[]>([]);
     const [loading, setLoading] = useState(true);
-    const [searchParams, setSearchParams] = useState<ComboSearchParams>({
+
+    // API filter params - only these trigger API calls
+    const [apiParams, setApiParams] = useState<ComboSearchParams>({
         page: 0,
         size: 20,
         sortBy: 'name',
         sortDirection: 'ASC',
     });
-    const [totalElements, setTotalElements] = useState(0);
-    const [totalPages, setTotalPages] = useState(0);
+
+    // Local input states - for user input without triggering API
     const [keyword, setKeyword] = useState('');
     const [selectedBranchId, setSelectedBranchId] = useState<number | undefined>();
     const [showFilters, setShowFilters] = useState(false);
     const [minPrice, setMinPrice] = useState('');
     const [maxPrice, setMaxPrice] = useState('');
     const [activeFilter, setActiveFilter] = useState<boolean | undefined>();
+
+    const [totalElements, setTotalElements] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
 
     // Dialog states
     const [showDialog, setShowDialog] = useState(false);
@@ -51,15 +57,7 @@ export default function CombosManagementPage() {
     const fetchCombos = useCallback(async () => {
         try {
             setLoading(true);
-            const params: ComboSearchParams = {
-                ...searchParams,
-                keyword: keyword || undefined,
-                branchId: selectedBranchId,
-                isActive: activeFilter,
-                minPrice: minPrice ? parseFloat(minPrice) : undefined,
-                maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
-            };
-            const data = await searchCombos(params);
+            const data = await searchCombos(apiParams);
             setCombos(data.content);
             setTotalElements(data.totalElements);
             setTotalPages(data.totalPages);
@@ -68,7 +66,7 @@ export default function CombosManagementPage() {
         } finally {
             setLoading(false);
         }
-    }, [searchParams, keyword, selectedBranchId, activeFilter, minPrice, maxPrice]);
+    }, [apiParams]);
 
     useEffect(() => {
         fetchCombos();
@@ -88,16 +86,27 @@ export default function CombosManagementPage() {
     };
 
     const handleSearch = () => {
-        setSearchParams(prev => ({ ...prev, page: 0 }));
+        // Update API params to trigger search with current input values
+        setApiParams({
+            ...apiParams,
+            page: 0,
+            keyword: keyword || undefined,
+            branchId: selectedBranchId,
+            isActive: activeFilter,
+            minPrice: minPrice ? parseFloat(minPrice) : undefined,
+            maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
+        });
     };
 
     const handleClearFilters = () => {
+        // Clear all input states
         setKeyword('');
         setSelectedBranchId(undefined);
         setActiveFilter(undefined);
         setMinPrice('');
         setMaxPrice('');
-        setSearchParams({
+        // Reset API params to default
+        setApiParams({
             page: 0,
             size: 20,
             sortBy: 'name',
@@ -155,7 +164,7 @@ export default function CombosManagementPage() {
                 actions={
                     <Button
                         onClick={handleCreateCombo}
-                        className="bg-gradient-to-r from-[#EC6426] to-[#F8A91F] hover:from-[#EC6426]/90 hover:to-[#F8A91F]/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold text-sm sm:text-base"
+                        className="bg-[#78A243] hover:bg-[#78A243]/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold text-sm sm:text-base"
                     >
                         <Plus className="h-4 w-4 mr-2" />
                         Tạo combo mới
@@ -164,27 +173,23 @@ export default function CombosManagementPage() {
             />
 
             {/* Stats */}
-            <AdminStatsGrid>
-                <AdminStatsCard
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <AdminCard
                     title="Tổng combo"
                     value={stats.total}
                     icon={Package}
                 />
-                <AdminStatsCard
+                <AdminCard
                     title="Đang hoạt động"
                     value={stats.active}
                     icon={CheckCircle}
-                    className="border-green-200"
-                    iconClassName="from-green-400 to-green-600"
                 />
-                <AdminStatsCard
+                <AdminCard
                     title="Ngừng hoạt động"
                     value={stats.inactive}
                     icon={XCircle}
-                    className="border-red-200"
-                    iconClassName="from-red-400 to-red-600"
                 />
-            </AdminStatsGrid>
+            </div>
 
             {/* Search & Filters */}
             <Card className="p-4 bg-white">
@@ -203,7 +208,7 @@ export default function CombosManagementPage() {
                         </div>
                         <Button
                             onClick={handleSearch}
-                            className="bg-gradient-to-r from-[#EC6426] to-[#F8A91F] text-white"
+                            className="bg-[#78A243] hover:bg-[#78A243]/90 text-white"
                         >
                             <Search className="h-4 w-4 mr-2" />
                             Tìm kiếm
@@ -211,6 +216,7 @@ export default function CombosManagementPage() {
                         <Button
                             onClick={() => setShowFilters(!showFilters)}
                             variant="outline"
+                            className="border-[#78A243]/30 text-[#78A243] hover:bg-[#78A243]/10"
                         >
                             <Filter className="h-4 w-4 mr-2" />
                             Bộ lọc
@@ -220,10 +226,22 @@ export default function CombosManagementPage() {
                     {showFilters && (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 pt-3 border-t">
                             <div>
-                                <label className="text-xs font-bold mb-1 block text-gray-700">Chi nhánh</label>
+                                <label className="text-xs font-bold mb-1 block text-[#2D1E1A]">Chi nhánh</label>
                                 <select
                                     value={selectedBranchId || ''}
-                                    onChange={(e) => setSelectedBranchId(e.target.value ? parseInt(e.target.value) : undefined)}
+                                    onChange={(e) => {
+                                        const value = e.target.value ? parseInt(e.target.value) : undefined;
+                                        setSelectedBranchId(value);
+                                        setApiParams({
+                                            ...apiParams,
+                                            page: 0,
+                                            branchId: value,
+                                            keyword: keyword || undefined,
+                                            isActive: activeFilter,
+                                            minPrice: minPrice ? parseFloat(minPrice) : undefined,
+                                            maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
+                                        });
+                                    }}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                                 >
                                     <option value="">Tất cả</option>
@@ -233,10 +251,22 @@ export default function CombosManagementPage() {
                                 </select>
                             </div>
                             <div>
-                                <label className="text-xs font-bold mb-1 block text-gray-700">Trạng thái</label>
+                                <label className="text-xs font-bold mb-1 block text-[#2D1E1A]">Trạng thái</label>
                                 <select
                                     value={activeFilter === undefined ? '' : activeFilter.toString()}
-                                    onChange={(e) => setActiveFilter(e.target.value === '' ? undefined : e.target.value === 'true')}
+                                    onChange={(e) => {
+                                        const value = e.target.value === '' ? undefined : e.target.value === 'true';
+                                        setActiveFilter(value);
+                                        setApiParams({
+                                            ...apiParams,
+                                            page: 0,
+                                            branchId: selectedBranchId,
+                                            keyword: keyword || undefined,
+                                            isActive: value,
+                                            minPrice: minPrice ? parseFloat(minPrice) : undefined,
+                                            maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
+                                        });
+                                    }}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                                 >
                                     <option value="">Tất cả</option>
@@ -245,33 +275,28 @@ export default function CombosManagementPage() {
                                 </select>
                             </div>
                             <div>
-                                <label className="text-xs font-bold mb-1 block text-gray-700">Giá từ</label>
+                                <label className="text-xs font-bold mb-1 block text-[#2D1E1A]">Giá từ</label>
                                 <input
                                     type="number"
                                     value={minPrice}
                                     onChange={(e) => setMinPrice(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                     placeholder="0"
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                                 />
                             </div>
                             <div>
-                                <label className="text-xs font-bold mb-1 block text-gray-700">Giá đến</label>
+                                <label className="text-xs font-bold mb-1 block text-[#2D1E1A]">Giá đến</label>
                                 <input
                                     type="number"
                                     value={maxPrice}
                                     onChange={(e) => setMaxPrice(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                     placeholder="999999999"
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                                 />
                             </div>
                             <div className="md:col-span-2 lg:col-span-4 flex gap-2">
-                                <Button
-                                    onClick={handleSearch}
-                                    size="sm"
-                                    className="bg-gradient-to-r from-[#EC6426] to-[#F8A91F] text-white"
-                                >
-                                    Áp dụng
-                                </Button>
                                 <Button
                                     onClick={handleClearFilters}
                                     size="sm"
@@ -301,23 +326,23 @@ export default function CombosManagementPage() {
                         {combos.map((combo) => (
                             <Card
                                 key={combo.comboId}
-                                className="p-4 bg-white hover:shadow-lg transition-all duration-300 border-0"
+                                className="p-4 bg-white hover:shadow-lg transition-all duration-300 border-2 border-[#78A243]/20 hover:border-[#78A243]"
                             >
                                 <div className="space-y-3">
                                     <div className="flex items-start justify-between">
                                         <div className="flex-1">
-                                            <h3 className="font-bold text-gray-900 text-base mb-1">{combo.name}</h3>
+                                            <h3 className="font-bold text-[#2D1E1A] text-base mb-1">{combo.name}</h3>
                                             <p className="text-xs text-gray-600 line-clamp-2">{combo.description}</p>
                                         </div>
-                                        <Badge className={combo.active ? 'bg-green-100 text-green-800 border-green-300' : 'bg-red-100 text-red-800 border-red-300'}>
+                                        <Badge className={combo.active ? 'bg-[#78A243]/10 text-[#78A243] border-[#78A243]/30' : 'bg-red-100 text-red-800 border-red-300'}>
                                             {combo.active ? 'Hoạt động' : 'Tạm ngưng'}
                                         </Badge>
                                     </div>
 
                                     <div className="space-y-2">
                                         <div className="flex items-center gap-2 text-sm">
-                                            <DollarSign className="h-4 w-4 text-orange-500" />
-                                            <span className="font-bold text-orange-600">{formatPrice(combo.price)}</span>
+                                            <DollarSign className="h-4 w-4 text-[#DA7339]" />
+                                            <span className="font-bold text-[#DA7339]">{formatPrice(combo.price)}</span>
                                         </div>
                                         <div className="flex items-center gap-2 text-xs text-gray-600">
                                             <Store className="h-3 w-3" />
@@ -334,7 +359,7 @@ export default function CombosManagementPage() {
                                             onClick={() => handleEditCombo(combo)}
                                             size="sm"
                                             variant="outline"
-                                            className="flex-1 text-blue-600 border-blue-200 hover:bg-blue-50"
+                                            className="flex-1 text-[#78A243] border-[#78A243]/30 hover:bg-[#78A243]/10"
                                         >
                                             <Edit2 className="h-3 w-3 mr-1" />
                                             Sửa
@@ -367,21 +392,21 @@ export default function CombosManagementPage() {
                             <Button
                                 size="sm"
                                 variant="outline"
-                                disabled={searchParams.page === 0}
-                                onClick={() => setSearchParams(prev => ({ ...prev, page: (prev.page || 0) - 1 }))}
+                                disabled={apiParams.page === 0}
+                                onClick={() => setApiParams(prev => ({ ...prev, page: (prev.page || 0) - 1 }))}
                             >
                                 Trước
                             </Button>
                             <div className="flex items-center gap-2 px-3">
                                 <span className="text-sm font-semibold">
-                                    Trang {(searchParams.page || 0) + 1} / {totalPages}
+                                    Trang {(apiParams.page || 0) + 1} / {totalPages}
                                 </span>
                             </div>
                             <Button
                                 size="sm"
                                 variant="outline"
-                                disabled={(searchParams.page || 0) >= totalPages - 1}
-                                onClick={() => setSearchParams(prev => ({ ...prev, page: (prev.page || 0) + 1 }))}
+                                disabled={(apiParams.page || 0) >= totalPages - 1}
+                                onClick={() => setApiParams(prev => ({ ...prev, page: (prev.page || 0) + 1 }))}
                             >
                                 Sau
                             </Button>

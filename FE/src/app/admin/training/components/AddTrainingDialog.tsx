@@ -70,7 +70,7 @@ export function AddTrainingDialog() {
         setIsLoading(true);
 
         setTimeout(() => {
-            toast.success('✅ Tạo khóa đào tạo thành công!');
+            toast.success('Tạo khóa đào tạo thành công!');
             setOpen(false);
             resetForm();
             setIsLoading(false);

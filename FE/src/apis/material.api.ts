@@ -123,7 +123,8 @@ export async function getMaterialTypes(includeDeleted: boolean = false): Promise
     }
 
     const result = await response.json();
-    return result.data;
+    // API returns paginated response, extract content array
+    return result.data.content || result.data;
 }
 
 export async function createMaterialType(request: CreateMaterialTypeRequest): Promise<void> {

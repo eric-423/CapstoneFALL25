@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Calendar, User as UserIcon, Mail, Phone, MapPin, FileText, Shield, Building, CheckCircle } from 'lucide-react';
+import { X, Calendar, User as UserIcon, Mail, Phone, MapPin, FileText, Shield, Building, CheckCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -116,8 +116,44 @@ export function UserFormDialog({ open, onOpenChange, user, onSuccess }: UserForm
             return;
         }
 
+        // Validate phone number (exactly 10 digits)
+        const phoneRegex = /^[0-9]{10}$/;
+        if (!phoneRegex.test(phoneNumber.trim())) {
+            toast.warning('⚠️ Số điện thoại phải có đúng 10 chữ số!');
+            return;
+        }
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email.trim())) {
+            toast.warning('⚠️ Email không hợp lệ!');
+            return;
+        }
+
+        // Validate date of birth (not in the future)
+        const selectedDate = new Date(dateOfBirth);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (selectedDate > today) {
+            toast.warning('⚠️ Ngày sinh không được sau ngày hôm nay!');
+            return;
+        }
+
+        // Validate age (at least 16 years old)
+        const age = today.getFullYear() - selectedDate.getFullYear();
+        if (age < 16 || (age === 16 && today < new Date(selectedDate.setFullYear(selectedDate.getFullYear() + 16)))) {
+            toast.warning('⚠️ Người dùng phải từ 16 tuổi trở lên!');
+            return;
+        }
+
         if (!user && !password) {
             toast.warning('⚠️ Vui lòng nhập mật khẩu!');
+            return;
+        }
+
+        // Validate password length
+        if (password && password.length < 6) {
+            toast.warning('⚠️ Mật khẩu phải có ít nhất 6 ký tự!');
             return;
         }
 
@@ -210,9 +246,9 @@ export function UserFormDialog({ open, onOpenChange, user, onSuccess }: UserForm
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-            <Card className="w-full max-w-6xl max-h-[98vh] overflow-hidden bg-white shadow-2xl rounded-2xl border-0">
+            <Card className="w-full max-w-6xl max-h-[98vh] overflow-hidden bg-white shadow-2xl rounded-2xl border-0 py-0">
                 {/* Compact Header */}
-                <div className="sticky top-0 bg-gradient-to-r from-[#EC6426] to-[#F8A91F] p-4 flex items-center justify-between z-10 shadow-lg">
+                <div className="sticky top-0 bg-[#78A243] p-4 flex items-center justify-between z-10 shadow-lg">
                     <div className="flex items-center gap-2">
                         <div className="w-9 h-9 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
                             <UserIcon className="h-5 w-5 text-white" />
@@ -240,15 +276,15 @@ export function UserFormDialog({ open, onOpenChange, user, onSuccess }: UserForm
                         <div className="grid grid-cols-3 gap-5">
                             {/* Column 1: Personal Info */}
                             <div className="space-y-3">
-                                <div className="flex items-center gap-2 pb-2 border-b border-orange-200">
-                                    <div className="w-6 h-6 bg-gradient-to-br from-orange-400 to-orange-600 rounded-md flex items-center justify-center">
+                                <div className="flex items-center gap-2 pb-2 border-b border-[#78A243]/30">
+                                    <div className="w-6 h-6 bg-[#78A243] rounded-md flex items-center justify-center">
                                         <span className="text-white font-bold text-xs">1</span>
                                     </div>
-                                    <h3 className="text-sm font-bold text-gray-900">Thông tin cá nhân</h3>
+                                    <h3 className="text-sm font-bold text-[#2D1E1A]">Thông tin cá nhân</h3>
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-semibold text-gray-700 flex items-center gap-1">
+                                    <label className="text-xs font-semibold text-[#2D1E1A] flex items-center gap-1">
                                         <UserIcon className="h-3 w-3" />
                                         Họ và tên <span className="text-red-500">*</span>
                                     </label>
@@ -257,12 +293,12 @@ export function UserFormDialog({ open, onOpenChange, user, onSuccess }: UserForm
                                         value={fullName}
                                         onChange={(e) => setFullName(e.target.value)}
                                         placeholder="Nguyễn Văn A"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-orange-400 focus:ring-1 focus:ring-orange-200 transition-all"
+                                        className="w-full px-3 py-2 border border-[#78A243]/30 rounded-lg text-sm text-[#2D1E1A] focus:border-[#78A243] focus:ring-1 focus:ring-[#78A243]/20 transition-all outline-none"
                                     />
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-semibold text-gray-700 flex items-center gap-1">
+                                    <label className="text-xs font-semibold text-[#2D1E1A] flex items-center gap-1">
                                         <Calendar className="h-3 w-3" />
                                         Ngày sinh <span className="text-red-500">*</span>
                                     </label>
@@ -270,12 +306,13 @@ export function UserFormDialog({ open, onOpenChange, user, onSuccess }: UserForm
                                         type="date"
                                         value={dateOfBirth}
                                         onChange={(e) => setDateOfBirth(e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-orange-400 focus:ring-1 focus:ring-orange-200 transition-all"
+                                        max={new Date().toISOString().split('T')[0]}
+                                        className="w-full px-3 py-2 border border-[#78A243]/30 rounded-lg text-sm text-[#2D1E1A] focus:border-[#78A243] focus:ring-1 focus:ring-[#78A243]/20 transition-all outline-none"
                                     />
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-semibold text-gray-700 flex items-center gap-1">
+                                    <label className="text-xs font-semibold text-[#2D1E1A] flex items-center gap-1">
                                         <Mail className="h-3 w-3" />
                                         Email <span className="text-red-500">*</span>
                                     </label>
@@ -284,12 +321,12 @@ export function UserFormDialog({ open, onOpenChange, user, onSuccess }: UserForm
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         placeholder="example@comtam.com"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-orange-400 focus:ring-1 focus:ring-orange-200 transition-all"
+                                        className="w-full px-3 py-2 border border-[#78A243]/30 rounded-lg text-sm focus:border-[#78A243] focus:ring-1 focus:ring-[#78A243]/20 transition-all"
                                     />
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-semibold text-gray-700 flex items-center gap-1">
+                                    <label className="text-xs font-semibold text-[#2D1E1A] flex items-center gap-1">
                                         <Phone className="h-3 w-3" />
                                         Số điện thoại <span className="text-red-500">*</span>
                                     </label>
@@ -298,12 +335,12 @@ export function UserFormDialog({ open, onOpenChange, user, onSuccess }: UserForm
                                         value={phoneNumber}
                                         onChange={(e) => setPhoneNumber(e.target.value)}
                                         placeholder="0900000000"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-orange-400 focus:ring-1 focus:ring-orange-200 transition-all"
+                                        className="w-full px-3 py-2 border border-[#78A243]/30 rounded-lg text-sm focus:border-[#78A243] focus:ring-1 focus:ring-[#78A243]/20 transition-all"
                                     />
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-semibold text-gray-700 flex items-center gap-1">
+                                    <label className="text-xs font-semibold text-[#2D1E1A] flex items-center gap-1">
                                         <MapPin className="h-3 w-3" />
                                         Địa chỉ
                                     </label>
@@ -312,12 +349,12 @@ export function UserFormDialog({ open, onOpenChange, user, onSuccess }: UserForm
                                         value={address}
                                         onChange={(e) => setAddress(e.target.value)}
                                         placeholder="123 Nguyễn Huệ, Q1"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-orange-400 focus:ring-1 focus:ring-orange-200 transition-all"
+                                        className="w-full px-3 py-2 border border-[#78A243]/30 rounded-lg text-sm focus:border-[#78A243] focus:ring-1 focus:ring-[#78A243]/20 transition-all"
                                     />
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-semibold text-gray-700 flex items-center gap-1">
+                                    <label className="text-xs font-semibold text-[#2D1E1A] flex items-center gap-1">
                                         <FileText className="h-3 w-3" />
                                         Ghi chú
                                     </label>
@@ -326,22 +363,22 @@ export function UserFormDialog({ open, onOpenChange, user, onSuccess }: UserForm
                                         onChange={(e) => setNote(e.target.value)}
                                         placeholder="Ghi chú..."
                                         rows={2}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-orange-400 focus:ring-1 focus:ring-orange-200 transition-all resize-none"
+                                        className="w-full px-3 py-2 border border-[#78A243]/30 rounded-lg text-sm focus:border-[#78A243] focus:ring-1 focus:ring-[#78A243]/20 transition-all resize-none"
                                     />
                                 </div>
                             </div>
 
                             {/* Column 2: Account Info */}
                             <div className="space-y-3">
-                                <div className="flex items-center gap-2 pb-2 border-b border-orange-200">
-                                    <div className="w-6 h-6 bg-gradient-to-br from-orange-400 to-orange-600 rounded-md flex items-center justify-center">
+                                <div className="flex items-center gap-2 pb-2 border-b border-[#78A243]/30">
+                                    <div className="w-6 h-6 bg-[#78A243] rounded-md flex items-center justify-center">
                                         <span className="text-white font-bold text-xs">2</span>
                                     </div>
-                                    <h3 className="text-sm font-bold text-gray-900">Thông tin tài khoản</h3>
+                                    <h3 className="text-sm font-bold text-[#2D1E1A]">Thông tin tài khoản</h3>
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-semibold text-gray-700">
+                                    <label className="text-xs font-semibold text-[#2D1E1A]">
                                         Mật khẩu {!user && <span className="text-red-500">*</span>}
                                     </label>
                                     <input
@@ -349,54 +386,54 @@ export function UserFormDialog({ open, onOpenChange, user, onSuccess }: UserForm
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         placeholder={user ? "Để trống nếu không đổi" : "Nhập mật khẩu"}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-orange-400 focus:ring-1 focus:ring-orange-200 transition-all"
+                                        className="w-full px-3 py-2 border border-[#78A243]/30 rounded-lg text-sm focus:border-[#78A243] focus:ring-1 focus:ring-[#78A243]/20 transition-all"
                                     />
                                 </div>
 
                                 {user && (
                                     <div className="space-y-1.5">
-                                        <label className="text-xs font-semibold text-gray-700">
+                                        <label className="text-xs font-semibold text-[#2D1E1A]">
                                             Điểm thành viên
                                         </label>
                                         <input
                                             type="number"
                                             value={memberPoint}
                                             onChange={(e) => setMemberPoint(parseInt(e.target.value) || 0)}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-orange-400 focus:ring-1 focus:ring-orange-200 transition-all"
+                                            className="w-full px-3 py-2 border border-[#78A243]/30 rounded-lg text-sm focus:border-[#78A243] focus:ring-1 focus:ring-[#78A243]/20 transition-all"
                                         />
                                     </div>
                                 )}
 
                                 <div className="space-y-2 pt-2">
-                                    <div className="flex items-center gap-2 p-2 bg-blue-50 rounded border border-blue-200">
+                                    <div className="flex items-center gap-2 p-2 bg-[#78A243]/10 rounded border border-[#78A243]/30">
                                         <input
                                             type="checkbox"
                                             id="emailVerified"
                                             checked={emailVerified}
                                             onChange={(e) => setEmailVerified(e.target.checked)}
-                                            className="w-3.5 h-3.5 rounded border-blue-400 text-blue-600"
+                                            className="w-3.5 h-3.5 rounded border-[#78A243]/50 text-[#78A243]"
                                         />
-                                        <label htmlFor="emailVerified" className="text-xs font-semibold text-gray-900 cursor-pointer">
+                                        <label htmlFor="emailVerified" className="text-xs font-semibold text-[#2D1E1A] cursor-pointer">
                                             Email đã xác thực
                                         </label>
                                     </div>
 
-                                    <div className="flex items-center gap-2 p-2 bg-blue-50 rounded border border-blue-200">
+                                    <div className="flex items-center gap-2 p-2 bg-[#78A243]/10 rounded border border-[#78A243]/30">
                                         <input
                                             type="checkbox"
                                             id="phoneVerified"
                                             checked={phoneVerified}
                                             onChange={(e) => setPhoneVerified(e.target.checked)}
-                                            className="w-3.5 h-3.5 rounded border-blue-400 text-blue-600"
+                                            className="w-3.5 h-3.5 rounded border-[#78A243]/50 text-[#78A243]"
                                         />
-                                        <label htmlFor="phoneVerified" className="text-xs font-semibold text-gray-900 cursor-pointer">
+                                        <label htmlFor="phoneVerified" className="text-xs font-semibold text-[#2D1E1A] cursor-pointer">
                                             SĐT đã xác thực
                                         </label>
                                     </div>
 
                                     {user && (
                                         <>
-                                            <div className="flex items-center gap-2 p-2 bg-yellow-50 rounded border border-yellow-200">
+                                            <div className="flex items-center gap-2 p-2 bg-[#EBD187]/30 rounded border border-[#DA7339]/30">
                                                 <input
                                                     type="checkbox"
                                                     id="isBusy"
@@ -404,7 +441,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSuccess }: UserForm
                                                     onChange={(e) => setIsBusy(e.target.checked)}
                                                     className="w-3.5 h-3.5 rounded border-yellow-400 text-yellow-600"
                                                 />
-                                                <label htmlFor="isBusy" className="text-xs font-semibold text-gray-900 cursor-pointer">
+                                                <label htmlFor="isBusy" className="text-xs font-semibold text-[#2D1E1A] cursor-pointer">
                                                     Đang bận
                                                 </label>
                                             </div>
@@ -417,7 +454,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSuccess }: UserForm
                                                     onChange={(e) => setIsBan(e.target.checked)}
                                                     className="w-3.5 h-3.5 rounded border-red-400 text-red-600"
                                                 />
-                                                <label htmlFor="isBan" className="text-xs font-semibold text-gray-900 cursor-pointer">
+                                                <label htmlFor="isBan" className="text-xs font-semibold text-[#2D1E1A] cursor-pointer">
                                                     Khóa tài khoản
                                                 </label>
                                             </div>
@@ -428,11 +465,11 @@ export function UserFormDialog({ open, onOpenChange, user, onSuccess }: UserForm
 
                             {/* Column 3: Role & Branch */}
                             <div className="space-y-3">
-                                <div className="flex items-center gap-2 pb-2 border-b border-orange-200">
-                                    <div className="w-6 h-6 bg-gradient-to-br from-orange-400 to-orange-600 rounded-md flex items-center justify-center">
+                                <div className="flex items-center gap-2 pb-2 border-b border-[#78A243]/30">
+                                    <div className="w-6 h-6 bg-[#78A243] rounded-md flex items-center justify-center">
                                         <span className="text-white font-bold text-xs">3</span>
                                     </div>
-                                    <h3 className="text-sm font-bold text-gray-900">Vai trò & Chi nhánh</h3>
+                                    <h3 className="text-sm font-bold text-[#2D1E1A]">Vai trò & Chi nhánh</h3>
                                 </div>
 
                                 {loadingRoles ? (
@@ -442,7 +479,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSuccess }: UserForm
                                 ) : (
                                     <>
                                         <div className="space-y-1.5">
-                                            <label className="text-xs font-semibold text-gray-700 flex items-center gap-1">
+                                            <label className="text-xs font-semibold text-[#2D1E1A] flex items-center gap-1">
                                                 <Shield className="h-3 w-3" />
                                                 Vai trò <span className="text-red-500">*</span>
                                             </label>
@@ -452,7 +489,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSuccess }: UserForm
                                                     setSelectedRoleId(parseInt(e.target.value) || null);
                                                     setSelectedBranchId(null);
                                                 }}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-orange-400 focus:ring-1 focus:ring-orange-200 transition-all bg-white"
+                                                className="w-full px-3 py-2 border border-[#78A243]/30 rounded-lg text-sm focus:border-[#78A243] focus:ring-1 focus:ring-[#78A243]/20 transition-all bg-white"
                                             >
                                                 <option value="">Chọn vai trò</option>
                                                 {roles.map(role => (
@@ -465,14 +502,14 @@ export function UserFormDialog({ open, onOpenChange, user, onSuccess }: UserForm
 
                                         {showBranchField && (
                                             <div className="space-y-1.5">
-                                                <label className="text-xs font-semibold text-gray-700 flex items-center gap-1">
+                                                <label className="text-xs font-semibold text-[#2D1E1A] flex items-center gap-1">
                                                     <Building className="h-3 w-3" />
                                                     Chi nhánh <span className="text-red-500">*</span>
                                                 </label>
                                                 <select
                                                     value={selectedBranchId || ''}
                                                     onChange={(e) => setSelectedBranchId(parseInt(e.target.value) || null)}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-orange-400 focus:ring-1 focus:ring-orange-200 transition-all bg-white"
+                                                    className="w-full px-3 py-2 border border-[#78A243]/30 rounded-lg text-sm focus:border-[#78A243] focus:ring-1 focus:ring-[#78A243]/20 transition-all bg-white"
                                                 >
                                                     <option value="">Chọn chi nhánh</option>
                                                     {branches.map(branch => (
@@ -485,7 +522,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSuccess }: UserForm
                                         )}
 
                                         {selectedRole?.isInternal && (
-                                            <div className="p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                                            <div className="p-2 bg-[#78A243]/10 border border-[#78A243]/30 rounded-lg">
                                                 <p className="text-xs text-blue-700">
                                                     ℹ️ Vai trò hệ thống yêu cầu chọn chi nhánh
                                                 </p>
@@ -503,7 +540,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSuccess }: UserForm
                     <Button
                         onClick={() => onOpenChange(false)}
                         variant="outline"
-                        className="px-4 py-2 text-sm border border-gray-300 hover:bg-gray-50 font-semibold"
+                        className="px-4 py-2 text-sm border border-[#78A243]/30 hover:bg-[#78A243]/5 font-semibold"
                     >
                         <X className="h-3.5 w-3.5 mr-1.5" />
                         Hủy
@@ -511,7 +548,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSuccess }: UserForm
                     <Button
                         onClick={handleSubmit}
                         disabled={loading}
-                        className="px-4 py-2 text-sm bg-gradient-to-r from-[#EC6426] to-[#F8A91F] hover:from-[#EC6426]/90 hover:to-[#F8A91F]/90 text-white shadow-lg hover:shadow-xl transition-all font-semibold"
+                        className="px-4 py-2 text-sm bg-[#78A243] hover:bg-[#78A243]/90 text-white shadow-lg hover:shadow-xl transition-all font-semibold"
                     >
                         {loading ? (
                             <>

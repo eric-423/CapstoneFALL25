@@ -75,7 +75,7 @@ export function BranchFormDialog({ open, onOpenChange, branch, onSuccess }: Bran
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-            <Card className="w-full max-w-2xl bg-white shadow-2xl rounded-2xl border-0 overflow-hidden">
+            <Card className="w-full max-w-2xl bg-white shadow-2xl rounded-2xl border-0 overflow-hidden py-0">
                 {/* Header */}
                 <div className="bg-gradient-to-r from-[#EC6426] to-[#F8A91F] p-5 flex items-center justify-between">
                     <div className="flex items-center gap-3">

@@ -104,9 +104,9 @@ export function WarehouseFormDialog({ open, onOpenChange, warehouse, onSuccess }
 
     return (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <Card className="w-full max-w-2xl bg-white shadow-2xl rounded-2xl overflow-hidden">
+            <Card className="w-full max-w-2xl bg-white shadow-2xl rounded-2xl overflow-hidden py-0">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-[#EC6426] to-[#F8A91F] p-6">
+                <div className="bg-[#78A243] p-6">
                     <div className="flex items-center justify-between">
                         <h2 className="text-2xl font-bold text-white">
                             {warehouse ? 'Chỉnh sửa kho' : 'Thêm kho mới'}
@@ -126,7 +126,7 @@ export function WarehouseFormDialog({ open, onOpenChange, warehouse, onSuccess }
                     <div className="space-y-6">
                         {/* Chi nhánh */}
                         <div>
-                            <Label htmlFor="branchId" className="text-sm font-semibold text-gray-700">
+                            <Label htmlFor="branchId" className="text-sm font-semibold text-[#2D1E1A]">
                                 Chi nhánh <span className="text-red-500">*</span>
                             </Label>
                             <Select
@@ -149,7 +149,7 @@ export function WarehouseFormDialog({ open, onOpenChange, warehouse, onSuccess }
 
                         {/* Địa chỉ */}
                         <div>
-                            <Label htmlFor="address" className="text-sm font-semibold text-gray-700">
+                            <Label htmlFor="address" className="text-sm font-semibold text-[#2D1E1A]">
                                 Địa chỉ kho <span className="text-red-500">*</span>
                             </Label>
                             <Input
@@ -164,7 +164,7 @@ export function WarehouseFormDialog({ open, onOpenChange, warehouse, onSuccess }
 
                         {/* Trạng thái */}
                         <div>
-                            <Label htmlFor="isActive" className="text-sm font-semibold text-gray-700">
+                            <Label htmlFor="isActive" className="text-sm font-semibold text-[#2D1E1A]">
                                 Trạng thái
                             </Label>
                             <Select
@@ -197,7 +197,7 @@ export function WarehouseFormDialog({ open, onOpenChange, warehouse, onSuccess }
                         <Button
                             type="submit"
                             disabled={loading}
-                            className="px-6 bg-gradient-to-r from-[#EC6426] to-[#F8A91F] hover:from-[#EC6426]/90 hover:to-[#F8A91F]/90 text-white"
+                            className="px-6 bg-[#78A243] hover:bg-[#78A243]/90 text-white"
                         >
                             {loading ? (
                                 <>

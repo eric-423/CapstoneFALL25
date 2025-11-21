@@ -2,10 +2,9 @@
 
 import { useState } from 'react';
 import { AdminGuard } from '@/components/guards';
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { DollarSign, FileText, TrendingUp, Calendar, Building2, ShoppingCart, ArrowUpRight, ArrowDownRight, ChevronDown } from 'lucide-react';
-import { ResponsiveContainer, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { DollarSign, TrendingUp, Calendar, Building2, ShoppingCart, ArrowUpRight, ArrowDownRight, ChevronDown } from 'lucide-react';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { TimePeriodSelector } from './components/TimePeriodSelector';
 import { generateRevenueData, branchComparisonData, branches } from './mockData';
 

@@ -40,22 +40,22 @@ export const AdminPageLayout = memo(function AdminPageLayout({ children, classNa
 
 export function AdminPageHeader({ title, description, icon: Icon, actions }: AdminPageHeaderProps) {
     return (
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div className="flex-1 min-w-0">
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2 mb-1">
-                    {Icon && (
-                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-[#EC6426] to-[#F8A91F] rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
-                            <Icon className="text-white" size={18} strokeWidth={2.5} />
-                        </div>
-                    )}
-                    <span className="truncate">{title}</span>
-                </h1>
-                {description && (
-                    <p className="text-xs sm:text-sm text-gray-600 mt-1">{description}</p>
+                <div className="flex items-center gap-3">
+                    {Icon && <Icon className="w-7 h-7 text-gray-500 flex-shrink-0" />}
+                    <h1 className="text-xl sm:text-2xl font-bold text-gray-800 truncate">
+                        {title}
+                    </h1>
+                </div>
+                 {description && (
+                    <p className="text-sm text-gray-500 mt-1 sm:ml-10">
+                        {description}
+                    </p>
                 )}
             </div>
             {actions && (
-                <div className="flex-shrink-0 flex flex-wrap gap-2">
+                <div className="flex-shrink-0 flex items-center flex-wrap gap-2">
                     {actions}
                 </div>
             )}

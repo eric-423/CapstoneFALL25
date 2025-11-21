@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { AlertTriangle, Ban, UserCheck, Trash2, X } from 'lucide-react';
+import { AlertTriangle, Ban, UserCheck, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
@@ -9,7 +9,7 @@ interface ConfirmDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onConfirm: () => void;
-    type: 'ban' | 'unban' | 'delete';
+    type: 'ban' | 'unban';
     userName: string;
     loading?: boolean;
 }
@@ -40,17 +40,6 @@ export function ConfirmDialog({ open, onOpenChange, onConfirm, type, userName, l
             confirmBg: 'bg-green-600 hover:bg-green-700',
             borderColor: 'border-green-200',
         },
-        delete: {
-            icon: Trash2,
-            title: 'Xóa người dùng',
-            message: 'Bạn có chắc chắn muốn xóa vĩnh viễn người dùng',
-            description: '⚠️ CẢNH BÁO: Hành động này không thể hoàn tác! Tất cả dữ liệu liên quan đến người dùng sẽ bị xóa vĩnh viễn khỏi hệ thống.',
-            confirmText: 'Xóa vĩnh viễn',
-            iconBg: 'bg-red-100',
-            iconColor: 'text-red-600',
-            confirmBg: 'bg-red-600 hover:bg-red-700',
-            borderColor: 'border-red-200',
-        },
     };
 
     const currentConfig = config[type];
@@ -58,7 +47,7 @@ export function ConfirmDialog({ open, onOpenChange, onConfirm, type, userName, l
 
     return (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-            <Card className={`w-full max-w-md bg-white shadow-2xl rounded-2xl border-2 ${currentConfig.borderColor} overflow-hidden animate-in zoom-in-95 duration-200`}>
+            <Card className={`w-full max-w-md bg-white shadow-2xl rounded-2xl border-2 ${currentConfig.borderColor} overflow-hidden animate-in zoom-in-95 duration-200 py-0`}>
                 {/* Header */}
                 <div className="p-6 border-b-2 border-gray-100">
                     <div className="flex items-start gap-4">
@@ -87,10 +76,10 @@ export function ConfirmDialog({ open, onOpenChange, onConfirm, type, userName, l
                         <span className="font-bold text-gray-900">{userName}</span>?
                     </p>
 
-                    <div className={`p-4 rounded-lg ${type === 'delete' ? 'bg-red-50 border-2 border-red-200' : 'bg-gray-50 border border-gray-200'}`}>
+                    <div className="p-4 rounded-lg bg-gray-50 border border-gray-200">
                         <div className="flex items-start gap-2">
-                            <AlertTriangle className={`h-5 w-5 flex-shrink-0 mt-0.5 ${type === 'delete' ? 'text-red-600' : 'text-gray-600'}`} />
-                            <p className={`text-sm ${type === 'delete' ? 'text-red-800 font-semibold' : 'text-gray-700'}`}>
+                            <AlertTriangle className="h-5 w-5 flex-shrink-0 mt-0.5 text-gray-600" />
+                            <p className="text-sm text-gray-700">
                                 {currentConfig.description}
                             </p>
                         </div>

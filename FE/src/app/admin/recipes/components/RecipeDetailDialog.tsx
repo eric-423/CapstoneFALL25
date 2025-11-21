@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import {
     Dialog,
     DialogContent,
-    DialogHeader,
     DialogTitle,
     VisuallyHidden,
 } from '@/components/ui/dialog';

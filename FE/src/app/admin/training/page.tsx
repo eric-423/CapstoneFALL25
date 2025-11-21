@@ -4,7 +4,6 @@ import { AdminGuard } from '@/components/guards';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-// import { MOCK_TRAINING_COURSES } from '@/utils/mocks/data/training.mock';
 import { TrainingCourse, StaffRole } from '@/utils/types/training.type';
 import {
     GraduationCap,
@@ -25,7 +24,6 @@ import Image from 'next/image';
 import { AddTrainingDialog } from '@/app/admin/training/components/AddTrainingDialog';
 import { AdminPageLayout, AdminPageHeader, AdminStatsCard, AdminStatsGrid } from '../components/AdminPageLayout';
 
-// Temporary empty array until API is implemented
 const MOCK_TRAINING_COURSES: TrainingCourse[] = [];
 
 export default function TrainingPage() {

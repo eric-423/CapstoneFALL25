@@ -1,33 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
-const API_BASE_URL = 'https://tam-tac.com';
+const API_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 export async function POST(request: NextRequest) {
     try {
         const cookieStore = await cookies();
-        const token = cookieStore.get('token')?.value;
+        const accessToken = cookieStore.get('access_token')?.value || cookieStore.get('token')?.value;
 
-        if (!token) {
+        if (!accessToken) {
             return NextResponse.json(
-                { error: 'Unauthorized - No token found' },
+                { error: 'Unauthorized' },
                 { status: 401 }
             );
         }
 
         const body = await request.json();
 
-        const response = await fetch(`${API_BASE_URL}/api/promotions/assign`, {
+        const response = await fetch(`${API_URL}/promotions/assign`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
+                'Authorization': `Bearer ${accessToken}`,
             },
             body: JSON.stringify(body),
         });
 
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+            const errorData = await response.json().catch(() => ({ error: 'Failed to assign promotion' }));
             return NextResponse.json(errorData, { status: response.status });
         }
 

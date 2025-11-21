@@ -42,7 +42,7 @@ export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboF
                 branchId: branchIdParam,
                 isActive: true,
                 page: 0,
-                size: 100,
+                size: 1000,
             };
             const data = await searchProducts(params);
             setProducts(data.content);
@@ -153,9 +153,9 @@ export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboF
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-            <Card className="w-full max-w-5xl max-h-[90vh] overflow-hidden bg-white shadow-2xl rounded-2xl border-0">
+            <Card className="w-full max-w-5xl max-h-[90vh] overflow-hidden bg-white shadow-2xl rounded-2xl border-0 py-0">
                 {/* Header */}
-                <div className="sticky top-0 bg-gradient-to-r from-[#EC6426] to-[#F8A91F] p-6 flex items-center justify-between z-10 shadow-lg">
+                <div className="sticky top-0 bg-[#78A243] p-6 flex items-center justify-between z-10 shadow-lg">
                     <div className="flex items-center gap-3">
                         <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
                             <Package className="h-6 w-6 text-white" />
@@ -183,16 +183,16 @@ export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboF
                 <div className="overflow-y-auto max-h-[calc(90vh-200px)]">
                     <div className="p-6 space-y-6">{/* Basic Info Section */}
                         <div className="space-y-4">
-                            <div className="flex items-center gap-2 pb-2 border-b-2 border-orange-100">
-                                <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center">
+                            <div className="flex items-center gap-2 pb-2 border-b-2 border-[#78A243]/20">
+                                <div className="w-8 h-8 bg-gradient-to-br from-[#78A243] to-[#DA7339] rounded-lg flex items-center justify-center">
                                     <span className="text-white font-bold text-sm">1</span>
                                 </div>
-                                <h3 className="text-lg font-bold text-gray-900">Thông tin cơ bản</h3>
+                                <h3 className="text-lg font-bold text-[#2D1E1A]">Thông tin cơ bản</h3>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-bold text-gray-700 flex items-center gap-1">
+                                    <label className="text-sm font-bold text-[#2D1E1A] flex items-center gap-1">
                                         Tên combo
                                         <span className="text-red-500">*</span>
                                     </label>
@@ -219,7 +219,7 @@ export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboF
                                             placeholder="110000"
                                             min="0"
                                             step="1000"
-                                            className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl text-sm focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition-all"
+                                            className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl text-sm focus:border-[#78A243] focus:ring-2 focus:ring-[#78A243]/20 transition-all"
                                         />
                                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-gray-500">VNĐ</span>
                                     </div>
@@ -449,7 +449,7 @@ export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboF
                     <Button
                         onClick={handleSubmit}
                         disabled={loading}
-                        className="px-6 py-3 bg-gradient-to-r from-[#EC6426] to-[#F8A91F] hover:from-[#EC6426]/90 hover:to-[#F8A91F]/90 text-white shadow-lg hover:shadow-xl transition-all font-semibold"
+                        className="px-6 py-3 bg-[#78A243] hover:bg-[#78A243]/90 text-white shadow-lg hover:shadow-xl transition-all font-semibold"
                     >
                         {loading ? (
                             <>

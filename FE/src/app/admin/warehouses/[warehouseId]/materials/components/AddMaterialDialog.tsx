@@ -111,7 +111,7 @@ export function AddMaterialDialog({
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <Card className="w-full max-w-3xl bg-white shadow-2xl rounded-2xl overflow-hidden max-h-[90vh] flex flex-col">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-[#EC6426] to-[#F8A91F] p-6">
+                <div className="bg-[#78A243] p-6">
                     <div className="flex items-center justify-between">
                         <h2 className="text-2xl font-bold text-white">
                             Thêm nguyên liệu vào kho
@@ -131,9 +131,9 @@ export function AddMaterialDialog({
                     <div className="p-6 overflow-y-auto flex-1">
                         <div className="space-y-4">
                             {materials.map((material, index) => (
-                                <div key={index} className="border-2 border-gray-200 rounded-lg p-4">
+                                <div key={index} className="border-2 border-[#78A243]/20 rounded-lg p-4">
                                     <div className="flex items-center justify-between mb-3">
-                                        <h3 className="font-semibold text-gray-900">
+                                        <h3 className="font-semibold text-[#2D1E1A]">
                                             Nguyên liệu {index + 1}
                                         </h3>
                                         {materials.length > 1 && (
@@ -153,7 +153,7 @@ export function AddMaterialDialog({
                                     <div className="grid grid-cols-2 gap-4">
                                         {/* Nguyên liệu */}
                                         <div>
-                                            <Label className="text-sm font-semibold text-gray-700">
+                                            <Label className="text-sm font-semibold text-[#2D1E1A]">
                                                 Nguyên liệu <span className="text-red-500">*</span>
                                             </Label>
                                             <Select
@@ -176,7 +176,7 @@ export function AddMaterialDialog({
 
                                         {/* Số lượng */}
                                         <div>
-                                            <Label className="text-sm font-semibold text-gray-700">
+                                            <Label className="text-sm font-semibold text-[#2D1E1A]">
                                                 Số lượng <span className="text-red-500">*</span>
                                             </Label>
                                             <Input
@@ -204,7 +204,7 @@ export function AddMaterialDialog({
                             type="button"
                             onClick={handleAddRow}
                             variant="outline"
-                            className="w-full mt-4 border-2 border-dashed border-gray-300 hover:border-orange-400 hover:bg-orange-50"
+                            className="w-full mt-4 border-2 border-dashed border-[#78A243]/30 hover:border-[#78A243] hover:bg-[#78A243]/10"
                             disabled={loading}
                         >
                             <Plus className="h-4 w-4 mr-2" />
@@ -226,7 +226,7 @@ export function AddMaterialDialog({
                         <Button
                             type="submit"
                             disabled={loading}
-                            className="px-6 bg-gradient-to-r from-[#EC6426] to-[#F8A91F] hover:from-[#EC6426]/90 hover:to-[#F8A91F]/90 text-white"
+                            className="px-6 bg-[#78A243] hover:bg-[#78A243]/90 text-white"
                         >
                             {loading ? (
                                 <>

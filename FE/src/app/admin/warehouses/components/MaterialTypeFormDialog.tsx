@@ -69,7 +69,7 @@ export function MaterialTypeFormDialog({ open, onOpenChange, materialType, onSuc
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <Card className="w-full max-w-lg bg-white shadow-2xl rounded-2xl overflow-hidden">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-[#EC6426] to-[#F8A91F] p-6">
+                <div className="bg-[#78A243] p-6">
                     <div className="flex items-center justify-between">
                         <h2 className="text-2xl font-bold text-white">
                             {materialType ? 'Chỉnh sửa loại nguyên liệu' : 'Thêm loại nguyên liệu mới'}
@@ -88,7 +88,7 @@ export function MaterialTypeFormDialog({ open, onOpenChange, materialType, onSuc
                 <form onSubmit={handleSubmit} className="p-6">
                     <div className="space-y-4">
                         <div>
-                            <Label htmlFor="name" className="text-sm font-semibold text-gray-700">
+                            <Label htmlFor="name" className="text-sm font-semibold text-[#2D1E1A]">
                                 Tên loại nguyên liệu <span className="text-red-500">*</span>
                             </Label>
                             <Input
@@ -116,7 +116,7 @@ export function MaterialTypeFormDialog({ open, onOpenChange, materialType, onSuc
                         <Button
                             type="submit"
                             disabled={loading}
-                            className="px-6 bg-gradient-to-r from-[#EC6426] to-[#F8A91F] hover:from-[#EC6426]/90 hover:to-[#F8A91F]/90 text-white"
+                            className="px-6 bg-[#78A243] hover:bg-[#78A243]/90 text-white"
                         >
                             {loading ? (
                                 <>
