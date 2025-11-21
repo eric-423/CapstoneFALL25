@@ -314,6 +314,14 @@
     color: #b91c1c;
   }
 
+  
+  .toast-success.Toastify__toast {
+    background: rgba(183, 232, 146, 0.5);
+    color: #0c1205;
+    border-radius: 9999px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  }
+
   .animate-slide-up {
     animation: menuSlideUp 0.4s ease forwards;
   }
@@ -323,6 +331,7 @@
       opacity: 0;
       transform: translateY(24px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);

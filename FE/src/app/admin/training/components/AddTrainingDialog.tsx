@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -10,161 +10,158 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { GraduationCap, Plus, X, Video, FileText, Users } from 'lucide-react';
-import { toast } from 'react-toastify';
+import { GraduationCap, Plus, Users } from 'lucide-react';
 
-interface VideoResource {
-    title: string;
-    url: string;
-}
-
-interface DocumentResource {
-    title: string;
-    url: string;
-}
+import { createTraining, CreateTrainingPayload, updateTraining } from '@/apis/trainning.api';
+import { Role, getRoles } from '@/apis/role.api';
+import { TrainingCourse } from '@/utils/types/training.type';
 
 interface TrainingFormData {
-    title: string;
-    description: string;
-    assignedRoles: string[];
-    videos: VideoResource[];
-    documents: DocumentResource[];
+    name: string;
+    note: string;
+    point: string;
+    isActive: boolean;
+    roleId: number | '';
 }
 
-const ROLE_OPTIONS = [
-    { value: 'CHEF', label: 'Chef', icon: '👨‍🍳', color: 'from-orange-500 to-orange-600' },
-    { value: 'WAITER', label: 'Nhân viên phục vụ', icon: '🍽️', color: 'from-blue-500 to-blue-600' },
-    { value: 'CASHIER', label: 'Thu ngân', icon: '💰', color: 'from-green-500 to-green-600' },
-    { value: 'MANAGER', label: 'Quản lý', icon: '👔', color: 'from-purple-500 to-purple-600' },
-];
+interface AddTrainingDialogProps {
+    onSuccess?: () => void;
+    trigger?: ReactNode;
+    mode?: 'create' | 'edit';
+    training?: TrainingCourse | null;
+}
 
-export function AddTrainingDialog() {
+const INITIAL_FORM: TrainingFormData = {
+    name: '',
+    note: '',
+    point: '',
+    isActive: true,
+    roleId: '',
+};
+
+export function AddTrainingDialog({
+    onSuccess,
+    trigger,
+    mode = 'create',
+    training = null,
+}: AddTrainingDialogProps) {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [formData, setFormData] = useState<TrainingFormData>({
-        title: '',
-        description: '',
-        assignedRoles: [],
-        videos: [{ title: '', url: '' }],
-        documents: [{ title: '', url: '' }],
-    });
-
+    const [roles, setRoles] = useState<Role[]>([]);
+    const [isLoadingRoles, setIsLoadingRoles] = useState(false);
+    const [formData, setFormData] = useState<TrainingFormData>(INITIAL_FORM);
     const [errors, setErrors] = useState<Record<string, string>>({});
+
+    useEffect(() => {
+        const fetchRoles = async () => {
+            try {
+                setIsLoadingRoles(true);
+                const data = await getRoles();
+                setRoles(data);
+            } catch (error) {
+                console.log(error);
+            } finally {
+                setIsLoadingRoles(false);
+            }
+        };
+
+        fetchRoles();
+    }, []);
+
+    const isEditMode = mode === 'edit' && Boolean(training);
+
+    useEffect(() => {
+        if (open && isEditMode && training) {
+            setFormData({
+                name: training.name ?? '',
+                note: training.note ?? training.description ?? '',
+                point:
+                    training.point !== undefined && training.point !== null ? String(training.point) : '',
+                isActive: training.isActive ?? true,
+                roleId: training.roleId ?? '',
+            });
+        }
+
+        if (!open && !isEditMode) {
+            resetForm();
+        }
+    }, [open, isEditMode, training]);
 
     const validateForm = () => {
         const newErrors: Record<string, string> = {};
 
-        if (!formData.title.trim()) newErrors.title = 'Vui lòng nhập tên khóa đào tạo';
-        if (!formData.description.trim()) newErrors.description = 'Vui lòng nhập mô tả';
-        if (formData.assignedRoles.length === 0) newErrors.assignedRoles = 'Vui lòng chọn ít nhất 1 vai trò';
+        if (!formData.name.trim()) newErrors.name = 'Vui lòng nhập tên khóa đào tạo';
+        if (!formData.note.trim()) newErrors.note = 'Vui lòng nhập mô tả';
+        if (!formData.point.trim()) {
+            newErrors.point = 'Vui lòng nhập điểm khóa';
+        } else if (Number.isNaN(Number(formData.point)) || Number(formData.point) <= 0) {
+            newErrors.point = 'Điểm khóa phải là số lớn hơn 0';
+        }
+        if (formData.roleId === '') newErrors.roleId = 'Vui lòng chọn vai trò';
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!validateForm()) return;
 
-        setIsLoading(true);
+        const payload: CreateTrainingPayload = {
+            name: formData.name.trim(),
+            note: formData.note.trim(),
+            point: Number(formData.point),
+            isActive: formData.isActive,
+            roleId: Number(formData.roleId),
+        };
 
-        setTimeout(() => {
-            toast.success('✅ Tạo khóa đào tạo thành công!');
+        try {
+            setIsLoading(true);
+
+            if (isEditMode && training) {
+                await updateTraining(training.id, payload);
+            } else {
+                await createTraining(payload);
+            }
+
             setOpen(false);
             resetForm();
+            onSuccess?.();
+        } catch (error) {
+            console.log(error);
+        } finally {
             setIsLoading(false);
-        }, 1000);
+        }
     };
 
     const resetForm = () => {
-        setFormData({
-            title: '',
-            description: '',
-            assignedRoles: [],
-            videos: [{ title: '', url: '' }],
-            documents: [{ title: '', url: '' }],
-        });
+        setFormData(INITIAL_FORM);
         setErrors({});
     };
 
-    const toggleRole = (roleValue: string) => {
-        setFormData(prev => ({
-            ...prev,
-            assignedRoles: prev.assignedRoles.includes(roleValue)
-                ? prev.assignedRoles.filter(r => r !== roleValue)
-                : [...prev.assignedRoles, roleValue]
-        }));
-    };
+    const dialogTitle = isEditMode ? 'Cập nhật Khóa Đào Tạo' : 'Tạo Khóa Đào Tạo Mới';
+    const submitLabel = isEditMode ? 'Cập nhật Khóa Đào Tạo' : 'Tạo Khóa Đào Tạo';
 
-    const addVideo = () => {
-        setFormData(prev => ({
-            ...prev,
-            videos: [...prev.videos, { title: '', url: '' }]
-        }));
-    };
-
-    const removeVideo = (index: number) => {
-        if (formData.videos.length > 1) {
-            setFormData(prev => ({
-                ...prev,
-                videos: prev.videos.filter((_, i) => i !== index)
-            }));
-        }
-    };
-
-    const updateVideo = (index: number, field: keyof VideoResource, value: string) => {
-        setFormData(prev => ({
-            ...prev,
-            videos: prev.videos.map((video, i) =>
-                i === index ? { ...video, [field]: value } : video
-            )
-        }));
-    };
-
-    const addDocument = () => {
-        setFormData(prev => ({
-            ...prev,
-            documents: [...prev.documents, { title: '', url: '' }]
-        }));
-    };
-
-    const removeDocument = (index: number) => {
-        if (formData.documents.length > 1) {
-            setFormData(prev => ({
-                ...prev,
-                documents: prev.documents.filter((_, i) => i !== index)
-            }));
-        }
-    };
-
-    const updateDocument = (index: number, field: keyof DocumentResource, value: string) => {
-        setFormData(prev => ({
-            ...prev,
-            documents: prev.documents.map((doc, i) =>
-                i === index ? { ...doc, [field]: value } : doc
-            )
-        }));
-    };
+    const dialogTrigger = trigger ?? (
+        <Button className="h-11 px-6 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg hover:shadow-xl transition-all font-semibold">
+            <Plus size={22} className="mr-2" strokeWidth={2.5} />
+            Tạo Khóa Đào Tạo
+        </Button>
+    );
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <Button className="h-11 px-6 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg hover:shadow-xl transition-all font-semibold">
-                    <Plus size={22} className="mr-2" strokeWidth={2.5} />
-                    Tạo Khóa Đào Tạo
-                </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white">
+            <DialogTrigger asChild>{dialogTrigger}</DialogTrigger>
+            <DialogContent className="w-[96vw] max-w-[96vw] sm:!max-w-[90vw] lg:!max-w-[70vw] xl:!max-w-[60vw] max-h-[95vh] overflow-y-auto bg-white">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2 text-2xl font-bold bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">
                         <GraduationCap size={28} className="text-orange-500" />
-                        Tạo Khóa Đào Tạo Mới
+                        {dialogTitle}
                     </DialogTitle>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Title */}
                     <div className="space-y-2">
                         <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
                             <GraduationCap size={16} className="text-orange-500" />
@@ -172,131 +169,90 @@ export function AddTrainingDialog() {
                         </label>
                         <Input
                             placeholder="VD: Cách làm món Phở, Quy trình phục vụ bàn..."
-                            value={formData.title}
-                            onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                            className={`h-11 border-2 ${errors.title ? 'border-red-400' : 'border-gray-200'} focus:border-orange-500 focus:ring-orange-500/20 focus:ring-4 transition-all`}
+                            value={formData.name}
+                            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                            className={`h-11 border-2 ${errors.name ? 'border-red-400' : 'border-gray-200'} focus:border-orange-500 focus:ring-orange-500/20 focus:ring-4 transition-all`}
                         />
-                        {errors.title && <p className="text-xs text-red-600 font-medium">{errors.title}</p>}
+                        {errors.name && <p className="text-xs text-red-600 font-medium">{errors.name}</p>}
                     </div>
 
-                    {/* Description */}
                     <div className="space-y-2">
                         <label className="text-sm font-semibold text-gray-700">
                             Mô tả <span className="text-red-500">*</span>
                         </label>
                         <textarea
                             placeholder="Mô tả chi tiết về nội dung và mục tiêu khóa đào tạo..."
-                            value={formData.description}
-                            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                            value={formData.note}
+                            onChange={(e) => setFormData(prev => ({ ...prev, note: e.target.value }))}
                             rows={3}
-                            className={`w-full px-3 py-2 rounded-md border-2 ${errors.description ? 'border-red-400' : 'border-gray-200'} focus:border-orange-500 focus:ring-orange-500/20 focus:ring-4 outline-none transition-all`}
+                            className={`w-full px-3 py-2 rounded-md border-2 ${errors.note ? 'border-red-400' : 'border-gray-200'} focus:border-orange-500 focus:ring-orange-500/20 focus:ring-4 outline-none transition-all`}
                         />
-                        {errors.description && <p className="text-xs text-red-600 font-medium">{errors.description}</p>}
+                        {errors.note && <p className="text-xs text-red-600 font-medium">{errors.note}</p>}
                     </div>
 
-                    {/* Assigned Roles */}
+                    <div className="space-y-2">
+                        <label className="text-sm font-semibold text-gray-700">
+                            Điểm khóa học <span className="text-red-500">*</span>
+                        </label>
+                        <Input
+                            placeholder="Nhập điểm khóa học (ví dụ: 100)"
+                            type="number"
+                            min={1}
+                            value={formData.point}
+                            onChange={(e) => setFormData(prev => ({ ...prev, point: e.target.value }))}
+                            className={`h-11 border-2 ${errors.point ? 'border-red-400' : 'border-gray-200'} focus:border-orange-500 focus:ring-orange-500/20 focus:ring-4 transition-all`}
+                        />
+                        {errors.point && <p className="text-xs text-red-600 font-medium">{errors.point}</p>}
+                    </div>
+
                     <div className="space-y-2">
                         <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
                             <Users size={16} className="text-orange-500" />
-                            Phân quyền cho vai trò <span className="text-red-500">*</span>
+                            Vai trò áp dụng <span className="text-red-500">*</span>
                         </label>
-                        <div className="grid grid-cols-2 gap-3">
-                            {ROLE_OPTIONS.map((option) => (
-                                <button
-                                    key={option.value}
-                                    type="button"
-                                    onClick={() => toggleRole(option.value)}
-                                    className={`p-3 rounded-xl border-2 transition-all ${formData.assignedRoles.includes(option.value)
-                                        ? `bg-gradient-to-br ${option.color} text-white border-transparent shadow-lg`
-                                        : 'bg-white border-gray-200 hover:border-orange-300'
-                                        }`}
-                                >
-                                    <div className="text-2xl mb-1">{option.icon}</div>
-                                    <div className={`text-sm font-bold ${formData.assignedRoles.includes(option.value) ? 'text-white' : 'text-gray-700'}`}>
-                                        {option.label}
-                                    </div>
-                                </button>
+                        <select
+                            id="training-role"
+                            aria-label="Chọn vai trò áp dụng"
+                            value={formData.roleId === '' ? '' : String(formData.roleId)}
+                            onChange={(e) =>
+                                setFormData(prev => ({
+                                    ...prev,
+                                    roleId: e.target.value ? Number(e.target.value) : '',
+                                }))
+                            }
+                            disabled={isLoadingRoles}
+                            className={`w-full h-11 border-2 rounded-md px-3 bg-white ${errors.roleId ? 'border-red-400' : 'border-gray-200'} focus:border-orange-500 focus:ring-4 focus:ring-orange-500/20 transition-all`}
+                        >
+                            <option value="">
+                                {isLoadingRoles ? 'Đang tải vai trò...' : 'Chọn vai trò'}
+                            </option>
+                            {roles.map((role) => (
+                                <option key={role.id} value={role.id}>
+                                    {role.name}
+                                </option>
                             ))}
-                        </div>
-                        {errors.assignedRoles && <p className="text-xs text-red-600 font-medium">{errors.assignedRoles}</p>}
-                        <p className="text-xs text-gray-500">Chọn các vai trò được phép xem và học khóa đào tạo này</p>
+                        </select>
+                        {errors.roleId && <p className="text-xs text-red-600 font-medium">{errors.roleId}</p>}
+                        <p className="text-xs text-gray-500">Chọn vai trò mà khóa đào tạo này áp dụng</p>
                     </div>
 
-                    {/* Video Resources */}
-                    <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                            <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                                <Video size={16} className="text-orange-500" />
-                                Video hướng dẫn
-                            </label>
-                            <Button type="button" size="sm" onClick={addVideo} variant="outline" className="text-orange-600 border-orange-600">
-                                <Plus size={16} className="mr-1" /> Thêm Video
-                            </Button>
+                    <div className="flex items-center justify-between border border-gray-200 rounded-xl px-4 py-3">
+                        <div>
+                            <p className="text-sm font-semibold text-gray-700">Kích hoạt khóa học</p>
+                            <p className="text-xs text-gray-500">Cho phép nhân viên thấy khóa này sau khi tạo</p>
                         </div>
-                        <div className="space-y-2">
-                            {formData.videos.map((video, index) => (
-                                <div key={index} className="flex gap-2">
-                                    <Input
-                                        placeholder="Tiêu đề video"
-                                        value={video.title}
-                                        onChange={(e) => updateVideo(index, 'title', e.target.value)}
-                                        className="flex-1"
-                                    />
-                                    <Input
-                                        placeholder="URL video (YouTube, Vimeo...)"
-                                        value={video.url}
-                                        onChange={(e) => updateVideo(index, 'url', e.target.value)}
-                                        className="flex-1"
-                                    />
-                                    {formData.videos.length > 1 && (
-                                        <Button type="button" size="sm" variant="outline" onClick={() => removeVideo(index)} className="text-red-600">
-                                            <X size={16} />
-                                        </Button>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                        <p className="text-xs text-gray-500">Thêm link video từ YouTube, Vimeo hoặc nền tảng khác</p>
+                        <button
+                            type="button"
+                            aria-label={formData.isActive ? 'Tắt khóa học' : 'Kích hoạt khóa học'}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${formData.isActive ? 'bg-orange-500' : 'bg-gray-300'}`}
+                            onClick={() => setFormData((prev) => ({ ...prev, isActive: !prev.isActive }))}
+                        >
+                            <span
+                                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${formData.isActive ? 'translate-x-5' : 'translate-x-1'}`}
+                            />
+                        </button>
                     </div>
 
-                    {/* Document Resources */}
-                    <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                            <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                                <FileText size={16} className="text-orange-500" />
-                                Tài liệu hướng dẫn
-                            </label>
-                            <Button type="button" size="sm" onClick={addDocument} variant="outline" className="text-orange-600 border-orange-600">
-                                <Plus size={16} className="mr-1" /> Thêm Tài Liệu
-                            </Button>
-                        </div>
-                        <div className="space-y-2">
-                            {formData.documents.map((doc, index) => (
-                                <div key={index} className="flex gap-2">
-                                    <Input
-                                        placeholder="Tiêu đề tài liệu"
-                                        value={doc.title}
-                                        onChange={(e) => updateDocument(index, 'title', e.target.value)}
-                                        className="flex-1"
-                                    />
-                                    <Input
-                                        placeholder="URL tài liệu (PDF, Google Docs...)"
-                                        value={doc.url}
-                                        onChange={(e) => updateDocument(index, 'url', e.target.value)}
-                                        className="flex-1"
-                                    />
-                                    {formData.documents.length > 1 && (
-                                        <Button type="button" size="sm" variant="outline" onClick={() => removeDocument(index)} className="text-red-600">
-                                            <X size={16} />
-                                        </Button>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                        <p className="text-xs text-gray-500">Thêm link tài liệu PDF, Google Docs hoặc tài liệu khác</p>
-                    </div>
-
-                    {/* Actions */}
                     <div className="flex gap-3 pt-4 border-t border-gray-200">
                         <Button
                             type="button"
@@ -320,10 +276,12 @@ export function AddTrainingDialog() {
                                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
                                     Đang xử lý...
                                 </>
+                            ) : isEditMode ? (
+                                submitLabel
                             ) : (
                                 <>
                                     <Plus size={18} className="mr-2" />
-                                    Tạo Khóa Đào Tạo
+                                    {submitLabel}
                                 </>
                             )}
                         </Button>

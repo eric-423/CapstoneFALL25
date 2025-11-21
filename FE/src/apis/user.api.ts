@@ -37,7 +37,7 @@ export interface PaginatedUserResponse {
   status: number;
   desc: string;
   data: {
-    content: any[];
+    content: UserResponse[];
     pageNumber: number;
     pageSize: number;
     totalElements: number;
