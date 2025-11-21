@@ -1,6 +1,7 @@
 package com.capstone.tamtech.capstone.services.impl;
 
 import com.capstone.tamtech.capstone.dto.UserManagementDTO;
+import com.capstone.tamtech.capstone.dto.UserStatisticsDTO;
 import com.capstone.tamtech.capstone.payload.PagedResponse;
 import com.capstone.tamtech.capstone.payload.request.UserCreateRequest;
 import com.capstone.tamtech.capstone.payload.request.UserSearchRequest;
@@ -20,4 +21,6 @@ public interface UserManagementService {
     UserManagementDTO banUser(int userId);
 
     UserManagementDTO unbanUser(int userId);
+
+    UserStatisticsDTO getUserStatistics(Integer branchId);
 }

@@ -38,4 +38,17 @@ public interface UsersRepository extends JpaRepository<Users, Integer> {
                         @Param("branchId") Integer branchId,
                         @Param("status") Boolean status,
                         Pageable pageable);
+
+        @Query("SELECT COUNT(DISTINCT u) FROM Users u " +
+                        "LEFT JOIN u.roleHistories rh ON rh.isActive = true " +
+                        "WHERE u.isBan = false " +
+                        "AND (:branchId IS NULL OR (rh IS NOT NULL AND rh.branch.id = :branchId))")
+        long countActiveUsersByBranch(@Param("branchId") Integer branchId);
+
+        @Query("SELECT COUNT(DISTINCT u) FROM Users u " +
+                        "LEFT JOIN u.roleHistories rh ON rh.isActive = true " +
+                        "WHERE u.isBan = true " +
+                        "AND (:branchId IS NULL OR (rh IS NOT NULL AND rh.branch.id = :branchId))")
+        long countInactiveUsersByBranch(@Param("branchId") Integer branchId);
+
 }

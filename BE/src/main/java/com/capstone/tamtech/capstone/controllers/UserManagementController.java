@@ -159,4 +159,20 @@ public class UserManagementController {
             return new ResponseEntity<>(responseData, HttpStatus.BAD_REQUEST);
         }
     }
+
+    @Operation(summary = "Thống kê người dùng", description = "Thống kê số người dùng hoạt động và không hoạt động. Có thể filter theo branchId.")
+    @GetMapping("/statistics")
+    public ResponseEntity<?> getUserStatistics(
+            @Parameter(description = "ID chi nhánh (optional, nếu không truyền thì lấy tất cả)", required = false) @RequestParam(value = "branchId", required = false) Integer branchId) {
+        try {
+            ResponseData responseData = new ResponseData();
+            responseData.setData(userManagementService.getUserStatistics(branchId));
+            responseData.setDesc("User statistics retrieved successfully");
+            return new ResponseEntity<>(responseData, HttpStatus.OK);
+        } catch (Exception e) {
+            ResponseData responseData = new ResponseData();
+            responseData.setDesc("Error: " + e.getMessage());
+            return new ResponseEntity<>(responseData, HttpStatus.BAD_REQUEST);
+        }
+    }
 }
