@@ -4,6 +4,7 @@ export interface TrainingCourse {
     id: number;
     name: string;
     description: string;
+    note?: string;
     recipeId?: number;
     recipeName?: string;
     assignedRoles: StaffRole[];
@@ -16,6 +17,12 @@ export interface TrainingCourse {
     enrolledCount: number;
     completedCount: number;
     thumbnail?: string;
+    point?: number;
+    lessonCount?: number;
+    totalLessonPoint?: number;
+    roleId?: number;
+    roleName?: string;
+    isActive?: boolean;
 }
 
 export interface TrainingCourseFormData {

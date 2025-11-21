@@ -206,12 +206,9 @@ function ShipperLocationMap({ lat, lng, apiKey, destinationAddress, onRouteInfo 
   const shipperIcon = useMemo(() => {
     if (typeof window === 'undefined' || !window.google || !isLoaded) return undefined;
     return {
-      path: window.google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-      scale: 5,
-      fillColor: '#FF6B35',
-      fillOpacity: 1,
-      strokeColor: '#FFFFFF',
-      strokeWeight: 2,
+      url: '/images/shipper.png',
+      scaledSize: new window.google.maps.Size(30, 30),
+      anchor: new window.google.maps.Point(14, 14),
     };
   }, [isLoaded]);
 
