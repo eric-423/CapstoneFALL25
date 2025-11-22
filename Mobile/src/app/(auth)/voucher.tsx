@@ -4,7 +4,7 @@ import { APP_COLOR } from "@/utils/constant";
 import { StyleSheet, Text, View, SectionList } from "react-native";
 import VoucherComponent from "@/components/account/user.voucher";
 import CustomerPoint from "@/components/account/user.point";
-import { getCustomerPromotion } from "@/utils/api";
+import { GetCustomerPromotion } from "@/utils/api";
 import Toast from "react-native-root-toast";
 import { useCurrentApp } from "@/context/app.context";
 const Voucher = () => {
@@ -46,7 +46,7 @@ const Voucher = () => {
     const fetchVouchers = async () => {
       try {
         setIsLoading(true);
-        const response = await getCustomerPromotion();
+        const response = await GetCustomerPromotion();
         if (response.data && response.data.status === 0 && response.data.data) {
           const mappedVouchers = response.data.data.map((promotion: any) => ({
             promotionId: promotion.id,

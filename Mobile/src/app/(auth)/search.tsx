@@ -9,13 +9,21 @@ import {
   FlatList,
   StyleSheet,
   Pressable,
+  ActivityIndicator,
   ScrollView,
+  TouchableOpacity,
 } from "react-native";
 import { FontAwesome, AntDesign, SimpleLineIcons } from "@expo/vector-icons";
 import { FONTS } from "@/theme/typography";
 import { useCurrentApp } from "@/context/app.context";
-import { currencyFormatter } from "@/utils/cart";
+import {
+  currencyFormatter,
+  calculateTotalQuantity,
+  calculateTotalPrice,
+} from "@/utils/cart";
 import { getItemQuantity as getItemQuantityUtil } from "@/utils/cart";
+import { SearchProductByName } from "@/utils/api";
+import { router } from "expo-router";
 
 interface IProduct {
   productId: string;
@@ -28,264 +36,168 @@ interface IProduct {
     name: string;
     productTypeId: number;
   };
+  productPrice?: number;
+  productName?: string;
+  productDescription?: string;
 }
 
 const SearchPage = () => {
+  const { branchId, restaurant } = useCurrentApp();
   const [searchTerm, setSearchTerm] = useState("");
-  const [products, setProducts] = useState<IProduct[]>([
-    {
-      productId: "1",
-      description: "Cơm tấm sườn nướng",
-      price: 45000,
-      image: require("@/assets/icons/com-tam.png"),
-      name: "Cơm tấm sườn nướng",
-      averageRating: 4.5,
-      ProductType: {
-        name: "Đồ ăn",
-        productTypeId: 1,
-      },
-    },
-    {
-      productId: "2",
-      description: "Canh chua cá bông lau",
-      price: 35000,
-      image: require("@/assets/icons/com-tam.png"),
-      name: "Canh chua cá bông lau",
-      averageRating: 4.2,
-      ProductType: {
-        name: "Món canh",
-        productTypeId: 4,
-      },
-    },
-    {
-      productId: "3",
-      description: "Coca Cola",
-      price: 15000,
-      image: require("@/assets/icons/com-tam.png"),
-      name: "Coca Cola",
-      averageRating: 4.0,
-      ProductType: {
-        name: "Thức uống",
-        productTypeId: 2,
-      },
-    },
-    {
-      productId: "4",
-      description: "Bánh mì pate",
-      price: 25000,
-      image: require("@/assets/icons/com-tam.png"),
-      name: "Bánh mì pate",
-      averageRating: 4.3,
-      ProductType: {
-        name: "Đồ ăn",
-        productTypeId: 1,
-      },
-    },
-    {
-      productId: "5",
-      description: "Nước cam tươi",
-      price: 20000,
-      image: require("@/assets/icons/com-tam.png"),
-      name: "Nước cam tươi",
-      averageRating: 4.1,
-      ProductType: {
-        name: "Thức uống",
-        productTypeId: 2,
-      },
-    },
-  ]);
+  const [products, setProducts] = useState<IProduct[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isCartDropdownOpen, setIsCartDropdownOpen] = useState(false);
+  const fallbackImage = require("@/assets/icons/com-tam.png");
+  const { cart, setCart } = useCurrentApp();
 
-  const { cart, setCart, restaurant } = useCurrentApp();
-  const [productTypeList, setProductTypeList] = useState<number[]>([
-    1, 2, 3, 4,
-  ]);
+  // Tính toán số lượng và danh sách sản phẩm trong cart
+  const restaurantId = restaurant?._id || `branch_${branchId || "default"}`;
+  const restaurantCart = cart?.[restaurantId];
+  const cartQuantity = restaurantCart
+    ? calculateTotalQuantity(cart, restaurantId)
+    : 0;
+  const cartTotal = restaurantCart
+    ? calculateTotalPrice(cart, restaurantId)
+    : 0;
+
+  const cartItems = restaurantCart?.items
+    ? Object.entries(restaurantCart.items).map(([key, item]: any) => {
+        const data = item?.data || {};
+        const unitPrice =
+          Number(data.basePrice || data.price || data.productPrice || 0) || 0;
+        const imageSource =
+          typeof data.image === "string"
+            ? { uri: data.image }
+            : data.image || fallbackImage;
+        return {
+          id: key,
+          image: imageSource,
+          title: data.title || data.name || data.productName || "Sản phẩm",
+          quantity: item?.quantity || 0,
+          price: unitPrice * (item?.quantity || 0),
+          unitPrice: unitPrice,
+        };
+      })
+    : [];
   const fetchProducts = useCallback(
     debounce(async (text: string) => {
       if (!text.trim()) {
-        setProducts([
-          {
-            productId: "1",
-            description: "Cơm tấm sườn nướng",
-            price: 45000,
-            image: require("@/assets/icons/com-tam.png"),
-            name: "Cơm tấm sườn nướng",
-            averageRating: 4.5,
-            ProductType: {
-              name: "Đồ ăn",
-              productTypeId: 1,
-            },
-          },
-          {
-            productId: "2",
-            description: "Canh chua cá bông lau",
-            price: 35000,
-            image: require("@/assets/icons/com-tam.png"),
-            name: "Canh chua cá bông lau",
-            averageRating: 4.2,
-            ProductType: {
-              name: "Món canh",
-              productTypeId: 4,
-            },
-          },
-          {
-            productId: "3",
-            description: "Coca Cola",
-            price: 15000,
-            image: require("@/assets/icons/com-tam.png"),
-            name: "Coca Cola",
-            averageRating: 4.0,
-            ProductType: {
-              name: "Thức uống",
-              productTypeId: 2,
-            },
-          },
-          {
-            productId: "4",
-            description: "Bánh mì pate",
-            price: 25000,
-            image: require("@/assets/icons/com-tam.png"),
-            name: "Bánh mì pate",
-            averageRating: 4.3,
-            ProductType: {
-              name: "Đồ ăn",
-              productTypeId: 1,
-            },
-          },
-          {
-            productId: "5",
-            description: "Nước cam tươi",
-            price: 20000,
-            image: require("@/assets/icons/com-tam.png"),
-            name: "Nước cam tươi",
-            averageRating: 4.1,
-            ProductType: {
-              name: "Thức uống",
-              productTypeId: 2,
-            },
-          },
-        ]);
-        setProductTypeList([1, 2, 3, 4]);
+        setProducts([]);
+        setError(null);
         return;
       }
-      const filteredProducts = [
-        {
-          productId: "1",
-          description: "Cơm tấm sườn nướng",
-          price: 45000,
-          image: require("@/assets/icons/com-tam.png"),
-          name: "Cơm tấm sườn nướng",
+      if (!branchId) {
+        setError("Vui lòng chọn chi nhánh");
+        return;
+      }
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await SearchProductByName(branchId, text);
+        const apiProducts = res?.data?.content || res?.data?.data || [];
+        const mappedProducts: IProduct[] = apiProducts.map((p: any) => ({
+          productId: String(p.productId),
+          description: p.productDescription || p.productName || "",
+          price: p.productPrice || 0,
+          image:
+            typeof p.productImage === "string" && p.productImage
+              ? { uri: p.productImage }
+              : fallbackImage,
+          name: p.productName || "",
           averageRating: 4.5,
           ProductType: {
-            name: "Đồ ăn",
-            productTypeId: 1,
+            name: p.productType || "",
+            productTypeId: p.productTypeId || 0,
           },
-        },
-        {
-          productId: "2",
-          description: "Canh chua cá bông lau",
-          price: 35000,
-          image: require("@/assets/icons/com-tam.png"),
-          name: "Canh chua cá bông lau",
-          averageRating: 4.2,
-          ProductType: {
-            name: "Món canh",
-            productTypeId: 4,
-          },
-        },
-        {
-          productId: "3",
-          description: "Coca Cola",
-          price: 15000,
-          image: require("@/assets/icons/com-tam.png"),
-          name: "Coca Cola",
-          averageRating: 4.0,
-          ProductType: {
-            name: "Thức uống",
-            productTypeId: 2,
-          },
-        },
-        {
-          productId: "4",
-          description: "Bánh mì pate",
-          price: 25000,
-          image: require("@/assets/icons/com-tam.png"),
-          name: "Bánh mì pate",
-          averageRating: 4.3,
-          ProductType: {
-            name: "Đồ ăn",
-            productTypeId: 1,
-          },
-        },
-        {
-          productId: "5",
-          description: "Nước cam tươi",
-          price: 20000,
-          image: require("@/assets/icons/com-tam.png"),
-          name: "Nước cam tươi",
-          averageRating: 4.1,
-          ProductType: {
-            name: "Thức uống",
-            productTypeId: 2,
-          },
-        },
-      ].filter(
-        (product) =>
-          product.description.toLowerCase().includes(text.toLowerCase()) ||
-          product.name.toLowerCase().includes(text.toLowerCase())
-      );
-
-      setProducts(filteredProducts);
-      setProductTypeList([1, 2, 3, 4]);
+          productPrice: p.productPrice || 0,
+          productName: p.productName || "",
+          productDescription: p.productDescription || "",
+        }));
+        setProducts(mappedProducts);
+      } catch (err: any) {
+        console.error("Error searching products:", err);
+        setError("Không thể tìm kiếm sản phẩm. Vui lòng thử lại.");
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
     }, 500),
-    []
+    [branchId]
   );
   const handleChangeText = (text: string) => {
     setSearchTerm(text);
     fetchProducts(text);
   };
-  const handleQuantityChange = (item: any, action: "MINUS" | "PLUS") => {
-    if (!restaurant?._id) return;
+  const handleQuantityChange = (
+    item: IProduct & { productPrice?: number; productName?: string },
+    action: "MINUS" | "PLUS"
+  ) => {
+    if (!restaurant?._id) {
+      const mockRestaurant = { _id: `branch_${branchId || "default"}` };
+      if (!cart[mockRestaurant._id]) {
+        setCart({
+          ...cart,
+          [mockRestaurant._id]: {
+            sum: 0,
+            quantity: 0,
+            items: {},
+          },
+        });
+      }
+    }
 
+    const restaurantId = restaurant?._id || `branch_${branchId || "default"}`;
     const total = action === "MINUS" ? -1 : 1;
-    const priceChange = total * item.productPrice;
+    const productPrice = item.productPrice || item.price || 0;
+    const priceChange = total * productPrice;
 
     const newCart = { ...cart };
-    if (!newCart[restaurant._id]) {
-      newCart[restaurant._id] = {
+    if (!newCart[restaurantId]) {
+      newCart[restaurantId] = {
         sum: 0,
         quantity: 0,
         items: {},
       };
     }
-    newCart[restaurant._id].sum =
-      (newCart[restaurant._id].sum || 0) + priceChange;
-    newCart[restaurant._id].quantity =
-      (newCart[restaurant._id].quantity || 0) + total;
+    newCart[restaurantId].sum = (newCart[restaurantId].sum || 0) + priceChange;
+    newCart[restaurantId].quantity =
+      (newCart[restaurantId].quantity || 0) + total;
 
-    if (!newCart[restaurant._id].items[item.productId]) {
-      newCart[restaurant._id].items[item.productId] = {
+    if (!newCart[restaurantId].items[item.productId]) {
+      newCart[restaurantId].items[item.productId] = {
         data: {
-          ...item,
-          basePrice: item.productPrice,
-          title: item.productName,
+          ProductType: item.ProductType,
+          name: item.productName || item.name,
+          productId: item.productId,
+          image: item.image,
+          description: item.description || item.productDescription || "",
+          price: productPrice,
+          basePrice: productPrice,
+          title: item.productName || item.name,
         },
         quantity: 0,
       };
     }
     const currentQuantity =
-      (newCart[restaurant._id].items[item.productId].quantity || 0) + total;
+      (newCart[restaurantId].items[item.productId].quantity || 0) + total;
 
     if (currentQuantity <= 0) {
-      delete newCart[restaurant._id].items[item.productId];
-      if (Object.keys(newCart[restaurant._id].items).length === 0) {
-        delete newCart[restaurant._id];
+      delete newCart[restaurantId].items[item.productId];
+      if (Object.keys(newCart[restaurantId].items).length === 0) {
+        delete newCart[restaurantId];
       }
     } else {
-      newCart[restaurant._id].items[item.productId] = {
+      newCart[restaurantId].items[item.productId] = {
         data: {
-          ...item,
-          basePrice: item.productPrice,
-          title: item.productName,
+          ProductType: item.ProductType,
+          name: item.productName || item.name,
+          productId: item.productId,
+          image: item.image,
+          description: item.description || item.productDescription || "",
+          price: productPrice,
+          basePrice: productPrice,
+          title: item.productName || item.name,
         },
         quantity: currentQuantity,
       };
@@ -294,7 +206,6 @@ const SearchPage = () => {
   };
   const getItemQuantity = (itemId: string) =>
     getItemQuantityUtil(cart, restaurant?._id, itemId);
-  const handleFilterByProductName = async (typeId: number) => {};
   return (
     <View style={styles.container}>
       <View>
@@ -304,6 +215,7 @@ const SearchPage = () => {
             alignItems: "center",
             gap: 10,
             marginHorizontal: 10,
+            marginTop: 20,
           }}
         >
           <View style={styles.searchContainer}>
@@ -316,115 +228,177 @@ const SearchPage = () => {
               placeholderTextColor={APP_COLOR.BROWN}
             />
           </View>
-          <View
-            style={{
-              backgroundColor: APP_COLOR.ORANGE,
-              width: 25,
-              height: 25,
-              borderRadius: 50,
-              alignItems: "center",
-              justifyContent: "center",
-              position: "absolute",
-              right: 10,
-              top: 5,
-              zIndex: 999,
-            }}
-          >
-            <Text style={{ color: APP_COLOR.WHITE, fontFamily: FONTS.bold }}>
-              1
-            </Text>
-          </View>
-          <View style={styles.notificationWrapper}>
-            <SimpleLineIcons name="handbag" size={24} color={APP_COLOR.WHITE} />
+          <View style={{ position: "relative" }}>
+            <Pressable
+              onPress={() => {
+                setIsCartDropdownOpen(!isCartDropdownOpen);
+              }}
+              style={styles.notificationWrapper}
+            >
+              <SimpleLineIcons
+                name="handbag"
+                size={24}
+                color={APP_COLOR.WHITE}
+              />
+              {cartQuantity > 0 && (
+                <View
+                  style={{
+                    backgroundColor: APP_COLOR.ORANGE,
+                    width: 25,
+                    height: 25,
+                    borderRadius: 50,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    position: "absolute",
+                    left: 30,
+                    top: -5,
+                  }}
+                >
+                  <Text
+                    style={{ color: APP_COLOR.WHITE, fontFamily: FONTS.bold }}
+                  >
+                    {cartQuantity}
+                  </Text>
+                </View>
+              )}
+            </Pressable>
+            {isCartDropdownOpen && (
+              <View style={styles.cartDropdownMenu}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: 15,
+                    borderBottomWidth: 1,
+                    borderBottomColor: APP_COLOR.BACKGROUND_ORANGE,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontFamily: FONTS.bold,
+                      fontSize: 18,
+                      color: APP_COLOR.BROWN,
+                    }}
+                  >
+                    Giỏ hàng ({cartQuantity})
+                  </Text>
+                  <Pressable
+                    onPress={() => setIsCartDropdownOpen(false)}
+                    style={{ padding: 5 }}
+                  >
+                    <AntDesign name="close" size={20} color={APP_COLOR.BROWN} />
+                  </Pressable>
+                </View>
+                {cartItems.length === 0 ? (
+                  <View style={styles.emptyCartContainer}>
+                    <Text style={styles.emptyCartText}>
+                      Chưa có sản phẩm nào trong giỏ hàng
+                    </Text>
+                  </View>
+                ) : (
+                  <>
+                    <ScrollView
+                      style={{ maxHeight: 300 }}
+                      nestedScrollEnabled={true}
+                    >
+                      {cartItems.map((item) => (
+                        <View key={item.id} style={styles.cartItem}>
+                          <Image
+                            source={item.image}
+                            style={styles.cartItemImage}
+                            resizeMode="cover"
+                          />
+                          <View style={styles.cartItemContent}>
+                            <Text
+                              style={styles.cartItemTitle}
+                              numberOfLines={1}
+                            >
+                              {item.title}
+                            </Text>
+                            <View
+                              style={{
+                                flexDirection: "row",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                marginTop: 5,
+                              }}
+                            >
+                              <Text style={styles.cartItemQuantity}>
+                                SL: {item.quantity}
+                              </Text>
+                              <Text style={styles.cartItemPrice}>
+                                {currencyFormatter(item.price)}
+                              </Text>
+                            </View>
+                          </View>
+                        </View>
+                      ))}
+                    </ScrollView>
+                    <View
+                      style={{
+                        padding: 15,
+                        borderTopWidth: 1,
+                        borderTopColor: APP_COLOR.BACKGROUND_ORANGE,
+                      }}
+                    >
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          marginBottom: 10,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontFamily: FONTS.bold,
+                            fontSize: 16,
+                            color: APP_COLOR.BROWN,
+                          }}
+                        >
+                          Tổng cộng:
+                        </Text>
+                        <Text
+                          style={{
+                            fontFamily: FONTS.bold,
+                            fontSize: 18,
+                            color: APP_COLOR.ORANGE,
+                          }}
+                        >
+                          {currencyFormatter(cartTotal)}
+                        </Text>
+                      </View>
+                      <Pressable
+                        onPress={() => {
+                          setIsCartDropdownOpen(false);
+                          router.navigate("/(user)/order/cart");
+                        }}
+                        style={{
+                          backgroundColor: APP_COLOR.ORANGE,
+                          paddingVertical: 12,
+                          paddingHorizontal: 20,
+                          borderRadius: 8,
+                          alignItems: "center",
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontFamily: FONTS.bold,
+                            fontSize: 16,
+                            color: APP_COLOR.WHITE,
+                          }}
+                        >
+                          Xem giỏ hàng
+                        </Text>
+                      </Pressable>
+                    </View>
+                  </>
+                )}
+              </View>
+            )}
           </View>
         </View>
-        <Text
-          style={{
-            fontFamily: FONTS.bold,
-            fontSize: 20,
-            color: APP_COLOR.BROWN,
-            marginHorizontal: 10,
-          }}
-        >
-          Danh mục
-        </Text>
-        {productTypeList && (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={{ padding: 10 }}
-          >
-            {productTypeList.map((item, index) => (
-              <Pressable
-                key={`${item}-${index}`}
-                style={{
-                  backgroundColor: APP_COLOR.YELLOW,
-                  width: 120,
-                  padding: 10,
-                  marginRight: 10,
-                  borderRadius: 30,
-                  alignItems: "center",
-                }}
-                onPress={() => {
-                  handleFilterByProductName(item);
-                }}
-              >
-                {(() => {
-                  switch (item) {
-                    case 1:
-                      return (
-                        <Text
-                          style={{
-                            color: APP_COLOR.BROWN,
-                            fontFamily: FONTS.medium,
-                            fontSize: 15,
-                          }}
-                        >
-                          Đồ ăn
-                        </Text>
-                      );
-                    case 2:
-                      return (
-                        <Text
-                          style={{
-                            color: APP_COLOR.BROWN,
-                            fontFamily: FONTS.medium,
-                            fontSize: 15,
-                          }}
-                        >
-                          Thức uống
-                        </Text>
-                      );
-                    case 3:
-                      return (
-                        <Text
-                          style={{
-                            color: APP_COLOR.BROWN,
-                            fontFamily: FONTS.medium,
-                            fontSize: 15,
-                          }}
-                        >
-                          Món ăn kèm
-                        </Text>
-                      );
-                    default:
-                      return (
-                        <Text
-                          style={{
-                            color: APP_COLOR.BROWN,
-                            fontFamily: FONTS.medium,
-                            fontSize: 15,
-                          }}
-                        >
-                          Món canh
-                        </Text>
-                      );
-                  }
-                })()}
-              </Pressable>
-            ))}
-          </ScrollView>
-        )}
       </View>
       <Text
         style={{
@@ -435,8 +409,41 @@ const SearchPage = () => {
           marginBottom: 10,
         }}
       >
-        Kết quả tìm kiếm (5)
+        Kết quả tìm kiếm ({products.length})
       </Text>
+      {loading && (
+        <View style={{ paddingVertical: 40, alignItems: "center" }}>
+          <ActivityIndicator size="large" color={APP_COLOR.ORANGE} />
+        </View>
+      )}
+      {error && (
+        <View style={{ paddingHorizontal: 10, paddingVertical: 10 }}>
+          <Text
+            style={{
+              fontFamily: FONTS.regular,
+              fontSize: 14,
+              color: APP_COLOR.CANCEL,
+              textAlign: "center",
+            }}
+          >
+            {error}
+          </Text>
+        </View>
+      )}
+      {!loading && !error && products.length === 0 && searchTerm.trim() && (
+        <View style={{ paddingHorizontal: 10, paddingVertical: 20 }}>
+          <Text
+            style={{
+              fontFamily: FONTS.regular,
+              fontSize: 16,
+              color: APP_COLOR.BROWN,
+              textAlign: "center",
+            }}
+          >
+            Không tìm thấy sản phẩm nào
+          </Text>
+        </View>
+      )}
       <FlatList
         data={products}
         keyExtractor={(item) => item.productId}
@@ -452,7 +459,14 @@ const SearchPage = () => {
                   { marginRight: isLastItem ? 10 : 5 },
                 ]}
               >
-                <Image style={styles.itemImage} source={item.image} />
+                <Image
+                  style={styles.itemImage}
+                  source={
+                    typeof item.image === "string"
+                      ? { uri: item.image }
+                      : item.image
+                  }
+                />
                 <View style={styles.ratingContainer}>
                   <Text style={styles.ratingText}>{item.averageRating}</Text>
                   <AntDesign name="star" size={15} color={APP_COLOR.ORANGE} />
@@ -651,6 +665,68 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     alignItems: "center",
     justifyContent: "center",
+  },
+  cartDropdownMenu: {
+    position: "absolute",
+    top: 60,
+    right: 0,
+    backgroundColor: APP_COLOR.WHITE,
+    borderRadius: 12,
+    width: 320,
+    maxHeight: 450,
+    zIndex: 1000,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+    elevation: 8,
+  },
+  emptyCartContainer: {
+    padding: 40,
+    alignItems: "center",
+  },
+  emptyCartText: {
+    fontFamily: FONTS.regular,
+    fontSize: 14,
+    color: APP_COLOR.GRAY,
+    textAlign: "center",
+  },
+  cartItem: {
+    flexDirection: "row",
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: APP_COLOR.BACKGROUND_ORANGE,
+  },
+  cartItemImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    marginRight: 10,
+    borderWidth: 0.5,
+    borderColor: APP_COLOR.BROWN,
+  },
+  cartItemContent: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  cartItemTitle: {
+    fontFamily: FONTS.semiBold,
+    fontSize: 14,
+    color: APP_COLOR.BROWN,
+    marginBottom: 4,
+  },
+  cartItemQuantity: {
+    fontFamily: FONTS.regular,
+    fontSize: 12,
+    color: APP_COLOR.GRAY,
+  },
+  cartItemPrice: {
+    fontFamily: FONTS.bold,
+    fontSize: 14,
+    color: APP_COLOR.ORANGE,
   },
 });
 
