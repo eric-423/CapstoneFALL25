@@ -8,5 +8,6 @@ import java.util.List;
 
 @Repository
 public interface DiningTableRepository extends JpaRepository<DiningTable, Integer> {
+    List<DiningTable> findByBranch_Id(int id);
 
 }
