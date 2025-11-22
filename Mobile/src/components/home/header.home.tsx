@@ -24,6 +24,7 @@ import {
 } from "@/utils/api";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Toast from "react-native-root-toast";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 interface HeaderHomeProps {
   pageName: string;
 }
@@ -217,11 +218,12 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
     ])
   );
 
-  const handleSelectBranch = (branch: any) => {
+  const handleSelectBranch = async (branch: any) => {
     setSelectedBranch(branch);
     if (branch.branchId) {
       setBranchId(branch.branchId);
       setBranchName(branch.name);
+      await AsyncStorage.setItem("distance", branch.distanceText);
     }
     setIsBranchDropdownOpen(false);
   };
@@ -232,28 +234,50 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
         return (
           <View style={styles.container}>
             <Entypo name="location-pin" size={50} color={APP_COLOR.BROWN} />
-            <Pressable
-              style={{ width: "55%" }}
-              onPress={() => router.navigate("/(user)/order/address.create")}
-            >
-              <Text
-                style={{
-                  fontFamily: FONTS.bold,
-                  color: APP_COLOR.BROWN,
-                }}
+            {appState ? (
+              <Pressable
+                style={{ width: "55%" }}
+                onPress={() => router.navigate("/(user)/order/address.create")}
               >
-                Giao đến:
-              </Text>
-              <Text
-                style={{
-                  fontFamily: FONTS.medium,
-                  width: "90%",
-                  color: APP_COLOR.BROWN,
-                }}
-              >
-                {locationReal ? locationReal : "Đang lấy vị trí..."}
-              </Text>
-            </Pressable>
+                <Text
+                  style={{
+                    fontFamily: FONTS.bold,
+                    color: APP_COLOR.BROWN,
+                  }}
+                >
+                  Giao đến:
+                </Text>
+                <Text
+                  style={{
+                    fontFamily: FONTS.medium,
+                    width: "90%",
+                    color: APP_COLOR.BROWN,
+                  }}
+                >
+                  {locationReal ? locationReal : "Đang lấy vị trí..."}
+                </Text>
+              </Pressable>
+            ) : (
+              <View style={{ width: "55%" }}>
+                <Text
+                  style={{
+                    fontFamily: FONTS.bold,
+                    color: APP_COLOR.BROWN,
+                  }}
+                >
+                  Giao đến:
+                </Text>
+                <Text
+                  style={{
+                    fontFamily: FONTS.medium,
+                    width: "90%",
+                    color: APP_COLOR.BROWN,
+                  }}
+                >
+                  {locationReal ? locationReal : "Đang lấy vị trí..."}
+                </Text>
+              </View>
+            )}
 
             <View
               style={{ alignItems: "flex-end", flexDirection: "row", gap: 10 }}

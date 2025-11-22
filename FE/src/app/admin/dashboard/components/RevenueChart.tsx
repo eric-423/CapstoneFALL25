@@ -15,24 +15,21 @@ interface RevenueChartProps {
 
 export function RevenueChart({ data }: RevenueChartProps) {
     return (
-        <Card className="p-8 bg-white border-0 shadow-sm hover:shadow-xl transition-all duration-300 rounded-2xl group">
-            <div className="flex items-center justify-between mb-6">
-                <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-primary transition-colors">
-                        Doanh thu 7 ngày qua
-                    </h3>
-                    <p className="text-sm text-gray-500">Theo dõi xu hướng doanh thu hàng ngày</p>
-                </div>
-                <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <TrendingUp className="text-white" size={24} />
+        <Card className="p-4 bg-white/60 backdrop-blur-sm border-white/20 border shadow-sm rounded-2xl h-full">
+            <div className="flex items-center justify-between mb-4">
+                <h3 className="text-base font-bold text-gray-800">
+                    Doanh thu 7 ngày
+                </h3>
+                <div className="w-8 h-8 bg-gradient-to-br from-green-400/50 to-green-600/50 text-white rounded-lg flex items-center justify-center">
+                    <TrendingUp size={18} />
                 </div>
             </div>
 
-            <ResponsiveContainer width="100%" height={320}>
-                <AreaChart data={data}>
+            <ResponsiveContainer width="100%" height={200}>
+                <AreaChart data={data} margin={{ top: 5, right: 10, left: -20, bottom: -10 }}>
                     <defs>
                         <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#EC6426" stopOpacity={0.3} />
+                            <stop offset="5%" stopColor="#EC6426" stopOpacity={0.4} />
                             <stop offset="95%" stopColor="#EC6426" stopOpacity={0} />
                         </linearGradient>
                     </defs>
@@ -40,28 +37,29 @@ export function RevenueChart({ data }: RevenueChartProps) {
                     <XAxis
                         dataKey="date"
                         stroke="#9ca3af"
-                        style={{ fontSize: '13px', fontWeight: 600 }}
+                        style={{ fontSize: '11px' }}
                         tickLine={false}
-                        axisLine={{ stroke: '#e5e7eb' }}
+                        axisLine={false}
                     />
                     <YAxis
                         stroke="#9ca3af"
-                        style={{ fontSize: '13px', fontWeight: 600 }}
-                        tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`}
+                        style={{ fontSize: '11px' }}
+                        tickFormatter={(value) => `${(value / 1000000).toFixed(0)}M`}
                         tickLine={false}
-                        axisLine={{ stroke: '#e5e7eb' }}
+                        axisLine={false}
+                        width={40}
                     />
                     <Tooltip
                         contentStyle={{
-                            backgroundColor: 'white',
-                            border: 'none',
-                            borderRadius: '12px',
-                            padding: '12px 16px',
-                            boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
+                            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                            backdropFilter: 'blur(4px)',
+                            border: '1px solid rgba(0, 0, 0, 0.1)',
+                            borderRadius: '8px',
+                            padding: '8px 12px',
                         }}
-                        labelStyle={{ color: '#111827', fontWeight: 'bold', marginBottom: '8px' }}
+                        labelStyle={{ color: '#111827', fontWeight: 'bold', fontSize: '12px' }}
                         formatter={(value: number) => [
-                            <span key="value" className="font-bold text-primary">
+                            <span key="value" className="font-bold text-[#EC6426]">
                                 {value.toLocaleString('vi-VN')} ₫
                             </span>,
                             'Doanh thu'
@@ -71,10 +69,10 @@ export function RevenueChart({ data }: RevenueChartProps) {
                         type="monotone"
                         dataKey="revenue"
                         stroke="#EC6426"
-                        strokeWidth={3}
+                        strokeWidth={2.5}
                         fill="url(#revenueGradient)"
-                        dot={{ fill: '#EC6426', strokeWidth: 2, r: 5, stroke: 'white' }}
-                        activeDot={{ r: 8, strokeWidth: 3, stroke: 'white', fill: '#EC6426' }}
+                        dot={false}
+                        activeDot={{ r: 6, strokeWidth: 2, stroke: '#EC6426', fill: 'white' }}
                     />
                 </AreaChart>
             </ResponsiveContainer>

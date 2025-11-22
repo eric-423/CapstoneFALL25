@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { MessageSquare, Star, Reply, CheckCircle, Clock, Filter } from 'lucide-react';
 import { useState } from 'react';
-import { AdminPageLayout, AdminPageHeader, AdminStatsCard, AdminStatsGrid } from '../components/AdminPageLayout';
+import { AdminPageLayout, AdminPageHeader, AdminStatsCard } from '../components/AdminPageLayout';
 
 type FilterType = 'ALL' | 'PENDING' | 'RESOLVED';
 

@@ -18,7 +18,8 @@ import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { AdminPageLayout, AdminPageHeader, AdminStatsCard, AdminStatsGrid } from '../components/AdminPageLayout';
+import { AdminPageLayout, AdminPageHeader } from '../components/AdminPageLayout';
+import { AdminCard } from '../components/AdminCard';
 import { getBranchStatistics, activateBranch, deactivateBranch, type BranchStatistics, type BranchDetail } from '@/apis/branch.api';
 import { BranchFormDialog } from './components/BranchFormDialog';
 import { BranchConfirmDialog } from './components/BranchConfirmDialog';
@@ -125,12 +126,11 @@ export default function BranchesManagementPage() {
         <AdminPageLayout>
             <AdminPageHeader
                 title="Quản lý chi nhánh"
-                description="Quản lý thông tin các chi nhánh"
                 icon={Building}
                 actions={
                     <Button
                         onClick={handleCreateBranch}
-                        className="bg-gradient-to-r from-[#EC6426] to-[#F8A91F] hover:from-[#EC6426]/90 hover:to-[#F8A91F]/90 text-white"
+                        className="bg-[#EC6426] hover:bg-[#D95B21] text-white shadow-md hover:shadow-lg transition-all"
                     >
                         <Plus className="h-4 w-4 mr-2" />
                         Thêm chi nhánh
@@ -140,104 +140,106 @@ export default function BranchesManagementPage() {
 
             {/* Stats */}
             {statistics && (
-                <AdminStatsGrid>
-                    <AdminStatsCard
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                    <AdminCard
                         title="Tổng chi nhánh"
                         value={statistics.totalBranches}
                         icon={Building}
+                        subtitle="Chi nhánh trong hệ thống"
                     />
-                    <AdminStatsCard
+                    <AdminCard
                         title="Đang hoạt động"
                         value={statistics.activeBranches}
                         icon={CheckCircle}
+                        subtitle="Chi nhánh đang mở cửa"
                     />
-                    <AdminStatsCard
+                    <AdminCard
                         title="Ngừng hoạt động"
                         value={statistics.inactiveBranches}
                         icon={XCircle}
+                        subtitle="Chi nhánh tạm đóng"
                     />
-                    <AdminStatsCard
+                    <AdminCard
                         title="Chi nhánh chính"
                         value={statistics.parentBranches}
                         icon={Crown}
+                        subtitle="Chi nhánh cấp cao"
                     />
-                </AdminStatsGrid>
+                </div>
             )}
 
             {/* Filters */}
-            <Card className="p-4 space-y-3">
-                <div className="flex flex-wrap gap-3">
-                    <div className="flex-1 min-w-[200px]">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                            <input
-                                type="text"
-                                placeholder="Tìm theo tên, địa chỉ, số điện thoại..."
-                                value={searchKeyword}
-                                onChange={(e) => setSearchKeyword(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 border-2 border-gray-200 rounded-lg text-sm focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
-                            />
-                        </div>
+            <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-white/60 backdrop-blur-sm border-white/20 border shadow-sm rounded-xl">
+                <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[200px]">
+                    <div className="relative flex-1 min-w-[200px]">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <input
+                            type="text"
+                            placeholder="Tìm theo tên, địa chỉ, số điện thoại..."
+                            value={searchKeyword}
+                            onChange={(e) => setSearchKeyword(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 border bg-white/50 border-[#78A243]/30 rounded-lg text-sm focus:border-[#78A243] outline-none"
+                        />
                     </div>
                     <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
-                        className="px-4 py-2 border-2 border-gray-200 rounded-lg text-sm focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                        className="px-3 py-2 border bg-white/50 border-[#78A243]/30 rounded-lg text-sm focus:border-[#78A243] outline-none"
                     >
                         <option value="">Tất cả trạng thái</option>
                         <option value="active">Đang hoạt động</option>
                         <option value="inactive">Ngừng hoạt động</option>
                     </select>
                 </div>
-            </Card>
+            </div>
 
             {/* Branches Table */}
-            <Card className="overflow-hidden">
+            <Card className="overflow-hidden py-0">
                 {loading ? (
                     <div className="p-12 text-center text-gray-500">
-                        <div className="w-12 h-12 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin mx-auto mb-4"></div>
+                        <div className="w-12 h-12 border-4 border-[#78A243]/30 border-t-[#78A243] rounded-full animate-spin mx-auto mb-4"></div>
                         <p>Đang tải danh sách chi nhánh...</p>
                     </div>
                 ) : filteredBranches.length === 0 ? (
                     <div className="p-12 text-center text-gray-500">
-                        <Building className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+                        <Building className="h-16 w-16 mx-auto mb-4 text-[#78A243]/30" />
                         <p className="font-semibold">Không tìm thấy chi nhánh nào</p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-gradient-to-r from-orange-50 to-yellow-50 border-b-2 border-orange-200">
+                            <thead className="bg-gradient-to-r from-[#78A243]/10 to-[#EBD187]/20 border-b-2 border-[#78A243]/30">
                                 <tr>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                    <th className="px-4 py-3 text-left text-sm font-bold text-[#2D1E1A]">
                                         Chi nhánh
                                     </th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                    <th className="px-4 py-3 text-left text-sm font-bold text-[#2D1E1A]">
                                         Địa chỉ
                                     </th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                    <th className="px-4 py-3 text-left text-sm font-bold text-[#2D1E1A]">
                                         Số điện thoại
                                     </th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                    <th className="px-4 py-3 text-left text-sm font-bold text-[#2D1E1A]">
                                         Trạng thái
                                     </th>
-                                    <th className="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                    <th className="px-4 py-3 text-right text-sm font-bold text-[#2D1E1A]">
                                         Thao tác
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            <tbody className="divide-y divide-[#78A243]/10">
                                 {filteredBranches.map((branch) => (
-                                    <tr key={branch.id} className="hover:bg-gray-50 transition-colors">
-                                        <td className="px-6 py-4">
+                                    <tr key={branch.id} className="hover:bg-[#EBD187]/10 transition-colors">
+                                        <td className="px-4 py-3">
                                             <div className="flex items-center gap-2">
-                                                <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center">
+                                                <div className="w-10 h-10 bg-gradient-to-br from-[#78A243] to-[#DA7339] rounded-lg flex items-center justify-center">
                                                     <Building className="h-5 w-5 text-white" />
                                                 </div>
                                                 <div>
                                                     <div className="flex items-center gap-2">
-                                                        <p className="font-semibold text-gray-900">{branch.name}</p>
+                                                        <p className="font-semibold text-[#2D1E1A]">{branch.name}</p>
                                                         {branch.isParent && (
-                                                            <Badge className="bg-yellow-100 text-yellow-700 border-yellow-300">
+                                                            <Badge className="bg-[#EBD187]/50 text-[#DA7339] border-[#DA7339]/30">
                                                                 <Crown className="h-3 w-3 mr-1" />
                                                                 Chính
                                                             </Badge>
@@ -247,19 +249,19 @@ export default function BranchesManagementPage() {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-4 py-3">
                                             <div className="flex items-start gap-2">
                                                 <MapPin className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
-                                                <p className="text-sm text-gray-700 line-clamp-2">{branch.address}</p>
+                                                <p className="text-sm text-[#2D1E1A] line-clamp-2">{branch.address}</p>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-4 py-3">
                                             <div className="flex items-center gap-2">
                                                 <Phone className="h-4 w-4 text-gray-400" />
-                                                <p className="text-sm text-gray-700">{branch.phoneNumber}</p>
+                                                <p className="text-sm text-[#2D1E1A]">{branch.phoneNumber}</p>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-4 py-3">
                                             <Badge className={`${branch.isActive
                                                 ? 'bg-green-100 text-green-700 border-green-300'
                                                 : 'bg-red-100 text-red-700 border-red-300'
@@ -277,13 +279,13 @@ export default function BranchesManagementPage() {
                                                 )}
                                             </Badge>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center justify-center gap-2">
+                                        <td className="px-4 py-3">
+                                            <div className="flex items-center justify-end gap-2">
                                                 <Button
                                                     onClick={() => handleEditBranch(branch)}
                                                     size="sm"
                                                     variant="outline"
-                                                    className="text-orange-600 border-orange-200 hover:bg-orange-50"
+                                                    className="text-[#78A243] border-[#78A243]/30 hover:bg-[#78A243]/10"
                                                     disabled={actionLoading}
                                                 >
                                                     <Edit2 className="h-3 w-3" />

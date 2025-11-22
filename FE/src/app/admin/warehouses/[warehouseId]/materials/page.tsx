@@ -5,7 +5,8 @@ import { Package, Plus, ArrowLeft, AlertTriangle, Warehouse as WarehouseIcon } f
 import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { AdminPageLayout, AdminPageHeader, AdminStatsCard, AdminStatsGrid } from '@/app/admin/components/AdminPageLayout';
+import { AdminPageLayout, AdminPageHeader } from '@/app/admin/components/AdminPageLayout';
+import { AdminCard } from '@/app/admin/components/AdminCard';
 import { getWarehouseMaterials, getMaterials, type WarehouseMaterial, type Material } from '@/apis/material.api';
 import { AddMaterialDialog } from './components/AddMaterialDialog';
 import { useRouter } from 'next/navigation';
@@ -80,7 +81,7 @@ export default function WarehouseMaterialsPage({ params }: WarehouseMaterialsPag
         return (
             <AdminPageLayout>
                 <div className="flex items-center justify-center h-64">
-                    <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-8 h-8 border-4 border-[#78A243]/30 border-t-transparent rounded-full animate-spin"></div>
                 </div>
             </AdminPageLayout>
         );
@@ -97,14 +98,14 @@ export default function WarehouseMaterialsPage({ params }: WarehouseMaterialsPag
                         <Button
                             onClick={handleGoBack}
                             variant="outline"
-                            className="border-2 border-gray-300"
+                            className="border-2 border-[#78A243]/30"
                         >
                             <ArrowLeft className="h-4 w-4 mr-2" />
                             Quay lại
                         </Button>
                         <Button
                             onClick={handleAddMaterials}
-                            className="bg-gradient-to-r from-[#EC6426] to-[#F8A91F] hover:from-[#EC6426]/90 hover:to-[#F8A91F]/90 text-white"
+                            className="bg-[#78A243] hover:bg-[#78A243]/90 text-white"
                         >
                             <Plus className="h-4 w-4 mr-2" />
                             Thêm nguyên liệu
@@ -114,46 +115,46 @@ export default function WarehouseMaterialsPage({ params }: WarehouseMaterialsPag
             />
 
             {/* Stats */}
-            <AdminStatsGrid>
-                <AdminStatsCard
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <AdminCard
                     title="Tổng nguyên liệu"
                     value={totalMaterials}
                     icon={Package}
                 />
-                <AdminStatsCard
+                <AdminCard
                     title="Sắp hết hàng"
                     value={lowStockMaterials}
                     icon={AlertTriangle}
                 />
-                <AdminStatsCard
+                <AdminCard
                     title="Tổng số lượng"
                     value={Math.round(totalQuantity)}
                     icon={Package}
                 />
-            </AdminStatsGrid>
+            </div>
 
             {/* Materials Table */}
             <div className="bg-white rounded-xl border-2 border-gray-200 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full">
-                        <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+                        <thead className="bg-gradient-to-r from-[#78A243]/10 to-[#EBD187]/20 border-b-2 border-[#78A243]/30">
                             <tr>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                <th className="px-4 py-3 text-left text-sm font-bold text-[#2D1E1A] uppercase tracking-wider">
                                     Nguyên liệu
                                 </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                <th className="px-4 py-3 text-left text-sm font-bold text-[#2D1E1A] uppercase tracking-wider">
                                     Loại
                                 </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                <th className="px-4 py-3 text-left text-sm font-bold text-[#2D1E1A] uppercase tracking-wider">
                                     Tồn kho
                                 </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                <th className="px-4 py-3 text-left text-sm font-bold text-[#2D1E1A] uppercase tracking-wider">
                                     Ngưỡng
                                 </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                <th className="px-4 py-3 text-left text-sm font-bold text-[#2D1E1A] uppercase tracking-wider">
                                     Calo/Đơn vị
                                 </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                <th className="px-4 py-3 text-left text-sm font-bold text-[#2D1E1A] uppercase tracking-wider">
                                     Trạng thái
                                 </th>
                             </tr>
@@ -164,57 +165,57 @@ export default function WarehouseMaterialsPage({ params }: WarehouseMaterialsPag
                                 const stockPercentage = (material.quantity / material.threshold) * 100;
 
                                 return (
-                                    <tr key={material.materialId} className="hover:bg-gray-50 transition-colors">
-                                        <td className="px-6 py-4">
+                                    <tr key={material.materialId} className="hover:bg-[#EBD187]/10 transition-colors">
+                                        <td className="px-4 py-3">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center">
+                                                <div className="w-10 h-10 bg-gradient-to-br from-[#78A243] to-[#DA7339] rounded-lg flex items-center justify-center">
                                                     <Package className="h-5 w-5 text-white" />
                                                 </div>
                                                 <div>
-                                                    <p className="font-semibold text-gray-900">{material.materialName}</p>
+                                                    <p className="font-semibold text-[#2D1E1A]">{material.materialName}</p>
                                                     <p className="text-xs text-gray-500">ID: {material.materialId}</p>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <Badge className="bg-blue-100 text-blue-700 border-blue-300">
+                                        <td className="px-4 py-3">
+                                            <Badge className="bg-[#78A243]/10 text-[#78A243] border-[#78A243]/30">
                                                 {material.materialTypeName}
                                             </Badge>
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-4 py-3">
                                             <div>
-                                                <p className="text-sm font-semibold text-gray-900">
+                                                <p className="text-sm font-semibold text-[#2D1E1A]">
                                                     {material.quantity} {material.unit}
                                                 </p>
                                                 <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
                                                     <div
-                                                        className={`h-2 rounded-full ${stockPercentage >= 100 ? 'bg-green-500' :
-                                                                stockPercentage >= 50 ? 'bg-yellow-500' :
-                                                                    'bg-red-500'
+                                                        className={`h-2 rounded-full ${stockPercentage >= 100 ? 'bg-[#78A243]' :
+                                                            stockPercentage >= 50 ? 'bg-[#EBD187]' :
+                                                                'bg-[#DA7339]'
                                                             }`}
                                                         style={{ width: `${Math.min(stockPercentage, 100)}%` }}
                                                     ></div>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <p className="text-sm text-gray-700">
+                                        <td className="px-4 py-3">
+                                            <p className="text-sm text-[#2D1E1A]">
                                                 {material.threshold} {material.unit}
                                             </p>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <p className="text-sm text-gray-700">
+                                        <td className="px-4 py-3">
+                                            <p className="text-sm text-[#2D1E1A]">
                                                 {material.caloriesPerUnit} cal
                                             </p>
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-4 py-3">
                                             {isLowStock ? (
-                                                <Badge className="bg-yellow-100 text-yellow-700 border-yellow-300">
+                                                <Badge className="bg-[#EBD187]/30 text-[#DA7339] border-[#DA7339]/30">
                                                     <AlertTriangle className="h-3 w-3 mr-1" />
                                                     Sắp hết ({Math.round(stockPercentage)}%)
                                                 </Badge>
                                             ) : (
-                                                <Badge className="bg-green-100 text-green-700 border-green-300">
+                                                <Badge className="bg-[#78A243]/10 text-[#78A243] border-[#78A243]/30">
                                                     Đủ hàng ({Math.round(stockPercentage)}%)
                                                 </Badge>
                                             )}

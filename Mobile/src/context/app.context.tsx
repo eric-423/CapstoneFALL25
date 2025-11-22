@@ -17,6 +17,8 @@ interface AppContextType {
   setLocationReal: (v: any) => void;
   branchName: string | null;
   setBranchName: (v: string | null) => void;
+  sortDirection: "ASC" | "DESC" | null;
+  setSortDirection: (v: "ASC" | "DESC" | null) => void;
 }
 const AppContext = createContext<AppContextType | null>(null);
 
@@ -35,6 +37,9 @@ const AppProvider = (props: IProps) => {
   >(null);
   const [locationReal, setLocationReal] = useState("");
   const [branchName, setBranchName] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<"ASC" | "DESC" | null>(
+    null
+  );
   return (
     <AppContext.Provider
       value={{
@@ -54,6 +59,8 @@ const AppProvider = (props: IProps) => {
         setLocationReal,
         branchName,
         setBranchName,
+        sortDirection,
+        setSortDirection,
       }}
     >
       {props.children}

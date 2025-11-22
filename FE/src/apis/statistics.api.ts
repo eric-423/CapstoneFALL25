@@ -74,6 +74,7 @@ export interface SellingItem {
     itemType: 'PRODUCT' | 'COMBO';
     quantitySold: number;
     totalRevenue: number;
+    imageUrl?: string;
 }
 
 export interface TopSellingItems {
@@ -245,7 +246,7 @@ export async function getTopMaterials(branchId?: number, limit: number = 5) {
 /**
  * Lấy top món ăn bán chạy nhất (PUBLIC - dành cho khách hàng)
  */
-export async function getTopSellingItems(branchId?: number, limit: number = 5) {
+export async function getTopSellingItems(branchId?: number, limit: number = 5): Promise<TopSellingItems> {
     const params = new URLSearchParams({ limit: limit.toString() });
     if (branchId) params.append('branchId', branchId.toString());
 
@@ -265,5 +266,20 @@ export async function getTopSellingItems(branchId?: number, limit: number = 5) {
     }
 
     const result = await response.json();
-    return result.data as TopSellingItems;
+    
+    // Map the API response to the frontend model
+    if (!result.data || !result.data.topItems) {
+        return { items: [] };
+    }
+
+    const mappedItems: SellingItem[] = result.data.topItems.map((item: any) => ({
+        itemId: item.id,
+        itemName: item.name,
+        itemType: item.type,
+        quantitySold: item.quantitySold,
+        totalRevenue: item.revenue,
+        imageUrl: item.imageUrl,
+    }));
+
+    return { items: mappedItems };
 }

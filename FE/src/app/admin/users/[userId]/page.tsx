@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import {
     User,
     ArrowLeft,
@@ -20,21 +20,19 @@ import {
     Edit,
     Ban,
     UserCheck,
-    Trash2,
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AdminPageLayout, AdminPageHeader } from '../../components/AdminPageLayout';
-import { getUserById, getUserRoleHistory, banUser, unbanUser, deleteUser, type UserDetail, type RoleHistory } from '@/apis/admin-user.api';
+import { getUserById, getUserRoleHistory, banUser, unbanUser, type UserDetail, type RoleHistory } from '@/apis/admin-user.api';
 import { UserFormDialog } from '../components/UserFormDialog';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import Link from 'next/link';
 
 export default function UserDetailPage() {
     const params = useParams();
-    const router = useRouter();
     const userId = parseInt(params.userId as string);
 
     const [user, setUser] = useState<UserDetail | null>(null);
@@ -44,7 +42,7 @@ export default function UserDetailPage() {
     const [activeTab, setActiveTab] = useState<'info' | 'history'>('info');
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
-    const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; type: 'ban' | 'unban' | 'delete' | null }>({ open: false, type: null });
+    const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; type: 'ban' | 'unban' | null }>({ open: false, type: null });
 
     const fetchUserDetail = useCallback(async () => {
         try {
@@ -53,7 +51,7 @@ export default function UserDetailPage() {
             setUser(data);
         } catch (error) {
             console.error('Failed to fetch user:', error);
-            toast.error('❌ Không thể tải thông tin người dùng!');
+            toast.error('Không thể tải thông tin người dùng!');
         } finally {
             setLoading(false);
         }
@@ -66,16 +64,16 @@ export default function UserDetailPage() {
             setRoleHistory(data);
         } catch (error) {
             console.error('Failed to fetch role history:', error);
-            toast.error('❌ Không thể tải lịch sử vai trò!');
+            toast.error('Không thể tải lịch sử vai trò!');
         } finally {
             setLoadingHistory(false);
         }
     }, [userId]);
 
     const handleEditSuccess = () => {
-        fetchUserDetail(); // Reload user data after edit
+        fetchUserDetail();
         if (activeTab === 'history') {
-            fetchRoleHistory(); // Reload history if on history tab
+            fetchRoleHistory();
         }
     };
 
@@ -85,16 +83,12 @@ export default function UserDetailPage() {
 
             if (confirmDialog.type === 'ban') {
                 await banUser(userId);
-                toast.success('🔒 Đã khóa tài khoản người dùng!');
+                toast.success('Đã khóa tài khoản người dùng!');
                 fetchUserDetail();
             } else if (confirmDialog.type === 'unban') {
                 await unbanUser(userId);
-                toast.success('✅ Đã mở khóa tài khoản người dùng!');
+                toast.success('Đã mở khóa tài khoản người dùng!');
                 fetchUserDetail();
-            } else if (confirmDialog.type === 'delete') {
-                await deleteUser(userId);
-                toast.success('🗑️ Đã xóa người dùng!');
-                router.push('/admin/users');
             }
 
             setConfirmDialog({ open: false, type: null });
@@ -103,9 +97,8 @@ export default function UserDetailPage() {
             const errorMessages = {
                 ban: 'Không thể khóa tài khoản!',
                 unban: 'Không thể mở khóa tài khoản!',
-                delete: 'Không thể xóa người dùng!',
             };
-            toast.error(`❌ ${confirmDialog.type ? errorMessages[confirmDialog.type] : 'Có lỗi xảy ra!'}`);
+            toast.error(`${confirmDialog.type ? errorMessages[confirmDialog.type] : 'Có lỗi xảy ra!'}`);
         } finally {
             setActionLoading(false);
         }
@@ -125,7 +118,7 @@ export default function UserDetailPage() {
         return (
             <AdminPageLayout>
                 <div className="flex items-center justify-center h-64">
-                    <div className="w-12 h-12 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin"></div>
+                    <div className="w-12 h-12 border-4 border-[#78A243]/30 border-t-[#78A243] rounded-full animate-spin"></div>
                 </div>
             </AdminPageLayout>
         );
@@ -156,7 +149,7 @@ export default function UserDetailPage() {
                         <Button
                             onClick={() => setIsEditDialogOpen(true)}
                             disabled={actionLoading}
-                            className="bg-gradient-to-r from-[#EC6426] to-[#F8A91F] hover:from-[#EC6426]/90 hover:to-[#F8A91F]/90 text-white"
+                            className="bg-[#78A243] hover:bg-[#78A243]/90 text-white"
                         >
                             <Edit className="h-4 w-4 mr-2" />
                             Chỉnh sửa
@@ -182,15 +175,6 @@ export default function UserDetailPage() {
                                 Khóa
                             </Button>
                         )}
-                        <Button
-                            onClick={() => setConfirmDialog({ open: true, type: 'delete' })}
-                            disabled={actionLoading}
-                            variant="outline"
-                            className="border-red-300 text-red-700 hover:bg-red-50"
-                        >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Xóa
-                        </Button>
                         <Link href="/admin/users">
                             <Button variant="outline">
                                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -206,8 +190,8 @@ export default function UserDetailPage() {
                 <button
                     onClick={() => setActiveTab('info')}
                     className={`px-6 py-3 font-semibold text-sm transition-all ${activeTab === 'info'
-                        ? 'text-orange-600 border-b-2 border-orange-600 -mb-0.5'
-                        : 'text-gray-600 hover:text-gray-900'
+                        ? 'text-[#78A243] border-b-2 border-[#78A243] -mb-0.5'
+                        : 'text-gray-600 hover:text-[#2D1E1A]'
                         }`}
                 >
                     <User className="h-4 w-4 inline-block mr-2" />
@@ -216,8 +200,8 @@ export default function UserDetailPage() {
                 <button
                     onClick={() => setActiveTab('history')}
                     className={`px-6 py-3 font-semibold text-sm transition-all ${activeTab === 'history'
-                        ? 'text-orange-600 border-b-2 border-orange-600 -mb-0.5'
-                        : 'text-gray-600 hover:text-gray-900'
+                        ? 'text-[#78A243] border-b-2 border-[#78A243] -mb-0.5'
+                        : 'text-gray-600 hover:text-[#2D1E1A]'
                         }`}
                 >
                     <History className="h-4 w-4 inline-block mr-2" />
@@ -244,13 +228,13 @@ export default function UserDetailPage() {
                             )}
                         </Badge>
                         {user.emailVerified && (
-                            <Badge className="bg-blue-100 text-blue-700 border-blue-300">
+                            <Badge className="bg-[#78A243]/10 text-[#78A243] border-[#78A243]/30">
                                 <Mail className="h-3 w-3 mr-1" />
                                 Email đã xác thực
                             </Badge>
                         )}
                         {user.phoneVerified && (
-                            <Badge className="bg-blue-100 text-blue-700 border-blue-300">
+                            <Badge className="bg-[#78A243]/10 text-[#78A243] border-[#78A243]/30">
                                 <Phone className="h-3 w-3 mr-1" />
                                 SĐT đã xác thực
                             </Badge>
@@ -267,14 +251,14 @@ export default function UserDetailPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Personal Info */}
                         <Card className="p-6 space-y-4">
-                            <h3 className="text-lg font-bold text-gray-900 border-b pb-2">Thông tin cá nhân</h3>
+                            <h3 className="text-lg font-bold text-[#2D1E1A] border-b pb-2">Thông tin cá nhân</h3>
 
                             <div className="space-y-3">
                                 <div className="flex items-start gap-3">
                                     <User className="h-5 w-5 text-gray-400 mt-0.5" />
                                     <div>
                                         <p className="text-xs text-gray-500">Họ và tên</p>
-                                        <p className="text-sm font-semibold text-gray-900">{user.fullName}</p>
+                                        <p className="text-sm font-semibold text-[#2D1E1A]">{user.fullName}</p>
                                     </div>
                                 </div>
 
@@ -282,7 +266,7 @@ export default function UserDetailPage() {
                                     <Calendar className="h-5 w-5 text-gray-400 mt-0.5" />
                                     <div>
                                         <p className="text-xs text-gray-500">Ngày sinh</p>
-                                        <p className="text-sm font-semibold text-gray-900">
+                                        <p className="text-sm font-semibold text-[#2D1E1A]">
                                             {new Date(user.dateOfBirth).toLocaleDateString('vi-VN')}
                                         </p>
                                     </div>
@@ -292,7 +276,7 @@ export default function UserDetailPage() {
                                     <Mail className="h-5 w-5 text-gray-400 mt-0.5" />
                                     <div>
                                         <p className="text-xs text-gray-500">Email</p>
-                                        <p className="text-sm font-semibold text-gray-900">{user.email}</p>
+                                        <p className="text-sm font-semibold text-[#2D1E1A]">{user.email}</p>
                                     </div>
                                 </div>
 
@@ -300,7 +284,7 @@ export default function UserDetailPage() {
                                     <Phone className="h-5 w-5 text-gray-400 mt-0.5" />
                                     <div>
                                         <p className="text-xs text-gray-500">Số điện thoại</p>
-                                        <p className="text-sm font-semibold text-gray-900">{user.phoneNumber}</p>
+                                        <p className="text-sm font-semibold text-[#2D1E1A]">{user.phoneNumber}</p>
                                     </div>
                                 </div>
 
@@ -308,7 +292,7 @@ export default function UserDetailPage() {
                                     <MapPin className="h-5 w-5 text-gray-400 mt-0.5" />
                                     <div>
                                         <p className="text-xs text-gray-500">Địa chỉ</p>
-                                        <p className="text-sm font-semibold text-gray-900">{user.address || 'Chưa cập nhật'}</p>
+                                        <p className="text-sm font-semibold text-[#2D1E1A]">{user.address || 'Chưa cập nhật'}</p>
                                     </div>
                                 </div>
 
@@ -317,7 +301,7 @@ export default function UserDetailPage() {
                                         <FileText className="h-5 w-5 text-gray-400 mt-0.5" />
                                         <div>
                                             <p className="text-xs text-gray-500">Ghi chú</p>
-                                            <p className="text-sm font-semibold text-gray-900">{user.note}</p>
+                                            <p className="text-sm font-semibold text-[#2D1E1A]">{user.note}</p>
                                         </div>
                                     </div>
                                 )}
@@ -326,14 +310,14 @@ export default function UserDetailPage() {
 
                         {/* Account Info */}
                         <Card className="p-6 space-y-4">
-                            <h3 className="text-lg font-bold text-gray-900 border-b pb-2">Thông tin tài khoản</h3>
+                            <h3 className="text-lg font-bold text-[#2D1E1A] border-b pb-2">Thông tin tài khoản</h3>
 
                             <div className="space-y-3">
                                 <div className="flex items-start gap-3">
                                     <Shield className="h-5 w-5 text-gray-400 mt-0.5" />
                                     <div>
                                         <p className="text-xs text-gray-500">Vai trò hiện tại</p>
-                                        <Badge className="bg-blue-100 text-blue-700 border-blue-300 font-semibold mt-1">
+                                        <Badge className="bg-[#78A243]/10 text-[#78A243] border-[#78A243]/30 font-semibold mt-1">
                                             {user.role}
                                         </Badge>
                                     </div>
@@ -343,7 +327,7 @@ export default function UserDetailPage() {
                                     <Award className="h-5 w-5 text-gray-400 mt-0.5" />
                                     <div>
                                         <p className="text-xs text-gray-500">Điểm thành viên</p>
-                                        <p className="text-sm font-semibold text-gray-900">
+                                        <p className="text-sm font-semibold text-[#2D1E1A]">
                                             {user.memberPoint.toLocaleString('vi-VN')} điểm
                                         </p>
                                     </div>
@@ -353,7 +337,7 @@ export default function UserDetailPage() {
                                     <Clock className="h-5 w-5 text-gray-400 mt-0.5" />
                                     <div>
                                         <p className="text-xs text-gray-500">Ngày tạo</p>
-                                        <p className="text-sm font-semibold text-gray-900">
+                                        <p className="text-sm font-semibold text-[#2D1E1A]">
                                             {new Date(user.createdAt).toLocaleString('vi-VN')}
                                         </p>
                                     </div>
@@ -364,7 +348,7 @@ export default function UserDetailPage() {
                                         <Building className="h-5 w-5 text-gray-400 mt-0.5" />
                                         <div>
                                             <p className="text-xs text-gray-500">Hội viên</p>
-                                            <p className="text-sm font-semibold text-gray-900">{user.memberAssociationName}</p>
+                                            <p className="text-sm font-semibold text-[#2D1E1A]">{user.memberAssociationName}</p>
                                         </div>
                                     </div>
                                 )}
@@ -377,7 +361,7 @@ export default function UserDetailPage() {
             {activeTab === 'history' && (
                 <Card className="overflow-hidden">
                     <div className="p-6 border-b bg-gray-50">
-                        <h3 className="text-lg font-bold text-gray-900">Lịch sử vai trò</h3>
+                        <h3 className="text-lg font-bold text-[#2D1E1A]">Lịch sử vai trò</h3>
                         <p className="text-sm text-gray-600 mt-1">
                             Theo dõi các thay đổi vai trò và chi nhánh của người dùng
                         </p>
@@ -385,7 +369,7 @@ export default function UserDetailPage() {
 
                     {loadingHistory ? (
                         <div className="p-12 text-center text-gray-500">
-                            <div className="w-12 h-12 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin mx-auto mb-4"></div>
+                            <div className="w-12 h-12 border-4 border-[#78A243]/30 border-t-[#78A243] rounded-full animate-spin mx-auto mb-4"></div>
                             <p>Đang tải lịch sử vai trò...</p>
                         </div>
                     ) : roleHistory.length === 0 ? (
@@ -405,15 +389,15 @@ export default function UserDetailPage() {
                                         <div key={history.id} className="relative">
                                             {/* Vertical Line */}
                                             {!isLast && (
-                                                <div className="absolute left-[15px] top-[40px] w-0.5 h-[calc(100%+16px)] bg-gradient-to-b from-orange-400 to-orange-200"></div>
+                                                <div className="absolute left-[15px] top-[40px] w-0.5 h-[calc(100%+16px)] bg-gradient-to-b from-[#78A243] to-[#78A243]/50"></div>
                                             )}
 
                                             <div className="flex gap-4 pb-8">
                                                 {/* Timeline Node */}
                                                 <div className="relative flex-shrink-0">
                                                     <div className={`w-8 h-8 rounded-full flex items-center justify-center z-10 relative ${history.isActive
-                                                            ? 'bg-gradient-to-br from-green-400 to-green-600 ring-4 ring-green-100'
-                                                            : 'bg-gradient-to-br from-gray-300 to-gray-400 ring-4 ring-gray-100'
+                                                        ? 'bg-gradient-to-br from-green-400 to-green-600 ring-4 ring-green-100'
+                                                        : 'bg-gradient-to-br from-gray-300 to-gray-400 ring-4 ring-gray-100'
                                                         }`}>
                                                         {history.isActive ? (
                                                             <CheckCircle className="h-4 w-4 text-white" />
@@ -425,14 +409,14 @@ export default function UserDetailPage() {
 
                                                 {/* Content Card */}
                                                 <div className={`flex-1 rounded-xl p-4 border-2 transition-all ${history.isActive
-                                                        ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-300 shadow-md'
-                                                        : 'bg-white border-gray-200 hover:border-gray-300 shadow-sm'
+                                                    ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-300 shadow-md'
+                                                    : 'bg-white border-gray-200 hover:border-gray-300 shadow-sm'
                                                     }`}>
                                                     <div className="flex items-start justify-between mb-3">
                                                         <div className="flex items-center gap-2 flex-wrap">
                                                             <Badge className={`${history.isActive
-                                                                    ? 'bg-green-600 text-white border-green-700'
-                                                                    : 'bg-blue-100 text-blue-700 border-blue-300'
+                                                                ? 'bg-green-600 text-white border-green-700'
+                                                                : 'bg-[#78A243]/10 text-[#78A243] border-[#78A243]/30'
                                                                 } font-semibold`}>
                                                                 <Shield className="h-3 w-3 mr-1" />
                                                                 {history.roleName}

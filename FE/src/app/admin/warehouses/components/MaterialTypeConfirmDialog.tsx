@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { AlertTriangle, Tag, Trash2, X } from 'lucide-react';
+import { AlertTriangle, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
@@ -13,12 +13,12 @@ interface MaterialTypeConfirmDialogProps {
     loading?: boolean;
 }
 
-export function MaterialTypeConfirmDialog({ 
-    open, 
-    onOpenChange, 
-    onConfirm, 
-    materialTypeName, 
-    loading = false 
+export function MaterialTypeConfirmDialog({
+    open,
+    onOpenChange,
+    onConfirm,
+    materialTypeName,
+    loading = false
 }: MaterialTypeConfirmDialogProps) {
     if (!open) return null;
 
@@ -46,7 +46,7 @@ export function MaterialTypeConfirmDialog({
                             <Icon className={`h-6 w-6 ${config.iconColor}`} />
                         </div>
                         <div className="flex-1">
-                            <h2 className="text-xl font-bold text-gray-900">
+                            <h2 className="text-xl font-bold text-[#2D1E1A]">
                                 {config.title}
                             </h2>
                             <button
@@ -62,9 +62,9 @@ export function MaterialTypeConfirmDialog({
 
                 {/* Body */}
                 <div className="p-6 space-y-4">
-                    <p className="text-gray-700">
+                    <p className="text-[#2D1E1A]">
                         {config.message}{' '}
-                        <span className="font-bold text-gray-900">{materialTypeName}</span>?
+                        <span className="font-bold text-[#2D1E1A]">{materialTypeName}</span>?
                     </p>
 
                     <div className="p-4 rounded-lg bg-red-50 border-2 border-red-200">

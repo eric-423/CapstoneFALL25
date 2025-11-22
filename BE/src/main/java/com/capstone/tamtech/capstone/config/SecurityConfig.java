@@ -127,6 +127,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/orders/shipping/fee").permitAll()
                         .requestMatchers("/api/orders/payment/webhook").permitAll()
                         .requestMatchers("/api/orders/dining-table/create").permitAll()
+                        .requestMatchers("/api/orders/dining-table/update/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/api/orders/*/shipper-location").permitAll()
 
@@ -177,6 +178,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/roles/{roleId}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/roles/{roleId}").hasRole("ADMIN")
 
+                        .requestMatchers(HttpMethod.GET, "/api/users/statistics").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
                         .requestMatchers("/api/role-histories/**").hasRole("ADMIN")
 
