@@ -215,6 +215,10 @@ public class AuthServiceImpl implements AuthService {
                 .address(user.getAddress())
                 .role(roleName)
                 .memberPoint(user.getMemberPoint())
+                .roleId(roleHistoryRepository.findByUserAndIsActiveTrue(user)
+                        .map(RoleHistory::getRole)
+                        .map(Role::getId)
+                        .orElse(0))
                 .build();
 
         return LoginResponse.builder()

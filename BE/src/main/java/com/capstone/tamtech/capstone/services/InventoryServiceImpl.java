@@ -49,7 +49,7 @@ public class InventoryServiceImpl implements InventoryService {
         for (OrderItemRequest item : orderItems) {
             if (item.getProductId() > 0 && item.getQuantity() > 0) {
                 List<ProductRecipes> recipes = productRecipesRepository
-                        .findByKeyProductRecipesProductId(item.getProductId());
+                        .findByProductId(item.getProductId());
                 for (ProductRecipes recipe : recipes) {
                     int materialId = recipe.getMaterial().getId();
                     double perUnitQty = recipe.getQuantity();
@@ -64,7 +64,7 @@ public class InventoryServiceImpl implements InventoryService {
                             int productId = ci.getProduct().getId();
                             int productQty = ci.getQuantity() * item.getQuantity();
                             List<ProductRecipes> recipes = productRecipesRepository
-                                    .findByKeyProductRecipesProductId(productId);
+                                    .findByProductId(productId);
                             for (ProductRecipes recipe : recipes) {
                                 int materialId = recipe.getMaterial().getId();
                                 double perUnitQty = recipe.getQuantity();
@@ -120,7 +120,7 @@ public class InventoryServiceImpl implements InventoryService {
                 int productId = item.getProduct().getId();
                 int qty = item.getQuantity();
                 List<ProductRecipes> recipes = productRecipesRepository
-                        .findByKeyProductRecipesProductId(productId);
+                        .findByProductId(productId);
                 for (ProductRecipes recipe : recipes) {
                     int materialId = recipe.getMaterial().getId();
                     double perUnit = recipe.getQuantity();
@@ -133,7 +133,7 @@ public class InventoryServiceImpl implements InventoryService {
                     int productId = ci.getProduct().getId();
                     int productQty = ci.getQuantity() * item.getQuantity();
                     List<ProductRecipes> recipes = productRecipesRepository
-                            .findByKeyProductRecipesProductId(productId);
+                            .findByProductId(productId);
                     for (ProductRecipes recipe : recipes) {
                         int materialId = recipe.getMaterial().getId();
                         double perUnit = recipe.getQuantity();
@@ -186,7 +186,7 @@ public class InventoryServiceImpl implements InventoryService {
                 int productId = item.getProduct().getId();
                 int qty = item.getQuantity();
                 List<ProductRecipes> recipes = productRecipesRepository
-                        .findByKeyProductRecipesProductId(productId);
+                        .findByProductId(productId);
                 for (ProductRecipes recipe : recipes) {
                     int materialId = recipe.getMaterial().getId();
                     double perUnit = recipe.getQuantity();
@@ -199,7 +199,7 @@ public class InventoryServiceImpl implements InventoryService {
                     int productId = ci.getProduct().getId();
                     int productQty = ci.getQuantity() * item.getQuantity();
                     List<ProductRecipes> recipes = productRecipesRepository
-                            .findByKeyProductRecipesProductId(productId);
+                            .findByProductId(productId);
                     for (ProductRecipes recipe : recipes) {
                         int materialId = recipe.getMaterial().getId();
                         double perUnit = recipe.getQuantity();

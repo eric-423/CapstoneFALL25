@@ -7,9 +7,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class RecipesRequest {
-    private int materialId;
-    private int quantity;
-    private int orderStep;
-    private int cookingMethodId;
+public class CookingMethodRequest {
+    private String name;
+
+    private String description;
+
 }
