@@ -1,100 +1,191 @@
 'use client';
 
 import { Progress } from '@/components/ui/progress';
-import { cn } from '@/lib/utils';
-import { OrderStatus } from '@/utils/enum';
+import { cn } from '@/utils/lib/utils';
 
-import { CheckCircle2, ChefHat, CreditCard, Package, XCircle } from 'lucide-react';
+import { CheckCircle2, ChefHat, CreditCard, Package, Truck, UtensilsCrossed, XCircle } from 'lucide-react';
 
 interface OrderProgressTrackerProps {
   currentStatus: string;
   className?: string;
 }
 
+const STATUS_DESCRIPTIONS: Record<string, string> = {
+  CREATED: 'Đơn hàng đã được tạo và chờ xác nhận.',
+  VERIFIED: 'Đơn hàng đã được xác nhận.',
+  UNPAID: 'Đơn hàng đã được tạo và chờ xác nhận.',
+  COOKING: 'Đầu bếp đang chuẩn bị món ăn của bạn.',
+  PROCESSING: 'Đơn hàng đang được xử lý.',
+  COOKED: 'Món ăn đã sẵn sàng, chờ đóng gói.',
+  IN_PROCESS: 'Đơn hàng đang được hoàn thiện để giao.',
+  SHIPPING: 'Shipper đang trên đường giao món.',
+  DELIVERING: 'Shipper đang trên đường giao món.',
+  IN_DELIVERY: 'Shipper đang trên đường giao món.',
+  DELIVERED: 'Đơn đã tới nơi, chờ xác nhận hoàn tất.',
+  COMPLETED: 'Đơn hàng đã hoàn thành.',
+  PAID: 'Thanh toán đã hoàn tất.',
+};
+
 const ORDER_STATUSES = [
   {
-    key: OrderStatus.UNPAID,
-    label: OrderStatus.UNPAID,
+    key: 'CREATED',
+    label: 'Đã tạo đơn',
     icon: CreditCard,
     color: 'text-yellow-600',
     bgColor: 'bg-yellow-100',
     borderColor: 'border-yellow-300',
-    percent: 10, // Example percentage for unpaid status
+    percent: 0,
   },
   {
-    key: OrderStatus.VERIFIED,
-    label: OrderStatus.VERIFIED,
+    key: 'IN_PROCESS',
+    label: 'Đang xử lý',
     icon: CheckCircle2,
     color: 'text-blue-600',
     bgColor: 'bg-blue-100',
     borderColor: 'border-blue-300',
-    percent: 35,
+    percent: 10,
   },
   {
-    key: OrderStatus.PROCESSING,
-    label: OrderStatus.PROCESSING,
+    key: 'COOKING',
+    label: 'Đang nấu',
     icon: ChefHat,
     color: 'text-orange-600',
     bgColor: 'bg-orange-100',
     borderColor: 'border-orange-300',
-    percent: 70,
+    percent: 20,
   },
   {
-    key: OrderStatus.COMPLETED,
-    label: OrderStatus.COMPLETED,
+    key: 'COOKED',
+    label: 'Đã nấu xong',
+    icon: UtensilsCrossed,
+    color: 'text-amber-600',
+    bgColor: 'bg-amber-100',
+    borderColor: 'border-amber-300',
+    percent: 55,
+  },
+  {
+    key: 'SHIPPING',
+    label: 'Đang giao',
+    icon: Truck,
+    color: 'text-purple-600',
+    bgColor: 'bg-purple-100',
+    borderColor: 'border-purple-300',
+    percent: 65,
+  },
+  {
+    key: 'DELIVERED',
+    label: 'Đã giao',
     icon: Package,
     color: 'text-green-600',
     bgColor: 'bg-green-100',
     borderColor: 'border-green-300',
+    percent: 80,
+  },
+  {
+    key: 'COMPLETED',
+    label: 'Hoàn tất',
+    icon: CheckCircle2,
+    color: 'text-emerald-600',
+    bgColor: 'bg-emerald-100',
+    borderColor: 'border-emerald-300',
     percent: 100,
   },
 ];
 
 const CANCELLED_STATUS = {
-  key: OrderStatus.CANCELLED,
-  label: OrderStatus.CANCELLED,
+  key: 'CANCEL',
+  label: 'Đơn hàng đã hủy',
   icon: XCircle,
   color: 'text-red-600',
   bgColor: 'bg-red-100',
   borderColor: 'border-red-300',
 };
 
+// Map backend status to frontend progress tracker status
+const mapStatusToProgressStatus = (status: string): string => {
+  const normalized = status?.toUpperCase?.() || '';
+
+  // Map các status từ backend sang status trong progress tracker
+  const statusMap: Record<string, string> = {
+    // Status ban đầu
+    'UNPAID': 'CREATED',
+    'CREATED': 'CREATED',
+    'VERIFIED': 'CREATED', // VERIFIED được coi như CREATED trong progress
+
+    // Status nấu ăn
+    'PROCESSING': 'COOKING', // PROCESSING có thể là COOKING hoặc IN_PROCESS
+    'COOKING': 'COOKING',
+    'COOKED': 'COOKED',
+
+    // Status xử lý
+    'IN_PROCESS': 'IN_PROCESS',
+
+    // Status giao hàng
+    'SHIPPING': 'SHIPPING',
+    'DELIVERING': 'SHIPPING', // DELIVERING map sang SHIPPING
+    'IN_DELIVERY': 'SHIPPING', // IN_DELIVERY map sang SHIPPING
+
+    // Status hoàn thành
+    'DELIVERED': 'DELIVERED',
+    'COMPLETED': 'COMPLETED',
+    'PAID': 'COMPLETED', // PAID được coi như COMPLETED
+  };
+
+  return statusMap[normalized] || normalized;
+};
+
 export default function OrderProgressTracker({ currentStatus, className }: OrderProgressTrackerProps) {
-  // Handle cancelled orders separately
-  if (currentStatus === OrderStatus.CANCELLED) {
+  const normalizedStatus = currentStatus?.toUpperCase?.() || '';
+  const isCancelled = normalizedStatus === 'CANCEL' || normalizedStatus === 'CANCELLED';
+
+  if (isCancelled) {
     const CancelledIcon = CANCELLED_STATUS.icon;
     return (
       <div className={cn('w-full p-4 bg-red-50 rounded-lg border border-red-200', className)}>
         <div className='flex items-center justify-center space-x-2'>
           <CancelledIcon className='h-5 w-5 text-red-600' />
-          <span className='font-medium text-red-700'>Đơn hàng đã bị hủy</span>
+          <span className='font-medium text-red-700'>{CANCELLED_STATUS.label}</span>
         </div>
       </div>
     );
   }
 
-  // Find current status index
-  const currentIndex = ORDER_STATUSES.findIndex((status) => status.key === currentStatus);
+
+  const mappedStatus = mapStatusToProgressStatus(normalizedStatus);
+  const currentIndex = ORDER_STATUSES.findIndex((status) => status.key === mappedStatus);
+
+
+  const finalIndex = currentIndex === -1
+    ? ORDER_STATUSES.findIndex((status) => status.key === normalizedStatus)
+    : currentIndex;
+
+
+  const safeIndex = finalIndex === -1 ? 0 : finalIndex;
+  const progressValue = ORDER_STATUSES[safeIndex]?.percent ?? 0;
+
 
   return (
     <div className={cn('w-full space-y-4 ', className)}>
       {/* Progress Bar */}
-      <div className='relative mx-5'>
-        <Progress value={ORDER_STATUSES[currentIndex].percent} className='h-2' />
-        <div className='absolute inset-0 flex justify-between items-center'>
+      <div className='relative px-5'>
+        <Progress value={progressValue} className='h-2' />
+        <div className='absolute inset-0 flex justify-between items-center px-5'>
           {ORDER_STATUSES.map((status, index) => {
             const Icon = status.icon;
-            const isCompleted = index <= currentIndex;
-            const isCurrent = index === currentIndex;
+            const isCompleted = index <= safeIndex;
+            const isCurrent = index === safeIndex;
 
             return (
               <div
                 key={status.key}
                 className={cn(
-                  'flex items-center justify-center w-8 h-8 rounded-full border-2 bg-white transition-all duration-300 mx-5',
+                  'flex items-center justify-center w-8 h-8 rounded-full border-2 bg-card transition-all duration-300 relative',
                   isCompleted ? `${status.borderColor} ${status.bgColor}` : 'border-gray-300 bg-gray-100',
                   isCurrent && 'ring-2 ring-offset-2 ring-primary/50',
                 )}
+                style={{
+                  transform: 'translateX(0)',
+                }}
               >
                 <Icon
                   className={cn('h-4 w-4 transition-colors duration-300', isCompleted ? status.color : 'text-gray-400')}
@@ -106,22 +197,22 @@ export default function OrderProgressTracker({ currentStatus, className }: Order
       </div>
 
       {/* Status Labels */}
-      <div className='flex justify-between text-xs'>
+      <div className='flex justify-between text-xs px-5'>
         {ORDER_STATUSES.map((status, index) => {
-          const isCompleted = index <= currentIndex;
-          const isCurrent = index === currentIndex;
+          const isCompleted = index <= safeIndex;
+          const isCurrent = index === safeIndex;
 
           return (
             <div
               key={status.key}
               className={cn(
-                'flex flex-col space-y-1 flex-1 items-center transition-all duration-300',
+                'flex flex-col space-y-1 items-center transition-all duration-300 w-8',
                 isCurrent && 'transform scale-105',
               )}
             >
               <span
                 className={cn(
-                  'font-medium transition-colors duration-300 text-center max-w-[80px] break-words',
+                  'font-medium transition-colors duration-300 text-center whitespace-nowrap',
                   isCompleted ? status.color : 'text-gray-500',
                   isCurrent && 'font-semibold',
                 )}
@@ -136,10 +227,7 @@ export default function OrderProgressTracker({ currentStatus, className }: Order
       {/* Current Status Description */}
       <div className='text-center p-3 pt-0'>
         <p className='text-sm text-primary font-medium'>
-          {currentStatus === OrderStatus.UNPAID && 'Vui lòng hoàn tất thanh toán để xử lý đơn hàng'}
-          {currentStatus === OrderStatus.VERIFIED && 'Đơn hàng đã được xác nhận và đang chờ chuẩn bị'}
-          {currentStatus === OrderStatus.PROCESSING && 'Đầu bếp đang chuẩn bị món ăn của bạn'}
-          {currentStatus === OrderStatus.COMPLETED && 'Đơn hàng đã hoàn tất'}
+          {STATUS_DESCRIPTIONS[normalizedStatus] || STATUS_DESCRIPTIONS[mappedStatus] || 'Đơn hàng đang được xử lý.'}
         </p>
       </div>
     </div>

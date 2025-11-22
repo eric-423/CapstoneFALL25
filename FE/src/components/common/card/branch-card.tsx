@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
-import { Branch } from '@/types/branch.type';
+import { cn } from '@/utils/lib/utils';
+import { Branch } from '@/apis/branch.api';
 
 import { MapPin, Phone, Store } from 'lucide-react';
 
@@ -12,7 +12,7 @@ type BranchCardProps = {
 
 export const BranchCard = ({ item, className }: BranchCardProps) => {
   return (
-    <Card className={cn(className, 'bg-white p-0 rounded-xl p-4 shadow-md hover:shadow-lg transition-shadow')}>
+    <Card className={cn(className, 'bg-card p-0 rounded-xl p-4 shadow-md hover:shadow-lg transition-shadow')}>
       <div className='flex gap-4'>
         <div className='w-16 h-16 bg-primary/10 rounded-full overflow-hidden content-center flex-shrink-0'>
           <Store className='w-12 h-12 text-primary m-auto' />

@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogClose, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
-import { useCart } from '@/contexts/cart/CartContext';
-import { Product } from '@/types/product.type';
+import { useCart } from '@/utils/contexts/cart/CartContext';
+import { Product } from '@/apis/product.api';
 
 import { ShoppingBag, X } from 'lucide-react';
 import Image from 'next/image';

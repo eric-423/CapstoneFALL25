@@ -19,7 +19,7 @@ import {
   UserOutlined,
 } from '@ant-design/icons';
 
-import { removeAccessToken, removeRefreshToken } from '@/utils/cookies';
+import { useAuth } from '@/utils/hooks';
 
 const { Header, Sider, Content } = Layout;
 
@@ -27,6 +27,7 @@ const ManagerSidebar: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
+  const { logout } = useAuth();
 
   const siderWidth = 240;
   const siderCollapsedWidth = 80;
@@ -87,16 +88,15 @@ const ManagerSidebar: React.FC = () => {
       key: 'logout',
       label: 'Đăng xuất',
       icon: <LogoutOutlined />,
-      onClick: () => {
-        // Xóa token ở localStorage và cookie
-        localStorage.removeItem('access_token');
-        // Import các hàm xóa token ở cookie
-        // (nếu chưa import, thêm dòng sau ở đầu file)
-        // import { removeAccessToken, removeRefreshToken } from '@/utils/cookies';
-        removeAccessToken();
-        removeRefreshToken();
-        message.success('Đăng xuất thành công');
-        router.push('/login');
+      onClick: async () => {
+        try {
+          message.loading({ content: 'Đang đăng xuất...', key: 'logout' });
+          await logout();
+          message.success({ content: 'Đăng xuất thành công', key: 'logout' });
+        } catch (error) {
+          console.error('[ManagerSidebar] Logout error:', error);
+          message.error({ content: 'Đăng xuất thất bại', key: 'logout' });
+        }
       },
     },
   ];

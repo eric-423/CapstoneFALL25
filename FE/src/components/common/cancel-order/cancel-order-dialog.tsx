@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useCustomerOrders } from '@/hooks/useCustomerOrders';
+import { useCustomerOrders } from '@/utils/hooks/useCustomerOrders';
 import { OrderStatus } from '@/utils/enum';
 
 import { useState } from 'react';

@@ -1,4 +1,4 @@
-import configs from '@/configs';
+import configs from '@/utils/configs';
 import { STORE_INFO } from '@/utils/mockupData';
 
 import { Mail, MapPin, Phone } from 'lucide-react';
@@ -13,12 +13,13 @@ const Footer = () => {
           {/* Logo and Tagline */}
           <div className='flex flex-col items-start'>
             <div className='flex items-center space-x-3 mb-4'>
-              <div className='relative w-32 h-12'>
+              <div className='relative w-40 h-12 overflow-visible'>
                 <Image
                   src='/full-logo-white.svg'
                   alt='Tấm Tắc Logo'
                   fill
-                  className='object-contain p-2'
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  className='object-contain scale-110 lg:scale-125 p-1'
                 />
               </div>
             </div>
@@ -29,7 +30,7 @@ const Footer = () => {
                 rel='noopener noreferrer'
                 className='hover:opacity-80 transition-opacity'
               >
-                <div className='bg-white/20 rounded-full p-2'>
+                <div className='bg-card/20 rounded-full p-2'>
                   <svg
                     xmlns='http://www.w3.org/2000/svg'
                     width='24'
@@ -130,3 +131,4 @@ const Footer = () => {
 };
 
 export default Footer;
+

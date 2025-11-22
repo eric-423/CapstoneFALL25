@@ -1,0 +1,251 @@
+package com.capstone.tamtech.capstone.services;
+
+import com.capstone.tamtech.capstone.entities.MaterialWarehouse;
+import com.capstone.tamtech.capstone.entities.OrderItem;
+import com.capstone.tamtech.capstone.entities.ProductRecipes;
+import com.capstone.tamtech.capstone.entities.Warehouse;
+import com.capstone.tamtech.capstone.payload.request.OrderItemRequest;
+import com.capstone.tamtech.capstone.repositories.ComboRepository;
+import com.capstone.tamtech.capstone.repositories.MaterialWarehouseRepository;
+import com.capstone.tamtech.capstone.repositories.ProductRecipesRepository;
+import com.capstone.tamtech.capstone.repositories.WarehouseRepository;
+import com.capstone.tamtech.capstone.services.impl.InventoryService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.*;
+
+@Service
+public class InventoryServiceImpl implements InventoryService {
+
+    @Autowired
+    private ProductRecipesRepository productRecipesRepository;
+
+    @Autowired
+    private MaterialWarehouseRepository materialWarehouseRepository;
+
+    @Autowired
+    private ComboRepository comboRepository;
+
+    @Autowired
+    private WarehouseRepository warehouseRepository;
+
+    private Integer resolveWarehouseIdByBranch(Integer branchId) {
+        if (branchId == null) return null;
+        return warehouseRepository.findAll().stream()
+                .filter(w -> w.getBranch() != null && w.getBranch().getId() == branchId)
+                .map(Warehouse::getId)
+                .findFirst().orElse(null);
+    }
+
+    @Override
+    public void assertSufficientMaterialsForOrder(List<OrderItemRequest> orderItems) {
+        if (orderItems == null || orderItems.isEmpty()) {
+            return;
+        }
+
+        Map<Integer, Double> requiredMaterialToQty = new HashMap<>();
+
+        for (OrderItemRequest item : orderItems) {
+            if (item.getProductId() > 0 && item.getQuantity() > 0) {
+                List<ProductRecipes> recipes = productRecipesRepository
+                        .findByKeyProductRecipesProductId(item.getProductId());
+                for (ProductRecipes recipe : recipes) {
+                    int materialId = recipe.getMaterial().getId();
+                    double perUnitQty = recipe.getQuantity();
+                    double need = perUnitQty * item.getQuantity();
+                    requiredMaterialToQty.merge(materialId, need, Double::sum);
+                }
+            }
+            if (item.getComboId() > 0 && item.getQuantity() > 0) {
+                comboRepository.findById(item.getComboId()).ifPresent(combo -> {
+                    if (combo.getComboItems() != null) {
+                        combo.getComboItems().forEach(ci -> {
+                            int productId = ci.getProduct().getId();
+                            int productQty = ci.getQuantity() * item.getQuantity();
+                            List<ProductRecipes> recipes = productRecipesRepository
+                                    .findByKeyProductRecipesProductId(productId);
+                            for (ProductRecipes recipe : recipes) {
+                                int materialId = recipe.getMaterial().getId();
+                                double perUnitQty = recipe.getQuantity();
+                                double need = perUnitQty * productQty;
+                                requiredMaterialToQty.merge(materialId, need, Double::sum);
+                            }
+                        });
+                    }
+                });
+            }
+        }
+
+        if (requiredMaterialToQty.isEmpty()) {
+            return;
+        }
+
+        Map<Integer, Double> availableByMaterial = new HashMap<>();
+        for (Integer materialId : requiredMaterialToQty.keySet()) {
+            List<MaterialWarehouse> stocks = materialWarehouseRepository
+                    .findByKeyMaterialWarehouseMaterialId(materialId);
+            double total = 0.0;
+            for (MaterialWarehouse mw : stocks) {
+                total += mw.getQuantity();
+            }
+            availableByMaterial.put(materialId, total);
+        }
+
+        List<String> shortages = new ArrayList<>();
+        for (Map.Entry<Integer, Double> e : requiredMaterialToQty.entrySet()) {
+            int materialId = e.getKey();
+            double required = e.getValue();
+            double available = availableByMaterial.getOrDefault(materialId, 0.0);
+            if (available + 1e-9 < required) {
+                shortages.add("materialId=" + materialId + ", required=" + required + ", available=" + available);
+            }
+        }
+
+        if (!shortages.isEmpty()) {
+            throw new IllegalArgumentException("Không đủ nguyên liệu trong kho: " + String.join("; ", shortages));
+        }
+    }
+
+    @Override
+    public void restoreMaterialsForOrderItems(List<OrderItem> orderItems, Integer branchId) {
+        if (orderItems == null || orderItems.isEmpty()) {
+            return;
+        }
+
+        Map<Integer, Double> materialToRestoreQty = new HashMap<>();
+
+        for (OrderItem item : orderItems) {
+            if (item.getProduct() != null && item.getQuantity() > 0) {
+                int productId = item.getProduct().getId();
+                int qty = item.getQuantity();
+                List<ProductRecipes> recipes = productRecipesRepository
+                        .findByKeyProductRecipesProductId(productId);
+                for (ProductRecipes recipe : recipes) {
+                    int materialId = recipe.getMaterial().getId();
+                    double perUnit = recipe.getQuantity();
+                    double addBack = perUnit * qty;
+                    materialToRestoreQty.merge(materialId, addBack, Double::sum);
+                }
+            }
+            if (item.getCombo() != null && item.getQuantity() > 0 && item.getCombo().getComboItems() != null) {
+                item.getCombo().getComboItems().forEach(ci -> {
+                    int productId = ci.getProduct().getId();
+                    int productQty = ci.getQuantity() * item.getQuantity();
+                    List<ProductRecipes> recipes = productRecipesRepository
+                            .findByKeyProductRecipesProductId(productId);
+                    for (ProductRecipes recipe : recipes) {
+                        int materialId = recipe.getMaterial().getId();
+                        double perUnit = recipe.getQuantity();
+                        double addBack = perUnit * productQty;
+                        materialToRestoreQty.merge(materialId, addBack, Double::sum);
+                    }
+                });
+            }
+        }
+
+        if (materialToRestoreQty.isEmpty()) {
+            return;
+        }
+
+        Integer warehouseId = resolveWarehouseIdByBranch(branchId);
+
+        for (Map.Entry<Integer, Double> e : materialToRestoreQty.entrySet()) {
+            int materialId = e.getKey();
+            double restore = e.getValue();
+            List<MaterialWarehouse> stocks = materialWarehouseRepository
+                    .findByKeyMaterialWarehouseMaterialId(materialId);
+            if (stocks != null && !stocks.isEmpty()) {
+                if (warehouseId != null) {
+                    for (MaterialWarehouse mw : stocks) {
+                        if (mw.getWarehouse() != null && mw.getWarehouse().getId() == warehouseId) {
+                            mw.setQuantity(mw.getQuantity() + restore);
+                            materialWarehouseRepository.save(mw);
+                            break;
+                        }
+                    }
+                } else {
+                    MaterialWarehouse mw = stocks.get(0);
+                    mw.setQuantity(mw.getQuantity() + restore);
+                    materialWarehouseRepository.save(mw);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void consumeMaterialsForOrderItems(List<OrderItem> orderItems, Integer branchId) {
+        if (orderItems == null || orderItems.isEmpty()) {
+            return;
+        }
+
+        Map<Integer, Double> materialToConsumeQty = new HashMap<>();
+
+        for (OrderItem item : orderItems) {
+            if (item.getProduct() != null && item.getQuantity() > 0) {
+                int productId = item.getProduct().getId();
+                int qty = item.getQuantity();
+                List<ProductRecipes> recipes = productRecipesRepository
+                        .findByKeyProductRecipesProductId(productId);
+                for (ProductRecipes recipe : recipes) {
+                    int materialId = recipe.getMaterial().getId();
+                    double perUnit = recipe.getQuantity();
+                    double need = perUnit * qty;
+                    materialToConsumeQty.merge(materialId, need, Double::sum);
+                }
+            }
+            if (item.getCombo() != null && item.getQuantity() > 0 && item.getCombo().getComboItems() != null) {
+                item.getCombo().getComboItems().forEach(ci -> {
+                    int productId = ci.getProduct().getId();
+                    int productQty = ci.getQuantity() * item.getQuantity();
+                    List<ProductRecipes> recipes = productRecipesRepository
+                            .findByKeyProductRecipesProductId(productId);
+                    for (ProductRecipes recipe : recipes) {
+                        int materialId = recipe.getMaterial().getId();
+                        double perUnit = recipe.getQuantity();
+                        double need = perUnit * productQty;
+                        materialToConsumeQty.merge(materialId, need, Double::sum);
+                    }
+                });
+            }
+        }
+
+        if (materialToConsumeQty.isEmpty()) {
+            return;
+        }
+
+        Integer warehouseId = resolveWarehouseIdByBranch(branchId);
+
+        for (Map.Entry<Integer, Double> e : materialToConsumeQty.entrySet()) {
+            int materialId = e.getKey();
+            double consume = e.getValue();
+            List<MaterialWarehouse> stocks = materialWarehouseRepository
+                    .findByKeyMaterialWarehouseMaterialId(materialId);
+            double remaining = consume;
+            if (warehouseId != null) {
+                for (MaterialWarehouse mw : stocks) {
+                    if (mw.getWarehouse() != null && mw.getWarehouse().getId() == warehouseId) {
+                        double take = Math.min(mw.getQuantity(), remaining);
+                        mw.setQuantity(mw.getQuantity() - take);
+                        materialWarehouseRepository.save(mw);
+                        remaining -= take;
+                        break;
+                    }
+                }
+            } else {
+                for (MaterialWarehouse mw : stocks) {
+                    if (remaining <= 0) break;
+                    double take = Math.min(mw.getQuantity(), remaining);
+                    mw.setQuantity(mw.getQuantity() - take);
+                    materialWarehouseRepository.save(mw);
+                    remaining -= take;
+                }
+            }
+            if (remaining > 1e-9) {
+                throw new IllegalStateException("Kho không đủ trong quá trình trừ tồn. materialId=" + materialId + ", thiếu=" + remaining);
+            }
+        }
+    }
+}
+
+

@@ -1,5 +1,5 @@
-import { cn } from '@/lib/utils';
-import { Branch } from '@/types/branch.type';
+import { cn } from '@/utils/lib/utils';
+import { Branch } from '@/apis/branch.api';
 
 import { MapPin } from 'lucide-react';
 

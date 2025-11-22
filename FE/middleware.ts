@@ -6,6 +6,7 @@ const protectedRoutes = [
     '/profile',
     '/admin',
     '/manager',
+    '/chef',
     '/checkout',
     '/my-orders',
     '/payment-success',
@@ -18,6 +19,10 @@ const adminRoutes = [
 
 const managerRoutes = [
     '/manager'
+];
+
+const chefRoutes = [
+    '/chef'
 ];
 
 const guestOnlyRoutes = [
@@ -33,12 +38,9 @@ interface JwtPayload {
 }
 
 function getTokenFromRequest(request: NextRequest): string | null {
-    // Try to get token from cookie first
-    const tokenFromCookie = request.cookies.get('access_token')?.value ||
-        request.cookies.get('authToken')?.value;
+    const tokenFromCookie = request.cookies.get('token')?.value
     if (tokenFromCookie) return tokenFromCookie;
 
-    // Try to get token from Authorization header
     const authHeader = request.headers.get('authorization');
     if (authHeader?.startsWith('Bearer ')) {
         return authHeader.substring(7);
@@ -65,7 +67,6 @@ function isTokenValid(token: string): { isValid: boolean; payload: JwtPayload | 
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
-    // Skip middleware for static files and API routes
     if (
         pathname.startsWith('/_next') ||
         pathname.startsWith('/api') ||
@@ -75,7 +76,7 @@ export async function middleware(request: NextRequest) {
     }
 
     const token = getTokenFromRequest(request);
-    const userRole = request.cookies.get('userRole')?.value;
+    const userRole = request.cookies.get('userRole')?.value ?? request.cookies.get('role')?.value;
 
     // Check authentication status
     const { isValid, payload } = token ? isTokenValid(token) : { isValid: false, payload: null };
@@ -83,8 +84,15 @@ export async function middleware(request: NextRequest) {
 
     // Redirect authenticated users away from guest-only routes
     if (isAuthenticated && guestOnlyRoutes.some(route => pathname.startsWith(route))) {
-        const dashboardUrl = payload?.role === 'ADMIN' ? '/admin' :
-            payload?.role === 'MANAGER' ? '/manager' : '/';
+        let dashboardUrl = '/';
+        if (payload?.role === 'ADMIN') {
+            dashboardUrl = '/admin';
+        } else if (payload?.role === 'MANAGER') {
+            dashboardUrl = '/manager';
+        } else if (payload?.role === 'CHEFF') {
+            dashboardUrl = '/chef';
+        }
+
         return NextResponse.redirect(new URL(dashboardUrl, request.url));
     }
 
@@ -99,15 +107,21 @@ export async function middleware(request: NextRequest) {
 
     // Check role-based access
     if (isAuthenticated && payload) {
-        // Admin routes - only admin can access
+        // Admin routes - admin and manager can access
         if (adminRoutes.some(route => pathname.startsWith(route)) &&
-            payload.role !== 'ADMIN' && userRole !== 'Admin') {
+            !['ADMIN', 'MANAGER', 'Admin', 'Manager'].includes(payload.role || userRole || '')) {
             return NextResponse.redirect(new URL('/403', request.url));
         }
 
         // Manager routes - admin and manager can access
         if (managerRoutes.some(route => pathname.startsWith(route)) &&
             !['ADMIN', 'MANAGER', 'Admin', 'Manager'].includes(payload.role || userRole || '')) {
+            return NextResponse.redirect(new URL('/403', request.url));
+        }
+
+        // Chef routes - only cheff can access
+        if (chefRoutes.some(route => pathname.startsWith(route)) &&
+            !['CHEFF', 'Cheff'].includes(payload.role || userRole || '')) {
             return NextResponse.redirect(new URL('/403', request.url));
         }
     }

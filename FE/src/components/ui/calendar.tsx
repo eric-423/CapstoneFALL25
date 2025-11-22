@@ -1,5 +1,5 @@
 import { buttonVariants } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/lib/utils';
 
 import * as React from 'react';
 import { DayPicker } from 'react-day-picker';

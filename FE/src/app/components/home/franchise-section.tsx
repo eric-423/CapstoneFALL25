@@ -136,6 +136,7 @@ const FranchiseSection = () => {
                                             src={branch.image}
                                             alt={branch.name}
                                             fill
+                                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                             className="object-cover"
                                             style={{
                                                 boxShadow: 'inset -0.5px -0.5px 10.1px rgba(45, 30, 26, 0.2)'

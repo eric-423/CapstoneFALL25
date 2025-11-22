@@ -3,11 +3,14 @@
 import { AdminGuard } from '@/components/guards';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { MOCK_FEEDBACK } from '@/mocks/data/feedback.mock';
 import { MessageSquare, Star, Reply, CheckCircle, Clock, Filter } from 'lucide-react';
 import { useState } from 'react';
+import { AdminPageLayout, AdminPageHeader, AdminStatsCard } from '../components/AdminPageLayout';
 
 type FilterType = 'ALL' | 'PENDING' | 'RESOLVED';
+
+// Temporary empty array until API is implemented
+const MOCK_FEEDBACK: any[] = [];
 
 export default function FeedbackPage() {
     const [activeFilter, setActiveFilter] = useState<FilterType>('ALL');
@@ -20,66 +23,40 @@ export default function FeedbackPage() {
 
     return (
         <AdminGuard>
-            <div className="min-h-screen bg-[#f9fafb] py-8">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    {/* Header */}
-                    <div className="mb-8">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3 mb-2">
-                                    <div className="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center shadow-lg">
-                                        <MessageSquare className="text-white" size={28} strokeWidth={2.5} />
-                                    </div>
-                                    Phản Hồi & Hỗ Trợ
-                                </h1>
-                                <p className="text-gray-600 text-lg">Xem và trả lời phản hồi từ khách hàng</p>
-                            </div>
-                        </div>
-                    </div>
+            <AdminPageLayout>
+                {/* Header */}
+                <AdminPageHeader
+                    title="Phản Hồi & Hỗ Trợ"
+                    description="Xem và trả lời phản hồi từ khách hàng"
+                    icon={MessageSquare}
+                />
 
-                    {/* Stats */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                        <Card className="p-6 bg-white border-0 shadow-sm hover:shadow-xl transition-all duration-300 rounded-2xl group">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">Tổng phản hồi</p>
-                                    <p className="text-4xl font-bold text-gray-900 group-hover:text-primary transition-colors">{MOCK_FEEDBACK.length}</p>
-                                </div>
-                                <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-all">
-                                    <MessageSquare className="text-white" size={26} strokeWidth={2.5} />
-                                </div>
-                            </div>
-                        </Card>
-                        <Card className="p-6 bg-white border-0 shadow-sm hover:shadow-xl transition-all duration-300 rounded-2xl group">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">Chờ xử lý</p>
-                                    <p className="text-4xl font-bold text-yellow-600 group-hover:scale-105 transition-transform">
-                                        {MOCK_FEEDBACK.filter(f => f.status === 'PENDING').length}
-                                    </p>
-                                </div>
-                                <div className="w-14 h-14 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-all">
-                                    <Clock className="text-white" size={26} strokeWidth={2.5} />
-                                </div>
-                            </div>
-                        </Card>
-                        <Card className="p-6 bg-white border-0 shadow-sm hover:shadow-xl transition-all duration-300 rounded-2xl group">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">Đã xử lý</p>
-                                    <p className="text-4xl font-bold text-green-600 group-hover:scale-105 transition-transform">
-                                        {MOCK_FEEDBACK.filter(f => f.status === 'RESOLVED').length}
-                                    </p>
-                                </div>
-                                <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-all">
-                                    <CheckCircle className="text-white" size={26} strokeWidth={2.5} />
-                                </div>
-                            </div>
-                        </Card>
-                    </div>
+                {/* Stats */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+                    <AdminStatsCard
+                        title="Tổng phản hồi"
+                        value={MOCK_FEEDBACK.length}
+                        icon={MessageSquare}
+                        iconClassName="from-blue-500 to-cyan-500"
+                    />
+                    <AdminStatsCard
+                        title="Chờ xử lý"
+                        value={MOCK_FEEDBACK.filter(f => f.status === 'PENDING').length}
+                        icon={Clock}
+                        className="border-yellow-200"
+                        iconClassName="from-yellow-500 to-orange-500"
+                    />
+                    <AdminStatsCard
+                        title="Đã xử lý"
+                        value={MOCK_FEEDBACK.filter(f => f.status === 'RESOLVED').length}
+                        icon={CheckCircle}
+                        className="border-green-200"
+                        iconClassName="from-green-500 to-emerald-500"
+                    />
+                </div>
 
-                    {/* Filter Buttons */}
-                    <div className="mb-8 flex items-center gap-4">
+                {/* Filter Buttons */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                         <div className="flex items-center gap-2">
                             <Filter size={20} className="text-gray-500" strokeWidth={2.5} />
                             <span className="text-sm font-semibold text-gray-600 uppercase tracking-wider">Lọc:</span>
@@ -106,8 +83,8 @@ export default function FeedbackPage() {
                         </div>
                     </div>
 
-                    {/* Feedback List */}
-                    <div className="space-y-6">
+                {/* Feedback List */}
+                <div className="space-y-4 sm:space-y-6">
                         {filteredFeedback.map(feedback => (
                             <Card key={feedback.id} className="bg-white border-0 shadow-sm hover:shadow-2xl transition-all duration-500 rounded-2xl overflow-hidden group">
                                 {/* Gradient top border */}
@@ -237,9 +214,8 @@ export default function FeedbackPage() {
                                 </div>
                             </Card>
                         ))}
-                    </div>
                 </div>
-            </div>
+            </AdminPageLayout>
         </AdminGuard>
     );
 }

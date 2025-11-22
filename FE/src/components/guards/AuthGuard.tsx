@@ -1,8 +1,8 @@
 'use client';
 
-import { useAuthContext } from '@/contexts/AuthContext';
+import { useAuthContext } from '@/utils/contexts/AuthContext';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
-import { useNavigation } from '@/hooks/useNavigation';
+import { useNavigation } from '@/utils/hooks/useNavigation';
 import { useEffect, useState } from 'react';
 
 interface AuthGuardProps {

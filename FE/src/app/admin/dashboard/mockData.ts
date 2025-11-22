@@ -34,11 +34,11 @@ export const revenueData = [
 ];
 
 export const topDishesData = [
-    { name: 'Phở bò đặc biệt', sales: 145 },
-    { name: 'Bún chả Hà Nội', sales: 132 },
-    { name: 'Cơm tấm sườn', sales: 118 },
-    { name: 'Bánh mì thịt', sales: 95 },
-    { name: 'Gỏi cuốn tôm', sales: 87 },
+    { name: 'Cơm tấm sườn nướng', sales: 145 },
+    { name: 'Cơm tấm sườn bì chả', sales: 132 },
+    { name: 'Cơm tấm đặc biệt', sales: 118 },
+    { name: 'Cơm tấm sườn trứng', sales: 95 },
+    { name: 'Cơm tấm gà nướng', sales: 87 },
 ];
 
 export const branchRevenueData = [
@@ -63,10 +63,10 @@ export const recentOrders = [
 // New: Ingredient Usage Data
 export const ingredientUsageData = [
     { name: 'Gạo tấm', usage: 150, unit: 'kg' },
-    { name: 'Thịt heo', usage: 85, unit: 'kg' },
-    { name: 'Trứng gà', usage: 720, unit: 'quả' },
+    { name: 'Sườn heo', usage: 85, unit: 'kg' },
+    { name: 'Trứng gà', usage: 720, unit: 'piece' },
     { name: 'Nước mắm', usage: 25, unit: 'l' },
-    { name: 'Rau dưa', usage: 45, unit: 'kg' },
+    { name: 'Dưa leo', usage: 45, unit: 'kg' },
 ];
 
 // New: Supplier Distribution Data
@@ -80,26 +80,26 @@ export const supplierDistributionData = [
 export const recentRecipesData = [
     {
         id: 1,
-        name: 'Phở Bò Đặc Biệt',
-        calories: 520,
-        price: 65000,
-        image: '/images/recipes/pho-bo.jpg',
+        name: 'Cơm Tấm Sườn Nướng',
+        calories: 580,
+        price: 45000,
+        image: '/images/recipes/com-tam-suon.jpg',
         createdAt: '2 ngày trước',
     },
     {
         id: 2,
-        name: 'Bún Chả Hà Nội',
-        calories: 450,
-        price: 55000,
-        image: '/images/recipes/bun-cha.jpg',
+        name: 'Cơm Tấm Sườn Bì Chả',
+        calories: 650,
+        price: 50000,
+        image: '/images/recipes/com-tam-suon-bi-cha.jpg',
         createdAt: '3 ngày trước',
     },
     {
         id: 3,
-        name: 'Cơm Tấm Sườn',
-        calories: 620,
-        price: 50000,
-        image: '/images/recipes/com-tam.jpg',
+        name: 'Cơm Tấm Gà Nướng Sả',
+        calories: 550,
+        price: 45000,
+        image: '/images/recipes/com-tam-ga.jpg',
         createdAt: '5 ngày trước',
     },
 ];
@@ -143,7 +143,7 @@ export const recentActivitiesData = [
     {
         id: 4,
         type: 'alert' as const,
-        message: 'Cảnh báo: Tôm sú sắp hết hàng (12kg còn lại)',
+        message: 'Cảnh báo: Bì heo sắp hết hàng (10kg còn lại)',
         timestamp: '2 giờ trước',
         icon: 'AlertTriangle',
     },
@@ -158,8 +158,8 @@ export const recentActivitiesData = [
 
 // New: Low Stock Alerts
 export const lowStockAlertsData = [
-    { id: 1, name: 'Tôm sú', quantity: 12, unit: 'kg', threshold: 5, severity: 'high' as const },
+    { id: 1, name: 'Bì heo', quantity: 10, unit: 'kg', threshold: 8, severity: 'high' as const },
     { id: 2, name: 'Cà chua', quantity: 8, unit: 'kg', threshold: 15, severity: 'medium' as const },
     { id: 3, name: 'Ớt', quantity: 3, unit: 'kg', threshold: 5, severity: 'high' as const },
-    { id: 4, name: 'Chanh', quantity: 6, unit: 'kg', threshold: 10, severity: 'low' as const },
+    { id: 4, name: 'Hành lá', quantity: 5, unit: 'kg', threshold: 5, severity: 'low' as const },
 ];

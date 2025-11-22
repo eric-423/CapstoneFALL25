@@ -3,7 +3,8 @@ import { jwtDecode } from 'jwt-decode';
 interface JWTPayload {
   id: number;
   phoneNumber: string;
-  fullName: string;
+  fullName?: string;
+  name?: string;
   email: string;
   role: string;
   branchId: number;

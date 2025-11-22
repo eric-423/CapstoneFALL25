@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { Product } from '@/types/product.type';
+import { useIsMobile } from '@/utils/hooks/use-mobile';
+import { Product } from '@/apis/product.api';
 import { contentOverflow } from '@/utils/contentOverflow';
 
 import { Plus, Star } from 'lucide-react';
@@ -20,7 +20,7 @@ export const ProductCard = ({ item, descriptionOverflow = 40 }: ProductCardProps
   const [dialogOpen, setDialogOpen] = useState(false);
   const isMobile = useIsMobile();
   return (
-    <Card className='group p-0 overflow-hidden gap-4 bg-white/80 backdrop-blur-sm border-none shadow-lg hover:shadow-xl transition-all duration-300'>
+    <Card className='group p-0 overflow-hidden gap-4 bg-background/80 backdrop-blur-sm border-none shadow-lg hover:shadow-xl transition-all duration-300'>
       <div className='relative h-50 overflow-hidden'>
         <Image
           src={item.productImage || '/placeholder.svg'}
@@ -29,9 +29,9 @@ export const ProductCard = ({ item, descriptionOverflow = 40 }: ProductCardProps
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           className='object-cover transition-transform duration-500 group-hover:scale-105'
         />
-        <div className='absolute top-4 right-4 bg-white rounded-full px-3 py-1 flex items-center shadow-md'>
+        <div className='absolute top-4 right-4 bg-card rounded-full px-3 py-1 flex items-center shadow-md'>
           <Star className='h-4 w-4 text-yellow-500 mr-1' fill='#F59E0B' />
-          <span className='text-sm font-medium'>5</span>
+          <span className='text-sm font-medium'>{item.rating}</span>
         </div>
       </div>
       <div className='p-4 pt-0'>

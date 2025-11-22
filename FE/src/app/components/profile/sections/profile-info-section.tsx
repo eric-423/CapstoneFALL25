@@ -2,20 +2,29 @@
 
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { Card, CardContent } from '@/components/ui/card';
-import { User } from '@/types/user.type';
+import { UserAuthData } from '@/utils/types/user.type';
+import AddressManagementSection from './address-management-section';
 
 import { Calendar, CircleUserRound, LucideUser, Mail, Phone, ShoppingBag } from 'lucide-react';
 
 interface ProfileInfoSectionProps {
-    user: User;
+    user: UserAuthData;
     totalOrders?: number;
+    totalEarnedPoints?: number;
+    totalUsedPoints?: number;
     isLoading?: boolean;
 }
 
-export default function ProfileInfoSection({ user, totalOrders, isLoading }: ProfileInfoSectionProps) {
+export default function ProfileInfoSection({
+    user,
+    totalOrders,
+    totalEarnedPoints = 0,
+    totalUsedPoints = 0,
+    isLoading,
+}: ProfileInfoSectionProps) {
     return (
         <div className='space-y-6'>
-            <Card>
+            <Card className='bg-transparent shadow-none border-0'>
                 {isLoading ? (
                     <div className='p-4 text-center'>
                         <LoadingSpinner />
@@ -25,19 +34,10 @@ export default function ProfileInfoSection({ user, totalOrders, isLoading }: Pro
                         {/* User Avatar and Basic Info */}
                         <div className='space-y-2 items-center justify-items-center text-center'>
                             <CircleUserRound className='h-20 w-20' />
-                            <h3 className='text-xl font-semibold'>{user?.fullName}</h3>
+                            <h3 className='text-xl font-semibold'>{user?.fullName || 'Khách hàng'}</h3>
                             <div className='flex items-center gap-1'>
                                 <Phone className='h-4 w-4' />
-                                {user?.phone}
-                            </div>
-                            <div className='flex items-center gap-1'>
-                                {user?.email ? (
-                                    <>
-                                        <Mail className='h-4 w-4' /> {user?.email}
-                                    </>
-                                ) : (
-                                    <></>
-                                )}
+                                {user?.phoneNumber}
                             </div>
                         </div>
 
@@ -48,29 +48,36 @@ export default function ProfileInfoSection({ user, totalOrders, isLoading }: Pro
                                     <ShoppingBag className='h-5 w-5 text-blue-600' />
                                     <span className='text-sm font-medium text-blue-600'>Tổng đơn hàng</span>
                                 </div>
-                                <p className='text-2xl font-bold text-blue-900 mt-1'>{totalOrders}</p>
+                                <p className='text-2xl font-bold text-blue-900 mt-1'>{totalOrders || 0}</p>
                             </div>
-                            <div className='bg-green-50 p-4 rounded-lg'>
+                            <div className='bg-orange-50 p-4 rounded-lg'>
                                 <div className='flex items-center gap-2'>
-                                    <Calendar className='h-5 w-5 text-green-600' />
-                                    <span className='text-sm font-medium text-green-600'>Ngày tham gia</span>
+                                    <LucideUser className='h-5 w-5 text-[#C04A00]' />
+                                    <span className='text-sm font-medium text-[#C04A00]'>Điểm đã kiếm</span>
                                 </div>
-                                <p className='text-lg font-semibold text-green-900 mt-1'>{user?.createdAt}</p>
+                                <p className='text-2xl font-bold text-[#EC6426] mt-1'>
+                                    {totalEarnedPoints.toLocaleString()} điểm
+                                </p>
                             </div>
-                            <div className='bg-purple-50 p-4 rounded-lg'>
+                            <div className='bg-rose-50 p-4 rounded-lg'>
                                 <div className='flex items-center gap-2'>
-                                    <LucideUser className='h-5 w-5 text-purple-600' />
-                                    <span className='text-sm font-medium text-purple-600'>Trạng thái</span>
+                                    <LucideUser className='h-5 w-5 text-rose-600' />
+                                    <span className='text-sm font-medium text-rose-600'>Điểm đã dùng</span>
                                 </div>
-                                <p className='text-lg font-semibold text-purple-900 mt-1'>{user?.memberRank}</p>
+                                <p className='text-2xl font-bold text-rose-800 mt-1'>
+                                    {totalUsedPoints.toLocaleString()} điểm
+                                </p>
                             </div>
                         </div>
 
                         {/* Edit Profile Form */}
-                        {/* <ProfileForm user={{ name: user.fullName, phone: user.phone, email: user.email || '' }} /> */}
+                        {/* <ProfileForm user={{ name: user.fullName, phone: user.phoneNumber, email: '' }} /> */}
                     </CardContent>
                 )}
             </Card>
+
+            {/* Address Management Section */}
+            {user?.id && <AddressManagementSection userId={user.id} />}
         </div>
     );
 }

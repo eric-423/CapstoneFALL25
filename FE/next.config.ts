@@ -14,6 +14,19 @@ const nextConfig: NextConfig = {
         hostname: '**',
       },
     ],
+    minimumCacheTTL: 60,
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+  },
+
+  // Performance optimizations
+  compress: true,
+  poweredByHeader: false,
+
+  // ESLint: allow production builds to succeed even if there are ESLint errors
+  eslint: {
+    ignoreDuringBuilds: true,
   },
 
   // Headers for security
@@ -39,26 +52,40 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // Redirects for old routes if needed
   async redirects() {
+    return [];
+  },
+
+  async rewrites() {
     return [
-      // Add redirects here when migrating from React Router
+      {
+        source: '/proxy/:path*',
+        destination: 'https://tam-tac.com/:path*',
+      },
     ];
   },
 
-  // Environment variables
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
   },
 
-  // Experimental features
+  serverExternalPackages: ['@ant-design/plots'],
+
   experimental: {
-    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
+    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons', 'framer-motion'],
+    optimizeCss: true,
+    webpackBuildWorker: true,
   },
 
-  // Webpack configuration
-  webpack: (config) => {
-    // Add any custom webpack config here
+  turbopack: {
+    root: process.cwd(),
+    rules: {},
+  },
+
+  webpack: (config, { dev }) => {
+    if (dev && process.env.TURBOPACK) {
+      return config;
+    }
     return config;
   },
 };

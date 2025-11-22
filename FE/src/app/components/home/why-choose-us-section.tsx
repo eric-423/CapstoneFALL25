@@ -1,8 +1,6 @@
-'use client';
-
-import { motion } from 'framer-motion';
 import { Leaf, GraduationCap, DollarSign } from 'lucide-react';
 import Image from 'next/image';
+import { AnimatedCard } from '@/components/common/animated-card';
 
 const WhyChooseUsSection = () => {
     const features = [
@@ -25,7 +23,7 @@ const WhyChooseUsSection = () => {
             title: "GIÁ CẢ PHẢI CHĂNG",
             subtitle: "",
             description: "Giá cả hợp lý, phù hợp với sinh viên và người lao động, đảm bảo chất lượng tốt nhất",
-            image: "/images/content-3.avif"
+            image: "/images/content-3.jpg"
         }
     ];
 
@@ -42,11 +40,9 @@ const WhyChooseUsSection = () => {
                 {/* Features Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
                     {features.map((feature, index) => (
-                        <motion.div
+                        <AnimatedCard
                             key={index}
-                            initial={{ opacity: 0, y: 50 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.6, delay: index * 0.2 }}
+                            index={index}
                             className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
                         >
                             {/* Image */}
@@ -55,6 +51,7 @@ const WhyChooseUsSection = () => {
                                     src={feature.image}
                                     alt={feature.title}
                                     fill
+                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                     className="object-cover transition-transform duration-300 hover:scale-105"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
@@ -86,7 +83,7 @@ const WhyChooseUsSection = () => {
                                     {feature.description}
                                 </p>
                             </div>
-                        </motion.div>
+                        </AnimatedCard>
                     ))}
                 </div>
             </div>

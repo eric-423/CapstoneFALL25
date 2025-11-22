@@ -1,28 +1,54 @@
-import { BranchSmallCard } from '@/components/common/card';
-import { Branch } from '@/types/branch.type';
-
+import { Button } from '@/components/ui/button';
 import { Dispatch, SetStateAction } from 'react';
+
+type Branch = {
+    branchId: number;
+    branchName: string;
+    address: string;
+    phone: string;
+    isActive: boolean;
+    distanceText?: string;
+};
 
 type BranchListProps = {
     branches: Branch[];
     selectedBranch: Branch | null;
     setSelectedBranch: Dispatch<SetStateAction<Branch | null>>;
+    resetAndRefetch: () => void;
 };
 
-const BranchList = ({ branches, selectedBranch, setSelectedBranch }: BranchListProps) => {
+const BranchList = ({ branches, selectedBranch, setSelectedBranch, resetAndRefetch }: BranchListProps) => {
+    const handleBranchClick = (branch: Branch) => {
+        setSelectedBranch(branch);
+        // Lưu chi nhánh đã chọn vào localStorage để đồng bộ với checkout
+        localStorage.setItem('selectedBranch', JSON.stringify(branch));
+        setTimeout(() => {
+            resetAndRefetch();
+        }, 0);
+    };
+
     return (
-        <>
-            <div className='space-y-3 max-h-[200px] overflow-y-auto'>
-                {branches.map((store) => (
-                    <BranchSmallCard
-                        key={store.id}
-                        store={store}
-                        onClick={() => setSelectedBranch(store)}
-                        className={selectedBranch?.id === store.id ? 'bg-primary/10' : 'hover:bg-primary/10'}
-                    />
-                ))}
-            </div>
-        </>
+        <div className='space-y-3 max-h-[200px] overflow-y-auto'>
+            {branches.map((branch) => (
+                <Button
+                    key={branch.branchId}
+                    variant="ghost"
+                    onClick={() => handleBranchClick(branch)}
+                    className={`w-full justify-start p-3 h-auto 
+                        ${selectedBranch?.branchId === branch.branchId ?
+                            'bg-primary/10 text-primary font-medium' : 'hover:bg-primary/10'}`}
+                >
+                    <div className="text-left">
+                        <div className="font-medium text-sm">{branch.branchName}</div>
+                        <div className="text-xs text-gray-500 mt-1">{branch.address}</div>
+                        <div className="text-xs text-gray-500">{branch.phone}</div>
+                        {branch.distanceText && (
+                            <div className='text-xs text-gray-500 italic mt-1'>Khoảng cách: {branch.distanceText}</div>
+                        )}
+                    </div>
+                </Button>
+            ))}
+        </div>
     );
 };
 

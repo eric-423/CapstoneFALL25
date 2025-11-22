@@ -1,0 +1,82 @@
+name: Deploy Frontend to GCP Ubuntu
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - "FE/**"
+      - ".github/workflows/deploy-frontend.yml"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🧾 Checkout source code
+        uses: actions/checkout@v3
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: 📦 Install & Build Next.js Frontend
+        working-directory: ./FE
+        run: |
+          echo "=== Start building FE ==="
+          npm ci
+          npm run build
+          echo "=== Verify .next ==="
+          ls -la .next || (echo ".next not found!" && exit 1)
+          # Đóng gói build để upload chắc chắn, không mất dotfiles
+          tar -czf ../fe-build.tgz .next public package.json package-lock.json
+          echo "=== Build archived to fe-build.tgz ==="
+
+      - name: 🛠️ Prepare deployment folder on server
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            sudo mkdir -p /var/www/myapp
+            sudo chown -R $USER:$USER /var/www/myapp
+            sudo chmod -R 755 /var/www/myapp
+            echo "✅ Deployment folder prepared at /var/www/myapp"
+
+      - name: 📤 Upload build archive to server
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "FE/fe-build.tgz"
+          target: "/var/www/myapp"
+          overwrite: true
+
+      - name: ♻️ Unpack, install deps & restart (systemd)
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+            cd /var/www/myapp
+
+            # Dọn sạch mọi thứ (kể cả dotfiles) trước khi bung build mới
+            find . -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+
+            # Giải nén build
+            tar -xzf fe-build.tgz
+            rm -f fe-build.tgz
+
+            # Cài dependencies (KHÔNG dùng --omit=dev để chắc chắn có 'next' nếu bạn để trong devDependencies)
+            npm ci
+
+            # Đảm bảo systemd service tồn tại; restart để áp dụng build mới
+            sudo systemctl restart myapp.service || (echo "❌ myapp.service not found. Please create it in /etc/systemd/system/myapp.service" && exit 1)
+
+            # In trạng thái để debug nhanh nếu cần
+            sudo systemctl status myapp.service --no-pager -l || true
+            echo "✅ Deployment complete & service restarted!"

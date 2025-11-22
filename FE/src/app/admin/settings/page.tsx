@@ -7,28 +7,23 @@ import { Input } from '@/components/ui/input';
 import { Settings, Building2, CreditCard, Receipt, Database, Save, Moon, Sun, Upload, Eye } from 'lucide-react';
 import { useState } from 'react';
 import Image from 'next/image';
+import { AdminPageLayout, AdminPageHeader } from '../components/AdminPageLayout';
 
 export default function SettingsPage() {
     const [appName, setAppName] = useState('Tấm Tắc');
-    const [primaryColor, setPrimaryColor] = useState('#EC6426');
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [vnpayEnabled, setVnpayEnabled] = useState(true);
     const [cashEnabled, setCashEnabled] = useState(true);
 
     return (
         <AdminGuard>
-            <div className="min-h-screen bg-[#f9fafb] py-8">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    {/* Header */}
-                    <div className="mb-8">
-                        <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3 mb-2">
-                            <div className="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center shadow-lg">
-                                <Settings className="text-white" size={28} strokeWidth={2.5} />
-                            </div>
-                            Cài Đặt Hệ Thống
-                        </h1>
-                        <p className="text-gray-600 text-lg">Cấu hình các thông số hệ thống</p>
-                    </div>
+            <AdminPageLayout>
+                {/* Header */}
+                <AdminPageHeader
+                    title="Cài Đặt Hệ Thống"
+                    description="Cấu hình các thông số hệ thống"
+                    icon={Settings}
+                />
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         {/* Main Settings */}
@@ -66,22 +61,6 @@ export default function SettingsPage() {
                                             </div>
                                         </div>
                                     </div>
-                                    <div>
-                                        <label className="block text-sm font-bold mb-3 text-gray-700 uppercase tracking-wider">Màu chủ đạo</label>
-                                        <div className="flex items-center gap-4">
-                                            <Input
-                                                type="color"
-                                                value={primaryColor}
-                                                onChange={(e) => setPrimaryColor(e.target.value)}
-                                                className="w-24 h-24 border-4 border-gray-200 rounded-2xl cursor-pointer shadow-lg hover:shadow-xl transition-all"
-                                            />
-                                            <div className="flex-1 p-6 bg-gradient-to-r from-gray-50 to-transparent rounded-xl border-2 border-gray-200">
-                                                <p className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-1">Selected Color</p>
-                                                <p className="text-2xl font-bold text-gray-900 font-mono">{primaryColor}</p>
-                                                <div className="mt-3 h-3 rounded-full bg-gradient-to-r from-primary to-secondary shadow-md"></div>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                             </Card>
 
@@ -95,8 +74,8 @@ export default function SettingsPage() {
                                 </div>
                                 <div className="space-y-4">
                                     <div className={`flex items-center justify-between p-6 rounded-2xl border-2 transition-all duration-300 cursor-pointer ${vnpayEnabled
-                                            ? 'bg-gradient-to-r from-primary/10 to-transparent border-primary shadow-md'
-                                            : 'border-gray-200 hover:border-gray-300'
+                                        ? 'bg-gradient-to-r from-primary/10 to-transparent border-primary shadow-md'
+                                        : 'border-gray-200 hover:border-gray-300'
                                         }`} onClick={() => setVnpayEnabled(!vnpayEnabled)}>
                                         <div>
                                             <p className="font-bold text-lg text-gray-900">VNPay</p>
@@ -109,8 +88,8 @@ export default function SettingsPage() {
                                         </div>
                                     </div>
                                     <div className={`flex items-center justify-between p-6 rounded-2xl border-2 transition-all duration-300 cursor-pointer ${cashEnabled
-                                            ? 'bg-gradient-to-r from-secondary/10 to-transparent border-secondary shadow-md'
-                                            : 'border-gray-200 hover:border-gray-300'
+                                        ? 'bg-gradient-to-r from-secondary/10 to-transparent border-secondary shadow-md'
+                                        : 'border-gray-200 hover:border-gray-300'
                                         }`} onClick={() => setCashEnabled(!cashEnabled)}>
                                         <div>
                                             <p className="font-bold text-lg text-gray-900">Tiền mặt</p>
@@ -201,29 +180,6 @@ export default function SettingsPage() {
                                                 <Image src="/full-logo.svg" alt="Logo Preview" width={120} height={120} />
                                             </div>
                                         </div>
-
-                                        {/* Color Preview */}
-                                        <div className="p-6 bg-gradient-to-br from-gray-50 to-transparent rounded-2xl border-2 border-gray-100">
-                                            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Primary Color</p>
-                                            <div
-                                                className="h-32 rounded-2xl shadow-lg"
-                                                style={{ backgroundColor: primaryColor }}
-                                            ></div>
-                                            <p className="text-center mt-3 font-mono font-bold text-gray-900">{primaryColor}</p>
-                                        </div>
-
-                                        {/* Sample Button */}
-                                        <div className="p-6 bg-gradient-to-br from-gray-50 to-transparent rounded-2xl border-2 border-gray-100">
-                                            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Button Preview</p>
-                                            <Button
-                                                className="w-full py-6 text-base font-bold rounded-xl shadow-lg"
-                                                style={{
-                                                    background: `linear-gradient(to right, ${primaryColor}, #F8A91F)`
-                                                }}
-                                            >
-                                                Sample Button
-                                            </Button>
-                                        </div>
                                     </div>
                                 </Card>
 
@@ -252,8 +208,7 @@ export default function SettingsPage() {
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
+            </AdminPageLayout>
         </AdminGuard>
     );
 }

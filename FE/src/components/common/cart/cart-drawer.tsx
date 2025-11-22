@@ -11,45 +11,58 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from '@/components/ui/drawer';
+
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { useCart } from '@/contexts/cart/CartContext';
+import { useCart } from '@/utils/contexts/cart/CartContext';
 import { STORE_INFO } from '@/utils/mockupData';
 
-import { ChevronRight, Edit, MapPin, ShoppingCart, X } from 'lucide-react';
+import { ChevronRight, Edit, Loader2, MapPin, ShoppingCart, X } from 'lucide-react';
 import { useState } from 'react';
 import Link from 'next/link';
-import { toast } from 'react-toastify';
 
 import ControlledButton from '../controlled-button';
 import { QuantitySelector } from '../quantity-selector';
+import routes from '@/utils/configs/routes';
+import { useNavigation } from '@/utils/hooks';
 
 export function CartDrawer() {
   const { items, removeItem, updateQuantity, getTotalPrice, getTotalItems } = useCart();
   const [open, setOpen] = useState(false);
+  const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
+  const { navigate } = useNavigation();
+
   function handleCheckoutClicked() {
-    toast('Tụi mình đóng cửa mất rồi, cảm ơn bạn đã ghé thăm!', {
-      theme: 'light',
-      hideProgressBar: false,
-    });
+    if (isCheckoutLoading) {
+      return;
+    }
+
+    setIsCheckoutLoading(true);
+    navigate(routes.checkout);
   }
 
   return (
+
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
-        <Button variant='ghost' size={'icon'} className='text-primary hover:text-[#B84A0E] hover:bg-[#FFE8D6] mx-12'>
-          <div className='relative flex items-center justify-center h-10 w-10 rounded-full transition-colors'>
+        <Button
+          variant='ghost'
+          size='lg'
+          className='text-primary hover:text-[#B84A0E] hover:bg-[#FFE8D6] mx-12 rounded-full px-4'
+        >
+          <div className='relative flex items-center justify-center h-10 w-10 rounded-full transition-colors bg-white/60'>
             <ShoppingCart className='h-5 w-5 text-primary' />
             <Badge className='absolute -top-1 -right-3 h-5 w-5 rounded-full p-0 flex items-center justify-center bg-primary hover:bg-primary'>
-              {getTotalItems()}
+              {/* {getTotalItems()} */}
             </Badge>
           </div>
-
-          <span className='ml-2'>Giỏ hàng</span>
+          <span className='ml-2 font-semibold whitespace-nowrap'>Giỏ hàng</span>
         </Button>
       </DrawerTrigger>
+
       <DrawerContent className='max-w-[100vw] sm:max-w-[500px] mx-auto'>
         <div className='mx-auto w-full max-w-[500px]'>
+
           <DrawerHeader className='px-6 pt-6 pb-4 border-b border-foreground/10'>
             <DrawerTitle className='font-bold text-lg'>Giỏ hàng của bạn</DrawerTitle>
             <div className='flex items-center text-sm text-gray-600 mt-1'>
@@ -72,12 +85,12 @@ export function CartDrawer() {
                     <div key={item.productId} className='group'>
                       <div className='flex gap-3'>
                         {/* Remove button (visible on hover) */}
-                        <button
+                        <Button
                           className='opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 flex-shrink-0 rounded-full bg-foreground/5 hover:bg-foreground/15 transition-colors flex items-center justify-center'
                           onClick={() => removeItem(item)}
                         >
                           <X className='h-3 w-3 text-foreground/50' />
-                        </button>
+                        </Button>
 
                         {/* Item content */}
                         <div className='flex-grow'>
@@ -127,9 +140,20 @@ export function CartDrawer() {
                 <Button
                   className='w-full h-12 bg-[#4CAF50] hover:bg-[#43A047] text-white rounded-lg font-medium'
                   onClick={handleCheckoutClicked}
+                  disabled={isCheckoutLoading}
+                  aria-busy={isCheckoutLoading}
                 >
-                  Xác nhận đơn hàng
-                  <ChevronRight className='h-4 w-4 ml-1' />
+                  {isCheckoutLoading ? (
+                    <>
+                      <Loader2 className='h-4 w-4 animate-spin' />
+                      Đang chuyển hướng...
+                    </>
+                  ) : (
+                    <>
+                      Xác nhận đơn hàng
+                      <ChevronRight className='h-4 w-4 ml-1' />
+                    </>
+                  )}
                 </Button>
                 {/* </Link> */}
                 <DrawerClose asChild>

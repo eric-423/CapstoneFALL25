@@ -5,26 +5,29 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { useCart } from '@/contexts/cart/CartContext';
+import { useCart } from '@/utils/contexts/cart/CartContext';
 import { STORE_INFO } from '@/utils/mockupData';
 
-import { ChevronRight, Edit, MapPin, ShoppingCart, X } from 'lucide-react';
+import { ChevronRight, Loader2, MapPin, ShoppingCart, X } from 'lucide-react';
 import { useState } from 'react';
 import Link from 'next/link';
-import { toast } from 'react-toastify';
 
-import ControlledButton from '../controlled-button';
 import { QuantitySelector } from '../quantity-selector';
+import routes from '@/utils/configs/routes';
+import { useNavigation } from '@/utils/hooks';
 
 export function CartPopover() {
   const { items, removeItem, updateQuantity, getTotalPrice, getTotalItems } = useCart();
   const [open, setOpen] = useState(false);
+  const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
 
+  const { navigate } = useNavigation();
   function handleCheckoutClicked() {
-    toast('Tụi mình đóng cửa mất rồi, cảm ơn bạn đã ghé thăm!', {
-      theme: 'light',
-      hideProgressBar: false,
-    });
+    if (isCheckoutLoading) {
+      return;
+    }
+    setIsCheckoutLoading(true);
+    navigate(routes.checkout);
   }
 
   return (
@@ -41,7 +44,8 @@ export function CartPopover() {
       </PopoverTrigger>
       <PopoverContent className='w-[500px] p-0 rounded-xl border-none shadow-lg' align='end' sideOffset={8}>
         <div className='bg-background/30 rounded-xl p-7 overflow-hidden'>
-          {/* Header */}
+
+
           <div className='pb-4 border-b border-foreground/30'>
             <div className='flex items-start justify-between'>
               <div>
@@ -54,6 +58,7 @@ export function CartPopover() {
             </div>
           </div>
 
+
           {getTotalItems() > 0 ? (
             <>
               {/* Cart Items */}
@@ -62,15 +67,15 @@ export function CartPopover() {
                   {items.map((item, index) => (
                     <div key={item.productId} className='group'>
                       <div className='flex gap-3'>
-                        {/* Remove button (visible on hover) */}
-                        <button
+
+                        <Button
                           className='opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 flex-shrink-0 rounded-full bg-foreground/5 hover:bg-foreground/15 transition-colors flex items-center justify-center'
                           onClick={() => removeItem(item)}
                         >
                           <X className='h-3 w-3 text-foreground/50' />
-                        </button>
+                        </Button>
 
-                        {/* Item content */}
+
                         <div className='flex-grow'>
                           <div className='flex justify-between'>
                             <h4 className='font-medium'>{item.productName}</h4>
@@ -79,25 +84,22 @@ export function CartPopover() {
                             </div>
                           </div>
 
+
                           {item.note && item.note.length > 0 && (
                             <div className='text-sm text-gray-600 mt-1'>
                               <span className='font-medium'>Ghi chú:</span> {item.note}
                             </div>
                           )}
-                          {/* Item actions */}
+
                           <div className='flex items-center justify-between mt-2'>
                             <QuantitySelector
                               value={item.quantity}
                               onIncrease={() => updateQuantity({ ...item, quantity: item.quantity + 1 })}
                               onDecrease={() => updateQuantity({ ...item, quantity: item.quantity - 1 })}
                             />
-
-                            <div className='flex items-center gap-1'>
-                              <ControlledButton>
-                                <Edit className='h-3.5 w-3.5' />
-                              </ControlledButton>
-                            </div>
                           </div>
+
+
                         </div>
                       </div>
 
@@ -118,9 +120,20 @@ export function CartPopover() {
                 <Button
                   className='w-full h-12 bg-[#4CAF50] hover:bg-[#43A047] text-white rounded-lg font-medium'
                   onClick={handleCheckoutClicked}
+                  disabled={isCheckoutLoading}
+                  aria-busy={isCheckoutLoading}
                 >
-                  Xác nhận đơn hàng
-                  <ChevronRight className='h-4 w-4 ml-1' />
+                  {isCheckoutLoading ? (
+                    <>
+                      <Loader2 className='h-4 w-4 animate-spin' />
+                      Đang chuyển hướng...
+                    </>
+                  ) : (
+                    <>
+                      Xác nhận đơn hàng
+                      <ChevronRight className='h-4 w-4 ml-1' />
+                    </>
+                  )}
                 </Button>
                 {/* </Link> */}
               </div>

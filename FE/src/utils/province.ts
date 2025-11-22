@@ -1,4 +1,4 @@
-import { Province } from '@/types/common.type';
+import { Province } from '@/apis/common.api';
 
 export const Provinces = {
   VUNG_TAU: { id: '77', name: 'Bà Rịa - Vũng Tàu', slug: 'BARIAVUNGTAU' } as Province,

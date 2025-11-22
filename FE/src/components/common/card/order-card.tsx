@@ -2,7 +2,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { OrderResponse } from '@/types/order.type';
+import { OrderResponse } from '@/apis/order.api';
 import { OrderStatus } from '@/utils/enum';
 
 import { Calendar, Clock, MapPin, RotateCw, Star } from 'lucide-react';

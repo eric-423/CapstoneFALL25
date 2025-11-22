@@ -1,7 +1,7 @@
 'use client';
 
-import { useAuthContext } from '@/contexts/AuthContext';
-import { useNavigation } from '@/hooks/useNavigation';
+import { useAuthContext } from '@/utils/contexts/AuthContext';
+import { useNavigation } from '@/utils/hooks/useNavigation';
 import { useEffect } from 'react';
 
 interface RoleGuardProps {
@@ -77,6 +77,17 @@ export function ManagerGuard({ children }: { children: React.ReactNode }) {
 export function CustomerGuard({ children }: { children: React.ReactNode }) {
     return (
         <RoleGuard allowedRoles={['CUSTOMER', 'MANAGER', 'ADMIN']}>
+            {children}
+        </RoleGuard>
+    );
+}
+
+/**
+ * ChefGuard - Chỉ cho phép CHEFF
+ */
+export function ChefGuard({ children }: { children: React.ReactNode }) {
+    return (
+        <RoleGuard allowedRoles={['CHEFF']}>
             {children}
         </RoleGuard>
     );

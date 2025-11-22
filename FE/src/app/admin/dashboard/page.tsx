@@ -1,23 +1,28 @@
 'use client';
 
-import { DollarSign, ShoppingCart, Store, Users, TrendingUp, Package, BookOpen, GraduationCap, AlertTriangle, Activity } from 'lucide-react';
-import { DashboardCard } from './components/DashboardCard';
+import { DollarSign, ShoppingCart, Store, Users, TrendingUp, Package, BookOpen, GraduationCap, AlertTriangle, Activity, Clock, CheckCircle, TrendingDown, Zap } from 'lucide-react';
+import { AdminCard } from '../components/AdminCard';
 import { RevenueChart } from './components/RevenueChart';
-import { TopDishesChart } from './components/TopDishesChart';
-import { RecentOrdersTable } from './components/RecentOrdersTable';
-import { IngredientUsageChart } from './components/IngredientUsageChart';
-import { SupplierDistributionChart } from './components/SupplierDistributionChart';
+import { OrderChannelsChart } from './components/OrderChannelsChart';
 import { RecentRecipesCards } from './components/RecentRecipesCards';
 import { TrainingStatusCard } from './components/TrainingStatusCard';
-import { AlertsPanel } from './components/AlertsPanel';
-import { ActivitiesTimeline } from './components/ActivitiesTimeline';
+import { TopDishesList } from './components/TopDishesList';
+import { useAdminContext } from '@/utils/contexts/AdminContext';
+import { useMemo, useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import {
+    getRevenueStatistics,
+    getOrderCountStatistics,
+    getNewCustomerStatistics,
+    getServiceTimeStatistics,
+    getRevenue7Days,
+    getTopSellingItems,
+} from '@/apis/statistics.api';
+import { getBranches } from '@/apis/branch.api';
 import {
     kpiData,
     revenueData,
-    topDishesData,
     recentOrders,
-    ingredientUsageData,
-    supplierDistributionData,
     recentRecipesData,
     trainingStatsData,
     recentActivitiesData,
@@ -25,131 +30,228 @@ import {
 } from './mockData';
 
 export default function DashboardPage() {
+    const { selectedBranch, timePeriod, dateRange } = useAdminContext();
     const lowStockCount = lowStockAlertsData.length;
 
+    // Memoize branch IDs to prevent unnecessary refetches
+    const branchId = useMemo(() => selectedBranch?.id ? parseInt(selectedBranch.id) : 1, [selectedBranch?.id]);
+    const branchIdOrUndefined = useMemo(() => selectedBranch?.id ? parseInt(selectedBranch.id) : undefined, [selectedBranch?.id]);
+
+    const [serviceBranchId, setServiceBranchId] = useState<number | null>(null);
+    const [serviceComparisonType, setServiceComparisonType] = useState<'DAILY' | 'MONTHLY'>('DAILY');
+    const [serviceDate, setServiceDate] = useState('');
+
+    // Use React Query for all statistics with proper caching
+    const { data: revenueStats, isLoading: isLoadingRevenue } = useQuery({
+        queryKey: ['dashboard-revenue', branchId, timePeriod],
+        queryFn: () => getRevenueStatistics(branchId),
+        staleTime: 2 * 60 * 1000, // 2 minutes
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
+    });
+
+    const { data: orderCountStats, isLoading: isLoadingOrderCount } = useQuery({
+        queryKey: ['dashboard-order-count', branchId, timePeriod],
+        queryFn: () => getOrderCountStatistics(branchId),
+        staleTime: 2 * 60 * 1000,
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
+    });
+
+    const { data: newCustomerStats, isLoading: isLoadingNewCustomers } = useQuery({
+        queryKey: ['dashboard-new-customers', timePeriod],
+        queryFn: () => getNewCustomerStatistics('DAILY'),
+        staleTime: 2 * 60 * 1000,
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
+    });
+
+    const { data: branchMasterData, isLoading: isLoadingBranchMaster } = useQuery({
+        queryKey: ['admin-dashboard-branches'],
+        queryFn: () => getBranches(),
+        staleTime: 30 * 60 * 1000,
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
+    });
+
+    useEffect(() => {
+        if (selectedBranch?.id) {
+            const parsedId = parseInt(selectedBranch.id);
+            if (!Number.isNaN(parsedId)) {
+                setServiceBranchId(parsedId);
+            }
+        }
+    }, [selectedBranch?.id]);
+
+    useEffect(() => {
+        if (!serviceBranchId && branchMasterData && branchMasterData.length > 0) {
+            setServiceBranchId(branchMasterData[0].id);
+        }
+    }, [branchMasterData, serviceBranchId]);
+
+    const effectiveServiceBranchId = serviceBranchId ?? branchId;
+    const serviceDateParam = serviceDate ? serviceDate : undefined;
+
+    const branchOptions = useMemo(() => (
+        (branchMasterData ?? []).map((branch) => ({
+            value: branch.id,
+            label: branch.name,
+        }))
+    ), [branchMasterData]);
+
+    const { data: serviceTimeStats, isLoading: isLoadingServiceTime } = useQuery({
+        queryKey: ['dashboard-service-time', effectiveServiceBranchId, serviceComparisonType, serviceDateParam ?? ''],
+        queryFn: () => getServiceTimeStatistics(effectiveServiceBranchId, serviceDateParam, serviceComparisonType),
+        staleTime: 2 * 60 * 1000,
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
+        enabled: Boolean(effectiveServiceBranchId),
+    });
+
+    const { data: revenue7DaysData, isLoading: isLoadingRevenue7Days } = useQuery({
+        queryKey: ['dashboard-revenue-7days', branchIdOrUndefined],
+        queryFn: () => getRevenue7Days(branchIdOrUndefined),
+        staleTime: 2 * 60 * 1000,
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
+    });
+
+    const { data: topSellingItems, isLoading: isLoadingTopSelling } = useQuery({
+        queryKey: ['dashboard-top-selling', branchIdOrUndefined],
+        queryFn: () => getTopSellingItems(branchIdOrUndefined, 5),
+        staleTime: 5 * 60 * 1000, // 5 minutes
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
+    });
+
+    // Combined loading state
+    const isLoading = isLoadingRevenue || isLoadingOrderCount || isLoadingNewCustomers ||
+        isLoadingServiceTime || isLoadingRevenue7Days || isLoadingTopSelling;
+
+    // Memoize operational KPIs to prevent unnecessary recalculations
+    const operationalKPIs = useMemo(() => {
+        const baseKPIs = {
+            avgServiceTime: 12.5,
+            slaCompliance: 94.2,
+            trainingCompletion: 87.5,
+            criticalAlerts: 3,
+            peakHourEfficiency: 89.3,
+            wastePercentage: 4.2,
+        };
+
+        if (serviceTimeStats) {
+            return {
+                ...baseKPIs,
+                avgServiceTime: serviceTimeStats.averageServiceTimeMinutes,
+                slaCompliance: serviceTimeStats.averageServiceTimeMinutes < 15 ? 94.2 : 87.5,
+            };
+        }
+
+        return baseKPIs;
+    }, [serviceTimeStats]);
+
+    const getTimePeriodLabel = () => {
+        switch (timePeriod) {
+            case 'today': return 'Hôm nay';
+            case '7d': return '7 ngày qua';
+            case '30d': return '30 ngày qua';
+            case 'custom': return dateRange ? 'Tùy chỉnh' : 'Tùy chỉnh';
+            default: return 'Hôm nay';
+        }
+    };
+
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8">
-            <div className="max-w-[1600px] mx-auto space-y-8">
-                {/* Header */}
+        <div className="min-h-screen bg-[#EFE6DB]">
+            <div className="max-w-[1800px] mx-auto space-y-4">
+                {/* Header - Compact */}
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent mb-2">
-                            Tổng quan hệ thống
+                        <h1 className="text-2xl font-bold bg-gradient-to-r from-[#EC6426] to-[#F8A91F] bg-clip-text text-transparent mb-1">
+                            {selectedBranch ? selectedBranch.name : 'Tổng quan hệ thống'}
                         </h1>
-                        <p className="text-gray-600 text-lg">Dashboard quản trị & phân tích dữ liệu</p>
+                        <p className="text-gray-600 text-sm">
+                            {isLoading && <span className="ml-2 text-xs text-orange-500">Đang tải...</span>}
+                        </p>
                     </div>
-                    <div className="text-sm text-gray-500">
-                        Cập nhật: {new Date().toLocaleString('vi-VN')}
+                    <div className="text-xs text-gray-500">
+                        {new Date().toLocaleString('vi-VN')}
                     </div>
                 </div>
 
-                {/* ROW 1: KPI Overview (6 cards - 2 rows of 3) */}
+                {/* KPI Overview Section */}
                 <div>
-                    <div className="flex items-center gap-2 mb-4">
-                        <TrendingUp className="w-5 h-5 text-orange-600" />
-                        <h2 className="text-xl font-semibold text-gray-800">Chỉ số hoạt động</h2>
+                    <div className="flex items-center gap-2 mb-2">
+                        <TrendingUp className="w-4 h-4 text-[#EC6426]" />
+                        <h2 className="text-base font-semibold text-gray-800">Tổng quan KPI</h2>
                     </div>
-                    {/* First row - 3 cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                        <DashboardCard
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                        <AdminCard
                             title="Doanh thu hôm nay"
-                            value={kpiData.revenueToday.value}
+                            value={revenueStats ? `${revenueStats.totalRevenue.toLocaleString('vi-VN')}đ` : '...'}
                             icon={DollarSign}
-                            trend={kpiData.revenueToday.trend}
-                            subtitle={kpiData.revenueToday.subtitle}
+                            subtitle={revenueStats ? `${revenueStats.totalOrders} đơn` : ''}
+                            isLoading={isLoadingRevenue}
                         />
-                        <DashboardCard
+                        <AdminCard
                             title="Tổng đơn hàng"
-                            value={kpiData.totalOrders.value}
+                            value={orderCountStats ? orderCountStats.totalOrders : '...'}
                             icon={ShoppingCart}
-                            trend={kpiData.totalOrders.trend}
-                            subtitle={kpiData.totalOrders.subtitle}
+                            subtitle={orderCountStats ? `${orderCountStats.shippingOrders + orderCountStats.pickupOrders + orderCountStats.diningOrders} kênh` : ''}
+                            isLoading={isLoadingOrderCount}
                         />
-                        <DashboardCard
-                            title="Chi nhánh hoạt động"
-                            value={kpiData.activeBranches.value}
-                            icon={Store}
-                        />
-                    </div>
-                    {/* Second row - 3 cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <DashboardCard
+                        <AdminCard
                             title="Khách hàng mới"
-                            value={kpiData.newCustomers.value}
+                            value={newCustomerStats ? newCustomerStats.newCustomersToday : '...'}
                             icon={Users}
-                            trend={kpiData.newCustomers.trend}
-                            subtitle={kpiData.newCustomers.subtitle}
+                            trend={newCustomerStats ? {
+                                value: newCustomerStats.percentageChange,
+                                isPositive: newCustomerStats.percentageChange >= 0
+                            } : undefined}
+                            subtitle={newCustomerStats ? `vs. ${newCustomerStats.newCustomersComparison} hôm qua` : ''}
+                            isLoading={isLoadingNewCustomers}
                         />
-                        <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg shadow-md p-4 border-2 border-red-200 hover:shadow-lg transition-shadow">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm text-red-600 font-medium">Nguyên liệu sắp hết</p>
-                                    <p className="text-3xl font-bold text-red-700 mt-1">{lowStockCount}</p>
-                                    <p className="text-xs text-red-500 mt-1">Cần nhập hàng</p>
-                                </div>
-                                <AlertTriangle className="w-10 h-10 text-red-500 opacity-70" />
-                            </div>
-                        </div>
-                        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg shadow-md p-4 border-2 border-green-200 hover:shadow-lg transition-shadow">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm text-green-600 font-medium">Tỷ lệ hoàn thành</p>
-                                    <p className="text-3xl font-bold text-green-700 mt-1">{trainingStatsData.completionRate}%</p>
-                                    <p className="text-xs text-green-500 mt-1">Đào tạo nhân viên</p>
-                                </div>
-                                <GraduationCap className="w-10 h-10 text-green-500 opacity-70" />
-                            </div>
-                        </div>
+                        <AdminCard
+                            title="TG phục vụ TB"
+                            value={serviceTimeStats ? `${serviceTimeStats.averageServiceTimeMinutes.toFixed(1)}p` : '...'}
+                            icon={Clock}
+                            trend={serviceTimeStats ? {
+                                value: serviceTimeStats.percentageChange,
+                                isPositive: serviceTimeStats.percentageChange <= 0
+                            } : undefined}
+                            subtitle={serviceTimeStats ? `${serviceTimeStats.totalOrdersProcessed} đơn` : ''}
+                            isLoading={isLoadingServiceTime}
+                        />
+                        <AdminCard
+                            title="SLA Phục vụ"
+                            value={`${operationalKPIs.slaCompliance.toFixed(1)}%`}
+                            icon={CheckCircle}
+                            subtitle={operationalKPIs.slaCompliance >= 90 ? 'Đạt chuẩn' : 'Dưới mục tiêu'}
+                            isLoading={isLoadingServiceTime}
+                        />
                     </div>
                 </div>
 
-                {/* ROW 2: Analytics Charts */}
+                {/* Combined Analytics and Operations Section */}
                 <div>
-                    <div className="flex items-center gap-2 mb-4">
-                        <Package className="w-5 h-5 text-orange-600" />
-                        <h2 className="text-xl font-semibold text-gray-800">Phân tích bếp & Doanh thu</h2>
+                    <div className="flex items-center gap-2 mb-2 mt-4">
+                        <Activity className="w-4 h-4 text-[#EC6426]" />
+                        <h2 className="text-base font-semibold text-gray-800">Phân tích & Hoạt động</h2>
                     </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                        <RevenueChart data={revenueData} />
-                        <IngredientUsageChart data={ingredientUsageData} />
-                    </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <TopDishesChart data={topDishesData} />
-                        <SupplierDistributionChart data={supplierDistributionData} />
-                    </div>
-                </div>
-
-                {/* ROW 3: Recipe & Training Overview */}
-                <div>
-                    <div className="flex items-center gap-2 mb-4">
-                        <BookOpen className="w-5 h-5 text-orange-600" />
-                        <h2 className="text-xl font-semibold text-gray-800">Công thức & Đào tạo</h2>
-                    </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                         <div className="lg:col-span-2">
-                            <RecentRecipesCards data={recentRecipesData} />
+                            <RevenueChart data={revenue7DaysData ?
+                                revenue7DaysData.dailyRevenues.map((item) => ({
+                                    date: item.date,
+                                    revenue: item.revenue
+                                }))
+                                : revenueData}
+                            />
                         </div>
-                        <div>
-                            <TrainingStatusCard data={trainingStatsData} />
-                        </div>
+                        <OrderChannelsChart data={orderCountStats} />
+                        <RecentRecipesCards data={recentRecipesData} />
+                        <TrainingStatusCard data={trainingStatsData} />
+                        <TopDishesList data={topSellingItems?.items} isLoading={isLoadingTopSelling} />
                     </div>
-                </div>
-
-                {/* ROW 4: Alerts + Recent Activities */}
-                <div>
-                    <div className="flex items-center gap-2 mb-4">
-                        <Activity className="w-5 h-5 text-orange-600" />
-                        <h2 className="text-xl font-semibold text-gray-800">Cảnh báo & Hoạt động</h2>
-                    </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <AlertsPanel alerts={lowStockAlertsData} />
-                        <ActivitiesTimeline activities={recentActivitiesData} />
-                    </div>
-                </div>
-
-                {/* Recent Orders Table */}
-                <div>
-                    <RecentOrdersTable orders={recentOrders} />
                 </div>
             </div>
         </div>

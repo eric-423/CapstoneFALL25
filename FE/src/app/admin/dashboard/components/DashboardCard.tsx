@@ -10,66 +10,61 @@ interface DashboardCardProps {
         isPositive: boolean;
     };
     subtitle?: string;
+    isLoading?: boolean;
 }
 
-export function DashboardCard({ title, value, icon: Icon, trend, subtitle }: DashboardCardProps) {
-    return (
-        <Card className="relative overflow-hidden bg-white border-0 shadow-sm hover:shadow-xl transition-all duration-300 group rounded-2xl h-full">
-            {/* Gradient Border Effect */}
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-secondary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-            {/* Content */}
-            <div className="relative p-6 flex flex-col h-full min-h-[200px]">
-                <div className="flex items-start justify-between gap-4 flex-1">
-                    <div className="flex-1 flex flex-col justify-between min-w-0">
-                        {/* Title */}
-                        <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider line-clamp-2">{title}</p>
-
-                        {/* Value */}
-                        <h3 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2 group-hover:text-primary transition-colors duration-300 leading-tight break-words">
-                            {value}
-                        </h3>
-
-                        {/* Trend area - always reserve space */}
-                        <div className="min-h-[36px] flex items-end">
-                            {trend ? (
-                                <div className="flex flex-col gap-1 w-full">
-                                    <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full w-fit ${trend.isPositive
-                                        ? 'bg-green-50 text-green-700'
-                                        : 'bg-red-50 text-red-700'
-                                        }`}>
-                                        {trend.isPositive ? (
-                                            <TrendingUp size={14} strokeWidth={2.5} />
-                                        ) : (
-                                            <TrendingDown size={14} strokeWidth={2.5} />
-                                        )}
-                                        <span className="text-xs font-bold">
-                                            {Math.abs(trend.value)}%
-                                        </span>
-                                    </div>
-                                    {subtitle && (
-                                        <span className="text-xs text-gray-500 font-medium">{subtitle}</span>
-                                    )}
-                                </div>
-                            ) : (
-                                <div className="h-9"></div>
-                            )}
-                        </div>
+export function DashboardCard({ title, value, icon: Icon, trend, subtitle, isLoading = false }: DashboardCardProps) {
+    if (isLoading) {
+        return (
+            <Card className="p-3 rounded-xl bg-white/60">
+                <div className="flex items-center gap-3 animate-pulse">
+                    <div className="w-8 h-8 rounded-lg bg-gray-200"></div>
+                    <div className="flex-1 space-y-1">
+                        <div className="h-4 bg-gray-200 rounded-md w-3/4"></div>
+                        <div className="h-3 bg-gray-200 rounded-md w-1/2"></div>
                     </div>
+                    <div className="w-1/4 space-y-1">
+                        <div className="h-5 bg-gray-200 rounded-md w-full"></div>
+                    </div>
+                </div>
+            </Card>
+        );
+    }
 
-                    {/* Icon with gradient background */}
-                    <div className="relative flex-shrink-0">
-                        <div className="w-14 h-14 lg:w-16 lg:h-16 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-                            <Icon className="text-white" size={26} strokeWidth={2.5} />
-                        </div>
-                        {/* Glow effect */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-primary to-secondary rounded-2xl blur-xl opacity-0 group-hover:opacity-30 transition-opacity duration-300 -z-10"></div>
+    return (
+        <Card className="p-3 rounded-xl bg-white/60 backdrop-blur-sm border-white/20 border shadow-sm hover:shadow-md hover:bg-white transition-all duration-200 h-full">
+            <div className="flex items-center gap-3 h-full">
+                {/* Icon */}
+                <div className="flex-shrink-0">
+                    <div className="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-[#EC6426]/20 to-[#F8A91F]/20 text-[#EC6426] rounded-lg">
+                        <Icon size={18} strokeWidth={2.5} />
                     </div>
                 </div>
 
-                {/* Decorative line */}
-                <div className="h-1 w-full bg-gradient-to-r from-primary via-secondary to-transparent rounded-full opacity-20 group-hover:opacity-100 transition-opacity duration-300 mt-4"></div>
+                {/* Title and Subtitle */}
+                <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-gray-600 truncate">{title}</p>
+                    {subtitle && (
+                        <p className="text-xs text-gray-400 font-medium truncate">{subtitle}</p>
+                    )}
+                </div>
+
+                {/* Value and Trend */}
+                <div className="text-right flex-shrink-0">
+                    <h3 className="text-base font-bold text-gray-900">{value}</h3>
+                    {trend && typeof trend.value === 'number' && (
+                        <div
+                            className={`flex items-center justify-end gap-0.5 text-xs font-bold ${
+                                trend.isPositive ? 'text-green-600' : 'text-red-600'
+                            }`}
+                        >
+                            {trend.isPositive ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                            <span>{Math.abs(trend.value).toFixed(1)}%</span>
+                        </div>
+                    )}
+                </div>
             </div>
         </Card>
     );
 }
+

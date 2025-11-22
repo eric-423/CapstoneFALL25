@@ -5,8 +5,8 @@ import friends from '@/assets/images/friends.jpg';
 import members from '@/assets/images/members.png';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { useIsMobile } from '@/hooks/use-mobile';
-import useScrollTop from '@/hooks/useScrollTop';
+import { useIsMobile } from '@/utils/hooks/use-mobile';
+import useScrollTop from '@/utils/hooks/useScrollTop';
 import { fadeInUp, staggerContainer } from '@/utils/animation';
 
 import { motion } from 'framer-motion';

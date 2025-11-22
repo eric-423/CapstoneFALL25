@@ -1,301 +1,417 @@
 'use client';
 
-import { AdminGuard } from '@/components/guards';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { MOCK_RECIPES } from '@/mocks/data/recipe.mock';
-import { Recipe } from '@/types/recipe.type';
+import React, { useState, useMemo } from 'react';
 import {
-    BookOpen,
-    Plus,
-    Search,
-    Edit,
-    Trash2,
-    Clock,
-    Users,
-    Flame,
-    DollarSign,
-    GraduationCap,
     ChefHat,
-    Star,
+    Plus,
+    FileText,
+    BookOpen,
+    DollarSign
 } from 'lucide-react';
-import { useState } from 'react';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { FilterBar, FilterChip, SavedFilter } from '@/components/common/FilterBar';
+import { DataTable, Column } from '@/components/common/DataTable';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
+import { Recipe } from '@/utils/types/recipe.types';
+import { RecipeDetailDialog } from './components/RecipeDetailDialog';
+import { AdminPageLayout, AdminPageHeader, AdminStatsCard, AdminStatsGrid } from '../components/AdminPageLayout';
+
+// Temporary empty array until API is implemented
+const MOCK_RECIPES: Recipe[] = [];
 
 export default function RecipesPage() {
-    const router = useRouter();
-    const [searchQuery, setSearchQuery] = useState('');
-    const [selectedCategory, setSelectedCategory] = useState<string>('all');
+    const [searchValue, setSearchValue] = useState('');
+    const [filters, setFilters] = useState<FilterChip[]>([]);
+    const [showAdvanced, setShowAdvanced] = useState(false);
+    const [selectedRecipes, setSelectedRecipes] = useState<string[]>([]);
+    const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+    const [detailDialogOpen, setDetailDialogOpen] = useState(false);
 
-    const filteredRecipes = MOCK_RECIPES.filter((recipe) => {
-        const matchesSearch = recipe.name.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesCategory = selectedCategory === 'all' || recipe.category === selectedCategory;
-        return matchesSearch && matchesCategory;
-    });
+    // Debug: Log state changes
+    React.useEffect(() => {
+        console.log('selectedRecipe:', selectedRecipe);
+        console.log('detailDialogOpen:', detailDialogOpen);
+    }, [selectedRecipe, detailDialogOpen]);
 
-    const totalRecipes = MOCK_RECIPES.length;
-    const avgCalories = Math.round(
-        MOCK_RECIPES.reduce((sum, r) => sum + r.totalCalories, 0) / MOCK_RECIPES.length
-    );
-    const withTraining = MOCK_RECIPES.filter((r) => r.hasTrainingCourse).length;
-
-    const categories = [
-        { value: 'all', label: 'Tất cả', count: MOCK_RECIPES.length },
-        { value: 'main', label: 'Món chính', count: MOCK_RECIPES.filter((r) => r.category === 'main').length },
+    // Saved filters
+    const savedFilters: SavedFilter[] = [
         {
-            value: 'appetizer',
-            label: 'Khai vị',
-            count: MOCK_RECIPES.filter((r) => r.category === 'appetizer').length,
+            id: '1',
+            name: 'Popular Main Dishes',
+            filters: [
+                { id: 'category', label: 'Danh mục', value: 'main' },
+                { id: 'status', label: 'Trạng thái', value: 'published' },
+            ],
         },
-        { value: 'dessert', label: 'Tráng miệng', count: MOCK_RECIPES.filter((r) => r.category === 'dessert').length },
-        { value: 'drink', label: 'Đồ uống', count: MOCK_RECIPES.filter((r) => r.category === 'drink').length },
-        { value: 'side', label: 'Món phụ', count: MOCK_RECIPES.filter((r) => r.category === 'side').length },
+        {
+            id: '2',
+            name: 'Draft Recipes',
+            filters: [{ id: 'status', label: 'Trạng thái', value: 'draft' }],
+        },
     ];
 
-    const getDifficultyColor = (difficulty: Recipe['difficulty']) => {
-        const colors = {
-            easy: 'from-green-500 to-emerald-500',
-            medium: 'from-yellow-500 to-orange-500',
-            hard: 'from-red-500 to-pink-500',
-        };
-        return colors[difficulty];
+    // Filter data
+    const filteredRecipes = useMemo(() => {
+        return MOCK_RECIPES.filter((recipe) => {
+            const matchesSearch =
+                searchValue === '' ||
+                recipe.name.toLowerCase().includes(searchValue.toLowerCase()) ||
+                recipe.sku?.toLowerCase().includes(searchValue.toLowerCase()) ||
+                recipe.nameEn?.toLowerCase().includes(searchValue.toLowerCase());
+
+            const matchesFilters = filters.every((filter) => {
+                if (filter.id === 'category') return recipe.category === filter.value;
+                if (filter.id === 'status') return recipe.status === filter.value;
+                if (filter.id === 'difficulty') return recipe.difficulty === filter.value;
+                return true;
+            });
+
+            return matchesSearch && matchesFilters;
+        });
+    }, [searchValue, filters]);
+
+    // Stats
+    const stats = useMemo(
+        () => ({
+            total: MOCK_RECIPES.length,
+            published: MOCK_RECIPES.filter((r) => r.status === 'published').length,
+            draft: MOCK_RECIPES.filter((r) => r.status === 'draft').length,
+            avgCost: Math.round(
+                MOCK_RECIPES.reduce((sum, r) => sum + r.totalCostPerUnit, 0) / MOCK_RECIPES.length
+            ),
+        }),
+        []
+    );
+
+    // Define columns - Tối ưu cho màn hình
+    const columns: Column<Recipe>[] = [
+        {
+            id: 'name',
+            header: 'Công thức',
+            accessor: (row) => (
+                <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                        {row.name.charAt(0)}
+                    </div>
+                    <div className="min-w-0">
+                        <div style={{ color: '#000000', fontWeight: '600' }} className="truncate">
+                            {row.name}
+                        </div>
+                        <div className="text-xs text-gray-500">SKU: {row.sku}</div>
+                    </div>
+                </div>
+            ),
+            sortable: true,
+            minWidth: 200,
+        },
+        {
+            id: 'category',
+            header: 'Danh mục',
+            accessor: (row) => {
+                const categoryConfig: Record<string, { label: string; className: string }> = {
+                    main: { label: 'Món chính', className: 'bg-blue-100 text-blue-800' },
+                    appetizer: { label: 'Khai vị', className: 'bg-green-100 text-green-800' },
+                    side: { label: 'Món phụ', className: 'bg-purple-100 text-purple-800' },
+                    dessert: { label: 'Tráng miệng', className: 'bg-pink-100 text-pink-800' },
+                    beverage: { label: 'Đồ uống', className: 'bg-yellow-100 text-yellow-800' },
+                    sauce: { label: 'Nước sốt', className: 'bg-orange-100 text-orange-800' },
+                    combo: { label: 'Combo', className: 'bg-red-100 text-red-800' },
+                };
+                const config = categoryConfig[row.category] || { label: row.category, className: 'bg-gray-100 text-gray-800' };
+                return <Badge className={`${config.className} text-xs`}>{config.label}</Badge>;
+            },
+            sortable: true,
+            minWidth: 100,
+        },
+        {
+            id: 'bom',
+            header: 'BOM',
+            accessor: (row) => (
+                <div className="text-sm text-center">
+                    <span style={{ color: '#1a1a1a', fontWeight: '600' }}>
+                        {row.bom.length}
+                    </span>
+                    <div className="text-xs text-gray-500">nguyên liệu</div>
+                </div>
+            ),
+            minWidth: 80,
+        },
+        {
+            id: 'cost',
+            header: 'Chi phí',
+            accessor: (row) => (
+                <div className="text-right">
+                    <div style={{ color: '#1a1a1a', fontWeight: '600' }} className="text-sm">
+                        {row.totalCostPerUnit.toLocaleString()}đ
+                    </div>
+                    {row.suggestedPrice && (
+                        <div className="text-xs text-gray-500">
+                            Bán: {row.suggestedPrice.toLocaleString()}đ
+                        </div>
+                    )}
+                </div>
+            ),
+            sortable: true,
+            minWidth: 120,
+        },
+        {
+            id: 'status',
+            header: 'Trạng thái',
+            accessor: (row) => {
+                const statusConfig: Record<string, { label: string; className: string; icon: string }> = {
+                    published: { label: 'Xuất bản', className: 'bg-green-100 text-green-800', icon: '✓' },
+                    qa: { label: 'QA', className: 'bg-yellow-100 text-yellow-800', icon: '⏱' },
+                    draft: { label: 'Nháp', className: 'bg-gray-100 text-gray-800', icon: '○' },
+                    archived: { label: 'Lưu trữ', className: 'bg-gray-200 text-gray-600', icon: '■' },
+                };
+                const config = statusConfig[row.status];
+                return (
+                    <Badge className={`${config.className} text-xs`}>
+                        <span className="mr-1">{config.icon}</span>
+                        {config.label}
+                    </Badge>
+                );
+            },
+            sortable: true,
+            minWidth: 90,
+        },
+        {
+            id: 'actions',
+            header: 'Thao tác',
+            accessor: (row) => (
+                <div onClick={(e) => e.stopPropagation()}>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('Button clicked, recipe:', row.name);
+                            setSelectedRecipe(row);
+                            setDetailDialogOpen(true);
+                        }}
+                        className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                        style={{ color: '#ea580c', fontWeight: '600' }}
+                    >
+                        <FileText className="h-3 w-3 mr-1" />
+                        Xem
+                    </Button>
+                </div>
+            ),
+            minWidth: 80,
+        },
+    ];
+
+    const handleRemoveFilter = (filterId: string) => {
+        setFilters(filters.filter((f) => f.id !== filterId));
     };
 
-    const getDifficultyText = (difficulty: Recipe['difficulty']) => {
-        const text = {
-            easy: 'Dễ',
-            medium: 'Trung bình',
-            hard: 'Khó',
-        };
-        return text[difficulty];
+    const handleClearAll = () => {
+        setSearchValue('');
+        setFilters([]);
+    };
+
+    const handleApplySavedFilter = (filter: SavedFilter) => {
+        setFilters(filter.filters);
+    };
+
+    const handleSaveFilter = (name: string) => {
+        console.log('Save filter:', name, filters);
+    };
+
+    const handleExport = () => {
+        console.log('Export recipes:', filteredRecipes);
+    };
+
+    const handleBulkDelete = (ids: string[]) => {
+        console.log('Delete recipes:', ids);
     };
 
     return (
-        <AdminGuard>
-            <div className="min-h-screen bg-[#f9fafb] py-8">
-                <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-                    {/* Header */}
-                    <div className="mb-8">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3 mb-2">
-                                    <div className="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center shadow-lg">
-                                        <BookOpen className="text-white" size={28} strokeWidth={2.5} />
-                                    </div>
-                                    Quản Lý Công Thức
-                                </h1>
-                                <p className="text-gray-600 text-lg">Tạo và quản lý công thức món ăn</p>
-                            </div>
-                            <Button className="bg-gradient-to-r from-primary to-secondary text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all">
-                                <Plus size={18} className="mr-2" strokeWidth={2.5} />
-                                Tạo công thức mới
-                            </Button>
-                        </div>
-                    </div>
+        <AdminPageLayout>
+            {/* Header */}
+            <AdminPageHeader
+                title="Quản lý công thức món ăn"
+                description="Quản lý BOM, chi phí, dinh dưỡng và versioning"
+                icon={ChefHat}
+                actions={
+                    <Button className="bg-gradient-to-r from-[#EC6426] to-[#F8A91F] hover:from-[#EC6426]/90 hover:to-[#F8A91F]/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold text-sm sm:text-base">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Tạo công thức mới
+                    </Button>
+                }
+            />
 
-                    {/* Stats Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                        <Card className="p-6 bg-white border-0 shadow-sm hover:shadow-xl transition-all duration-300 rounded-2xl group">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">
-                                        Tổng công thức
-                                    </p>
-                                    <p className="text-4xl font-bold text-gray-900 group-hover:text-primary transition-colors">
-                                        {totalRecipes}
-                                    </p>
-                                </div>
-                                <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-all">
-                                    <BookOpen className="text-white" size={26} strokeWidth={2.5} />
-                                </div>
-                            </div>
-                        </Card>
+            {/* Stats Cards */}
+            <AdminStatsGrid>
+                <AdminStatsCard
+                    title="Tổng công thức"
+                    value={stats.total}
+                    icon={ChefHat}
+                />
+                <AdminStatsCard
+                    title="Đã xuất bản"
+                    value={stats.published}
+                    icon={BookOpen}
+                    className="border-green-200"
+                    iconClassName="from-green-400 to-green-600"
+                />
+                <AdminStatsCard
+                    title="Đang soạn thảo"
+                    value={stats.draft}
+                    icon={FileText}
+                    className="border-yellow-200"
+                    iconClassName="from-yellow-400 to-yellow-600"
+                />
+                <AdminStatsCard
+                    title="Chi phí TB"
+                    value={`${(stats.avgCost / 1000).toFixed(0)}K`}
+                    icon={DollarSign}
+                    className="border-blue-200"
+                    iconClassName="from-blue-400 to-blue-600"
+                />
+            </AdminStatsGrid>
 
-                        <Card className="p-6 bg-white border-0 shadow-sm hover:shadow-xl transition-all duration-300 rounded-2xl group">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">
-                                        Calo trung bình
-                                    </p>
-                                    <p className="text-4xl font-bold text-orange-600 group-hover:scale-105 transition-transform">
-                                        {avgCalories}
-                                    </p>
-                                </div>
-                                <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-all">
-                                    <Flame className="text-white" size={26} strokeWidth={2.5} />
-                                </div>
-                            </div>
-                        </Card>
-
-                        <Card className="p-6 bg-white border-0 shadow-sm hover:shadow-xl transition-all duration-300 rounded-2xl group">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">
-                                        Có khóa đào tạo
-                                    </p>
-                                    <p className="text-4xl font-bold text-green-600 group-hover:scale-105 transition-transform">
-                                        {withTraining}
-                                    </p>
-                                </div>
-                                <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-all">
-                                    <GraduationCap className="text-white" size={26} strokeWidth={2.5} />
-                                </div>
-                            </div>
-                        </Card>
-                    </div>
-
-                    {/* Search and Filter */}
-                    <div className="mb-8 flex flex-col lg:flex-row gap-4">
-                        <div className="flex-1 relative">
-                            <Search
-                                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
-                                size={20}
-                                strokeWidth={2.5}
-                            />
-                            <Input
-                                placeholder="Tìm kiếm công thức..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-12 py-6 border-2 border-gray-200 rounded-xl focus:border-primary text-base"
-                            />
-                        </div>
-                        <div className="flex gap-2 overflow-x-auto pb-2">
-                            {categories.map((cat) => (
-                                <Button
-                                    key={cat.value}
-                                    onClick={() => setSelectedCategory(cat.value)}
-                                    variant={selectedCategory === cat.value ? 'default' : 'outline'}
-                                    className={`rounded-xl font-semibold whitespace-nowrap transition-all ${selectedCategory === cat.value
-                                            ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-lg'
-                                            : 'border-2 border-gray-200 text-gray-600 hover:border-primary'
-                                        }`}
-                                >
-                                    {cat.label}
-                                    <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-white/20">{cat.count}</span>
-                                </Button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Recipes Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {filteredRecipes.map((recipe) => (
-                            <Card
-                                key={recipe.id}
-                                className="bg-white border-0 shadow-sm hover:shadow-2xl transition-all duration-500 rounded-2xl overflow-hidden group"
-                            >
-                                {/* Difficulty Badge */}
-                                <div className={`h-2 bg-gradient-to-r ${getDifficultyColor(recipe.difficulty)}`}></div>
-
-                                {/* Image */}
-                                <div className="relative h-48 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
-                                    {recipe.image ? (
-                                        <Image src={recipe.image} alt={recipe.name} fill className="object-cover" />
-                                    ) : (
-                                        <div className="absolute inset-0 flex items-center justify-center">
-                                            <ChefHat size={48} className="text-gray-400" strokeWidth={1.5} />
-                                        </div>
-                                    )}
-                                    {recipe.hasTrainingCourse && (
-                                        <div className="absolute top-3 right-3 px-3 py-1.5 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl text-white text-xs font-bold shadow-lg flex items-center gap-1">
-                                            <GraduationCap size={14} strokeWidth={2.5} />
-                                            Có đào tạo
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="p-6">
-                                    {/* Header */}
-                                    <div className="mb-4">
-                                        <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-primary transition-colors">
-                                            {recipe.name}
-                                        </h3>
-                                        <p className="text-sm text-gray-600 line-clamp-2">{recipe.description}</p>
-                                    </div>
-
-                                    {/* Stats */}
-                                    <div className="grid grid-cols-2 gap-3 mb-4">
-                                        <div className="p-3 bg-gradient-to-br from-orange-50 to-transparent rounded-xl border border-orange-100">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <Flame size={16} className="text-orange-500" strokeWidth={2.5} />
-                                                <span className="text-xs font-bold text-gray-500 uppercase">Calo</span>
-                                            </div>
-                                            <p className="text-lg font-bold text-orange-600">{recipe.totalCalories}</p>
-                                        </div>
-                                        <div className="p-3 bg-gradient-to-br from-blue-50 to-transparent rounded-xl border border-blue-100">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <Clock size={16} className="text-blue-500" strokeWidth={2.5} />
-                                                <span className="text-xs font-bold text-gray-500 uppercase">Thời gian</span>
-                                            </div>
-                                            <p className="text-lg font-bold text-blue-600">{recipe.prepTime}p</p>
-                                        </div>
-                                        <div className="p-3 bg-gradient-to-br from-green-50 to-transparent rounded-xl border border-green-100">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <DollarSign size={16} className="text-green-500" strokeWidth={2.5} />
-                                                <span className="text-xs font-bold text-gray-500 uppercase">Giá</span>
-                                            </div>
-                                            <p className="text-lg font-bold text-green-600">{recipe.price.toLocaleString()}đ</p>
-                                        </div>
-                                        <div className="p-3 bg-gradient-to-br from-purple-50 to-transparent rounded-xl border border-purple-100">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <Users size={16} className="text-purple-500" strokeWidth={2.5} />
-                                                <span className="text-xs font-bold text-gray-500 uppercase">Phần ăn</span>
-                                            </div>
-                                            <p className="text-lg font-bold text-purple-600">{recipe.servingSize}</p>
-                                        </div>
-                                    </div>
-
-                                    {/* Difficulty Badge */}
-                                    <div className="mb-4 flex items-center justify-between">
-                                        <span
-                                            className={`px-4 py-2 bg-gradient-to-r ${getDifficultyColor(
-                                                recipe.difficulty
-                                            )} text-white text-xs font-bold rounded-xl shadow-md flex items-center gap-1.5`}
-                                        >
-                                            <Star size={14} strokeWidth={2.5} />
-                                            {getDifficultyText(recipe.difficulty)}
-                                        </span>
-                                        <span className="text-xs text-gray-500 font-medium">
-                                            {recipe.ingredients.length} nguyên liệu
-                                        </span>
-                                    </div>
-
-                                    {/* Actions */}
-                                    <div className="flex gap-2 pt-4 border-t-2 border-gray-100">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="flex-1 border-2 border-primary text-primary hover:bg-primary hover:text-white font-semibold rounded-xl transition-all"
-                                        >
-                                            <Edit size={16} className="mr-1" strokeWidth={2.5} />
-                                            Sửa
-                                        </Button>
-                                        {!recipe.hasTrainingCourse && (
-                                            <Button
-                                                size="sm"
-                                                className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
-                                                onClick={() => router.push(`/admin/training/create?recipeId=${recipe.id}`)}
-                                            >
-                                                <GraduationCap size={16} className="mr-1" strokeWidth={2.5} />
-                                                Tạo khóa học
-                                            </Button>
-                                        )}
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-semibold rounded-xl transition-all"
-                                        >
-                                            <Trash2 size={16} strokeWidth={2.5} />
-                                        </Button>
-                                    </div>
-                                </div>
-                            </Card>
-                        ))}
-                    </div>
-                </div>
+            {/* FilterBar */}
+            <div className="w-full">
+                <FilterBar
+                searchPlaceholder="Tìm kiếm theo tên, SKU..."
+                searchValue={searchValue}
+                onSearchChange={setSearchValue}
+                filters={filters}
+                onRemoveFilter={handleRemoveFilter}
+                onClearAll={handleClearAll}
+                savedFilters={savedFilters}
+                onApplySavedFilter={handleApplySavedFilter}
+                onSaveCurrentFilter={handleSaveFilter}
+                showAdvancedFilters={showAdvanced}
+                onToggleAdvancedFilters={() => setShowAdvanced(!showAdvanced)}
+                customActions={
+                    <Button variant="outline" size="sm" style={{ color: '#000000', fontWeight: '600' }}>
+                        <BookOpen className="h-4 w-4 mr-2" />
+                        Import
+                    </Button>
+                }
+                />
             </div>
-        </AdminGuard>
+
+            {/* Advanced Filters */}
+            {showAdvanced && (
+                <Card className="p-4 bg-white">
+                    <h3 className="font-semibold mb-4 text-gray-900">Bộ lọc nâng cao</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label className="text-sm font-bold mb-2 block text-gray-950">
+                                Danh mục
+                            </label>
+                            <select
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-950 font-semibold bg-white"
+                                onChange={(e) => {
+                                    if (e.target.value) {
+                                        setFilters([
+                                            ...filters.filter((f) => f.id !== 'category'),
+                                            { id: 'category', label: 'Danh mục', value: e.target.value },
+                                        ]);
+                                    }
+                                }}
+                            >
+                                <option value="">Tất cả</option>
+                                <option value="main">Món chính</option>
+                                <option value="appetizer">Khai vị</option>
+                                <option value="side">Món phụ</option>
+                                <option value="dessert">Tráng miệng</option>
+                                <option value="beverage">Đồ uống</option>
+                                <option value="sauce">Nước sốt</option>
+                                <option value="combo">Combo</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="text-sm font-bold mb-2 block text-gray-950">
+                                Trạng thái
+                            </label>
+                            <select
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-950 font-semibold bg-white"
+                                onChange={(e) => {
+                                    if (e.target.value) {
+                                        setFilters([
+                                            ...filters.filter((f) => f.id !== 'status'),
+                                            { id: 'status', label: 'Trạng thái', value: e.target.value },
+                                        ]);
+                                    }
+                                }}
+                            >
+                                <option value="">Tất cả</option>
+                                <option value="published">Đã xuất bản</option>
+                                <option value="qa">QA</option>
+                                <option value="draft">Nháp</option>
+                                <option value="archived">Lưu trữ</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="text-sm font-bold mb-2 block text-gray-950">
+                                Độ khó
+                            </label>
+                            <select
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-950 font-semibold bg-white"
+                                onChange={(e) => {
+                                    if (e.target.value) {
+                                        setFilters([
+                                            ...filters.filter((f) => f.id !== 'difficulty'),
+                                            { id: 'difficulty', label: 'Độ khó', value: e.target.value },
+                                        ]);
+                                    }
+                                }}
+                            >
+                                <option value="">Tất cả</option>
+                                <option value="easy">Dễ</option>
+                                <option value="medium">Trung bình</option>
+                                <option value="hard">Khó</option>
+                            </select>
+                        </div>
+                    </div>
+                </Card>
+            )}
+
+            {/* DataTable */}
+            <DataTable
+                data={filteredRecipes}
+                columns={columns}
+                selectable
+                onSelectionChange={setSelectedRecipes}
+                getRowId={(row) => row.id}
+                defaultSort={{ columnId: 'name', direction: 'asc' }}
+                pagination={{
+                    pageSize: 10,
+                    pageSizeOptions: [10, 25, 50, 100],
+                }}
+                actions={{
+                    onExport: handleExport,
+                    onDelete: handleBulkDelete,
+                }}
+                emptyState={{
+                    title: 'Không tìm thấy công thức',
+                    description: 'Thử thay đổi bộ lọc hoặc tìm kiếm với từ khóa khác',
+                    icon: <ChefHat className="h-16 w-16 text-gray-400" />,
+                    action: (
+                        <Button className="bg-gradient-to-r from-orange-500 to-orange-600">
+                            <Plus className="h-4 w-4 mr-2" />
+                            Tạo công thức mới
+                        </Button>
+                    ),
+                }}
+                stickyHeader
+            />
+
+            {/* Detail Dialog */}
+            <RecipeDetailDialog
+                recipe={selectedRecipe}
+                open={detailDialogOpen}
+                onClose={() => {
+                    setDetailDialogOpen(false);
+                    setSelectedRecipe(null);
+                }}
+            />
+        </AdminPageLayout>
     );
 }
