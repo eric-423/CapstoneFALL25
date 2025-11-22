@@ -109,4 +109,13 @@ public class DiningTableServiceImpl implements DiningTableService {
     }
 
 
+    public List<DiningTableDTO> getAllDiningTableWithBranch(int branchId) {
+        List<DiningTable> diningTables = diningTableRepository.findByBranch_Id(branchId);
+        List<DiningTableDTO> diningTableDTOs = new ArrayList<>();
+        diningTables.forEach(diningTable -> diningTableDTOs.add(toDTOWithOrders(diningTable)));
+
+        return diningTableDTOs;
+    }
+
+
 }
