@@ -12,13 +12,13 @@ public interface ProductRecipesService {
 
     List<ProductRecipesDTO> getRecipesByMaterialId(int materialId);
 
-    ProductRecipesDTO getRecipeById(int productId, int materialId);
+    ProductRecipesDTO getRecipeById(int id);
 
     ProductRecipesDTO createRecipe(ProductRecipesRequest request);
 
-    ProductRecipesDTO updateRecipe(int productId, int materialId, double quantity);
+    ProductRecipesDTO updateRecipe(int id, ProductRecipesRequest request);
 
-    void deleteRecipe(int productId, int materialId);
+    void deleteRecipe(int id);
 
     List<ProductRecipesDTO> updateManyRecipeForOneProduct(int productId, List<ProductRecipesRequest> requests);
 }
