@@ -2,7 +2,7 @@ import { useCurrentApp } from "@/context/app.context";
 import { FONTS } from "@/theme/typography";
 import { currencyFormatter } from "@/utils/cart";
 import { calculateTotalPrice } from "@/utils/cart";
-import { APP_COLOR, BASE_URL } from "@/utils/constant";
+import { APP_COLOR } from "@/utils/constant";
 import { useEffect, useState, useCallback } from "react";
 import {
   Pressable,
@@ -11,9 +11,9 @@ import {
   View,
   StyleSheet,
   FlatList,
+  Modal,
+  ActivityIndicator,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from "axios";
 import { Formik } from "formik";
 import { ChangePasswordSchema } from "@/utils/validate.schema";
 import CustomerInforInput from "@/components/input/customerInfo.input";
@@ -27,6 +27,7 @@ import {
   GetShippingFee,
   CreateOrder,
   GetBranchInfo,
+  getAvailablePromotion,
 } from "@/utils/api";
 
 interface IOrderItem {
@@ -51,10 +52,12 @@ const PlaceOrderPage = () => {
   const [branchAddress, setBranchAddress] = useState("");
   const { branchId, branchName } = useCurrentApp();
   const [shippingFee, setShippingFee] = useState<number>(0);
-  const [couponStatus, setCouponStatus] = useState(false);
+  const [originalShippingFee, setOriginalShippingFee] = useState<number>(0);
   const [discountAmount, setDiscountAmount] = useState<number>(0);
   const [availablePromotions, setAvailablePromotions] = useState<any[]>([]);
-  const [showPromotions, setShowPromotions] = useState(false);
+  const [showPromotionModal, setShowPromotionModal] = useState(false);
+  const [selectedPromotion, setSelectedPromotion] = useState<any>(null);
+  const [isLoadingPromotions, setIsLoadingPromotions] = useState(false);
   const [customerInformation, setCustomerInformation] = useState<any>(null);
   const [canShip, setCanShip] = useState(false);
   const [orderMode, setOrderMode] = useState<"SHIPPING" | "PICKUP">("SHIPPING");
@@ -80,7 +83,9 @@ const PlaceOrderPage = () => {
           customerInformation.address,
           branchAddress
         );
-        setShippingFee(res.data.data);
+        const fee = res.data.data || 0;
+        setShippingFee(fee);
+        setOriginalShippingFee(fee);
       } catch (error) {
         setCanShip(false);
         setShippingFee(0);
@@ -110,6 +115,46 @@ const PlaceOrderPage = () => {
       };
       fetchCustomerInformation();
     }, [appState?.userInfo?.id])
+  );
+
+  const fetchAvailablePromotions = useCallback(async () => {
+    try {
+      setIsLoadingPromotions(true);
+      const res = await getAvailablePromotion();
+      if (res.data && res.data.status === 0 && res.data.data) {
+        setAvailablePromotions(res.data.data || []);
+      }
+    } catch (error) {
+      console.error("Error fetching available promotions:", error);
+      setAvailablePromotions([]);
+    } finally {
+      setIsLoadingPromotions(false);
+    }
+  }, []);
+
+  const calculateDiscount = useCallback(
+    (promotion: any, totalAmount: number, currentShippingFee: number) => {
+      if (!promotion) return 0;
+
+      const minOrderValue = promotion.minimumOrderValue || 0;
+      if (totalAmount < minOrderValue) {
+        return 0;
+      }
+
+      const promotionType = promotion.promotionTypeName || "";
+      const value = promotion.value || 0;
+
+      if (promotionType.includes("Giảm giá theo %")) {
+        return Math.floor((totalAmount * value) / 100);
+      } else if (promotionType.includes("Giảm giá cố định")) {
+        return value;
+      } else if (promotionType.includes("Miễn phí vận chuyển")) {
+        return currentShippingFee;
+      }
+
+      return 0;
+    },
+    []
   );
   return (
     <View
@@ -385,33 +430,40 @@ const PlaceOrderPage = () => {
               branchId,
             ]);
             useEffect(() => {
-              const fetchPromotion = async () => {
-                if (values.promotionCode) {
-                  try {
-                    const token = await AsyncStorage.getItem("access_token");
-                    const res = await axios.get(
-                      `${BASE_URL}/promotions/code/${values.promotionCode}`,
-                      {
-                        headers: {
-                          Authorization: `Bearer ${token}`,
-                          accept: "*/*",
-                        },
-                      }
-                    );
-                    if (res.data && res.data.discountAmount) {
-                      setDiscountAmount(res.data.discountAmount);
-                    } else {
-                      setDiscountAmount(0);
-                    }
-                  } catch (e) {
-                    setDiscountAmount(0);
-                  }
+              if (selectedPromotion && restaurant?._id) {
+                const totalAmount = calculateTotalPrice(cart, restaurant._id);
+                const currentShippingFee =
+                  selectedPromotion.promotionTypeName?.includes(
+                    "Miễn phí vận chuyển"
+                  )
+                    ? 0
+                    : originalShippingFee;
+                const discount = calculateDiscount(
+                  selectedPromotion,
+                  totalAmount,
+                  currentShippingFee
+                );
+                setDiscountAmount(discount);
+                if (
+                  selectedPromotion.promotionTypeName?.includes(
+                    "Miễn phí vận chuyển"
+                  )
+                ) {
+                  setShippingFee(0);
                 } else {
-                  setDiscountAmount(0);
+                  setShippingFee(originalShippingFee);
                 }
-              };
-              fetchPromotion();
-            }, [values.promotionCode]);
+              } else {
+                setDiscountAmount(0);
+                setShippingFee(originalShippingFee);
+              }
+            }, [
+              selectedPromotion,
+              cart,
+              restaurant,
+              originalShippingFee,
+              calculateDiscount,
+            ]);
             const handleCreateOrder = async () => {
               if (!appState?.userInfo?.id) {
                 console.error("Customer ID không tồn tại");
@@ -454,7 +506,7 @@ const PlaceOrderPage = () => {
                 });
                 const payload = {
                   customerId: appState.userInfo.id,
-                  promotionCode: values.promotionCode || "",
+                  promotionCode: selectedPromotion?.id || "",
                   discountValue: discountAmount,
                   shippingAddress:
                     orderMode === "SHIPPING"
@@ -508,14 +560,9 @@ const PlaceOrderPage = () => {
                         món)
                       </Text>
                       <Pressable
-                        onPress={() => {
-                          if (couponStatus === true) {
-                            setCouponStatus(false);
-                            setShowPromotions(false);
-                          } else {
-                            setCouponStatus(true);
-                            setShowPromotions(true);
-                          }
+                        onPress={async () => {
+                          await fetchAvailablePromotions();
+                          setShowPromotionModal(true);
                         }}
                       >
                         <Text
@@ -526,14 +573,14 @@ const PlaceOrderPage = () => {
                             marginVertical: "auto",
                           }}
                         >
-                          {values.promotionCode ? (
+                          {selectedPromotion ? (
                             <Text
                               style={{
                                 textDecorationLine: "none",
                                 fontSize: 18,
                               }}
                             >
-                              {values.promotionCode}
+                              Đã áp dụng
                             </Text>
                           ) : (
                             "Áp dụng mã khuyến mãi"
@@ -601,25 +648,6 @@ const PlaceOrderPage = () => {
                       <Text
                         style={[
                           styles.textInputText,
-                          { fontFamily: FONTS.regular, fontSize: 17 },
-                        ]}
-                      >
-                        Mã Giảm giá
-                      </Text>
-                      <Text
-                        style={{
-                          fontFamily: FONTS.regular,
-                          fontSize: 17,
-                          color: APP_COLOR.BROWN,
-                        }}
-                      >
-                        {currencyFormatter(discountAmount)}
-                      </Text>
-                    </View>
-                    <View style={styles.textInputView}>
-                      <Text
-                        style={[
-                          styles.textInputText,
                           { fontFamily: FONTS.bold, fontSize: 20 },
                         ]}
                       >
@@ -641,97 +669,327 @@ const PlaceOrderPage = () => {
                     </View>
                   </View>
                 )}
-                {couponStatus && (
-                  <CustomerInforInput
-                    onChangeText={handleChange("promotionCode")}
-                    onBlur={handleBlur("promotionCode")}
-                    value={values.promotionCode}
-                    error={errors.promotionCode}
-                    touched={touched.promotionCode}
-                    placeholder="Nhập mã khuyến mãi"
-                  />
-                )}
-                {showPromotions && availablePromotions.length > 0 && (
-                  <View style={{ marginTop: 10, paddingHorizontal: 10 }}>
-                    <Text
+                {selectedPromotion && (
+                  <View
+                    style={{
+                      marginTop: 10,
+                      paddingHorizontal: 10,
+                      paddingVertical: 10,
+                      backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
+                      borderRadius: 10,
+                      borderWidth: 1,
+                      borderColor: APP_COLOR.ORANGE,
+                    }}
+                  >
+                    <View
                       style={{
-                        fontFamily: FONTS.medium,
-                        fontSize: 16,
-                        color: APP_COLOR.BROWN,
-                        marginBottom: 10,
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        alignItems: "center",
                       }}
                     >
-                      Mã khuyến mãi khả dụng:
-                    </Text>
-                    <FlatList
-                      data={availablePromotions}
-                      horizontal
-                      showsHorizontalScrollIndicator={false}
-                      keyExtractor={(item) => item.promotionId.toString()}
-                      renderItem={({ item }) => (
+                      <View style={{ flex: 1 }}>
+                        <Text
+                          style={{
+                            fontFamily: FONTS.bold,
+                            fontSize: 16,
+                            color: APP_COLOR.BROWN,
+                            marginBottom: 3,
+                          }}
+                        >
+                          {selectedPromotion.name}
+                        </Text>
+                        <Text
+                          style={{
+                            fontFamily: FONTS.regular,
+                            fontSize: 13,
+                            color: APP_COLOR.BROWN,
+                          }}
+                        >
+                          {selectedPromotion.description}
+                        </Text>
+                      </View>
+                      <Pressable
+                        onPress={() => {
+                          setSelectedPromotion(null);
+                          setFieldValue("promotionCode", "");
+                          setDiscountAmount(0);
+                          setShippingFee(originalShippingFee);
+                        }}
+                        style={{
+                          padding: 5,
+                        }}
+                      >
+                        <AntDesign
+                          name="close-circle"
+                          size={20}
+                          color={APP_COLOR.CANCEL}
+                        />
+                      </Pressable>
+                    </View>
+                  </View>
+                )}
+                <Modal
+                  visible={showPromotionModal}
+                  animationType="slide"
+                  transparent={true}
+                  onRequestClose={() => setShowPromotionModal(false)}
+                >
+                  <View
+                    style={{
+                      flex: 1,
+                      backgroundColor: "rgba(0, 0, 0, 0.5)",
+                      justifyContent: "flex-end",
+                    }}
+                  >
+                    <View
+                      style={{
+                        backgroundColor: APP_COLOR.WHITE,
+                        borderTopLeftRadius: 20,
+                        borderTopRightRadius: 20,
+                        padding: 20,
+                        maxHeight: "70%",
+                      }}
+                    >
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          marginBottom: 20,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontFamily: FONTS.bold,
+                            fontSize: 20,
+                            color: APP_COLOR.BROWN,
+                          }}
+                        >
+                          Chọn mã khuyến mãi
+                        </Text>
                         <Pressable
                           onPress={() => {
-                            setFieldValue("promotionCode", item.code);
-                            setShowPromotions(false);
-                            setCouponStatus(false);
+                            setShowPromotionModal(false);
                           }}
+                        >
+                          <AntDesign
+                            name="close"
+                            size={24}
+                            color={APP_COLOR.BROWN}
+                          />
+                        </Pressable>
+                      </View>
+                      {isLoadingPromotions ? (
+                        <View
                           style={{
-                            backgroundColor: APP_COLOR.WHITE,
-                            padding: 12,
-                            marginRight: 10,
-                            borderRadius: 8,
-                            borderWidth: 1,
-                            borderColor: APP_COLOR.BROWN,
-                            width: 150,
-                            minHeight: 80,
+                            paddingVertical: 40,
+                            alignItems: "center",
+                          }}
+                        >
+                          <ActivityIndicator
+                            size="large"
+                            color={APP_COLOR.ORANGE}
+                          />
+                        </View>
+                      ) : availablePromotions.length === 0 ? (
+                        <View
+                          style={{
+                            paddingVertical: 40,
+                            alignItems: "center",
                           }}
                         >
                           <Text
                             style={{
-                              fontFamily: FONTS.bold,
-                              fontSize: 14,
-                              color: APP_COLOR.BROWN,
-                              marginBottom: 4,
-                            }}
-                          >
-                            {item.name}
-                          </Text>
-                          <Text
-                            style={{
                               fontFamily: FONTS.regular,
-                              fontSize: 12,
+                              fontSize: 16,
                               color: APP_COLOR.BROWN,
-                              marginBottom: 4,
                             }}
                           >
-                            {item.description}
+                            Không có mã khuyến mãi khả dụng
                           </Text>
-                          <Text
-                            style={{
-                              fontFamily: FONTS.medium,
-                              fontSize: 12,
-                              color: APP_COLOR.ORANGE,
-                            }}
-                          >
-                            Giảm: {item.discountAmount?.toLocaleString()}đ
-                          </Text>
-                          <Text
-                            style={{
-                              fontFamily: FONTS.regular,
-                              fontSize: 10,
-                              color: APP_COLOR.GRAY,
-                            }}
-                          >
-                            HSD:{" "}
-                            {item.endDate
-                              ? new Date(item.endDate).toLocaleDateString()
-                              : ""}
-                          </Text>
-                        </Pressable>
+                        </View>
+                      ) : (
+                        <FlatList
+                          data={availablePromotions}
+                          keyExtractor={(item) => item.id}
+                          renderItem={({ item }) => {
+                            const totalAmount = calculateTotalPrice(
+                              cart,
+                              restaurant?._id
+                            );
+                            const isDisabled =
+                              totalAmount < (item.minimumOrderValue || 0);
+                            const discount = calculateDiscount(
+                              item,
+                              totalAmount,
+                              shippingFee
+                            );
+
+                            return (
+                              <Pressable
+                                onPress={() => {
+                                  if (isDisabled) return;
+                                  const previousPromotion = selectedPromotion;
+                                  setSelectedPromotion(item);
+                                  setFieldValue("promotionCode", item.id);
+                                  setShowPromotionModal(false);
+                                }}
+                                style={{
+                                  backgroundColor:
+                                    selectedPromotion?.id === item.id
+                                      ? APP_COLOR.BACKGROUND_ORANGE
+                                      : APP_COLOR.WHITE,
+                                  padding: 15,
+                                  marginBottom: 10,
+                                  borderRadius: 10,
+                                  borderWidth: 2,
+                                  borderColor:
+                                    selectedPromotion?.id === item.id
+                                      ? APP_COLOR.ORANGE
+                                      : APP_COLOR.BROWN,
+                                  opacity: isDisabled ? 0.5 : 1,
+                                }}
+                                disabled={isDisabled}
+                              >
+                                <View
+                                  style={{
+                                    flexDirection: "row",
+                                    justifyContent: "space-between",
+                                    alignItems: "flex-start",
+                                  }}
+                                >
+                                  <View style={{ flex: 1 }}>
+                                    <Text
+                                      style={{
+                                        fontFamily: FONTS.bold,
+                                        fontSize: 16,
+                                        color: APP_COLOR.BROWN,
+                                        marginBottom: 5,
+                                      }}
+                                    >
+                                      {item.name}
+                                    </Text>
+                                    <Text
+                                      style={{
+                                        fontFamily: FONTS.regular,
+                                        fontSize: 13,
+                                        color: APP_COLOR.BROWN,
+                                        marginBottom: 5,
+                                      }}
+                                    >
+                                      {item.description}
+                                    </Text>
+                                    <Text
+                                      style={{
+                                        fontFamily: FONTS.medium,
+                                        fontSize: 12,
+                                        color: APP_COLOR.ORANGE,
+                                        marginBottom: 3,
+                                      }}
+                                    >
+                                      {item.promotionTypeName}
+                                    </Text>
+                                    {item.promotionTypeName?.includes(
+                                      "Giảm giá theo %"
+                                    ) ? (
+                                      <Text
+                                        style={{
+                                          fontFamily: FONTS.regular,
+                                          fontSize: 12,
+                                          color: APP_COLOR.BROWN,
+                                        }}
+                                      >
+                                        Giảm: {item.value}%
+                                      </Text>
+                                    ) : item.promotionTypeName?.includes(
+                                        "Giảm giá cố định"
+                                      ) ? (
+                                      <Text
+                                        style={{
+                                          fontFamily: FONTS.regular,
+                                          fontSize: 12,
+                                          color: APP_COLOR.BROWN,
+                                        }}
+                                      >
+                                        Giảm:{" "}
+                                        {currencyFormatter(item.value || 0)}
+                                      </Text>
+                                    ) : (
+                                      <Text
+                                        style={{
+                                          fontFamily: FONTS.regular,
+                                          fontSize: 12,
+                                          color: APP_COLOR.BROWN,
+                                        }}
+                                      >
+                                        Miễn phí vận chuyển
+                                      </Text>
+                                    )}
+                                    {item.minimumOrderValue > 0 && (
+                                      <Text
+                                        style={{
+                                          fontFamily: FONTS.regular,
+                                          fontSize: 11,
+                                          color: APP_COLOR.GRAY,
+                                          marginTop: 3,
+                                        }}
+                                      >
+                                        Đơn tối thiểu:{" "}
+                                        {currencyFormatter(
+                                          item.minimumOrderValue
+                                        )}
+                                      </Text>
+                                    )}
+                                    {isDisabled && (
+                                      <Text
+                                        style={{
+                                          fontFamily: FONTS.regular,
+                                          fontSize: 11,
+                                          color: APP_COLOR.CANCEL,
+                                          marginTop: 3,
+                                        }}
+                                      >
+                                        Đơn hàng chưa đủ điều kiện
+                                      </Text>
+                                    )}
+                                  </View>
+                                  {selectedPromotion?.id === item.id && (
+                                    <AntDesign
+                                      name="check-circle"
+                                      size={24}
+                                      color={APP_COLOR.ORANGE}
+                                    />
+                                  )}
+                                </View>
+                                {discount > 0 && !isDisabled && (
+                                  <View
+                                    style={{
+                                      marginTop: 10,
+                                      paddingTop: 10,
+                                      borderTopWidth: 1,
+                                      borderTopColor: APP_COLOR.BROWN,
+                                    }}
+                                  >
+                                    <Text
+                                      style={{
+                                        fontFamily: FONTS.bold,
+                                        fontSize: 14,
+                                        color: APP_COLOR.ORANGE,
+                                      }}
+                                    >
+                                      Giảm được: {currencyFormatter(discount)}
+                                    </Text>
+                                  </View>
+                                )}
+                              </Pressable>
+                            );
+                          }}
+                        />
                       )}
-                    />
+                    </View>
                   </View>
-                )}
+                </Modal>
                 <CustomerInforInput
                   onChangeText={handleChange("note")}
                   onBlur={handleBlur("note")}

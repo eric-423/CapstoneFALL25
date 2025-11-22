@@ -440,3 +440,14 @@ export const getOrderById = async (orderId: number) => {
     },
   });
 };
+
+export const getAvailablePromotion = async () => {
+  const token = await AsyncStorage.getItem("access_token");
+  return axios.get(`${BASE_URL}/promotions/customer/available`, {
+    headers: {
+      accept: "application/json",
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+  });
+};
