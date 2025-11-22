@@ -42,5 +42,10 @@ public class DiningTableController {
         return new ResponseEntity<>(result, org.springframework.http.HttpStatus.OK);
     }
 
+    @GetMapping("/branch/{branchId} ")
+    public ResponseEntity<?> getAllDiningTableWithBranch(@PathVariable int branchId){
+        return new ResponseEntity<>(diningTableService.getAllDiningTableWithBranch(branchId), org.springframework.http.HttpStatus.OK);
+    }
+
 
 }
