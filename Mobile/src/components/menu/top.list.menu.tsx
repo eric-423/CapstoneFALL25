@@ -94,6 +94,9 @@ const TopListMenu = ({ activeTab, setActiveTab }: TopListMenuProps) => {
               Combo
             </Text>
           </Pressable>
+          <View>
+            <Text>Giá cả</Text>
+          </View>
         </View>
       </View>
       <ScrollView
