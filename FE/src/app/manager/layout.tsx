@@ -11,6 +11,7 @@ import { usePathname } from 'next/navigation';
 import { useState, useEffect, useMemo, memo, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import {
+    LayoutDashboard,
     ShoppingBag,
     LogOut,
     Menu,
@@ -71,6 +72,7 @@ export default function ManagerLayout({
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     const menuItems = useMemo(() => [
+        { href: '/manager/dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/manager/orders', label: 'Đơn hàng', icon: ShoppingBag },
     ], []);
 
