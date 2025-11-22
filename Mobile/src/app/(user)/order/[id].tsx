@@ -15,7 +15,7 @@ import Entypo from "@expo/vector-icons/Entypo";
 import { formatDateToDDMMYYYY } from "@/utils/cart";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { getOrderById } from "@/utils/api";
+import { GetOrderById } from "@/utils/api";
 interface StatusInfo {
   text: string;
   color: string;
@@ -121,7 +121,7 @@ const OrderDetailsPage = () => {
       try {
         setIsLoading(true);
         setError(null);
-        const response = await getOrderById(Number(orderIdParam));
+        const response = await GetOrderById(Number(orderIdParam));
         const data = response.data?.data || response.data;
         if (data) {
           setOrderDetails(mapApiOrderToState(data));

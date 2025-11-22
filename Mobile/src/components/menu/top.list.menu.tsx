@@ -12,7 +12,8 @@ import { FONTS } from "@/theme/typography";
 import { GetProductType } from "@/utils/api";
 import { useEffect, useState } from "react";
 import { useCurrentApp } from "@/context/app.context";
-
+import Feather from "@expo/vector-icons/Feather";
+import { SortProductByPrice } from "@/utils/api";
 interface IProductType {
   productId: number;
   name: string;
@@ -47,6 +48,7 @@ interface TopListMenuProps {
 }
 
 const TopListMenu = ({ activeTab, setActiveTab }: TopListMenuProps) => {
+  const { branchId, sortDirection, setSortDirection } = useCurrentApp();
   const [productType, setProductType] = useState<IProductType[]>([]);
   const [comboData, setComboData] = useState<IProductType[]>([]);
   useEffect(() => {
@@ -68,35 +70,77 @@ const TopListMenu = ({ activeTab, setActiveTab }: TopListMenuProps) => {
     <View style={{ paddingHorizontal: 10 }}>
       <View style={styles.header}>
         <View style={styles.tabContainer}>
+          <View style={{ flexDirection: "row" }}>
+            <Pressable
+              onPress={() => setActiveTab("Danh mục")}
+              style={[
+                styles.tab,
+                { borderRightWidth: 1, borderRightColor: APP_COLOR.BROWN },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === "Danh mục" && styles.activeTabText,
+                ]}
+              >
+                Danh mục
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setActiveTab("Combo")}
+              style={[styles.tab]}
+            >
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === "Combo" && styles.activeTabText,
+                ]}
+              >
+                Combo
+              </Text>
+            </Pressable>
+          </View>
           <Pressable
-            onPress={() => setActiveTab("Danh mục")}
             style={[
               styles.tab,
-              { borderRightWidth: 1, borderRightColor: APP_COLOR.BROWN },
+              {
+                flexDirection: "row",
+                justifyContent: "flex-end",
+                gap: 5,
+                borderRadius: 8,
+              },
+              sortDirection && { backgroundColor: APP_COLOR.ORANGE },
             ]}
+            onPress={async () => {
+              if (!branchId) return;
+              let newDirection: "ASC" | "DESC" | null = null;
+              if (sortDirection === null) {
+                newDirection = "ASC";
+              } else if (sortDirection === "ASC") {
+                newDirection = "DESC";
+              } else {
+                newDirection = null;
+              }
+              setSortDirection(newDirection);
+            }}
           >
+            <Feather
+              name="filter"
+              size={24}
+              color={sortDirection ? APP_COLOR.WHITE : APP_COLOR.BROWN}
+            />
             <Text
               style={[
                 styles.tabText,
-                activeTab === "Danh mục" && styles.activeTabText,
+                sortDirection && { color: APP_COLOR.WHITE },
               ]}
             >
-              Danh mục
+              Giá cả
+              {sortDirection === "ASC" && " ↑"}
+              {sortDirection === "DESC" && " ↓"}
             </Text>
           </Pressable>
-          <Pressable onPress={() => setActiveTab("Combo")} style={[styles.tab]}>
-            <Text
-              style={[
-                styles.tabText,
-                activeTab === "Combo" && styles.activeTabText,
-              ]}
-            >
-              Combo
-            </Text>
-          </Pressable>
-          <View>
-            <Text>Giá cả</Text>
-          </View>
         </View>
       </View>
       <ScrollView
@@ -173,6 +217,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
     borderRadius: 8,
+    gap: 40,
   },
   tab: {
     paddingVertical: 8,

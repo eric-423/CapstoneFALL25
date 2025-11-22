@@ -27,8 +27,10 @@ import {
   GetShippingFee,
   CreateOrder,
   GetBranchInfo,
-  getAvailablePromotion,
+  GetAvailablePromotion,
+  GetBranchNearLocation,
 } from "@/utils/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface IOrderItem {
   title: string;
@@ -61,6 +63,7 @@ const PlaceOrderPage = () => {
   const [customerInformation, setCustomerInformation] = useState<any>(null);
   const [canShip, setCanShip] = useState(false);
   const [orderMode, setOrderMode] = useState<"SHIPPING" | "PICKUP">("SHIPPING");
+  const [distance, setDistance] = useState<number | null>(null);
   useEffect(() => {
     const fetchBranchInfo = async () => {
       if (!branchId) {
@@ -73,12 +76,34 @@ const PlaceOrderPage = () => {
     const fetchShippingFee = async () => {
       if (orderMode === "PICKUP") {
         setShippingFee(0);
+        setDistance(null);
         return;
       }
       if (!customerInformation?.address || !branchAddress) {
+        setDistance(null);
         return;
       }
       try {
+        const storedDistance = await AsyncStorage.getItem("distance");
+        if (storedDistance) {
+          setDistance(parseFloat(storedDistance));
+        } else {
+          try {
+            const branchRes = await GetBranchNearLocation(
+              customerInformation.address
+            );
+            const branches = branchRes.data?.data || branchRes.data || [];
+            const currentBranch = branches.find((b: any) => b.id === branchId);
+            if (currentBranch?.distanceInMeters) {
+              const distanceInKm = currentBranch.distanceInMeters / 1000;
+              setDistance(distanceInKm);
+              await AsyncStorage.setItem("distance", distanceInKm.toString());
+            }
+          } catch (e) {
+            console.error("Error getting distance:", e);
+          }
+        }
+
         const res = await GetShippingFee(
           customerInformation.address,
           branchAddress
@@ -89,10 +114,11 @@ const PlaceOrderPage = () => {
       } catch (error) {
         setCanShip(false);
         setShippingFee(0);
+        setDistance(null);
       }
     };
     fetchShippingFee();
-  }, [customerInformation?.address, branchName, orderMode]);
+  }, [customerInformation?.address, branchName, branchId, orderMode]);
   const orderDetails: { productId: number; quantity: number }[] =
     restaurant?._id && cart?.[restaurant._id]?.items
       ? Object.values(cart[restaurant._id].items).map((item) => ({
@@ -120,7 +146,7 @@ const PlaceOrderPage = () => {
   const fetchAvailablePromotions = useCallback(async () => {
     try {
       setIsLoadingPromotions(true);
-      const res = await getAvailablePromotion();
+      const res = await GetAvailablePromotion();
       if (res.data && res.data.status === 0 && res.data.data) {
         setAvailablePromotions(res.data.data || []);
       }
@@ -612,14 +638,33 @@ const PlaceOrderPage = () => {
                     </View>
                     {orderMode === "SHIPPING" && (
                       <View style={styles.textInputView}>
-                        <Text
-                          style={[
-                            styles.textInputText,
-                            { fontFamily: FONTS.regular, fontSize: 17 },
-                          ]}
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: 5,
+                          }}
                         >
-                          Phí giao hàng
-                        </Text>
+                          <Text
+                            style={[
+                              styles.textInputText,
+                              { fontFamily: FONTS.regular, fontSize: 17 },
+                            ]}
+                          >
+                            Phí giao hàng
+                          </Text>
+                          {distance !== null && (
+                            <Text
+                              style={{
+                                fontFamily: FONTS.regular,
+                                fontSize: 14,
+                                color: APP_COLOR.BROWN,
+                              }}
+                            >
+                              ({distance.toFixed(1)} km)
+                            </Text>
+                          )}
+                        </View>
                         <Text
                           style={{
                             fontFamily: FONTS.regular,

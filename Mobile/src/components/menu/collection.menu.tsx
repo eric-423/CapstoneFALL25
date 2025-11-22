@@ -18,7 +18,11 @@ import {
 } from "@/utils/cart";
 import React from "react";
 import { FONTS } from "@/theme/typography";
-import { GetProductByProductType, GetCombo } from "@/utils/api";
+import {
+  GetProductByProductType,
+  GetCombo,
+  SortProductByPrice,
+} from "@/utils/api";
 import { router } from "expo-router";
 const { width: sWidth } = Dimensions.get("window");
 const comboPlaceholder = require("@/assets/splash.png");
@@ -154,8 +158,13 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
 
 const CollectionMenu = (props: IProps) => {
   const { name, id, branchId, part = "product" } = props;
-  const { cart, restaurant, setRestaurant, selectedProductTypeId } =
-    useCurrentApp();
+  const {
+    cart,
+    restaurant,
+    setRestaurant,
+    selectedProductTypeId,
+    sortDirection,
+  } = useCurrentApp();
   const { handleQuantityChange } = useModal();
   const [restaurants, setRestaurants] = useState<IPropsProduct[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -171,7 +180,7 @@ const CollectionMenu = (props: IProps) => {
         if (part === "combo") {
           const res = await GetCombo(branchId);
           const combos = res?.data?.content || [];
-          const mappedCombos: IPropsProduct[] = combos.map((combo: any) => ({
+          let mappedCombos: IPropsProduct[] = combos.map((combo: any) => ({
             ProductType: {
               name: combo.branchName || "Combo",
               productTypeId: -1,
@@ -190,25 +199,63 @@ const CollectionMenu = (props: IProps) => {
             endDate: combo.endDate,
             active: combo.active,
           }));
+          if (sortDirection) {
+            mappedCombos = mappedCombos.sort((a, b) => {
+              if (sortDirection === "ASC") {
+                return a.price - b.price;
+              } else {
+                return b.price - a.price;
+              }
+            });
+          }
           setRestaurants(mappedCombos);
         } else {
-          const res = await GetProductByProductType(branchId, id || 0);
-          const mapped: IPropsProduct[] = (res?.data?.content || []).map(
-            (p: any) => ({
-              ProductType: {
-                name: p.productType,
-                productTypeId: p.productTypeId,
-              },
-              productDescription: p.productDescription,
-              name: p.productName,
-              productId: String(p.productId),
-              image: p.productImage,
-              description: p.productDescription,
-              price: p.productPrice,
-              averageRating: 5,
-            })
-          );
-          setRestaurants(mapped);
+          if (selectedProductTypeId === null && sortDirection && branchId) {
+            const res = await SortProductByPrice(branchId, sortDirection);
+            const mapped: IPropsProduct[] = (res?.data?.content || []).map(
+              (p: any) => ({
+                ProductType: {
+                  name: p.productType,
+                  productTypeId: p.productTypeId,
+                },
+                productDescription: p.productDescription,
+                name: p.productName,
+                productId: String(p.productId),
+                image: p.productImage,
+                description: p.productDescription,
+                price: p.productPrice,
+                averageRating: 5,
+              })
+            );
+            setRestaurants(mapped);
+          } else {
+            const res = await GetProductByProductType(branchId, id || 0);
+            let mapped: IPropsProduct[] = (res?.data?.content || []).map(
+              (p: any) => ({
+                ProductType: {
+                  name: p.productType,
+                  productTypeId: p.productTypeId,
+                },
+                productDescription: p.productDescription,
+                name: p.productName,
+                productId: String(p.productId),
+                image: p.productImage,
+                description: p.productDescription,
+                price: p.productPrice,
+                averageRating: 5,
+              })
+            );
+            if (sortDirection) {
+              mapped = mapped.sort((a, b) => {
+                if (sortDirection === "ASC") {
+                  return a.price - b.price;
+                } else {
+                  return b.price - a.price;
+                }
+              });
+            }
+            setRestaurants(mapped);
+          }
         }
       } catch (error) {
         console.error("Lỗi khi lấy dữ liệu:", error);
@@ -218,7 +265,7 @@ const CollectionMenu = (props: IProps) => {
     };
 
     fetchData();
-  }, [id, branchId, part]);
+  }, [id, branchId, part, selectedProductTypeId, sortDirection]);
 
   useEffect(() => {
     if (!restaurant) {
