@@ -27,7 +27,6 @@ export async function GET() {
         const data = await response.json();
         return NextResponse.json(data);
     } catch (error) {
-        console.error('Error fetching warehouses:', error);
         return NextResponse.json(
             { error: 'Internal Server Error' },
             { status: 500 }
@@ -64,7 +63,6 @@ export async function POST(request: NextRequest) {
         const data = await response.json();
         return NextResponse.json(data);
     } catch (error) {
-        console.error('Error creating warehouse:', error);
         return NextResponse.json(
             { error: 'Internal Server Error' },
             { status: 500 }

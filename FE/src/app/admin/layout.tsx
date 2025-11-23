@@ -174,15 +174,12 @@ export default function AdminLayout({
 
     // Memoize barcode scanner callbacks
     const handleBarcodeSuccess = useCallback((orderId: number, _context?: BarcodeProcessContext) => {
-        console.log('Assign chef thành công cho order:', orderId);
     }, []);
 
     const handleBarcodeError = useCallback((error: Error) => {
-        console.error('Lỗi khi assign chef:', error);
     }, []);
 
     const handleBarcodeAlreadyHandled = useCallback((orderId: number, _context?: BarcodeProcessContext) => {
-        console.warn('Chef khác đã nhận order:', orderId);
     }, []);
 
     // Global barcode scanner - hoạt động ở mọi trang admin

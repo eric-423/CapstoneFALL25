@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
-// PUT: Cập nhật role
 export async function PUT(
     request: NextRequest,
     { params }: { params: Promise<{ roleId: string }> }
@@ -20,7 +19,6 @@ export async function PUT(
         const { roleId } = await params;
         const body = await request.json();
 
-        // Forward to external API
         const response = await fetch(
             `${process.env.NEXT_PUBLIC_BASE_URL}/roles/${roleId}`,
             {
@@ -44,7 +42,6 @@ export async function PUT(
         const data = await response.json();
         return NextResponse.json(data);
     } catch (error) {
-        console.error('Update Role API Error:', error);
         return NextResponse.json(
             { error: error instanceof Error ? error.message : 'Failed to update role' },
             { status: 500 }

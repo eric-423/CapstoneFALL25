@@ -34,7 +34,6 @@ export async function POST(request: NextRequest) {
         const data = await response.json();
         return NextResponse.json(data);
     } catch (error) {
-        console.error('Assign Promotion API Error:', error);
         return NextResponse.json(
             { error: error instanceof Error ? error.message : 'Failed to assign promotion' },
             { status: 500 }

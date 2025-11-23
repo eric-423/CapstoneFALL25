@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
-// GET: Lấy chi tiết combo
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ comboId: string }> }
@@ -42,7 +41,6 @@ export async function GET(
         const data = await response.json();
         return NextResponse.json(data);
     } catch (error) {
-        console.error('Get Combo API Error:', error);
         return NextResponse.json(
             { error: error instanceof Error ? error.message : 'Failed to fetch combo' },
             { status: 500 }
@@ -50,7 +48,6 @@ export async function GET(
     }
 }
 
-// PUT: Cập nhật combo
 export async function PUT(
     request: NextRequest,
     { params }: { params: Promise<{ comboId: string }> }
@@ -69,7 +66,6 @@ export async function PUT(
         const { comboId } = await params;
         const body = await request.json();
 
-        // Forward to external API
         const response = await fetch(
             `${process.env.NEXT_PUBLIC_BASE_URL}/combos/${comboId}`,
             {
@@ -93,7 +89,6 @@ export async function PUT(
         const data = await response.json();
         return NextResponse.json(data);
     } catch (error) {
-        console.error('Update Combo API Error:', error);
         return NextResponse.json(
             { error: error instanceof Error ? error.message : 'Failed to update combo' },
             { status: 500 }
@@ -119,7 +114,6 @@ export async function DELETE(
 
         const { comboId } = await params;
 
-        // Forward to external API
         const response = await fetch(
             `${process.env.NEXT_PUBLIC_BASE_URL}/combos/${comboId}`,
             {
@@ -142,7 +136,6 @@ export async function DELETE(
         const data = await response.json();
         return NextResponse.json(data);
     } catch (error) {
-        console.error('Delete Combo API Error:', error);
         return NextResponse.json(
             { error: error instanceof Error ? error.message : 'Failed to delete combo' },
             { status: 500 }

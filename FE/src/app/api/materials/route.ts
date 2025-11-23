@@ -13,7 +13,6 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        // Forward all query parameters
         const searchParams = request.nextUrl.searchParams;
         const queryString = searchParams.toString();
 
@@ -31,7 +30,6 @@ export async function GET(request: NextRequest) {
         const data = await response.json();
         return NextResponse.json(data);
     } catch (error) {
-        console.error('Error fetching materials:', error);
         return NextResponse.json(
             { error: 'Internal Server Error' },
             { status: 500 }
@@ -68,7 +66,6 @@ export async function POST(request: NextRequest) {
         const data = await response.json();
         return NextResponse.json(data);
     } catch (error) {
-        console.error('Error creating material:', error);
         return NextResponse.json(
             { error: 'Internal Server Error' },
             { status: 500 }

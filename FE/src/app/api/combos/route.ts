@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
-// POST: Tạo combo mới
 export async function POST(request: NextRequest) {
     try {
         const cookieStore = await cookies();
@@ -16,7 +15,6 @@ export async function POST(request: NextRequest) {
 
         const body = await request.json();
 
-        // Forward to external API
         const response = await fetch(
             `${process.env.NEXT_PUBLIC_BASE_URL}/combos`,
             {
@@ -40,7 +38,6 @@ export async function POST(request: NextRequest) {
         const data = await response.json();
         return NextResponse.json(data);
     } catch (error) {
-        console.error('Create Combo API Error:', error);
         return NextResponse.json(
             { error: error instanceof Error ? error.message : 'Failed to create combo' },
             { status: 500 }

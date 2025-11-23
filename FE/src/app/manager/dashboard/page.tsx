@@ -111,92 +111,92 @@ export default function ManagerDashboardPage() {
                 <div className="max-w-[1800px] mx-auto space-y-4">
                     {/* Header - Compact */}
                     <div className="flex items-center justify-between">
+                        <div>
+                            <h1 className="text-3xl font-bold text-primary mb-1">
+                                {selectedBranch ? selectedBranch.name : 'Tổng quan chi nhánh'}
+                            </h1>
+                            <p className="text-gray-600 text-sm">
+                                {isLoading && <span className="ml-2 text-xs text-orange-500">Đang tải...</span>}
+                            </p>
+                        </div>
+                        <div className="text-xs text-gray-500">
+                            {new Date().toLocaleString('vi-VN')}
+                        </div>
+                    </div>
+
+                    {/* KPI Overview Section */}
                     <div>
-                        <h1 className="text-2xl font-bold bg-gradient-to-r from-[#EC6426] to-[#F8A91F] bg-clip-text text-transparent mb-1">
-                            {selectedBranch ? selectedBranch.name : 'Tổng quan chi nhánh'}
-                        </h1>
-                        <p className="text-gray-600 text-sm">
-                            {isLoading && <span className="ml-2 text-xs text-orange-500">Đang tải...</span>}
-                        </p>
-                    </div>
-                    <div className="text-xs text-gray-500">
-                        {new Date().toLocaleString('vi-VN')}
-                    </div>
-                </div>
-
-                {/* KPI Overview Section */}
-                <div>
-                    <div className="flex items-center gap-2 mb-2">
-                        <TrendingUp className="w-4 h-4 text-[#EC6426]" />
-                        <h2 className="text-base font-semibold text-gray-800">Tổng quan KPI</h2>
-                    </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                        <AdminCard
-                            title="Doanh thu hôm nay"
-                            value={revenueStats ? `${revenueStats.totalRevenue.toLocaleString('vi-VN')}đ` : '...'}
-                            icon={DollarSign}
-                            subtitle={revenueStats ? `${revenueStats.totalOrders} đơn` : ''}
-                            isLoading={isLoadingRevenue}
-                        />
-                        <AdminCard
-                            title="Tổng đơn hàng"
-                            value={orderCountStats ? orderCountStats.totalOrders : '...'}
-                            icon={ShoppingCart}
-                            subtitle={orderCountStats ? `${orderCountStats.shippingOrders + orderCountStats.pickupOrders + orderCountStats.diningOrders} kênh` : ''}
-                            isLoading={isLoadingOrderCount}
-                        />
-                        <AdminCard
-                            title="Khách hàng mới"
-                            value={newCustomerStats ? newCustomerStats.newCustomersToday : '...'}
-                            icon={Users}
-                            trend={newCustomerStats ? {
-                                value: newCustomerStats.percentageChange,
-                                isPositive: newCustomerStats.percentageChange >= 0
-                            } : undefined}
-                            subtitle={newCustomerStats ? `vs. ${newCustomerStats.newCustomersComparison} hôm qua` : ''}
-                            isLoading={isLoadingNewCustomers}
-                        />
-                        <AdminCard
-                            title="TG phục vụ TB"
-                            value={serviceTimeStats ? `${serviceTimeStats.averageServiceTimeMinutes.toFixed(1)}p` : '...'}
-                            icon={Clock}
-                            trend={serviceTimeStats ? {
-                                value: serviceTimeStats.percentageChange,
-                                isPositive: serviceTimeStats.percentageChange <= 0
-                            } : undefined}
-                            subtitle={serviceTimeStats ? `${serviceTimeStats.totalOrdersProcessed} đơn` : ''}
-                            isLoading={isLoadingServiceTime}
-                        />
-                        <AdminCard
-                            title="SLA Phục vụ"
-                            value={`${operationalKPIs.slaCompliance.toFixed(1)}%`}
-                            icon={CheckCircle}
-                            subtitle={operationalKPIs.slaCompliance >= 90 ? 'Đạt chuẩn' : 'Dưới mục tiêu'}
-                            isLoading={isLoadingServiceTime}
-                        />
-                    </div>
-                </div>
-
-                {/* Combined Analytics and Operations Section */}
-                <div>
-                    <div className="flex items-center gap-2 mb-2 mt-4">
-                        <Activity className="w-4 h-4 text-[#EC6426]" />
-                        <h2 className="text-base font-semibold text-gray-800">Phân tích & Hoạt động</h2>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                        <div className="lg:col-span-2">
-                            <RevenueChart data={revenue7DaysData ?
-                                revenue7DaysData.dailyRevenues.map((item) => ({
-                                    date: item.date,
-                                    revenue: item.revenue
-                                }))
-                                : revenueData}
+                        <div className="flex items-center gap-2 mb-2">
+                            <TrendingUp className="w-4 h-4 text-[#EC6426]" />
+                            <h2 className="text-base font-semibold text-gray-800"> KPI</h2>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                            <AdminCard
+                                title="Doanh thu hôm nay"
+                                value={revenueStats ? `${revenueStats.totalRevenue.toLocaleString('vi-VN')}đ` : '...'}
+                                icon={DollarSign}
+                                subtitle={revenueStats ? `${revenueStats.totalOrders} đơn` : ''}
+                                isLoading={isLoadingRevenue}
+                            />
+                            <AdminCard
+                                title="Tổng đơn hàng"
+                                value={orderCountStats ? orderCountStats.totalOrders : '...'}
+                                icon={ShoppingCart}
+                                subtitle={orderCountStats ? `${orderCountStats.shippingOrders + orderCountStats.pickupOrders + orderCountStats.diningOrders} kênh` : ''}
+                                isLoading={isLoadingOrderCount}
+                            />
+                            <AdminCard
+                                title="Khách hàng mới"
+                                value={newCustomerStats ? newCustomerStats.newCustomersToday : '...'}
+                                icon={Users}
+                                trend={newCustomerStats ? {
+                                    value: newCustomerStats.percentageChange,
+                                    isPositive: newCustomerStats.percentageChange >= 0
+                                } : undefined}
+                                subtitle={newCustomerStats ? `vs. ${newCustomerStats.newCustomersComparison} hôm qua` : ''}
+                                isLoading={isLoadingNewCustomers}
+                            />
+                            <AdminCard
+                                title="TG phục vụ TB"
+                                value={serviceTimeStats ? `${serviceTimeStats.averageServiceTimeMinutes.toFixed(1)}p` : '...'}
+                                icon={Clock}
+                                trend={serviceTimeStats ? {
+                                    value: serviceTimeStats.percentageChange,
+                                    isPositive: serviceTimeStats.percentageChange <= 0
+                                } : undefined}
+                                subtitle={serviceTimeStats ? `${serviceTimeStats.totalOrdersProcessed} đơn` : ''}
+                                isLoading={isLoadingServiceTime}
+                            />
+                            <AdminCard
+                                title="SLA Phục vụ"
+                                value={`${operationalKPIs.slaCompliance.toFixed(1)}%`}
+                                icon={CheckCircle}
+                                subtitle={operationalKPIs.slaCompliance >= 90 ? 'Đạt chuẩn' : 'Dưới mục tiêu'}
+                                isLoading={isLoadingServiceTime}
                             />
                         </div>
-                        <OrderChannelsChart data={orderCountStats} />
-                        <TopDishesList data={topSellingItems?.items} isLoading={isLoadingTopSelling} />
                     </div>
-                </div>
+
+                    {/* Combined Analytics and Operations Section */}
+                    <div>
+                        <div className="flex items-center gap-2 mb-2 mt-4">
+                            <Activity className="w-4 h-4 text-[#EC6426]" />
+                            <h2 className="text-base font-semibold text-gray-800">Phân tích & Hoạt động</h2>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            <div className="lg:col-span-2">
+                                <RevenueChart data={revenue7DaysData ?
+                                    revenue7DaysData.dailyRevenues.map((item) => ({
+                                        date: item.date,
+                                        revenue: item.revenue
+                                    }))
+                                    : revenueData}
+                                />
+                            </div>
+                            <OrderChannelsChart data={orderCountStats} />
+                            <TopDishesList data={topSellingItems?.items} isLoading={isLoadingTopSelling} />
+                        </div>
+                    </div>
                 </div>
             </div>
         </ManagerGuard>

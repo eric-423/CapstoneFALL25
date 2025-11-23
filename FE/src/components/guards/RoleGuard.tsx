@@ -92,3 +92,14 @@ export function ChefGuard({ children }: { children: React.ReactNode }) {
         </RoleGuard>
     );
 }
+
+/**
+ * StaffGuard - Chỉ cho phép STAFF
+ */
+export function StaffGuard({ children }: { children: React.ReactNode }) {
+    return (
+        <RoleGuard allowedRoles={['STAFF', 'Staff']}>
+            {children}
+        </RoleGuard>
+    );
+}

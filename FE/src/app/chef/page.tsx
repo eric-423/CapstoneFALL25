@@ -27,12 +27,12 @@ export default function ChefPage() {
             try {
                 setLoading(true);
                 setError(null);
-                
+
                 const chefId = user.id;
                 console.log('🔄 [Chef Page] Fetching orders for chef:', chefId, 'with status: COOKING');
                 const response = await getChefOrders(chefId, 'COOKING');
                 console.log('📥 [Chef Page] Response received:', response);
-                
+
                 if (response.status === 0 && response.data) {
                     console.log('✅ [Chef Page] Orders fetched successfully:', response.data.length);
                     setOrders(response.data);
@@ -43,14 +43,14 @@ export default function ChefPage() {
                 }
             } catch (err) {
                 console.error('💥 [Chef Page] Error fetching orders:', err);
-                
+
                 const error = err as Error & { response?: { data?: { error?: string; details?: { error?: string; userRole?: string }; status?: number; userRole?: string }; status?: number } };
-                
+
                 if (error.response?.data) {
                     const errorData = error.response.data;
                     const status = error.response.data.status || error.response.status;
                     const userRole = errorData.userRole || 'Unknown';
-                    
+
                     if (status === 403) {
                         const errorMsg = errorData.error || errorData.details?.error || 'Bạn không có quyền truy cập API này';
                         setError(`${errorMsg}. Role hiện tại: ${userRole}. Vui lòng liên hệ quản trị viên để được cấp quyền truy cập.`);
@@ -70,7 +70,7 @@ export default function ChefPage() {
 
         fetchOrders();
 
-        const interval = setInterval(fetchOrders, 30000);
+        const interval = setInterval(fetchOrders, 10000);
         return () => clearInterval(interval);
     }, [user?.id]);
 
@@ -80,7 +80,7 @@ export default function ChefPage() {
         }
 
         setCompletedItems(prev => [...prev, orderId]);
-        
+
         try {
             const result = await markOrderAsCooked(orderId);
 
@@ -96,7 +96,7 @@ export default function ChefPage() {
         } catch (error) {
             console.error('Error marking order as cooked:', error);
             setCompletedItems(prev => prev.filter(id => id !== orderId));
-            
+
             const errorObj = error as Error & { response?: { data?: { error?: string; status?: number } } };
             const errorMessage = errorObj.response?.data?.error || 'Có lỗi xảy ra khi cập nhật trạng thái đơn hàng';
             alert(errorMessage);

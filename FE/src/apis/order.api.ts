@@ -283,7 +283,6 @@ export const getOrderStatuses = async (): Promise<OrderStatusesResponse> => {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('getOrderStatuses error:', error);
     throw error;
   }
 };
@@ -310,7 +309,6 @@ export const getBranchOrders = async (status?: string): Promise<BranchOrdersApiR
     return data;
 
   } catch (error) {
-    console.error('getBranchOrders error:', error);
     throw error;
   }
 };
@@ -368,7 +366,6 @@ export const getChefOrders = async (chefId: number, status?: string): Promise<Br
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('getChefOrders error:', error);
     throw error;
   }
 };
@@ -401,7 +398,6 @@ export const markOrderAsCooked = async (orderId: number): Promise<MarkOrderAsCoo
       message: data.message || 'Đã đánh dấu đơn hàng là đã nấu xong'
     };
   } catch (error) {
-    console.error('markOrderAsCooked error:', error);
     throw error;
   }
 };
@@ -434,7 +430,6 @@ export const assignShipperToOrder = async (orderId: number): Promise<AssignShipp
       message: data.message || 'Đã assign shipper thành công'
     };
   } catch (error) {
-    console.error('assignShipperToOrder error:', error);
     throw error;
   }
 };

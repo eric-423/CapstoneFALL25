@@ -6,6 +6,7 @@ const protectedRoutes = [
     '/profile',
     '/admin',
     '/manager',
+    '/staff',
     '/chef',
     '/checkout',
     '/my-orders',
@@ -19,6 +20,10 @@ const adminRoutes = [
 
 const managerRoutes = [
     '/manager'
+];
+
+const staffRoutes = [
+    '/staff'
 ];
 
 const chefRoutes = [
@@ -89,6 +94,8 @@ export async function middleware(request: NextRequest) {
             dashboardUrl = '/admin';
         } else if (payload?.role === 'MANAGER') {
             dashboardUrl = '/manager';
+        } else if (payload?.role === 'STAFF' || payload?.role === 'Staff') {
+            dashboardUrl = '/staff/orders';
         } else if (payload?.role === 'CHEFF') {
             dashboardUrl = '/chef';
         }
@@ -116,6 +123,12 @@ export async function middleware(request: NextRequest) {
         // Manager routes - admin and manager can access
         if (managerRoutes.some(route => pathname.startsWith(route)) &&
             !['ADMIN', 'MANAGER', 'Admin', 'Manager'].includes(payload.role || userRole || '')) {
+            return NextResponse.redirect(new URL('/403', request.url));
+        }
+
+        // Staff routes - only staff can access
+        if (staffRoutes.some(route => pathname.startsWith(route)) &&
+            !['STAFF', 'Staff'].includes(payload.role || userRole || '')) {
             return NextResponse.redirect(new URL('/403', request.url));
         }
 

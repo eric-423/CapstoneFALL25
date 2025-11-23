@@ -21,7 +21,7 @@ export function OrderChannelsChart({ data }: OrderChannelsChartProps) {
     const total = data?.totalOrders ?? chartData.reduce((sum, item) => sum + item.value, 0);
 
     return (
-        <Card className="p-4 bg-white/60 backdrop-blur-sm border-white/20 border shadow-sm rounded-2xl h-full flex flex-col">
+        <Card className="p-4 bg-[#FDE3CF]/70 backdrop-blur-sm border-white/20 border shadow-sm rounded-2xl h-full flex flex-col">
             <div className="flex items-center justify-between mb-4">
                 <h3 className="text-base font-bold text-gray-800">
                     Kênh đặt hàng
@@ -81,8 +81,8 @@ export function OrderChannelsChart({ data }: OrderChannelsChartProps) {
                 </div>
             ) : (
                 <div className="flex-1 flex flex-col items-center justify-center text-center text-gray-500">
-                     <ShoppingCart size={32} className="mb-2 opacity-50"/>
-                     <p className="text-sm font-medium">Không có dữ liệu đơn hàng</p>
+                    <ShoppingCart size={32} className="mb-2 opacity-50" />
+                    <p className="text-sm font-medium">Không có dữ liệu đơn hàng</p>
                 </div>
             )}
         </Card>

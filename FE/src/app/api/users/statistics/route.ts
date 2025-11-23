@@ -3,7 +3,6 @@ import { cookies } from 'next/headers';
 
 const API_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
-// GET: Lấy thống kê users
 export async function GET(request: NextRequest) {
     try {
         const cookieStore = await cookies();
@@ -16,7 +15,6 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        // Get branchId from query params if provided
         const searchParams = request.nextUrl.searchParams;
         const branchId = searchParams.get('branchId');
 
@@ -43,7 +41,6 @@ export async function GET(request: NextRequest) {
         const data = await response.json();
         return NextResponse.json(data);
     } catch (error) {
-        console.error('Get User Statistics API Error:', error);
         return NextResponse.json(
             { error: error instanceof Error ? error.message : 'Failed to fetch user statistics' },
             { status: 500 }

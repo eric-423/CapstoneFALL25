@@ -37,15 +37,6 @@ const getKioskMode = (): boolean => {
 
     const isKiosk = hasChromeRuntime || hasChromeApp || hasChrome || urlHasKiosk || isKioskUserAgent;
 
-    console.log('🖨️ Kiosk detection:', {
-        hasChromeRuntime,
-        hasChromeApp,
-        hasChrome,
-        urlHasKiosk,
-        isKioskUserAgent,
-        isKiosk,
-    });
-
     return isKiosk;
 };
 
@@ -165,9 +156,6 @@ const handlePrintInvoice = async (order: BranchOrderResponse) => {
         }
     }
 
-    console.log('Dùng browser print mode...');
-
-    console.log('Dùng browser print mode...');
 
     try {
         const response = await fetch(`/api/orders/${order.id}/bill/download`, { credentials: 'include' });
@@ -241,7 +229,6 @@ const handlePrintInvoice = async (order: BranchOrderResponse) => {
         window.addEventListener('afterprint', afterPrint);
 
     } catch (error) {
-        console.error('Print error:', error);
         alert('Lỗi in hóa đơn. Vui lòng thử lại.');
     }
 };
@@ -297,7 +284,7 @@ export default function ManagerOrdersPage() {
     }, [fetchOrders]);
 
     useEffect(() => {
-        const interval = setInterval(fetchOrders, 30000);
+        const interval = setInterval(fetchOrders, 10000);
         return () => clearInterval(interval);
     }, [fetchOrders]);
 
@@ -332,7 +319,6 @@ export default function ManagerOrdersPage() {
                 toast.error('Không thể assign shipper. Vui lòng thử lại.');
             }
         } catch (error) {
-            console.error('Error assigning shipper:', error);
             toast.error('Lỗi khi chuyển cho shipper. Vui lòng thử lại.');
         } finally {
             setAssigningShipper(prev => {

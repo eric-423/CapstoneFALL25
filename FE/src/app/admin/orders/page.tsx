@@ -16,7 +16,6 @@ const getKioskMode = (): boolean => {
 
     const forceKiosk = process.env.NEXT_PUBLIC_FORCE_KIOSK_MODE === 'true';
     if (forceKiosk) {
-        console.log('🖨️ Force Kiosk Mode enabled via env variable');
         return true;
     }
 
@@ -30,15 +29,6 @@ const getKioskMode = (): boolean => {
     const isKioskUserAgent = userAgent.includes('Kiosk') || userAgent.includes('kiosk');
 
     const isKiosk = hasChromeRuntime || hasChromeApp || hasChrome || urlHasKiosk || isKioskUserAgent;
-
-    console.log('🖨️ Kiosk detection:', {
-        hasChromeRuntime,
-        hasChromeApp,
-        hasChrome,
-        urlHasKiosk,
-        isKioskUserAgent,
-        isKiosk,
-    });
 
     return isKiosk;
 };
@@ -131,20 +121,13 @@ const formatCurrency = (amount: number): string => {
 };
 
 const handlePrintInvoice = async (order: BranchOrderResponse) => {
-    console.log('Bắt đầu in hóa đơn cho order:', order.id);
-    console.log('PRINT_CONFIG.useServerPrint:', PRINT_CONFIG.useServerPrint);
-
     if (PRINT_CONFIG.useServerPrint) {
-        console.log(' Đang gọi server action để in...');
         try {
             const result = await printBillAction(order.id);
-            console.log('Kết quả từ server:', result);
             if (result.success) {
-                console.log('In hóa đơn thành công!');
                 alert('In hóa đơn thành công!');
                 return;
             } else {
-                console.warn('Server print thất bại, fallback về browser print:', result.error);
                 const useBrowserPrint = confirm(
                     `Không thể kết nối máy in: ${result.error}\n\n` +
                     `Bạn có muốn in qua trình duyệt không?`
@@ -154,7 +137,6 @@ const handlePrintInvoice = async (order: BranchOrderResponse) => {
                 }
             }
         } catch (error) {
-            console.error('Error printing via server:', error);
             const useBrowserPrint = confirm(
                 'Có lỗi xảy ra khi in qua server.\n\n' +
                 'Bạn có muốn in qua trình duyệt không?'
@@ -165,8 +147,6 @@ const handlePrintInvoice = async (order: BranchOrderResponse) => {
         }
     }
 
-    console.log('Dùng browser print mode...');
-
     try {
         const response = await fetch(`/api/orders/${order.id}/bill/download`, {
             method: 'GET',
@@ -174,8 +154,7 @@ const handlePrintInvoice = async (order: BranchOrderResponse) => {
         });
 
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ error: 'Failed to download bill' }));
-            console.error('Error downloading bill:', errorData);
+            await response.json().catch(() => ({ error: 'Failed to download bill' }));
             alert('Không thể tải hóa đơn. Vui lòng thử lại.');
             return;
         }
@@ -245,7 +224,7 @@ const handlePrintInvoice = async (order: BranchOrderResponse) => {
                     }
                 }
             } catch (error) {
-                console.error('Error simulating Enter key:', error);
+                // Silent fail for key simulation
             }
         };
 
@@ -255,17 +234,13 @@ const handlePrintInvoice = async (order: BranchOrderResponse) => {
                     iframe.contentWindow.focus();
 
                     setTimeout(() => {
-                        console.log('🖨️ isKioskMode:', PRINT_CONFIG.isKioskMode);
-
                         if (PRINT_CONFIG.isKioskMode) {
-                            console.log('🖨️ Kiosk mode: Tự động in không dialog');
                             iframe.contentWindow?.print();
 
                             setTimeout(() => {
                                 iframe.contentWindow?.print();
                             }, 500);
                         } else {
-                            console.log('🖨️ Normal mode: Hiện dialog print');
                             iframe.contentWindow?.print();
 
                             setTimeout(() => {
@@ -283,7 +258,7 @@ const handlePrintInvoice = async (order: BranchOrderResponse) => {
                     }, 100);
                 }
             } catch (error) {
-                console.error('Error triggering print:', error);
+                // Silent fail for print trigger
             }
         };
 
@@ -319,7 +294,6 @@ const handlePrintInvoice = async (order: BranchOrderResponse) => {
             }
         }, 1500);
     } catch (error) {
-        console.error('Error printing invoice:', error);
         alert('Có lỗi xảy ra khi in hóa đơn. Vui lòng thử lại.');
     }
 };
@@ -400,7 +374,6 @@ export default function OrdersPage() {
                 toast.error('Không thể assign shipper. Vui lòng thử lại.');
             }
         } catch (error) {
-            console.error('Error assigning shipper:', error);
             toast.error('Lỗi khi chuyển cho shipper. Vui lòng thử lại.');
         } finally {
             setAssigningShipper(prev => {

@@ -30,7 +30,6 @@ export async function GET(request: NextRequest) {
         const data = await response.json();
         return NextResponse.json(data);
     } catch (error) {
-        console.error('Error fetching material types:', error);
         return NextResponse.json(
             { error: 'Internal Server Error' },
             { status: 500 }
@@ -67,7 +66,6 @@ export async function POST(request: NextRequest) {
         const data = await response.json();
         return NextResponse.json(data);
     } catch (error) {
-        console.error('Error creating material type:', error);
         return NextResponse.json(
             { error: 'Internal Server Error' },
             { status: 500 }

@@ -3,7 +3,6 @@ import { cookies } from 'next/headers';
 
 const API_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
-// PUT: Ban user
 export async function PUT(
     request: NextRequest,
     { params }: { params: Promise<{ userId: string }> }
@@ -43,7 +42,6 @@ export async function PUT(
         const data = await response.json();
         return NextResponse.json(data);
     } catch (error) {
-        console.error('Ban User API Error:', error);
         return NextResponse.json(
             { error: error instanceof Error ? error.message : 'Failed to ban user' },
             { status: 500 }

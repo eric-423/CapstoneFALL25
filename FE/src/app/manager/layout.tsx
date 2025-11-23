@@ -14,7 +14,13 @@ import {
     ShoppingBag,
     LogOut,
     Menu,
-    X
+    X,
+    Users,
+    Warehouse,
+    BookOpen,
+    Gift,
+    DollarSign,
+    Tag
 } from 'lucide-react';
 
 const MenuItem = memo(({
@@ -73,6 +79,12 @@ export default function ManagerLayout({
     const menuItems = useMemo(() => [
         { href: '/manager/dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/manager/orders', label: 'Đơn hàng', icon: ShoppingBag },
+        { href: '/manager/users', label: 'Người dùng', icon: Users },
+        { href: '/manager/warehouses', label: 'Kho & Nguyên liệu', icon: Warehouse },
+        { href: '/manager/recipes', label: 'Công thức', icon: BookOpen },
+        { href: '/manager/combos', label: 'Combo', icon: Gift },
+        { href: '/manager/finance', label: 'Tài chính', icon: DollarSign },
+        { href: '/manager/promotions', label: 'Khuyến mãi', icon: Tag },
     ], []);
 
     const handleLogout = useCallback(() => {
