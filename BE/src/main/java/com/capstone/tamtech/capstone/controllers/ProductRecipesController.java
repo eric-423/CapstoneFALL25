@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/recipes")
@@ -112,13 +111,12 @@ public class ProductRecipesController {
         }
     }
 
-    @Operation(summary = "Lấy công thức theo ID", description = "Trả về công thức cụ thể theo productId và materialId")
-    @GetMapping("/{productId}/{materialId}")
+    @Operation(summary = "Lấy công thức theo ID", description = "Trả về công thức cụ thể theo id")
+    @GetMapping("/{id}")
     public ResponseEntity<?> getRecipeById(
-            @Parameter(description = "ID sản phẩm", required = true) @PathVariable int productId,
-            @Parameter(description = "ID nguyên liệu", required = true) @PathVariable int materialId) {
+            @Parameter(description = "ID công thức", required = true) @PathVariable int id) {
         try {
-            ProductRecipesDTO recipe = productRecipesService.getRecipeById(productId, materialId);
+            ProductRecipesDTO recipe = productRecipesService.getRecipeById(id);
             ResponseData responseData = new ResponseData();
             responseData.setData(recipe);
             responseData.setDesc("Recipe retrieved successfully");
@@ -146,21 +144,13 @@ public class ProductRecipesController {
         }
     }
 
-    @Operation(summary = "Cập nhật công thức", description = "Cập nhật số lượng nguyên liệu trong công thức")
-    @PutMapping("/{productId}/{materialId}")
+    @Operation(summary = "Cập nhật công thức", description = "Cập nhật công thức sản phẩm")
+    @PutMapping("/{id}")
     public ResponseEntity<?> updateRecipe(
-            @Parameter(description = "ID sản phẩm", required = true) @PathVariable int productId,
-            @Parameter(description = "ID nguyên liệu", required = true) @PathVariable int materialId,
-            @RequestBody Map<String, Double> request) {
+            @Parameter(description = "ID công thức", required = true) @PathVariable int id,
+            @RequestBody ProductRecipesRequest request) {
         try {
-            Double quantity = request.get("quantity");
-            if (quantity == null) {
-                ResponseData responseData = new ResponseData();
-                responseData.setDesc("Quantity is required");
-                return new ResponseEntity<>(responseData, HttpStatus.BAD_REQUEST);
-            }
-
-            ProductRecipesDTO recipe = productRecipesService.updateRecipe(productId, materialId, quantity);
+            ProductRecipesDTO recipe = productRecipesService.updateRecipe(id, request);
             ResponseData responseData = new ResponseData();
             responseData.setData(recipe);
             responseData.setDesc("Recipe updated successfully");
@@ -173,12 +163,11 @@ public class ProductRecipesController {
     }
 
     @Operation(summary = "Xóa công thức", description = "Xóa công thức khỏi sản phẩm")
-    @DeleteMapping("/{productId}/{materialId}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteRecipe(
-            @Parameter(description = "ID sản phẩm", required = true) @PathVariable int productId,
-            @Parameter(description = "ID nguyên liệu", required = true) @PathVariable int materialId) {
+            @Parameter(description = "ID công thức", required = true) @PathVariable int id) {
         try {
-            productRecipesService.deleteRecipe(productId, materialId);
+            productRecipesService.deleteRecipe(id);
             ResponseData responseData = new ResponseData();
             responseData.setDesc("Recipe deleted successfully");
             return new ResponseEntity<>(responseData, HttpStatus.OK);

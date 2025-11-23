@@ -36,6 +36,9 @@ public class Product {
     @Column(name = "is_active")
     private boolean isActive;
 
+    @Column(name = "product_calories_cache")
+    private Double caloriesCache;
+
     @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE,CascadeType.REFRESH,CascadeType.DETACH})
     @JoinColumn(name = "product_type_id")
     private ProductType productType;

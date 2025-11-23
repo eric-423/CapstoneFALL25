@@ -1,12 +1,13 @@
 package com.capstone.tamtech.capstone.services;
 
 import com.capstone.tamtech.capstone.dto.ProductRecipesDTO;
+import com.capstone.tamtech.capstone.entities.CookingMethod;
 import com.capstone.tamtech.capstone.entities.Material;
 import com.capstone.tamtech.capstone.entities.Product;
 import com.capstone.tamtech.capstone.entities.ProductRecipes;
-import com.capstone.tamtech.capstone.entities.keys.KeyProductRecipes;
 import com.capstone.tamtech.capstone.exception.ResourceNotFoundException;
 import com.capstone.tamtech.capstone.payload.request.ProductRecipesRequest;
+import com.capstone.tamtech.capstone.repositories.CookingMethodRepository;
 import com.capstone.tamtech.capstone.repositories.MaterialRepository;
 import com.capstone.tamtech.capstone.repositories.ProductRecipesRepository;
 import com.capstone.tamtech.capstone.repositories.ProductRepository;
@@ -30,6 +31,12 @@ public class ProductRecipesServiceImpl implements ProductRecipesService {
     @Autowired
     private MaterialRepository materialRepository;
 
+    @Autowired
+    private CookingMethodRepository cookingMethodRepository;
+
+    @Autowired
+    private ProductServiceImpl productService;
+
     @Override
     public List<ProductRecipesDTO> getAllRecipes() {
         List<ProductRecipes> recipes = productRecipesRepository.findAll();
@@ -39,25 +46,21 @@ public class ProductRecipesServiceImpl implements ProductRecipesService {
     @Override
     public List<ProductRecipesDTO> getRecipesByProductId(int productId) {
         List<ProductRecipes> recipes = productRecipesRepository
-                .findByKeyProductRecipes_ProductIdOrderByCreatedAtDesc(productId);
+                .findByProductIdOrderByOrderStepAscCreatedAtAsc(productId);
         return recipes.stream().map(this::toDTO).toList();
     }
 
     @Override
     public List<ProductRecipesDTO> getRecipesByMaterialId(int materialId) {
-        List<ProductRecipes> recipes = productRecipesRepository.findByKeyProductRecipesMaterialId(materialId);
+        List<ProductRecipes> recipes = productRecipesRepository.findByMaterialId(materialId);
         return recipes.stream().map(this::toDTO).toList();
     }
 
     @Override
-    public ProductRecipesDTO getRecipeById(int productId, int materialId) {
-        KeyProductRecipes key = new KeyProductRecipes();
-        key.setProductId(productId);
-        key.setMaterialId(materialId);
-
-        ProductRecipes recipe = productRecipesRepository.findById(key)
+    public ProductRecipesDTO getRecipeById(int id) {
+        ProductRecipes recipe = productRecipesRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Recipe not found for productId: " + productId + " and materialId: " + materialId));
+                        "Recipe not found with id: " + id));
 
         return toDTO(recipe);
     }
@@ -73,54 +76,69 @@ public class ProductRecipesServiceImpl implements ProductRecipesService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Material not found with id: " + request.getMaterialId()));
 
-        KeyProductRecipes key = new KeyProductRecipes();
-        key.setProductId(request.getProductId());
-        key.setMaterialId(request.getMaterialId());
-
-        if (productRecipesRepository.findById(key).isPresent()) {
-            throw new IllegalArgumentException(
-                    "Recipe already exists for productId: " + request.getProductId() +
-                            " and materialId: " + request.getMaterialId());
-        }
+        CookingMethod cookingMethod = cookingMethodRepository.findById(request.getCookingMethodId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Cooking Method not found with id: " + request.getCookingMethodId()));
 
         ProductRecipes recipe = new ProductRecipes();
-        recipe.setKeyProductRecipes(key);
-        recipe.setQuantity(request.getQuantity());
         recipe.setProduct(product);
         recipe.setMaterial(material);
+        recipe.setCookingMethod(cookingMethod);
+        recipe.setQuantity(request.getQuantity());
+        recipe.setOrderStep(
+                request.getOrderStep() != null && request.getOrderStep() > 0 ? request.getOrderStep() : null);
 
         ProductRecipes saved = productRecipesRepository.save(recipe);
+
+        productService.reCalculateCaloriesForProduct(saved.getProduct().getId());
+
         return toDTO(saved);
     }
 
     @Override
     @Transactional
-    public ProductRecipesDTO updateRecipe(int productId, int materialId, double quantity) {
-        KeyProductRecipes key = new KeyProductRecipes();
-        key.setProductId(productId);
-        key.setMaterialId(materialId);
-
-        ProductRecipes recipe = productRecipesRepository.findById(key)
+    public ProductRecipesDTO updateRecipe(int id, ProductRecipesRequest request) {
+        ProductRecipes recipe = productRecipesRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Recipe not found for productId: " + productId + " and materialId: " + materialId));
+                        "Recipe not found with id: " + id));
 
-        recipe.setQuantity(quantity);
+        Product product = productRepository.findById(request.getProductId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Product not found with id: " + request.getProductId()));
+
+        Material material = materialRepository.findById(request.getMaterialId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Material not found with id: " + request.getMaterialId()));
+
+        CookingMethod cookingMethod = cookingMethodRepository.findById(request.getCookingMethodId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Cooking Method not found with id: " + request.getCookingMethodId()));
+
+        recipe.setProduct(product);
+        recipe.setMaterial(material);
+        recipe.setCookingMethod(cookingMethod);
+        recipe.setQuantity(request.getQuantity());
+        recipe.setOrderStep(
+                request.getOrderStep() != null && request.getOrderStep() > 0 ? request.getOrderStep() : null);
+
         ProductRecipes updated = productRecipesRepository.save(recipe);
+
+        productService.reCalculateCaloriesForProduct(updated.getProduct().getId());
+
         return toDTO(updated);
     }
 
     @Override
     @Transactional
-    public void deleteRecipe(int productId, int materialId) {
-        KeyProductRecipes key = new KeyProductRecipes();
-        key.setProductId(productId);
-        key.setMaterialId(materialId);
-
-        ProductRecipes recipe = productRecipesRepository.findById(key)
+    public void deleteRecipe(int id) {
+        ProductRecipes recipe = productRecipesRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Recipe not found for productId: " + productId + " and materialId: " + materialId));
+                        "Recipe not found with id: " + id));
 
+        int productId = recipe.getProduct().getId();
         productRecipesRepository.delete(recipe);
+
+        productService.reCalculateCaloriesForProduct(productId);
     }
 
     @Override
@@ -129,7 +147,7 @@ public class ProductRecipesServiceImpl implements ProductRecipesService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
 
-        List<ProductRecipes> existingRecipes = productRecipesRepository.findByKeyProductRecipesProductId(productId);
+        List<ProductRecipes> existingRecipes = productRecipesRepository.findByProductId(productId);
         if (!existingRecipes.isEmpty()) {
             productRecipesRepository.deleteAll(existingRecipes);
         }
@@ -140,41 +158,55 @@ public class ProductRecipesServiceImpl implements ProductRecipesService {
 
         List<ProductRecipes> recipesToSave = new ArrayList<>();
         for (ProductRecipesRequest request : requests) {
-            int materialId = request.getMaterialId();
-            Material material = materialRepository.findById(materialId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Material not found with id: " + materialId));
+            Material material = materialRepository.findById(request.getMaterialId())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Material not found with id: " + request.getMaterialId()));
 
-            KeyProductRecipes key = new KeyProductRecipes();
-            key.setProductId(productId);
-            key.setMaterialId(materialId);
+            CookingMethod cookingMethod = cookingMethodRepository.findById(request.getCookingMethodId())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Cooking Method not found with id: " + request.getCookingMethodId()));
 
             ProductRecipes recipe = new ProductRecipes();
-            recipe.setKeyProductRecipes(key);
             recipe.setProduct(product);
             recipe.setMaterial(material);
+            recipe.setCookingMethod(cookingMethod);
             recipe.setQuantity(request.getQuantity());
+            recipe.setOrderStep(
+                    request.getOrderStep() != null && request.getOrderStep() > 0 ? request.getOrderStep() : null);
 
             recipesToSave.add(recipe);
         }
 
-        return productRecipesRepository.saveAll(recipesToSave)
+        List<ProductRecipesDTO> result = productRecipesRepository.saveAll(recipesToSave)
                 .stream()
                 .map(this::toDTO)
                 .toList();
+
+        productService.reCalculateCaloriesForProduct(productId);
+
+        return result;
     }
 
     private ProductRecipesDTO toDTO(ProductRecipes recipe) {
         ProductRecipesDTO dto = new ProductRecipesDTO();
-        dto.setProductId(recipe.getKeyProductRecipes().getProductId());
-        dto.setMaterialId(recipe.getKeyProductRecipes().getMaterialId());
+        dto.setId(recipe.getId());
         dto.setQuantity(recipe.getQuantity());
+        dto.setOrderStep(recipe.getOrderStep());
+        dto.setCreatedAt(recipe.getCreatedAt());
 
         if (recipe.getProduct() != null) {
+            dto.setProductId(recipe.getProduct().getId());
             dto.setProductName(recipe.getProduct().getName());
         }
 
         if (recipe.getMaterial() != null) {
+            dto.setMaterialId(recipe.getMaterial().getId());
             dto.setMaterialName(recipe.getMaterial().getName());
+        }
+
+        if (recipe.getCookingMethod() != null) {
+            dto.setCookingMethodId(recipe.getCookingMethod().getId());
+            dto.setCookingMethodName(recipe.getCookingMethod().getName());
         }
 
         return dto;
