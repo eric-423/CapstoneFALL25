@@ -388,8 +388,8 @@ VALUES ('Cơm tấm sườn nướng', 'Cơm tấm với sườn heo nướng th
 INSERT INTO product_recipes (product_id, material_id, cooking_method_id, quantity, created_at)
 VALUES (1, 12, 1, 200.0, NOW()),  -- Chuối xanh - Nướng
        (1, 13, 2, 1000.0, NOW()),  -- Gạo tấm - Luộc
-       (1, 14, 1, 100.0, NOW()),  -- Nước mắm - Nướng (ướp)
-       (1, 15, 1, 50.0, NOW()),   -- Ớt - Nướng
+       (1, 14, NULL, 100.0, NOW()),  -- Nước mắm - Không nấu (gia vị)
+       (1, 15, NULL, 50.0, NOW()),   -- Ớt - Không nấu (gia vị tươi)
        (1, 6, 1, 100.0, NOW()),   -- Chả lụa - Nướng
        (1, 7, NULL, 50.0, NOW()), -- Dưa leo - Không nấu
        (2, 12, 1, 200.0, NOW()),  -- Chuối xanh - Nướng
@@ -425,16 +425,16 @@ VALUES (1, 12, 1, 200.0, NOW()),  -- Chuối xanh - Nướng
        (8, 13, 2, 1000.0, NOW()),  -- Gạo tấm - Luộc
        (8, 7, NULL, 50.0, NOW()), -- Dưa leo - Không nấu
        (9, 18, NULL, 300.0, NOW()), -- Tiêu - Không nấu (gia vị)
-       (10, 18, NULL, 300.0, NOW()), -- Tiêu - Không nấu
-       (11, 3, NULL, 200.0, NOW()), -- Gà nướng - Không nấu (đã nướng sẵn)
-       (12, 3, NULL, 300.0, NOW()), -- Gà nướng - Không nấu
-       (13, 3, NULL, 200.0, NOW()), -- Gà nướng - Không nấu
-       (14, 3, NULL, 100.0, NOW()), -- Gà nướng - Không nấu
-       (15, 18, NULL, 200.0, NOW()), -- Tiêu - Không nấu
+       (10, 18, NULL, 300.0, NOW()), -- Tiêu - Không nấu (gia vị)
+       (11, 3, 1, 200.0, NOW()), -- Gà nướng - Nướng
+       (12, 3, 1, 300.0, NOW()), -- Gà nướng - Nướng
+       (13, 3, 1, 200.0, NOW()), -- Gà nướng - Nướng
+       (14, 3, 1, 100.0, NOW()), -- Gà nướng - Nướng
+       (15, 18, NULL, 200.0, NOW()), -- Tiêu - Không nấu (gia vị)
        (16, 16, 8, 1.0, NOW()),   -- Trứng ốp la - Ốp la
        (17, 4, 3, 100.0, NOW()),  -- Chả trứng - Chiên
        (18, 5, NULL, 100.0, NOW()), -- Bì bún - Không nấu
-       (19, 18, NULL, 500.0, NOW()), -- Tiêu - Không nấu
+       (19, 18, NULL, 500.0, NOW()), -- Tiêu - Không nấu (gia vị)
        (20, 7, NULL, 100.0, NOW()); -- Dưa leo - Không nấu
 
 
@@ -1110,7 +1110,9 @@ VALUES (1, 1, 0.85),  -- Calories: 85% retention
        (7, 1, 0.82),  -- Calories: 82% retention
        (7, 2, 0.88),  -- Protein: 88% retention
        (7, 3, 0.75),  -- Fat: 75% retention (chảy mỡ)
+       (7, 4, 0.93),  -- Carb: 93% retention
        -- Ốp la (method_id = 8)
-       (8, 1, 0.95),  -- Calories: 95% retention
+       (8, 1, 0.95),  -- Calories: 95% retention 
        (8, 2, 0.98),  -- Protein: 98% retention
-       (8, 3, 0.95);  -- Fat: 95% retention
+       (8, 3, 0.95),  -- Fat: 95% retention
+       (8, 4, 0.98);  -- Carb: 98% retention
