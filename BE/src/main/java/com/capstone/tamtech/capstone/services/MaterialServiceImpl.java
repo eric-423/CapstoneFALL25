@@ -8,10 +8,7 @@ import com.capstone.tamtech.capstone.exception.ResourceNotFoundException;
 import com.capstone.tamtech.capstone.payload.PagedResponse;
 import com.capstone.tamtech.capstone.payload.request.MaterialRequest;
 import com.capstone.tamtech.capstone.payload.request.MaterialSearchRequest;
-import com.capstone.tamtech.capstone.repositories.MaterialRepository;
-import com.capstone.tamtech.capstone.repositories.MaterialTypeRepository;
-import com.capstone.tamtech.capstone.repositories.MaterialWarehouseRepository;
-import com.capstone.tamtech.capstone.repositories.ProductRecipesRepository;
+import com.capstone.tamtech.capstone.repositories.*;
 import com.capstone.tamtech.capstone.services.impl.MaterialService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -37,6 +34,9 @@ public class MaterialServiceImpl implements MaterialService {
 
     @Autowired
     private MaterialWarehouseRepository materialWarehouseRepository;
+
+    @Autowired
+    private UnitsRepository unitsRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -130,8 +130,8 @@ public class MaterialServiceImpl implements MaterialService {
 
         Material material = new Material();
         material.setName(request.getName());
-        material.setCaloriesPerUnit(request.getCaloriesPerUnit());
-        material.setUnit(request.getUnit());
+        material.setUnits(unitsRepository.findById(request.getUnitId())
+                .orElseThrow(() -> new ResourceNotFoundException("Units not found")));
         material.setThreshold(request.getThreshold());
         material.setMaterialType(materialType);
         material.setIsDeleted(Boolean.FALSE);
@@ -155,12 +155,9 @@ public class MaterialServiceImpl implements MaterialService {
             material.setName(request.getName());
         }
 
-        if (request.getCaloriesPerUnit() != null) {
-            material.setCaloriesPerUnit(request.getCaloriesPerUnit());
-        }
-
-        if (request.getUnit() != null && !request.getUnit().isBlank()) {
-            material.setUnit(request.getUnit());
+        if (request.getUnitId() != null) {
+            material.setUnits(unitsRepository.findById(request.getUnitId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Units not found")));
         }
 
         if (request.getThreshold() != null) {
@@ -188,7 +185,7 @@ public class MaterialServiceImpl implements MaterialService {
         Material material = materialRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Material not found"));
 
-        boolean isUsedInRecipes = !productRecipesRepository.findByKeyProductRecipesMaterialId(id).isEmpty();
+        boolean isUsedInRecipes = !productRecipesRepository.findByMaterialId(id).isEmpty();
         if (isUsedInRecipes) {
             throw new IllegalStateException("Cannot delete material that is being used in product recipes");
         }
@@ -201,8 +198,7 @@ public class MaterialServiceImpl implements MaterialService {
         MaterialDTO dto = new MaterialDTO();
         dto.setId(material.getId());
         dto.setName(material.getName());
-        dto.setCaloriesPerUnit(material.getCaloriesPerUnit());
-        dto.setUnit(material.getUnit());
+        dto.setUnitId(material.getUnits().getId());
         dto.setThreshold(material.getThreshold());
         dto.setIsDeleted(material.getIsDeleted());
 

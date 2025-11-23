@@ -22,4 +22,6 @@ public interface RoleHistoryService {
     void deleteRoleHistory(int roleHistoryId);
 
     RoleHistoryDTO deactivateRoleHistory(int roleHistoryId);
+
+    void getRoleName();
 }

@@ -52,5 +52,12 @@ public class LoginResponse {
 
         @Schema(description = "Điểm thành viên tích lũy", example = "100")
         private int memberPoint;
+
+        @Schema(description = "Role Id", example = "1")
+        private int roleId;
+
+
+        @Schema(description = "Branch Id", example = "1")
+        private int branchId;
     }
 }

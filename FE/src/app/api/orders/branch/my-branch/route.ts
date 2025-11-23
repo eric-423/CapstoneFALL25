@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
             }
 
             const errorMessage = response.status === 403
-                ? `Access denied. This endpoint requires MANAGER/ADMIN role, but your role is: ${decodedToken?.role || 'Unknown'}. Please contact administrator.`
+                ? `Access denied. This endpoint requires MANAGER/ADMIN/STAFF role, but your role is: ${decodedToken?.role || 'Unknown'}. Please contact administrator.`
                 : errorData.error || errorData.message || 'Failed to fetch branch orders';
 
             return NextResponse.json(

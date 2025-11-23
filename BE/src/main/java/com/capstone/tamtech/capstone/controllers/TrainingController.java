@@ -1,6 +1,7 @@
 package com.capstone.tamtech.capstone.controllers;
 
 import com.capstone.tamtech.capstone.dto.TrainingDTO;
+import com.capstone.tamtech.capstone.dto.UserManagementDTO;
 import com.capstone.tamtech.capstone.dto.UserTrainingDTO;
 import com.capstone.tamtech.capstone.dto.UserTrainingDetailDTO;
 import com.capstone.tamtech.capstone.payload.PagedResponse;
@@ -162,6 +163,23 @@ public class TrainingController {
             responseData.setData(userTrainingService.enrollCurrentUser(trainingId));
             responseData.setDesc("Enrolled successfully");
             return ResponseEntity.status(HttpStatus.CREATED).body(responseData);
+        } catch (Exception e) {
+            responseData.setDesc("Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseData);
+        }
+    }
+
+    @Operation(summary = "Lấy danh sách người dùng hợp lệ để assign vào training (admin)")
+    @GetMapping("/admin/{trainingId}/available-users")
+    public ResponseEntity<?> getAvailableUsersForTraining(
+            @PathVariable int trainingId,
+            @RequestParam(value = "branchId", required = false) Integer branchId) {
+        ResponseData responseData = new ResponseData();
+        try {
+            List<UserManagementDTO> users = userTrainingService.getAvailableUsersForTraining(trainingId, branchId);
+            responseData.setData(users);
+            responseData.setDesc("Retrieved " + users.size() + " available user(s) for training");
+            return ResponseEntity.ok(responseData);
         } catch (Exception e) {
             responseData.setDesc("Error: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseData);

@@ -157,4 +157,18 @@ public class RoleHistoryController {
             return new ResponseEntity<>(responseData, HttpStatus.BAD_REQUEST);
         }
     }
+
+    @GetMapping("/update/test/role-names")
+    public ResponseEntity<?> getRoleNames() {
+        try {
+            roleHistoryService.getRoleName();
+            ResponseData responseData = new ResponseData();
+            responseData.setDesc("Role names retrieved successfully");
+            return new ResponseEntity<>(responseData, HttpStatus.OK);
+        } catch (Exception e) {
+            ResponseData responseData = new ResponseData();
+            responseData.setDesc("Error: " + e.getMessage());
+            return new ResponseEntity<>(responseData, HttpStatus.BAD_REQUEST);
+        }
+    }
 }
