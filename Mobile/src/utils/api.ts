@@ -419,7 +419,7 @@ export const UpdateCustomerInformation = async (
   );
 };
 
-export const getCustomerPromotion = async () => {
+export const GetCustomerPromotion = async () => {
   const token = await AsyncStorage.getItem("access_token");
   return axios.get(`${BASE_URL}/promotions/customer/my-promotions`, {
     headers: {
@@ -430,7 +430,7 @@ export const getCustomerPromotion = async () => {
   });
 };
 
-export const getOrderById = async (orderId: number) => {
+export const GetOrderById = async (orderId: number) => {
   const token = await AsyncStorage.getItem("access_token");
   return axios.get(`${BASE_URL}/orders/${orderId}`, {
     headers: {
@@ -439,4 +439,46 @@ export const getOrderById = async (orderId: number) => {
       ...(token && { Authorization: `Bearer ${token}` }),
     },
   });
+};
+
+export const GetAvailablePromotion = async () => {
+  const token = await AsyncStorage.getItem("access_token");
+  return axios.get(`${BASE_URL}/promotions/customer/available`, {
+    headers: {
+      accept: "application/json",
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+  });
+};
+
+export const SortProductByPrice = async (
+  branchId: number,
+  sortDirection: string
+) => {
+  const token = await AsyncStorage.getItem("access_token");
+  return axios.get(
+    `${BASE_URL}/products/search?branchId=${branchId}&isActive=true&minPrice=0&maxPrice=500000&page=0&size=100&sortBy=price&sortDirection=${sortDirection}`,
+    {
+      headers: {
+        accept: "application/json",
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    }
+  );
+};
+
+export const SearchProductByName = async (branchId: number, name: string) => {
+  const token = await AsyncStorage.getItem("access_token");
+  return axios.get(
+    `${BASE_URL}/products/search?branchId=${branchId}&keyword=${name}&isActive=true&minPrice=0&maxPrice=500000&page=0&size=100&sortBy=name&sortDirection=ASC`,
+    {
+      headers: {
+        accept: "application/json",
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    }
+  );
 };

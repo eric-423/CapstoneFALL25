@@ -14,7 +14,7 @@ public class MaterialDTO implements Serializable {
     private String name;
     private double quantity;
     private Double caloriesPerUnit;
-    private String unit;
+    private Integer unitId;
     private Double threshold;
     private Integer materialTypeId;
     private String materialTypeName;

@@ -10,4 +10,6 @@ import lombok.NoArgsConstructor;
 public class RecipesRequest {
     private int materialId;
     private int quantity;
+    private int orderStep;
+    private int cookingMethodId;
 }

@@ -1,3 +1,18 @@
+-- ============================================
+-- MIGRATION SCRIPT FOR product_recipes TABLE
+-- ============================================
+-- If product_recipes table already exists with composite key, run this first:
+-- 
+-- SET FOREIGN_KEY_CHECKS = 0;
+-- ALTER TABLE product_recipes DROP PRIMARY KEY;
+-- ALTER TABLE product_recipes ADD COLUMN id INT NOT NULL AUTO_INCREMENT FIRST;
+-- ALTER TABLE product_recipes ADD COLUMN cooking_method_id INT NULL AFTER material_id;
+-- ALTER TABLE product_recipes ADD PRIMARY KEY (id);
+-- ALTER TABLE product_recipes ADD CONSTRAINT fk_product_recipes_cooking_method FOREIGN KEY (cooking_method_id) REFERENCES cooking_methods(id);
+-- SET FOREIGN_KEY_CHECKS = 1;
+--
+-- ============================================
+
 INSERT INTO member_association (member_association_point, member_association_name, member_association_description)
 VALUES (0, 'Đồng', 'Hạng đồng - 0 điểm'),
        (100, 'Bạc', 'Hạng bạc - 100 điểm'),
@@ -149,12 +164,12 @@ VALUES ('Nguyễn Văn An', '123 Nguyễn Huệ, Q1, TP.HCM', '0900000001', 'ana
 
 
 
-INSERT INTO branch (name, address, phone_number, is_parent)
-VALUES ('Chi nhánh chính', 'Vinhomes Grand Park, Phường Long Thạnh Mỹ, Quận 9, Thành phố Hồ Chí Minh, Vietnam', '0901234567', true),
-       ('Chi nhánh 1 - Quận 1', '123 Lê Lợi, Phường Bến Thành, Quận 1, Thành phố Hồ Chí Minh, Vietnam', '0901234567', false),
-       ('Chi nhánh 2 - Quận 3', '456 Nguyễn Đình Chiểu, Phường Võ Thị Sáu, Quận 3, Thành phố Hồ Chí Minh, Vietnam', '0901234568', false),
-       ('Chi nhánh 3 - Quận 7', '789 Nguyễn Thái Sơn, Phường Tân Quy, Quận 7, Thành phố Hồ Chí Minh, Vietnam', '0901234569', false),
-       ('Chi nhánh 4 - Quận 5', '321 Nguyễn Trãi, Phường Nguyễn Cư Trinh, Quận 5, Thành phố Hồ Chí Minh, Vietnam', '0901234570', false);
+INSERT INTO branch (name, address, phone_number, is_parent, is_active)
+VALUES ('Chi nhánh chính', 'Vinhomes Grand Park, Phường Long Thạnh Mỹ, Quận 9, Thành phố Hồ Chí Minh, Vietnam', '0901234567', true, true),
+       ('Chi nhánh 1 - Quận 1', '123 Lê Lợi, Phường Bến Thành, Quận 1, Thành phố Hồ Chí Minh, Vietnam', '0901234567', false, true),
+       ('Chi nhánh 2 - Quận 3', '456 Nguyễn Đình Chiểu, Phường Võ Thị Sáu, Quận 3, Thành phố Hồ Chí Minh, Vietnam', '0901234568', false, true),
+       ('Chi nhánh 3 - Quận 7', '789 Nguyễn Thái Sơn, Phường Tân Quy, Quận 7, Thành phố Hồ Chí Minh, Vietnam', '0901234569', false, true),
+       ('Chi nhánh 4 - Quận 5', '321 Nguyễn Trãi, Phường Nguyễn Cư Trinh, Quận 5, Thành phố Hồ Chí Minh, Vietnam', '0901234570', false, true);
 
 
 
@@ -204,55 +219,97 @@ VALUES (NOW(), NULL, true, 1, 1, NULL),
 
 
 
-INSERT INTO product_type (name)
-VALUES ('Cơm tấm'),
-       ('Thức uống'),
-       ('Cơm trắng'),
-       ('Đồ ăn kèm');
+INSERT INTO product_type (name, image_url, is_deleted)
+VALUES ('Cơm tấm', NULL, false),
+       ('Thức uống', NULL, false),
+       ('Cơm trắng', NULL, false),
+       ('Đồ ăn kèm', NULL, false);
 
 
 
-INSERT INTO material_type (material_type_name)
-VALUES ('Thịt'),
-       ('Rau'),
-       ('Gạo'),
-       ('Gia vị'),
-       ('Đồ uống'),
-       ('Trứng'),
-       ('Xúc xích');
+INSERT INTO material_type (material_type_name, is_deleted)
+VALUES ('Thịt', false),
+       ('Rau', false),
+       ('Gạo', false),
+       ('Gia vị', false),
+       ('Đồ uống', false),
+       ('Trứng', false),
+       ('Xúc xích', false);
 
 
 
-INSERT INTO material (material_name, material_type_id, calories_per_unit, unit, threshold)
-VALUES ('Sườn nướng', 1, 250.0, 'gram', 20.0),
-       ('Thịt nướng', 1, 200.0, 'gram', 20.0),
-       ('Gà nướng', 1, 180.0, 'gram', 30.0),
-       ('Chả trứng', 1, 150.0, 'gram', 50.0),
-       ('Bì bún', 1, 120.0, 'gram', 50.0),
-       ('Chả lụa', 1, 180.0, 'gram', 30.0),
-       ('Dưa leo', 2, 15.0, 'gram', 100.0),
-       ('Cà chua', 2, 18.0, 'gram', 50.0),
-       ('Đậu phộng', 2, 567.0, 'gram', 50.0),
-       ('Giá đỗ', 2, 30.0, 'gram', 50.0),
-       ('Xà lách', 2, 15.0, 'gram', 50.0),
-       ('Chuối xanh', 2, 89.0, 'gram', 100.0),
-       ('Gạo tấm', 3, 365.0, 'gram', 200.0),
-       ('Gạo trắng', 3, 365.0, 'gram', 200.0),
-       ('Nước mắm', 4, 20.0, 'ml', 50.0),
-       ('Ớt', 4, 40.0, 'gram', 20.0),
-       ('Hành lá', 4, 32.0, 'gram', 30.0),
-       ('Tiêu', 4, 251.0, 'gram', 50.0),
-       ('Trứng ốp la', 6, 155.0, 'quả', 20.0),
-       ('Xúc xích Đức', 7, 301.0, 'cái', 30.0),
-       ('Canh chua', 2, 50.0, 'ml', 50.0);
+-- Units (Đơn vị)
+INSERT INTO units (name, symbols)
+VALUES ('Gram', 'g'),
+       ('Kilogram', 'kg'),
+       ('Mililit', 'ml'),
+       ('Lít', 'L'),
+       ('Quả', 'quả'),
+       ('Cái', 'cái'),
+       ('Muỗng canh', 'muỗng'),
+       ('Cốc', 'cốc');
 
 
 
-INSERT INTO warehouse (warehouse_name, branch_id)
-VALUES ('Kho chi nhánh Quận 1', 1),
-       ('Kho chi nhánh Quận 3', 2),
-       ('Kho chi nhánh Quận 7', 3),
-       ('Kho chi nhánh Quận 5', 4);
+-- Nutrients (Dinh dưỡng)
+INSERT INTO nutrients (name, code, unit, energy_per_unit)
+VALUES ('Calories', 'CAL', 'kcal', 1.0),
+       ('Protein', 'PRO', 'g', 4.0),
+       ('Fat', 'FAT', 'g', 9.0),
+       ('Carbohydrate', 'CARB', 'g', 4.0),
+       ('Fiber', 'FIB', 'g', 0.0),
+       ('Vitamin A', 'VIT_A', 'IU', 0.0),
+       ('Vitamin C', 'VIT_C', 'mg', 0.0),
+       ('Calcium', 'CALC', 'mg', 0.0),
+       ('Iron', 'IRON', 'mg', 0.0),
+       ('Sodium', 'SOD', 'mg', 0.0);
+
+
+
+-- Cooking Methods (Phương pháp nấu)
+INSERT INTO cooking_methods (name, description)
+VALUES ('Nướng', 'Nướng trên than hoa hoặc lò nướng'),
+       ('Luộc', 'Nấu trong nước sôi'),
+       ('Chiên', 'Chiên trong dầu nóng'),
+       ('Hấp', 'Hấp cách thủy'),
+       ('Xào', 'Xào trên chảo nóng'),
+       ('Kho', 'Kho với nước dừa hoặc nước mắm'),
+       ('Nướng than hoa', 'Nướng trực tiếp trên than hoa'),
+       ('Ốp la', 'Chiên trứng không dầu');
+
+
+
+-- Material (Cập nhật để sử dụng unit_id)
+INSERT INTO material (material_name, material_type_id, unit_id, threshold, is_deleted)
+VALUES ('Sườn nướng', 1, 1, 20.0, false),
+       ('Thịt nướng', 1, 1, 20.0, false),
+       ('Gà nướng', 1, 1, 30.0, false),
+       ('Chả trứng', 1, 1, 50.0, false),
+       ('Bì bún', 1, 1, 50.0, false),
+       ('Chả lụa', 1, 1, 30.0, false),
+       ('Dưa leo', 2, 1, 100.0, false),
+       ('Cà chua', 2, 1, 50.0, false),
+       ('Đậu phộng', 2, 1, 50.0, false),
+       ('Giá đỗ', 2, 1, 50.0, false),
+       ('Xà lách', 2, 1, 50.0, false),
+       ('Chuối xanh', 2, 1, 100.0, false),
+       ('Gạo tấm', 3, 1, 200.0, false),
+       ('Gạo trắng', 3, 1, 200.0, false),
+       ('Nước mắm', 4, 3, 50.0, false),
+       ('Ớt', 4, 1, 20.0, false),
+       ('Hành lá', 4, 1, 30.0, false),
+       ('Tiêu', 4, 1, 50.0, false),
+       ('Trứng ốp la', 6, 5, 20.0, false),
+       ('Xúc xích Đức', 7, 6, 30.0, false),
+       ('Canh chua', 2, 3, 50.0, false);
+
+
+
+INSERT INTO warehouse (warehouse_name, branch_id, is_active)
+VALUES ('Kho chi nhánh Quận 1', 1, true),
+       ('Kho chi nhánh Quận 3', 2, true),
+       ('Kho chi nhánh Quận 7', 3, true),
+       ('Kho chi nhánh Quận 5', 4, true);
 
 
 
@@ -327,57 +384,58 @@ VALUES ('Cơm tấm sườn nướng', 'Cơm tấm với sườn heo nướng th
 
 
 
-INSERT INTO product_recipes (product_id, material_id, quantity, created_at)
-VALUES (1, 12, 0.2, NOW()),
-       (1, 13, 1.0, NOW()),
-       (1, 14, 0.1, NOW()),
-       (1, 15, 0.05, NOW()),
-       (1, 6, 0.1, NOW()),
-       (1, 7, 0.05, NOW()),
-       (2, 12, 0.2, NOW()),
-       (2, 13, 1.0, NOW()),
-       (2, 4, 0.05, NOW()),
-       (2, 5, 0.05, NOW()),
-       (2, 7, 0.05, NOW()),
-       (3, 12, 0.2, NOW()),
-       (3, 13, 1.0, NOW()),
-       (3, 3, 0.15, NOW()),
-       (3, 7, 0.05, NOW()),
-       (4, 12, 0.2, NOW()),
-       (4, 13, 1.0, NOW()),
-       (4, 2, 0.15, NOW()),
-       (4, 7, 0.05, NOW()),
-       (5, 12, 0.2, NOW()),
-       (5, 13, 1.0, NOW()),
-       (5, 1, 0.2, NOW()),
-       (5, 7, 0.05, NOW()),
-       (6, 12, 0.2, NOW()),
-       (6, 13, 1.0, NOW()),
-       (6, 1, 0.15, NOW()),
-       (6, 4, 0.05, NOW()),
-       (6, 5, 0.05, NOW()),
-       (6, 17, 0.05, NOW()),
-       (6, 7, 0.05, NOW()),
-       (7, 12, 0.2, NOW()),
-       (7, 13, 1.0, NOW()),
-       (7, 4, 0.05, NOW()),
-       (7, 5, 0.05, NOW()),
-       (7, 7, 0.05, NOW()),
-       (8, 12, 0.2, NOW()),
-       (8, 13, 1.0, NOW()),
-       (8, 7, 0.05, NOW()),
-       (9, 18, 0.3, NOW()),
-       (10, 18, 0.3, NOW()),
-       (11, 3, 0.2, NOW()),
-       (12, 3, 0.3, NOW()),
-       (13, 3, 0.2, NOW()),
-       (14, 3, 0.1, NOW()),
-       (15, 18, 0.2, NOW()),
-       (16, 16, 1.0, NOW()),
-       (17, 4, 1.0, NOW()),
-       (18, 5, 1.0, NOW()),
-       (19, 18, 0.5, NOW()),
-       (20, 7, 0.1, NOW());
+-- Product Recipes (Cập nhật với cooking_method_id)
+INSERT INTO product_recipes (product_id, material_id, cooking_method_id, quantity, created_at)
+VALUES (1, 12, 1, 200.0, NOW()),  -- Chuối xanh - Nướng
+       (1, 13, 2, 1000.0, NOW()),  -- Gạo tấm - Luộc
+       (1, 14, 1, 100.0, NOW()),  -- Nước mắm - Nướng (ướp)
+       (1, 15, 1, 50.0, NOW()),   -- Ớt - Nướng
+       (1, 6, 1, 100.0, NOW()),   -- Chả lụa - Nướng
+       (1, 7, NULL, 50.0, NOW()), -- Dưa leo - Không nấu
+       (2, 12, 1, 200.0, NOW()),  -- Chuối xanh - Nướng
+       (2, 13, 2, 1000.0, NOW()),  -- Gạo tấm - Luộc
+       (2, 4, 3, 50.0, NOW()),   -- Chả trứng - Chiên
+       (2, 5, NULL, 50.0, NOW()), -- Bì bún - Không nấu
+       (2, 7, NULL, 50.0, NOW()), -- Dưa leo - Không nấu
+       (3, 12, 1, 200.0, NOW()),  -- Chuối xanh - Nướng
+       (3, 13, 2, 1000.0, NOW()),  -- Gạo tấm - Luộc
+       (3, 3, 1, 150.0, NOW()),   -- Gà nướng - Nướng
+       (3, 7, NULL, 50.0, NOW()), -- Dưa leo - Không nấu
+       (4, 12, 1, 200.0, NOW()),  -- Chuối xanh - Nướng
+       (4, 13, 2, 1000.0, NOW()),  -- Gạo tấm - Luộc
+       (4, 2, 1, 150.0, NOW()),   -- Thịt nướng - Nướng
+       (4, 7, NULL, 50.0, NOW()), -- Dưa leo - Không nấu
+       (5, 12, 1, 200.0, NOW()),  -- Chuối xanh - Nướng
+       (5, 13, 2, 1000.0, NOW()),  -- Gạo tấm - Luộc
+       (5, 1, 7, 200.0, NOW()),   -- Sườn nướng - Nướng than hoa
+       (5, 7, NULL, 50.0, NOW()), -- Dưa leo - Không nấu
+       (6, 12, 1, 200.0, NOW()),  -- Chuối xanh - Nướng
+       (6, 13, 2, 1000.0, NOW()),  -- Gạo tấm - Luộc
+       (6, 1, 7, 150.0, NOW()),   -- Sườn nướng - Nướng than hoa
+       (6, 4, 3, 50.0, NOW()),    -- Chả trứng - Chiên
+       (6, 5, NULL, 50.0, NOW()), -- Bì bún - Không nấu
+       (6, 17, NULL, 50.0, NOW()), -- Hành lá - Không nấu
+       (6, 7, NULL, 50.0, NOW()), -- Dưa leo - Không nấu
+       (7, 12, 1, 200.0, NOW()),  -- Chuối xanh - Nướng
+       (7, 13, 2, 1000.0, NOW()),  -- Gạo tấm - Luộc
+       (7, 4, 3, 50.0, NOW()),    -- Chả trứng - Chiên
+       (7, 5, NULL, 50.0, NOW()), -- Bì bún - Không nấu
+       (7, 7, NULL, 50.0, NOW()), -- Dưa leo - Không nấu
+       (8, 12, 1, 200.0, NOW()),  -- Chuối xanh - Nướng
+       (8, 13, 2, 1000.0, NOW()),  -- Gạo tấm - Luộc
+       (8, 7, NULL, 50.0, NOW()), -- Dưa leo - Không nấu
+       (9, 18, NULL, 300.0, NOW()), -- Tiêu - Không nấu (gia vị)
+       (10, 18, NULL, 300.0, NOW()), -- Tiêu - Không nấu
+       (11, 3, NULL, 200.0, NOW()), -- Gà nướng - Không nấu (đã nướng sẵn)
+       (12, 3, NULL, 300.0, NOW()), -- Gà nướng - Không nấu
+       (13, 3, NULL, 200.0, NOW()), -- Gà nướng - Không nấu
+       (14, 3, NULL, 100.0, NOW()), -- Gà nướng - Không nấu
+       (15, 18, NULL, 200.0, NOW()), -- Tiêu - Không nấu
+       (16, 16, 8, 1.0, NOW()),   -- Trứng ốp la - Ốp la
+       (17, 4, 3, 100.0, NOW()),  -- Chả trứng - Chiên
+       (18, 5, NULL, 100.0, NOW()), -- Bì bún - Không nấu
+       (19, 18, NULL, 500.0, NOW()), -- Tiêu - Không nấu
+       (20, 7, NULL, 100.0, NOW()); -- Dưa leo - Không nấu
 
 
 
@@ -621,9 +679,9 @@ VALUES ('Phần chính', 2, 1, 1),
 
 
 
-INSERT INTO payment_method (payment_method_name)
-VALUES ('Tiền mặt'),
-       ('PayOS');
+INSERT INTO payment_method (payment_method_name, is_active)
+VALUES ('Tiền mặt', true),
+       ('PayOS', true);
 
 
 
@@ -747,7 +805,7 @@ VALUES ('Tin tức'),
        ('Hướng dẫn');
 
 
-INSERT INTO blog (blog_title, blog_content, blog_image, blog_status, blog_type_blog_type_id, author_id)
+INSERT INTO blog (blog_title, blog_content, blog_image, blog_status, blog_type_id, author_id)
 VALUES ('Giới thiệu món Cơm Tấm Sườn Nướng đặc biệt',
         'Cơm tấm sườn nướng là món ăn đặc trưng của miền Nam Việt Nam. Với sườn heo được ướp gia vị đậm đà và nướng trên than hoa, món ăn này mang đến hương vị khó quên. Kèm theo là bì bún giòn tan, chả trứng thơm ngon và nước mắm pha chua ngọt đậm đà.',
         'blog-com-tam-suon.jpg', true, 4, 1),
@@ -907,67 +965,67 @@ VALUES ('Nồi lớn 50L', 5, 1, 1),
 
 
 INSERT INTO `order` (order_sub_total, order_promotion_code, order_discount_value, order_discount_percent, order_amount,
-                     order_shiping_free, order_delivery_at, order_note, order_payment_code, order_address, order_phone,
+                     order_shiping_fee, order_delivery_at, order_note, order_payment_code, order_address, order_phone,
                      order_point_used, order_point_earned, order_created_at, is_pick_up, payment_time, is_table,
-                     customer_name, customer_email, customer_id, branch_id, status_id, payment_method_id)
+                     customer_name, customer_email, customer_id, branch_id, status_id, payment_method_id, promotion_id)
 VALUES (150000, NULL, 0, 0, 170000, 20000, DATE_ADD(NOW(), INTERVAL 1 DAY), 'Giao vào buổi trưa', NULL,
         '123 Nguyễn Huệ, Q1, TP.HCM', '0910000001', 0, 150, DATE_SUB(NOW(), INTERVAL 5 DAY), false,
-        DATE_SUB(NOW(), INTERVAL 5 DAY), false, 'Trần Văn Anh', 'anhtran@gmail.com', 23, 1, 7, 2),
+        DATE_SUB(NOW(), INTERVAL 5 DAY), false, 'Trần Văn Anh', 'anhtran@gmail.com', 23, 1, 7, 2, NULL),
        (200000, 'COMBO_GIA_DINH', 30000, 0, 190000, 20000, DATE_ADD(NOW(), INTERVAL 1 DAY), 'Giao trước 12h', NULL,
         '456 Lê Lợi, Q1, TP.HCM', '0910000002', 0, 200, DATE_SUB(NOW(), INTERVAL 3 DAY), false,
-        DATE_SUB(NOW(), INTERVAL 3 DAY), false, 'Nguyễn Thị Bình', 'binhnguyen@gmail.com', 24, 1, 7, 2),
+        DATE_SUB(NOW(), INTERVAL 3 DAY), false, 'Nguyễn Thị Bình', 'binhnguyen@gmail.com', 24, 1, 7, 2, 2),
        (100000, NULL, 0, 20, 100000, 0, DATE_ADD(NOW(), INTERVAL 2 DAY), NULL, NULL, '789 Lý Tự Trọng, Q3, TP.HCM',
         '0910000003', 0, 100, DATE_SUB(NOW(), INTERVAL 1 DAY), false, NULL, false, 'Lê Văn Cường', 'cuongle@gmail.com',
-        25, 2, 1, NULL);
+        25, 2, 1, NULL, 1);
 
 
 
 INSERT INTO `order` (order_sub_total, order_promotion_code, order_discount_value, order_discount_percent, order_amount,
-                     order_shiping_free, order_delivery_at, order_note, order_payment_code, order_address, order_phone,
+                     order_shiping_fee, order_delivery_at, order_note, order_payment_code, order_address, order_phone,
                      order_point_used, order_point_earned, order_created_at, is_pick_up, payment_time, is_table,
                      customer_name, customer_email, customer_id, branch_id, status_id, payment_method_id,
-                     dining_table_id, waiter_id)
+                     dining_table_id, waiter_id, promotion_id)
 VALUES (120000, NULL, 0, 0, 120000, 0, NULL, 'Không cay', NULL, NULL, '0910000004', 0, 120,
         DATE_SUB(NOW(), INTERVAL 2 HOUR), false, NULL, true, 'Phạm Thị Dung', 'dungpham@gmail.com', 26, 4, 4, NULL, 1,
-        17),
+        17, NULL),
        (180000, NULL, 0, 0, 180000, 0, NULL, 'Thêm nước mắm', NULL, NULL, '0910000005', 0, 180,
         DATE_SUB(NOW(), INTERVAL 1 HOUR), false, NULL, true, 'Hoàng Văn Em', 'emhoang@gmail.com', 27, 4, 3, NULL, 2,
-        17);
+        17, NULL);
 
 
 
 INSERT INTO `order` (order_sub_total, order_promotion_code, order_discount_value, order_discount_percent, order_amount,
-                     order_shiping_free, order_delivery_at, order_note, order_payment_code, order_address, order_phone,
+                     order_shiping_fee, order_delivery_at, order_note, order_payment_code, order_address, order_phone,
                      order_point_used, order_point_earned, order_created_at, is_pick_up, payment_time, pickup_time,
-                     is_table, customer_name, customer_email, customer_id, branch_id, status_id, payment_method_id)
+                     is_table, customer_name, customer_email, customer_id, branch_id, status_id, payment_method_id, promotion_id)
 VALUES (80000, NULL, 0, 0, 80000, 0, NULL, 'Lấy lúc 18h', NULL, NULL, '0910000006', 0, 80,
         DATE_SUB(NOW(), INTERVAL 1 DAY), true, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 1 DAY), false,
-        'Võ Thị Phượng', 'phuongvo@gmail.com', 28, 4, 7, 1);
+        'Võ Thị Phượng', 'phuongvo@gmail.com', 28, 4, 7, 1, NULL);
 
 
 
-INSERT INTO order_item (order_id, product_id, quantity, price, note, is_confirm, confirm_at, created_at)
-VALUES (1, 1, 2, 50000, NULL, true, DATE_SUB(NOW(), INTERVAL 5 DAY), DATE_SUB(NOW(), INTERVAL 5 DAY)),
-       (1, 9, 2, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 5 DAY), DATE_SUB(NOW(), INTERVAL 5 DAY)),
-       (1, 16, 1, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 5 DAY), DATE_SUB(NOW(), INTERVAL 5 DAY)),
-       (2, 6, 2, 65000, NULL, true, DATE_SUB(NOW(), INTERVAL 3 DAY), DATE_SUB(NOW(), INTERVAL 3 DAY)),
-       (2, 9, 2, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 3 DAY), DATE_SUB(NOW(), INTERVAL 3 DAY)),
-       (3, 3, 1, 55000, NULL, false, NULL, DATE_SUB(NOW(), INTERVAL 2 DAY)),
-       (3, 4, 1, 50000, NULL, false, NULL, DATE_SUB(NOW(), INTERVAL 2 DAY));
+INSERT INTO order_item (order_id, product_id, combo_id, quantity, price, note, is_confirm, confirm_at, created_at, is_feedbacked, feedback_point)
+VALUES (1, 1, NULL, 2, 50000, NULL, true, DATE_SUB(NOW(), INTERVAL 5 DAY), DATE_SUB(NOW(), INTERVAL 5 DAY), false, NULL),
+       (1, 9, NULL, 2, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 5 DAY), DATE_SUB(NOW(), INTERVAL 5 DAY), false, NULL),
+       (1, 16, NULL, 1, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 5 DAY), DATE_SUB(NOW(), INTERVAL 5 DAY), false, NULL),
+       (2, 6, NULL, 2, 65000, NULL, true, DATE_SUB(NOW(), INTERVAL 3 DAY), DATE_SUB(NOW(), INTERVAL 3 DAY), false, NULL),
+       (2, 9, NULL, 2, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 3 DAY), DATE_SUB(NOW(), INTERVAL 3 DAY), false, NULL),
+       (3, 3, NULL, 1, 55000, NULL, false, NULL, DATE_SUB(NOW(), INTERVAL 2 DAY), false, NULL),
+       (3, 4, NULL, 1, 50000, NULL, false, NULL, DATE_SUB(NOW(), INTERVAL 2 DAY), false, NULL);
 
 
 
-INSERT INTO order_item (order_id, product_id, quantity, price, note, is_confirm, confirm_at, is_delivered, created_at)
-VALUES (4, 1, 2, 50000, 'Không cay', true, DATE_SUB(NOW(), INTERVAL 2 HOUR), true, DATE_SUB(NOW(), INTERVAL 2 HOUR)),
-       (4, 9, 2, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 2 HOUR), true, DATE_SUB(NOW(), INTERVAL 2 HOUR)),
-       (5, 6, 2, 65000, 'Thêm nước mắm', true, DATE_SUB(NOW(), INTERVAL 1 HOUR), false, DATE_SUB(NOW(), INTERVAL 1 HOUR)),
-       (5, 10, 2, 20000, NULL, true, DATE_SUB(NOW(), INTERVAL 1 HOUR), false, DATE_SUB(NOW(), INTERVAL 1 HOUR));
+INSERT INTO order_item (order_id, product_id, combo_id, quantity, price, note, is_confirm, confirm_at, is_delivered, created_at, is_feedbacked, feedback_point)
+VALUES (4, 1, NULL, 2, 50000, 'Không cay', true, DATE_SUB(NOW(), INTERVAL 2 HOUR), true, DATE_SUB(NOW(), INTERVAL 2 HOUR), false, NULL),
+       (4, 9, NULL, 2, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 2 HOUR), true, DATE_SUB(NOW(), INTERVAL 2 HOUR), false, NULL),
+       (5, 6, NULL, 2, 65000, 'Thêm nước mắm', true, DATE_SUB(NOW(), INTERVAL 1 HOUR), false, DATE_SUB(NOW(), INTERVAL 1 HOUR), false, NULL),
+       (5, 10, NULL, 2, 20000, NULL, true, DATE_SUB(NOW(), INTERVAL 1 HOUR), false, DATE_SUB(NOW(), INTERVAL 1 HOUR), false, NULL);
 
 
 
-INSERT INTO order_item (order_id, product_id, quantity, price, note, is_confirm, confirm_at, created_at)
-VALUES (6, 1, 1, 50000, NULL, true, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 1 DAY)),
-       (6, 9, 2, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 1 DAY));
+INSERT INTO order_item (order_id, product_id, combo_id, quantity, price, note, is_confirm, confirm_at, created_at, is_feedbacked, feedback_point)
+VALUES (6, 1, NULL, 1, 50000, NULL, true, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 1 DAY), false, NULL),
+       (6, 9, NULL, 2, 15000, NULL, true, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 1 DAY), false, NULL);
 
 
 
@@ -983,3 +1041,76 @@ VALUES (23, 1, DATE_SUB(NOW(), INTERVAL 10 DAY), NULL, 'AVAILABLE', 1, 'Khuyến
        (36, 2, DATE_SUB(NOW(), INTERVAL 12 DAY), NULL, 'AVAILABLE', 1, 'Combo gia đình'),
        (42, 1, DATE_SUB(NOW(), INTERVAL 20 DAY), DATE_SUB(NOW(), INTERVAL 5 DAY), 'USED', 1, 'Đã sử dụng'),
        (42, 3, DATE_SUB(NOW(), INTERVAL 3 DAY), NULL, 'AVAILABLE', 1, 'Free ship');
+
+
+
+-- Material Nutrients (Nguyên liệu - Dinh dưỡng)
+-- Sườn nướng
+INSERT INTO material_nutrients (material_id, nutrient_id, state, amount_per_100_unit)
+VALUES (1, 1, 'raw', 0.85),  -- Calories: 85% retention khi nướng
+       (1, 2, 'raw', 0.90),  -- Protein: 90% retention
+       (1, 3, 'raw', 0.80),  -- Fat: 80% retention
+       (1, 4, 'raw', 0.95),  -- Carb: 95% retention
+       -- Thịt nướng
+       (2, 1, 'raw', 0.85),
+       (2, 2, 'raw', 0.90),
+       (2, 3, 'raw', 0.80),
+       -- Gà nướng
+       (3, 1, 'raw', 0.88),
+       (3, 2, 'raw', 0.92),
+       (3, 3, 'raw', 0.82),
+       -- Chả trứng
+       (4, 1, 'raw', 0.95),
+       (4, 2, 'raw', 0.98),
+       (4, 3, 'raw', 0.95),
+       -- Gạo tấm
+       (13, 1, 'raw', 1.0),
+       (13, 2, 'raw', 1.0),
+       (13, 4, 'raw', 1.0),
+       -- Dưa leo
+       (7, 1, 'raw', 1.0),
+       (7, 7, 'raw', 1.0),  -- Vitamin C
+       (7, 5, 'raw', 1.0),  -- Fiber
+       -- Cà chua
+       (8, 1, 'raw', 1.0),
+       (8, 6, 'raw', 1.0),  -- Vitamin A
+       (8, 7, 'raw', 1.0),  -- Vitamin C
+       -- Trứng ốp la
+       (19, 1, 'raw', 0.95),
+       (19, 2, 'raw', 0.98),
+       (19, 3, 'raw', 0.95);
+
+
+
+-- Cooking Method Nutrients (Phương pháp nấu - Dinh dưỡng)
+-- Nướng (method_id = 1)
+INSERT INTO cooking_method_nutrients (cooking_method_id, nutrient_id, retention_factor)
+VALUES (1, 1, 0.85),  -- Calories: 85% retention
+       (1, 2, 0.90),  -- Protein: 90% retention
+       (1, 3, 0.80),  -- Fat: 80% retention
+       (1, 4, 0.95),  -- Carb: 95% retention
+       -- Luộc (method_id = 2)
+       (2, 1, 0.75),  -- Calories: 75% retention (mất vào nước)
+       (2, 2, 0.85),  -- Protein: 85% retention
+       (2, 3, 0.70),  -- Fat: 70% retention
+       (2, 4, 0.90),  -- Carb: 90% retention
+       (2, 7, 0.50),  -- Vitamin C: 50% retention (tan trong nước)
+       -- Chiên (method_id = 3)
+       (3, 1, 1.20),  -- Calories: 120% (tăng do dầu)
+       (3, 2, 0.88),  -- Protein: 88% retention
+       (3, 3, 1.15),  -- Fat: 115% (tăng do dầu)
+       (3, 4, 0.92),  -- Carb: 92% retention
+       -- Hấp (method_id = 4)
+       (4, 1, 0.90),  -- Calories: 90% retention
+       (4, 2, 0.95),  -- Protein: 95% retention
+       (4, 3, 0.85),  -- Fat: 85% retention
+       (4, 4, 0.98),  -- Carb: 98% retention
+       (4, 7, 0.80),  -- Vitamin C: 80% retention
+       -- Nướng than hoa (method_id = 7)
+       (7, 1, 0.82),  -- Calories: 82% retention
+       (7, 2, 0.88),  -- Protein: 88% retention
+       (7, 3, 0.75),  -- Fat: 75% retention (chảy mỡ)
+       -- Ốp la (method_id = 8)
+       (8, 1, 0.95),  -- Calories: 95% retention
+       (8, 2, 0.98),  -- Protein: 98% retention
+       (8, 3, 0.95);  -- Fat: 95% retention
