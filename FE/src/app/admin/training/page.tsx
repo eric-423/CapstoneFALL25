@@ -47,7 +47,8 @@ import {
 } from '@/apis/trainning.api';
 import { TrainingCourse, StaffRole } from '@/utils/types/training.type';
 import { AddTrainingDialog } from '@/app/admin/training/components/AddTrainingDialog';
-import { AdminPageLayout, AdminPageHeader, AdminStatsCard, AdminStatsGrid } from '../components/AdminPageLayout';
+import { AdminPageLayout, AdminPageHeader } from '../components/AdminPageLayout';
+import { AdminCard } from '../components/AdminCard';
 
 const TRAINING_PAGE_SIZE = 50;
 const TRAINING_LESSON_PAGE_SIZE = 5;
@@ -515,12 +516,12 @@ export default function TrainingPage() {
 
     const getRoleColor = (role: StaffRole) => {
         const colors: Record<StaffRole, string> = {
-            CHEF: 'from-orange-500 to-red-500',
-            BRANCH_MANAGER: 'from-blue-500 to-cyan-500',
-            STAFF: 'from-green-500 to-emerald-500',
-            WAITER: 'from-green-500 to-teal-500',
-            SHIPPER: 'from-purple-500 to-pink-500',
-            ALL: 'from-purple-500 to-indigo-500',
+            CHEF: 'from-[#DA7339] to-[#EBD187]',
+            BRANCH_MANAGER: 'from-[#78A243] to-[#EBD187]',
+            STAFF: 'from-[#78A243] to-[#DA7339]',
+            WAITER: 'from-[#78A243] to-[#EBD187]',
+            SHIPPER: 'from-[#DA7339] to-[#78A243]',
+            ALL: 'from-[#78A243] to-[#DA7339]',
         };
         return colors[role];
     };
@@ -1010,35 +1011,28 @@ export default function TrainingPage() {
                 />
 
                 {/* Stats Cards */}
-                <AdminStatsGrid>
-                    <AdminStatsCard
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <AdminCard
                         title="Tổng khóa học"
                         value={totalCourses}
                         icon={GraduationCap}
-                        iconClassName="from-blue-500 to-cyan-500"
                     />
-                    <AdminStatsCard
+                    <AdminCard
                         title="Đang hoạt động"
                         value={activeCourses}
                         icon={CheckCircle}
-                        className="border-green-200"
-                        iconClassName="from-green-500 to-emerald-500"
                     />
-                    <AdminStatsCard
+                    <AdminCard
                         title="Số bài học"
                         value={totalLessons}
                         icon={BookOpen}
-                        className="border-purple-200"
-                        iconClassName="from-purple-500 to-indigo-500"
                     />
-                    <AdminStatsCard
+                    <AdminCard
                         title="Tổng điểm"
                         value={totalLessonPoints}
                         icon={Users}
-                        className="border-orange-200"
-                        iconClassName="from-orange-500 to-red-500"
                     />
-                </AdminStatsGrid>
+                </div>
 
                 {/* Search and Filter */}
                 <div className="flex flex-col lg:flex-row gap-4">
@@ -1062,8 +1056,8 @@ export default function TrainingPage() {
                                 onClick={() => setSelectedStatus(status.value)}
                                 variant={selectedStatus === status.value ? 'default' : 'outline'}
                                 className={`rounded-xl font-semibold whitespace-nowrap transition-all ${selectedStatus === status.value
-                                    ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-lg'
-                                    : 'border-2 border-gray-200 text-gray-600 hover:border-primary'
+                                    ? 'bg-[#78A243] text-white shadow-lg hover:bg-[#78A243]/90'
+                                    : 'border-2 border-[#78A243]/20 text-[#2D1E1A] hover:border-[#78A243]'
                                     }`}
                             >
                                 {status.label}
@@ -1123,11 +1117,11 @@ export default function TrainingPage() {
                     {filteredCourses.map((course) => (
                         <Card
                             key={course.id}
-                            className="bg-white border-0 shadow-sm hover:shadow-2xl transition-all duration-500 rounded-2xl overflow-hidden group"
+                            className="bg-white border-2 border-[#78A243]/20 shadow-sm hover:shadow-lg hover:border-[#78A243] transition-all duration-300 rounded-xl overflow-hidden group"
                         >
-                            <div className="flex gap-6 p-6">
+                            <div className="flex gap-4 p-4">
                                 {/* Thumbnail */}
-                                <div className="relative w-48 h-48 flex-shrink-0 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl overflow-hidden">
+                                <div className="relative w-32 h-32 flex-shrink-0 bg-[#EBD187]/20 rounded-xl overflow-hidden">
                                     {course.thumbnail ? (
                                         <Image
                                             src={course.thumbnail}
@@ -1137,7 +1131,7 @@ export default function TrainingPage() {
                                         />
                                     ) : (
                                         <div className="absolute inset-0 flex items-center justify-center">
-                                            <GraduationCap size={48} className="text-gray-400" strokeWidth={1.5} />
+                                            <GraduationCap size={32} className="text-gray-400" strokeWidth={1.5} />
                                         </div>
                                     )}
 
@@ -1152,37 +1146,26 @@ export default function TrainingPage() {
                                 {/* Content */}
                                 <div className="flex-1 flex flex-col">
                                     {/* Header */}
-                                    <div className="flex items-start justify-between mb-3">
+                                    <div className="flex items-start justify-between mb-2">
                                         <div className="flex-1">
-                                            <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-primary transition-colors line-clamp-2">
+                                            <h3 className="text-base font-bold text-[#2D1E1A] mb-1 group-hover:text-[#78A243] transition-colors line-clamp-1">
                                                 {course.name}
-
                                             </h3>
-
-                                            {/* {course.roleName && (
-                                                        <p className="text-sm text-primary font-semibold mb-1 flex items-center gap-1">
-                                                    <Users size={14} strokeWidth={2.5} />
-                                                    Vai trò: {course.roleName}
-                                                        </p>
-                                            )} */}
-
-                                            <p className="text-sm text-gray-600 line-clamp-2">{course.description}</p>
+                                            <p className="text-xs text-gray-600 line-clamp-2">{course.description}</p>
                                         </div>
                                     </div>
 
                                     {/* Roles */}
                                     <div className="flex flex-wrap gap-2 mb-4">
                                         {course.roleName ? (
-                                            <span className="px-3 py-1.5 bg-primary text-white text-xs font-bold rounded-xl shadow-md">
+                                            <span className="px-3 py-1.5 bg-[#78A243] text-white text-xs font-bold rounded-xl shadow-md">
                                                 {course.roleName}
                                             </span>
                                         ) : (
                                             course.assignedRoles.map((role) => (
                                                 <span
                                                     key={role}
-                                                    className={`px-3 py-1.5 bg-gradient-to-r ${getRoleColor(
-                                                        role
-                                                    )} text-white text-xs font-bold rounded-xl shadow-md`}
+                                                    className="px-3 py-1.5 bg-[#78A243] text-white text-xs font-bold rounded-xl shadow-md"
                                                 >
                                                     {getRoleText(role)}
                                                 </span>
@@ -1191,33 +1174,25 @@ export default function TrainingPage() {
                                     </div>
 
                                     {/* Stats */}
-                                    <div className="grid grid-cols-3 gap-3 mb-4">
-                                        <div className="text-center p-3 bg-gradient-to-br from-blue-50 to-transparent rounded-xl border border-blue-100">
-                                            <BookOpen size={16} className="text-blue-500 mx-auto mb-1" strokeWidth={2.5} />
-                                            <p className="text-xs text-gray-500 font-semibold">
-                                                {course.lessonCount ?? 0} bài
-                                            </p>
+                                    <div className="flex items-center gap-4 mb-3 text-xs text-[#2D1E1A]">
+                                        <div className="flex items-center gap-1">
+                                            <BookOpen size={14} className="text-[#78A243]" strokeWidth={2.5} />
+                                            <span className="font-semibold">{course.lessonCount ?? 0} bài</span>
                                         </div>
-                                        <div className="text-center p-3 bg-gradient-to-br from-purple-50 to-transparent rounded-xl border border-purple-100">
-                                            <GraduationCap size={16} className="text-purple-500 mx-auto mb-1" strokeWidth={2.5} />
-                                            <p className="text-xs text-gray-500 font-semibold">
-                                                Điểm khóa: {course.point ?? 0}
-                                            </p>
+                                        <div className="w-px h-4 bg-gray-300"></div>
+                                        <div className="flex items-center gap-1">
+                                            <GraduationCap size={14} className="text-[#DA7339]" strokeWidth={2.5} />
+                                            <span className="font-semibold">{course.point ?? 0} điểm</span>
                                         </div>
-                                        <div className="text-center p-3 bg-gradient-to-br from-green-50 to-transparent rounded-xl border border-green-100">
-                                            <CheckCircle
-                                                size={16}
-                                                className="text-green-500 mx-auto mb-1"
-                                                strokeWidth={2.5}
-                                            />
-                                            <p className="text-xs text-gray-500 font-semibold">
-                                                Tổng điểm: {course.totalLessonPoint ?? course.point ?? 0}
-                                            </p>
+                                        <div className="w-px h-4 bg-gray-300"></div>
+                                        <div className="flex items-center gap-1">
+                                            <CheckCircle size={14} className="text-[#78A243]" strokeWidth={2.5} />
+                                            <span className="font-semibold">Tổng: {course.totalLessonPoint ?? course.point ?? 0}</span>
                                         </div>
                                     </div>
 
                                     {/* Actions */}
-                                    <div className="flex gap-2 mt-auto pt-4 border-t-2 border-gray-100">
+                                    <div className="flex gap-2 mt-auto pt-3 border-t border-gray-200">
                                         <AddTrainingDialog
                                             mode="edit"
                                             training={course}
@@ -1226,9 +1201,9 @@ export default function TrainingPage() {
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
-                                                    className="flex-1 border-2 border-primary text-primary hover:bg-primary font-semibold rounded-xl transition-all"
+                                                    className="flex-1 h-8 text-xs border border-[#78A243]/30 text-[#78A243] hover:bg-[#78A243] hover:text-white font-semibold rounded-lg transition-all"
                                                 >
-                                                    <Edit size={16} className="mr-1" strokeWidth={2.5} />
+                                                    <Edit size={14} className="mr-1" strokeWidth={2.5} />
                                                     Sửa
                                                 </Button>
                                             }
@@ -1236,9 +1211,9 @@ export default function TrainingPage() {
                                         {course.status === 'DRAFT' && (
                                             <Button
                                                 size="sm"
-                                                className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
+                                                className="flex-1 h-8 text-xs bg-[#78A243] text-white font-semibold rounded-lg hover:bg-[#78A243]/90 transition-all"
                                             >
-                                                <Send size={16} className="mr-1" strokeWidth={2.5} />
+                                                <Send size={14} className="mr-1" strokeWidth={2.5} />
                                                 Xuất bản
                                             </Button>
                                         )}
@@ -1246,10 +1221,10 @@ export default function TrainingPage() {
                                             <Button
                                                 size="sm"
                                                 variant="outline"
-                                                className="flex-1 border-2 border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white font-semibold rounded-xl transition-all"
+                                                className="flex-1 h-8 text-xs border border-[#DA7339]/30 text-[#DA7339] hover:bg-[#DA7339] hover:text-white font-semibold rounded-lg transition-all"
                                                 onClick={() => handleViewTraining(course.id)}
                                             >
-                                                <Eye size={16} className="mr-1" strokeWidth={2.5} />
+                                                <Eye size={14} className="mr-1" strokeWidth={2.5} />
                                                 Xem
                                             </Button>
                                         )}
@@ -1257,9 +1232,9 @@ export default function TrainingPage() {
                                             variant="outline"
                                             size="sm"
                                             onClick={() => openDeleteDialog(course)}
-                                            className="border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-semibold rounded-xl transition-all"
+                                            className="h-8 px-2 text-xs border border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white font-semibold rounded-lg transition-all"
                                         >
-                                            <Trash2 size={16} strokeWidth={2.5} />
+                                            <Trash2 size={14} strokeWidth={2.5} />
                                         </Button>
                                     </div>
                                 </div>
@@ -1352,7 +1327,7 @@ export default function TrainingPage() {
                                                 size="sm"
                                                 onClick={openLessonCreateForm}
                                                 disabled={!detailState.training}
-                                                className="bg-primary text-white shadow-sm hover:shadow-md"
+                                                className="bg-[#78A243] text-white shadow-sm hover:shadow-md hover:bg-[#78A243]/90"
                                             >
                                                 <Plus size={14} className="mr-1" />
                                                 Thêm bài học
@@ -1406,18 +1381,18 @@ export default function TrainingPage() {
                                                 {lessonsData.items.map((lesson) => (
                                                     <div
                                                         key={lesson.id}
-                                                        className=" mt-5 p-4 border border-gray-200 rounded-xl space-y-3 bg-white shadow-sm hover:shadow-md transition cursor-pointer"
+                                                        className=" mt-5 p-4 border-2 border-[#78A243]/20 rounded-xl space-y-3 bg-white shadow-sm hover:shadow-md hover:border-[#78A243] transition cursor-pointer"
                                                         onClick={() => handleViewLessonDetail(lesson.id)}
                                                     >
                                                         <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                                                             <div>
-                                                                <p className="font-semibold text-gray-900">{lesson.title}</p>
+                                                                <p className="font-semibold text-[#2D1E1A]">{lesson.title}</p>
                                                                 <p className="text-xs text-gray-500">
                                                                     Thứ tự #{lesson.orderIndex} ·{' '}
                                                                     {lesson.isActive ? 'Đang hoạt động' : 'Đã ẩn'}
                                                                 </p>
                                                             </div>
-                                                            <span className="text-sm font-semibold text-primary">
+                                                            <span className="text-sm font-semibold text-[#78A243]">
                                                                 +{lesson.point} điểm
                                                             </span>
                                                         </div>
@@ -1434,7 +1409,7 @@ export default function TrainingPage() {
                                                                     e.stopPropagation();
                                                                     handleViewLessonDetail(lesson.id);
                                                                 }}
-                                                                className="text-primary border-primary hover:bg-primary transition-colors"
+                                                                className="text-[#78A243] border-[#78A243]/30 hover:bg-[#78A243] hover:text-white transition-colors"
                                                             >
                                                                 Xem chi tiết
                                                             </Button>
@@ -1449,7 +1424,7 @@ export default function TrainingPage() {
                                                 <button
                                                     type="button"
                                                     onClick={closeLessonDetail}
-                                                    className="flex items-center mb-3 mt-5 bg-primary text-white text-sm font-semibold hover:bg-primary/80 px-4 py-2 rounded-md transition-colors"
+                                                    className="flex items-center mb-3 mt-5 bg-[#78A243] text-white text-sm font-semibold hover:bg-[#78A243]/80 px-4 py-2 rounded-md transition-colors"
                                                 >
                                                     <ArrowLeft size={20} className="mr-1" />
                                                     Quay lại
@@ -1464,7 +1439,7 @@ export default function TrainingPage() {
                                                                 openLessonEditForm(lessonDetailState.lesson);
                                                             }
                                                         }}
-                                                        className="border-2 border-primary text-primary bg-primary hover:bg-primary font-semibold rounded-xl transition-all"
+                                                        className="border-2 border-[#78A243]/30 text-[#78A243] hover:bg-[#78A243] hover:text-white font-semibold rounded-xl transition-all"
                                                     >
                                                         <Edit size={16} className="mr-1" strokeWidth={2.5} />
                                                         Sửa
@@ -1527,7 +1502,7 @@ export default function TrainingPage() {
                                                                 size="sm"
                                                                 onClick={openDocumentForm}
                                                                 disabled={lessonDocumentsLoading || documentFormOpen}
-                                                                className="bg-primary text-white hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                                className="bg-[#78A243] text-white hover:bg-[#78A243]/80 disabled:opacity-50 disabled:cursor-not-allowed"
                                                             >
                                                                 {lessonDocumentsLoading ? (
                                                                     <>
@@ -1558,7 +1533,7 @@ export default function TrainingPage() {
                                                                         {lessonDocuments.map((doc) => {
                                                                             const isEditingThisDoc = documentEditMode.open && documentEditMode.document?.id === doc.id;
                                                                             return (
-                                                                                <Card key={doc.id} className={`p-4 border transition-colors bg-white ${isEditingThisDoc ? 'border-2 border-primary' : 'border-gray-200 hover:border-primary'}`}>
+                                                                                <Card key={doc.id} className={`p-4 border transition-colors bg-white ${isEditingThisDoc ? 'border-2 border-[#78A243]' : 'border-2 border-[#78A243]/20 hover:border-[#78A243]'}`}>
                                                                                     {isEditingThisDoc ? (
                                                                                         <>
                                                                                             <div className="mb-3 flex items-center gap-2">
@@ -1668,7 +1643,7 @@ export default function TrainingPage() {
                                                                                                         variant="outline"
                                                                                                         onClick={() => openDocumentEditForm(doc)}
                                                                                                         disabled={documentFormOpen || deletingDocumentId === doc.id || (documentEditMode.open && documentEditMode.document?.id !== doc.id)}
-                                                                                                        className="border-2 border-primary text-primary hover:bg-primary hover:text-white font-semibold rounded-xl transition-all disabled:opacity-50"
+                                                                                                        className="border-2 border-[#78A243]/30 text-[#78A243] hover:bg-[#78A243] hover:text-white font-semibold rounded-xl transition-all disabled:opacity-50"
                                                                                                     >
                                                                                                         {deletingDocumentId === doc.id ? (
                                                                                                             <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -1704,7 +1679,7 @@ export default function TrainingPage() {
                                                                                                         href={doc.refLink}
                                                                                                         target="_blank"
                                                                                                         rel="noopener noreferrer"
-                                                                                                        className="text-sm text-primary hover:text-orange-600 font-semibold underline-offset-4 hover:underline inline-flex items-center gap-1"
+                                                                                                        className="text-sm text-[#78A243] hover:text-[#DA7339] font-semibold underline-offset-4 hover:underline inline-flex items-center gap-1"
                                                                                                     >
                                                                                                         Xem tài liệu
                                                                                                         <ExternalLink size={16} strokeWidth={2.5} />
@@ -1922,8 +1897,8 @@ export default function TrainingPage() {
                 }}>
                     <DialogContent className="w-[96vw] max-w-[96vw] sm:!max-w-[90vw] lg:!max-w-[55vw] xl:!max-w-[40vw] max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
-                            <DialogTitle className="flex items-center gap-2 text-2xl font-bold bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">
-                                <BookOpen size={28} className="text-orange-500" />
+                            <DialogTitle className="flex items-center gap-2 text-2xl font-bold text-[#78A243]">
+                                <BookOpen size={28} className="text-[#78A243]" />
                                 {lessonEditMode.open ? 'Cập nhật bài học' : 'Thêm bài học mới'}
                             </DialogTitle>
                             <DialogDescription>
@@ -1953,7 +1928,7 @@ export default function TrainingPage() {
                                         onChange={(e) =>
                                             setLessonForm((prev) => ({ ...prev, title: e.target.value }))
                                         }
-                                        className={`h-11 border-2 ${lessonFormErrors.title ? 'border-red-400' : 'border-gray-200'} focus:border-orange-500 focus:ring-orange-500/20 focus:ring-4 transition-all`}
+                                        className={`h-11 border-2 ${lessonFormErrors.title ? 'border-red-400' : 'border-gray-200'} focus:border-[#78A243] focus:ring-[#78A243]/20 focus:ring-4 transition-all`}
                                     />
                                     {lessonFormErrors.title && (
                                         <p className="text-xs text-red-500">{lessonFormErrors.title}</p>
@@ -1970,7 +1945,7 @@ export default function TrainingPage() {
                                         onChange={(e) =>
                                             setLessonForm((prev) => ({ ...prev, point: e.target.value }))
                                         }
-                                        className={`h-11 border-2 ${lessonFormErrors.point ? 'border-red-400' : 'border-gray-200'} focus:border-orange-500 focus:ring-orange-500/20 focus:ring-4 transition-all`}
+                                        className={`h-11 border-2 ${lessonFormErrors.point ? 'border-red-400' : 'border-gray-200'} focus:border-[#78A243] focus:ring-[#78A243]/20 focus:ring-4 transition-all`}
                                     />
                                     {lessonFormErrors.point && (
                                         <p className="text-xs text-red-500">{lessonFormErrors.point}</p>
@@ -1987,7 +1962,7 @@ export default function TrainingPage() {
                                         onChange={(e) =>
                                             setLessonForm((prev) => ({ ...prev, orderIndex: e.target.value }))
                                         }
-                                        className={`h-11 border-2 ${lessonFormErrors.orderIndex ? 'border-red-400' : 'border-gray-200'} focus:border-orange-500 focus:ring-orange-500/20 focus:ring-4 transition-all`}
+                                        className={`h-11 border-2 ${lessonFormErrors.orderIndex ? 'border-red-400' : 'border-gray-200'} focus:border-[#78A243] focus:ring-[#78A243]/20 focus:ring-4 transition-all`}
                                     />
                                     {lessonFormErrors.orderIndex && (
                                         <p className="text-xs text-red-500">{lessonFormErrors.orderIndex}</p>
@@ -1999,7 +1974,7 @@ export default function TrainingPage() {
                                         <button
                                             aria-label={lessonForm.isActive ? 'Ẩn bài học' : 'Kích hoạt bài học'}
                                             type="button"
-                                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${lessonForm.isActive ? 'bg-orange-500' : 'bg-gray-300'}`}
+                                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${lessonForm.isActive ? 'bg-[#78A243]' : 'bg-gray-300'}`}
                                             onClick={() =>
                                                 setLessonForm((prev) => ({ ...prev, isActive: !prev.isActive }))
                                             }
@@ -2022,7 +1997,7 @@ export default function TrainingPage() {
                                 <textarea
                                     rows={3}
                                     placeholder="Mô tả ngắn gọn nội dung bài học"
-                                    className={`w-full rounded-md border-2 px-3 py-2 text-sm ${lessonFormErrors.description ? 'border-red-400' : 'border-gray-200'} focus:border-orange-500 focus:ring-orange-500/20 focus:ring-4 transition-all outline-none`}
+                                    className={`w-full rounded-md border-2 px-3 py-2 text-sm ${lessonFormErrors.description ? 'border-red-400' : 'border-gray-200'} focus:border-[#78A243] focus:ring-[#78A243]/20 focus:ring-4 transition-all outline-none`}
                                     value={lessonForm.description}
                                     onChange={(e) =>
                                         setLessonForm((prev) => ({ ...prev, description: e.target.value }))
@@ -2040,7 +2015,7 @@ export default function TrainingPage() {
                                 <textarea
                                     rows={6}
                                     placeholder="Nhập nội dung chi tiết của bài học..."
-                                    className={`w-full rounded-md border-2 px-3 py-2 text-sm ${lessonFormErrors.content ? 'border-red-400' : 'border-gray-200'} focus:border-orange-500 focus:ring-orange-500/20 focus:ring-4 transition-all outline-none`}
+                                    className={`w-full rounded-md border-2 px-3 py-2 text-sm ${lessonFormErrors.content ? 'border-red-400' : 'border-gray-200'} focus:border-[#78A243] focus:ring-[#78A243]/20 focus:ring-4 transition-all outline-none`}
                                     value={lessonForm.content}
                                     onChange={(e) =>
                                         setLessonForm((prev) => ({ ...prev, content: e.target.value }))
@@ -2070,7 +2045,7 @@ export default function TrainingPage() {
                                 <Button
                                     type="submit"
                                     disabled={lessonFormLoading}
-                                    className="flex-1 h-11 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg hover:shadow-xl transition-all font-semibold"
+                                    className="flex-1 h-11 bg-[#78A243] hover:bg-[#78A243]/90 text-white shadow-lg hover:shadow-xl transition-all font-semibold"
                                 >
                                     {lessonFormLoading ? (
                                         <>
