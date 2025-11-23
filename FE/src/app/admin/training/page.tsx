@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
   GraduationCap,
   Search,
@@ -18,6 +19,7 @@ import {
   ExternalLink,
   FileText,
   UserPlus,
+  ArrowRight,
 } from "lucide-react";
 
 import { useQuery } from "@tanstack/react-query";
@@ -54,6 +56,7 @@ import {
   deleteLessonDocument,
   AssignUserToTraining,
   getAvailableUsersForTraining,
+  getTrainingUsers,
   type GetUsersByRoleResponse,
 } from "@/apis/trainning.api";
 import { TrainingCourse, StaffRole } from "@/utils/types/training.type";
@@ -298,13 +301,14 @@ const mapTrainingCourse = (item: TrainingApiItem): TrainingCourse => {
   };
 };
 
-const detailStatsConfig = (training: TrainingCourse) => [
+const detailStatsConfig = (training: TrainingCourse, userCount: number = 0) => [
   { label: "Điểm khóa", value: training.point ?? 0 },
   { label: "Bài học", value: training.lessonCount ?? 0 },
   {
     label: "Tổng điểm bài",
     value: training.totalLessonPoint ?? training.point ?? 0,
   },
+  { label: "Học viên", value: userCount, isClickable: true },
 ];
 
 export default function TrainingPage() {
@@ -434,6 +438,7 @@ export default function TrainingPage() {
   const [selectedCourse, setSelectedCourse] = useState<TrainingCourse | null>(
     null
   );
+  const [trainingUsersCount, setTrainingUsersCount] = useState<number>(0);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -629,7 +634,7 @@ export default function TrainingPage() {
   };
 
   const detailStats = detailState.training
-    ? detailStatsConfig(detailState.training)
+    ? detailStatsConfig(detailState.training, trainingUsersCount)
     : [];
   const hasPrevLessonPage = lessonsPagination.page > 0;
   const hasNextLessonPage =
@@ -652,6 +657,7 @@ export default function TrainingPage() {
       training: null,
       error: null,
     });
+    setTrainingUsersCount(0);
     resetLessonsState();
     setLessonDetailState({
       open: false,
@@ -687,12 +693,20 @@ export default function TrainingPage() {
         throw new Error("Không tìm thấy dữ liệu khóa đào tạo");
       }
 
+      const mappedTraining = mapTrainingCourse(trainingItem);
       setDetailState({
         open: true,
         isLoading: false,
-        training: mapTrainingCourse(trainingItem),
+        training: mappedTraining,
         error: null,
       });
+      try {
+        const usersResponse = await getTrainingUsers(trainingId);
+        setTrainingUsersCount(usersResponse.data?.length || 0);
+      } catch (usersError) {
+        console.error("Failed to fetch training users:", usersError);
+        setTrainingUsersCount(0);
+      }
     } catch (error) {
       const message =
         error instanceof Error
@@ -1447,9 +1461,6 @@ export default function TrainingPage() {
           <DialogContent className="w-[97vw] max-w-[97vw] sm:!max-w-[92vw] lg:!max-w-[75vw] xl:!max-w-[65vw] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Chi tiết khóa đào tạo</DialogTitle>
-              <DialogDescription>
-                Thông tin mô tả, phân quyền và thống kê của khóa đào tạo
-              </DialogDescription>
             </DialogHeader>
 
             {detailState.isLoading && (
@@ -1491,18 +1502,33 @@ export default function TrainingPage() {
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                     {detailStats.map((stat) => (
                       <Card
                         key={stat.label}
-                        className="p-4 border border-gray-100 shadow-none"
+                        className={`p-4 border border-gray-100 shadow-none ${
+                          stat.isClickable
+                            ? "hover:border-orange-300 hover:shadow-sm transition-all"
+                            : ""
+                        }`}
                       >
                         <p className="text-xs uppercase text-gray-500 font-semibold">
                           {stat.label}
                         </p>
-                        <p className="text-xl font-bold text-gray-900 mt-1">
-                          {stat.value}
-                        </p>
+                        <div className="flex items-center justify-between mt-1">
+                          <p className="text-xl font-bold text-gray-900">
+                            {stat.value}
+                          </p>
+                          {stat.isClickable && detailState.training && (
+                            <Link
+                              href={`/admin/training/${detailState.training.id}/users`}
+                              className="ml-2 p-1.5 rounded-lg hover:bg-orange-50 text-orange-600 hover:text-orange-700 transition-colors"
+                              title="Xem danh sách học viên"
+                            >
+                              <ArrowRight size={18} />
+                            </Link>
+                          )}
+                        </div>
                       </Card>
                     ))}
                   </div>
@@ -2739,6 +2765,25 @@ export default function TrainingPage() {
                           setAvailableUsers([]);
                           setSelectedCourse(null);
                           setShouldRefetch(true);
+                          if (
+                            detailState.training &&
+                            assignUserDialog.trainingId ===
+                              detailState.training.id
+                          ) {
+                            try {
+                              const usersResponse = await getTrainingUsers(
+                                assignUserDialog.trainingId
+                              );
+                              setTrainingUsersCount(
+                                usersResponse.data?.length || 0
+                              );
+                            } catch (usersError) {
+                              console.error(
+                                "Failed to refresh training users count:",
+                                usersError
+                              );
+                            }
+                          }
                         } catch (error) {
                           console.error("Failed to assign users:", error);
                           alert("Không thể thêm học viên vào khóa đào tạo!");

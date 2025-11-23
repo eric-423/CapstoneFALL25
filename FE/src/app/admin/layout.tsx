@@ -26,8 +26,6 @@ import {
   GraduationCap,
   Menu,
   X,
-  ChevronLeft,
-  ChevronRight,
   Warehouse,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
@@ -93,7 +91,6 @@ const MenuItem = memo(
                     }
                 `}
           >
-            {/* Active indicator line on the right edge when collapsed */}
             {isActive && isCollapsed && (
               <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-[#F8A91F] rounded-l-full shadow-lg"></div>
             )}
@@ -132,8 +129,6 @@ export default function AdminLayout({
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
-
-  // Memoize menu items to prevent recreation on every render
   const menuItems = useMemo(
     () => [
       { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -155,24 +150,17 @@ export default function AdminLayout({
     ],
     []
   );
-
-  // Calculate active menu index for animated circle
   const activeIndex = useMemo(() => {
     const index = menuItems.findIndex((item) => pathname === item.href);
     return index >= 0 ? index : 0;
   }, [pathname, menuItems]);
 
-  // Memoize logout handler
   const handleLogout = useCallback(() => {
     logout();
   }, [logout]);
-
-  // Close sidebar on mobile when route changes
   useEffect(() => {
     setSidebarOpen(false);
   }, [pathname]);
-
-  // Close sidebar when clicking outside on mobile
   useEffect(() => {
     if (!sidebarOpen) return;
 
@@ -191,8 +179,6 @@ export default function AdminLayout({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [sidebarOpen]);
-
-  // Memoize barcode scanner callbacks
   const handleBarcodeSuccess = useCallback(
     (orderId: number, _context?: BarcodeProcessContext) => {
       console.log("Assign chef thành công cho order:", orderId);
@@ -210,8 +196,6 @@ export default function AdminLayout({
     },
     []
   );
-
-  // Global barcode scanner - hoạt động ở mọi trang admin
   useBarcodeScanner({
     enabled: true,
     onSuccess: handleBarcodeSuccess,
@@ -224,15 +208,12 @@ export default function AdminLayout({
       <BranchesLoader />
       <div className="min-h-screen bg-[#EFE6DB]">
         <div className="flex relative">
-          {/* Mobile Overlay */}
           {sidebarOpen && (
             <div
               className="fixed inset-0 bg-black/50 z-40 lg:hidden transition-opacity"
               onClick={() => setSidebarOpen(false)}
             />
           )}
-
-          {/* Sidebar */}
           <aside
             className={`
                         fixed top-0 left-0 h-screen z-50 lg:z-40
@@ -244,19 +225,15 @@ export default function AdminLayout({
                         ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
                     `}
           >
-            {/* Header */}
             <div className="relative p-2 border-b border-white/20 flex-shrink-0 flex items-center overflow-hidden">
-              {/* Decorative Background */}
               <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent"></div>
               <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#F8A91F]/20 rounded-full blur-3xl"></div>
               <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
 
-              {/* Logo Icon - Always visible */}
               <div className="relative z-10 flex-shrink-0">
                 <Image src={logo.src} alt="logo" width={100} height={100} />
               </div>
 
-              {/* Text - Only when expanded */}
               {!isCollapsed && (
                 <div className="relative z-10 flex-1 min-w-0 transition-opacity duration-150">
                   <p className="text-[15px] text-white/100 font-semibold tracking-widest uppercase">
@@ -265,7 +242,6 @@ export default function AdminLayout({
                 </div>
               )}
 
-              {/* Mobile Close Button */}
               <button
                 onClick={() => setSidebarOpen(false)}
                 className="lg:hidden absolute top-4 right-4 p-2 hover:bg-white/10 rounded-lg transition-colors z-20"
@@ -275,26 +251,8 @@ export default function AdminLayout({
               </button>
             </div>
 
-            {/* Collapse Toggle Button - Floating Between Header and Menu */}
-            <div className="relative">
-              <button
-                onClick={() => setIsCollapsed(!isCollapsed)}
-                className="hidden lg:flex absolute -right-4 top-4 w-8 h-8 items-center justify-center bg-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 group border-2 border-[#EC6426] z-[60] hover:scale-110"
-                aria-label={isCollapsed ? "Mở rộng sidebar" : "Thu gọn sidebar"}
-                title={isCollapsed ? "Mở rộng sidebar" : "Thu gọn sidebar"}
-              >
-                {isCollapsed ? (
-                  <ChevronRight className="w-4 h-4 text-[#EC6426] group-hover:text-[#F8A91F] transition-colors" />
-                ) : (
-                  <ChevronLeft className="w-4 h-4 text-[#EC6426] group-hover:text-[#F8A91F] transition-colors" />
-                )}
-              </button>
-            </div>
-
-            {/* Navigation Menu - Scrollable */}
             <nav className="flex-1 overflow-y-auto p-3 sm:p-4 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
               <div className="space-y-1.5 relative">
-                {/* Animated Active Circle Indicator */}
                 {!isCollapsed && (
                   <div
                     className="absolute left-[9.5px] w-3 h-3 rounded-full bg-[#F8A91F] shadow-[0_0_12px_rgba(248,169,31,0.8)] border-2 border-white z-20 pointer-events-none transition-all duration-200 ease-out"
@@ -317,8 +275,6 @@ export default function AdminLayout({
                 ))}
               </div>
             </nav>
-
-            {/* Logout Button - Fixed */}
             <div className="p-3 sm:p-4 flex-shrink-0 border-t border-white/20">
               <Button
                 variant="outline"
@@ -335,12 +291,9 @@ export default function AdminLayout({
               </Button>
             </div>
           </aside>
-
-          {/* Main Content */}
           <main
             className={`flex-1 w-full bg-[#EFE6DB] min-w-0 transition-[margin] duration-200 ease-out will-change-[margin] ${isCollapsed ? "lg:ml-20" : "lg:ml-56 xl:ml-64"}`}
           >
-            {/* Mobile Menu Toggle */}
             <div className="lg:hidden sticky top-0 z-30 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 shadow-sm">
               <button
                 onClick={() => setSidebarOpen(true)}

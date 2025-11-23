@@ -561,6 +561,77 @@ export interface GetUsersByRoleResponse {
   };
 }
 
+export interface TrainingUserItem {
+  id: number;
+  trainingId: number;
+  trainingName: string;
+  trainingPoint: number;
+  userId: number;
+  userFullName: string;
+  userEmail: string;
+  userPhone: string;
+  point: number;
+  isPassed: boolean;
+  totalLessons: number;
+  completedLessons: number;
+  completionPercent: number;
+  status: string;
+  enrolledAt: string;
+  completedAt: string | null;
+}
+
+export interface GetTrainingUsersResponse {
+  status: number;
+  desc: string;
+  data: TrainingUserItem[];
+}
+
+export const getTrainingUsers = async (
+  trainingId: number
+): Promise<GetTrainingUsersResponse> => {
+  const response = await fetch(`/api/training-user/${trainingId}/user`, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response
+      .json()
+      .catch(() => ({ error: "Failed to fetch training users" }));
+    throw {
+      response: {
+        data: errorData,
+        status: response.status,
+      },
+    };
+  }
+
+  const data = await response.json();
+  if (Array.isArray(data)) {
+    return {
+      status: 200,
+      desc: "Success",
+      data: data,
+    };
+  }
+
+  if (data?.data && Array.isArray(data.data)) {
+    return {
+      status: data.status || 200,
+      desc: data.desc || "Success",
+      data: data.data,
+    };
+  }
+  return {
+    status: data.status || 200,
+    desc: data.desc || "Success",
+    data: [],
+  };
+};
+
 export const getAvailableUsersForTraining = async (
   trainingId: number
 ): Promise<GetUsersByRoleResponse> => {
