@@ -211,6 +211,10 @@ public class ProductServiceImpl implements ProductService {
     private ProductDTO toDTO(Product product) {
         ProductDTO productDTO = new ProductDTO();
 
+        if(product.getCaloriesCache() == null){
+            product.setCaloriesCache(reCalculateCaloriesForProduct(product.getId()));
+            productRepository.save(product);
+        }
         productDTO.setProductId(product.getId());
         productDTO.setProductName(product.getName());
         productDTO.setProductDescription(product.getDescription());
@@ -258,6 +262,10 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private ProductSearchDTO mapToProductSearchDTO(Product product, Map<Integer, Integer> quantityMap) {
+        if(product.getCaloriesCache() == null){
+            product.setCaloriesCache(reCalculateCaloriesForProduct(product.getId()));
+            productRepository.save(product);
+        }
         return ProductSearchDTO.builder()
                 .productId(product.getId())
                 .productName(product.getName())
