@@ -508,7 +508,7 @@ export const deleteLessonDocument = async (
 
 export const AssignUserToTraining = async (
   trainingId: number,
-  userIds: number,
+  userIds: number[],
   branchId: number,
   roleId: number
 ): Promise<{ status: number; desc: string; data: null }> => {
@@ -523,4 +523,116 @@ export const AssignUserToTraining = async (
 
   const data = await response.json().catch(() => ({}));
   return data;
+};
+
+export interface GetUsersByRoleRequest {
+  role?: string;
+  page?: number;
+  size?: number;
+  sortBy?: string;
+  sortDirection?: "ASC" | "DESC";
+  keyword?: string;
+  branchId?: number;
+  status?: boolean;
+}
+
+export interface GetUsersByRoleResponse {
+  status: number;
+  desc: string;
+  data: {
+    content: Array<{
+      id: number;
+      fullName: string;
+      email: string;
+      phone: string;
+      dateOfBirth: string;
+      createdAt: string;
+      branchId: number;
+      role: string;
+      [key: string]: unknown;
+    }>;
+    pageNumber: number;
+    pageSize: number;
+    totalElements: number;
+    totalPages: number;
+    last: boolean;
+    first: boolean;
+    empty: boolean;
+  };
+}
+
+export const getAvailableUsersForTraining = async (
+  trainingId: number
+): Promise<GetUsersByRoleResponse> => {
+  const response = await fetch(`/api/trainning/${trainingId}/available-users`, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response
+      .json()
+      .catch(() => ({ error: "Failed to fetch available users" }));
+    throw {
+      response: {
+        data: errorData,
+        status: response.status,
+      },
+    };
+  }
+
+  const data = await response.json();
+  if (Array.isArray(data)) {
+    return {
+      status: 200,
+      desc: "Success",
+      data: {
+        content: data,
+        pageNumber: 0,
+        pageSize: data.length,
+        totalElements: data.length,
+        totalPages: 1,
+        last: true,
+        first: true,
+        empty: data.length === 0,
+      },
+    };
+  }
+  if (data?.data?.content && Array.isArray(data.data.content)) {
+    return data;
+  }
+
+  if (data?.data && Array.isArray(data.data)) {
+    return {
+      status: data.status || 200,
+      desc: data.desc || "Success",
+      data: {
+        content: data.data,
+        pageNumber: 0,
+        pageSize: data.data.length,
+        totalElements: data.data.length,
+        totalPages: 1,
+        last: true,
+        first: true,
+        empty: data.data.length === 0,
+      },
+    };
+  }
+  return {
+    status: data.status || 200,
+    desc: data.desc || "Success",
+    data: {
+      content: [],
+      pageNumber: 0,
+      pageSize: 0,
+      totalElements: 0,
+      totalPages: 0,
+      last: true,
+      first: true,
+      empty: true,
+    },
+  };
 };
