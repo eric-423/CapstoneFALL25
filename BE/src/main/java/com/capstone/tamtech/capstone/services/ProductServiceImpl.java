@@ -300,21 +300,27 @@ public class ProductServiceImpl implements ProductService {
                 for (MaterialNutrients mn : materialNutrients) {
                     double baseNutrient = (rawQuantity * mn.getAmountPer100Unit()) / 100.0;
                     Nutrients nutrients = mn.getNutrient();
+                    CookingMethod cookingMethod = recipe.getCookingMethod()!=null ? recipe.getCookingMethod() : null;
 
-                    KeyCookingMethodNutrients keyCookingMethodNutrients = new KeyCookingMethodNutrients();
-                    keyCookingMethodNutrients.setCookingMethodId(
-                            recipe.getCookingMethod() != null ? recipe.getCookingMethod().getId() : 0);
-                    keyCookingMethodNutrients.setNutrientId(nutrients.getId());
+                    if(cookingMethod!=null){
+                        KeyCookingMethodNutrients keyCookingMethodNutrients = new KeyCookingMethodNutrients();
+                        keyCookingMethodNutrients.setCookingMethodId(
+                                recipe.getCookingMethod() != null ? recipe.getCookingMethod().getId() : 0);
+                        keyCookingMethodNutrients.setNutrientId(nutrients.getId());
 
-                    CookingMethodNutrients cookingMethodNutrients = cookingMethodNutrientRepository
-                            .findById(keyCookingMethodNutrients)
-                            .orElseThrow(() -> new ResourceNotFoundException(
-                                    "Không tìm thấy thông tin dinh dưỡng phương pháp nấu với khóa: "
-                                            + keyCookingMethodNutrients));
+                        CookingMethodNutrients cookingMethodNutrients = cookingMethodNutrientRepository
+                                .findById(keyCookingMethodNutrients)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                        "Không tìm thấy thông tin dinh dưỡng phương pháp nấu với khóa: "
+                                                + keyCookingMethodNutrients));
 
-                    double cookedNutrient = baseNutrient * cookingMethodNutrients.getRetentionFactor();
-                    double nutritionCalories = cookedNutrient * nutrients.getEnergyPerUnit();
-                    totalCalories += nutritionCalories;
+                        double cookedNutrient = baseNutrient * cookingMethodNutrients.getRetentionFactor();
+                        double nutritionCalories = cookedNutrient * nutrients.getEnergyPerUnit();
+                        totalCalories += nutritionCalories;
+                    } else {
+                        double nutritionCalories = baseNutrient * nutrients.getEnergyPerUnit();
+                        totalCalories += nutritionCalories;
+                    }
                 }
             }
         }

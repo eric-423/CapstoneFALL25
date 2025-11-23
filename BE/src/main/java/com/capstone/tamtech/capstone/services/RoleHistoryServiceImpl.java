@@ -65,6 +65,16 @@ public class RoleHistoryServiceImpl implements RoleHistoryService {
         return toDTO(roleHistory);
     }
 
+    public void getRoleName(){
+        List<RoleHistory> roleHistories = roleHistoryRepository.findAll();
+        for (RoleHistory rh : roleHistories) {
+            Role role = roleRepository.findById(rh.getRole().getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Role not found with id: " + rh.getRole().getId()));
+            rh.setRoleName(role.getName());
+            roleHistoryRepository.save(rh);
+        }
+    }
+
     @Override
     @Transactional
     public RoleHistoryDTO createRoleHistory(RoleHistoryCreateRequest request) {
