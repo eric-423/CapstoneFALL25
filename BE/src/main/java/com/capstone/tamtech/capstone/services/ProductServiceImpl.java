@@ -211,6 +211,10 @@ public class ProductServiceImpl implements ProductService {
     private ProductDTO toDTO(Product product) {
         ProductDTO productDTO = new ProductDTO();
 
+        if(product.getCaloriesCache() == null){
+            product.setCaloriesCache(reCalculateCaloriesForProduct(product.getId()));
+            productRepository.save(product);
+        }
         productDTO.setProductId(product.getId());
         productDTO.setProductName(product.getName());
         productDTO.setProductDescription(product.getDescription());
@@ -258,6 +262,10 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private ProductSearchDTO mapToProductSearchDTO(Product product, Map<Integer, Integer> quantityMap) {
+        if(product.getCaloriesCache() == null){
+            product.setCaloriesCache(reCalculateCaloriesForProduct(product.getId()));
+            productRepository.save(product);
+        }
         return ProductSearchDTO.builder()
                 .productId(product.getId())
                 .productName(product.getName())
@@ -292,21 +300,27 @@ public class ProductServiceImpl implements ProductService {
                 for (MaterialNutrients mn : materialNutrients) {
                     double baseNutrient = (rawQuantity * mn.getAmountPer100Unit()) / 100.0;
                     Nutrients nutrients = mn.getNutrient();
+                    CookingMethod cookingMethod = recipe.getCookingMethod()!=null ? recipe.getCookingMethod() : null;
 
-                    KeyCookingMethodNutrients keyCookingMethodNutrients = new KeyCookingMethodNutrients();
-                    keyCookingMethodNutrients.setCookingMethodId(
-                            recipe.getCookingMethod() != null ? recipe.getCookingMethod().getId() : 0);
-                    keyCookingMethodNutrients.setNutrientId(nutrients.getId());
+                    if(cookingMethod!=null){
+                        KeyCookingMethodNutrients keyCookingMethodNutrients = new KeyCookingMethodNutrients();
+                        keyCookingMethodNutrients.setCookingMethodId(
+                                recipe.getCookingMethod() != null ? recipe.getCookingMethod().getId() : 0);
+                        keyCookingMethodNutrients.setNutrientId(nutrients.getId());
 
-                    CookingMethodNutrients cookingMethodNutrients = cookingMethodNutrientRepository
-                            .findById(keyCookingMethodNutrients)
-                            .orElseThrow(() -> new ResourceNotFoundException(
-                                    "Không tìm thấy thông tin dinh dưỡng phương pháp nấu với khóa: "
-                                            + keyCookingMethodNutrients));
+                        CookingMethodNutrients cookingMethodNutrients = cookingMethodNutrientRepository
+                                .findById(keyCookingMethodNutrients)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                        "Không tìm thấy thông tin dinh dưỡng phương pháp nấu với khóa: "
+                                                + keyCookingMethodNutrients));
 
-                    double cookedNutrient = baseNutrient * cookingMethodNutrients.getRetentionFactor();
-                    double nutritionCalories = cookedNutrient * nutrients.getEnergyPerUnit();
-                    totalCalories += nutritionCalories;
+                        double cookedNutrient = baseNutrient * cookingMethodNutrients.getRetentionFactor();
+                        double nutritionCalories = cookedNutrient * nutrients.getEnergyPerUnit();
+                        totalCalories += nutritionCalories;
+                    } else {
+                        double nutritionCalories = baseNutrient * nutrients.getEnergyPerUnit();
+                        totalCalories += nutritionCalories;
+                    }
                 }
             }
         }
