@@ -1,6 +1,7 @@
 package com.capstone.tamtech.capstone.services;
 
 import com.capstone.tamtech.capstone.dto.UserDTO;
+import com.capstone.tamtech.capstone.entities.Branch;
 import com.capstone.tamtech.capstone.entities.Role;
 import com.capstone.tamtech.capstone.entities.RoleHistory;
 import com.capstone.tamtech.capstone.entities.Users;
@@ -219,6 +220,11 @@ public class AuthServiceImpl implements AuthService {
                         .map(RoleHistory::getRole)
                         .map(Role::getId)
                         .orElse(0))
+                .branchId(roleHistoryRepository.findByUserAndIsActiveTrue(user)
+                        .map(RoleHistory::getBranch)
+                        .map(Branch::getId)
+                        .orElse(0)
+                )
                 .build();
 
         return LoginResponse.builder()
