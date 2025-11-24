@@ -18,6 +18,9 @@ public class Lessons {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
+    @Column(name = "video_url")
+    private String videoUrl;
+
     @Column(name = "title")
     private String title;
 

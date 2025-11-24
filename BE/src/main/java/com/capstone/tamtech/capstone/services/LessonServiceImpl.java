@@ -88,6 +88,7 @@ public class LessonServiceImpl implements LessonService {
                 .title(lessons.getTitle())
                 .content(lessons.getContent())
                 .description(lessons.getDescription())
+                .videoUrl(lessons.getVideoUrl())
                 .point(lessons.getPoint())
                 .orderIndex(lessons.getOrderIndex())
                 .trainingId(lessons.getTraining().getId())
@@ -111,6 +112,7 @@ public class LessonServiceImpl implements LessonService {
         lesson.setTitle(lessonRequest.getTitle());
         lesson.setContent(lessonRequest.getContent());
         lesson.setDescription(lessonRequest.getDescription());
+        lesson.setVideoUrl(lessonRequest.getVideoUrl());
         lesson.setPoint(lessonRequest.getPoint());
         lesson.setOrderIndex(resolveOrderIndex(trainingId, lessonRequest.getOrderIndex()));
         lesson.setTraining(trainings);
@@ -131,6 +133,7 @@ public class LessonServiceImpl implements LessonService {
         lessons.setTitle(lessonRequest.getTitle());
         lessons.setContent(lessonRequest.getContent());
         lessons.setDescription(lessonRequest.getDescription());
+        lessons.setVideoUrl(lessonRequest.getVideoUrl());
         lessons.setPoint(lessonRequest.getPoint());
         if (lessonRequest.getOrderIndex() != null) {
             lessons.setOrderIndex(lessonRequest.getOrderIndex());
