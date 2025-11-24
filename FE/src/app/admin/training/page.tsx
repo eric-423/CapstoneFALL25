@@ -12,7 +12,6 @@ import {
   CheckCircle,
   BookOpen,
   Eye,
-  Send,
   RefreshCw,
   Plus,
   ArrowLeft,
@@ -1263,35 +1262,36 @@ export default function TrainingPage() {
             value={totalCourses}
             icon={GraduationCap}
             iconClassName="from-blue-500 to-cyan-500"
+            className="AdminStatsCard"
           />
           <AdminStatsCard
             title="Đang hoạt động"
             value={activeCourses}
             icon={CheckCircle}
-            className="border-green-200"
+            className="AdminStatsCard"
             iconClassName="from-green-500 to-emerald-500"
           />
           <AdminStatsCard
             title="Số bài học"
             value={totalLessons}
             icon={BookOpen}
-            className="border-purple-200"
+            className="AdminStatsCard"
             iconClassName="from-purple-500 to-indigo-500"
           />
           <AdminStatsCard
             title="Tổng điểm"
             value={totalLessonPoints}
             icon={Users}
-            className="border-orange-200"
+            className="AdminStatsCard"
             iconClassName="from-orange-500 to-red-500"
           />
         </AdminStatsGrid>
 
         {/* Search and Filter */}
         <div className="flex flex-col lg:flex-row gap-4">
-          <div className="flex-1 relative">
+          <div className="flex-1 relative p-4">
             <Search
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
+              className="absolute left-8 top-1/2 transform -translate-y-1/2 text-orange-400"
               size={20}
               strokeWidth={2.5}
             />
@@ -1299,9 +1299,11 @@ export default function TrainingPage() {
               placeholder="Tìm kiếm khóa học..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 py-6 border-2 border-gray-200 rounded-xl focus:border-primary text-base"
+              className="pl-12 py-6 rounded-xl !bg-[#fbdcc5] text-primary"
             />
           </div>
+
+
           <div className="flex gap-2 overflow-x-auto pb-2 items-center">
             {statuses.map((status) => (
               <Button
@@ -1311,12 +1313,12 @@ export default function TrainingPage() {
                   selectedStatus === status.value ? "default" : "outline"
                 }
                 className={`rounded-xl font-semibold whitespace-nowrap transition-all ${selectedStatus === status.value
-                  ? "bg-gradient-to-r from-primary to-secondary text-white shadow-lg"
-                  : "border-2 border-gray-200 text-gray-600 hover:border-primary"
+                  ? "bg-[#fbdcc5] text-primary shadow-lg hover:bg-[#fbdcc5]/70"
+                  : "border-2 border-[#fbdcc5] text-gray-600 hover:border-[#fbdcc5]"
                   }`}
               >
                 {status.label}
-                <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-white/20">
+                <span className="ml-2 text-xs px-2 py-0.5 rounded-full  ">
                   {status.count}
                 </span>
               </Button>
@@ -1375,7 +1377,7 @@ export default function TrainingPage() {
           {filteredCourses.map((course) => (
             <Card
               key={course.id}
-              className="bg-white border-0 shadow-sm hover:shadow-2xl transition-all duration-500 rounded-2xl overflow-hidden group"
+              className="bg-[#fbdcc5] border-0 shadow-sm hover:shadow-2xl transition-all duration-500 rounded-2xl overflow-hidden group"
             >
               <div className="flex gap-6 p-6">
                 <div className="relative w-32 h-32 flex-shrink-0 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl overflow-hidden">
@@ -1396,6 +1398,8 @@ export default function TrainingPage() {
                     </div>
                   )}
                 </div>
+
+
                 <div className="flex-1 flex flex-col min-w-0">
                   <div className="flex items-start justify-between gap-4 mb-2">
                     <div className="flex-1 min-w-0">
@@ -1406,9 +1410,9 @@ export default function TrainingPage() {
                         {course.description}
                       </p>
                     </div>
-                    <div className="flex flex-wrap gap-2 flex-shrink-0">
+                    <div className="flex flex-wrap gap-2 flex-shrink-0 ">
                       {course.roleName ? (
-                        <span className="px-3 py-1.5 bg-primary text-white text-xs font-bold rounded-xl shadow-md">
+                        <span className="px-3 py-1.5 bg-[#7c4d40] text-[#EFE6DB] text-xs font-bold rounded-xl shadow-md">
                           {course.roleName}
                         </span>
                       ) : (
@@ -1427,30 +1431,30 @@ export default function TrainingPage() {
                   </div>
 
                   <div className="flex gap-3 mb-3">
-                    <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-br from-blue-50 to-transparent rounded-xl border border-blue-100">
+                    <div className="flex items-center gap-2 px-3 py-2 bg-[#e0f2ff] rounded-xl border border-[#e0f2ff]">
                       <BookOpen
                         size={16}
-                        className="text-blue-500"
+                        className="text-[#007bff]"
                         strokeWidth={2.5}
                       />
                       <p className="text-sm text-gray-700 font-semibold">
                         {course.lessonCount ?? 0} bài học
                       </p>
                     </div>
-                    <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-br from-purple-50 to-transparent rounded-xl border border-purple-100">
+                    <div className="flex items-center gap-2 px-3 py-2 bg-[#e0f2ff] rounded-xl border border-[#e0f2ff]">
                       <GraduationCap
                         size={16}
-                        className="text-purple-500"
+                        className="text-[#007bff]"
                         strokeWidth={2.5}
                       />
                       <p className="text-sm text-gray-700 font-semibold">
                         Điểm: {course.point ?? 0}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-br from-green-50 to-transparent rounded-xl border border-green-100">
+                    <div className="flex items-center gap-2 px-3 py-2 bg-[#e0f2ff] rounded-xl border border-[#e0f2ff]">
                       <CheckCircle
                         size={16}
-                        className="text-green-500"
+                        className="text-[#007bff]"
                         strokeWidth={2.5}
                       />
                       <p className="text-sm text-gray-700 font-semibold">
@@ -1468,30 +1472,22 @@ export default function TrainingPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="border-2 border-primary text-primary hover:bg-primary font-semibold rounded-xl transition-all"
+                          className="text-primary bg-white font-semibold rounded-xl transition-all"
                         >
-                          <Edit size={16} className="mr-1" strokeWidth={2.5} />
+                          <Edit size={16} className="mr-1 text-primary" strokeWidth={2.5} />
                           Sửa
                         </Button>
                       }
                     />
-                    {course.status === "DRAFT" && (
-                      <Button
-                        size="sm"
-                        className="bg-gradient-to-r from-green-500 to-emerald-500 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
-                      >
-                        <Send size={16} className="mr-1" strokeWidth={2.5} />
-                        Xuất bản
-                      </Button>
-                    )}
+
                     {course.status === "PUBLISHED" && (
                       <Button
                         size="sm"
                         variant="outline"
-                        className="border-2 border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white font-semibold rounded-xl transition-all"
+                        className="text-primary bg-white font-semibold rounded-xl transition-all"
                         onClick={() => handleViewTraining(course.id)}
                       >
-                        <Eye size={16} className="mr-1" strokeWidth={2.5} />
+                        <Eye size={16} className="mr-1 text-primary" strokeWidth={2.5} />
                         Xem
                       </Button>
                     )}
@@ -1516,20 +1512,19 @@ export default function TrainingPage() {
                           const users = response?.data?.content || [];
                           setAvailableUsers(Array.isArray(users) ? users : []);
                         } catch (error) {
-                          console.error(
+                          console.log(
                             "Failed to fetch available users:",
                             error
                           );
-                          toast.error("❌ Không thể tải danh sách học viên!");
                           setAvailableUsers([]);
                         } finally {
                           setLoadingUsers(false);
                         }
                       }}
-                      className="border-2 border-purple-500 text-purple-500 hover:bg-purple-500 hover:text-white font-semibold rounded-xl transition-all"
+                      className="text-primary bg-white font-semibold rounded-xl transition-all"
                       title="Thêm người dùng vào khóa đào tạo"
                     >
-                      <Users size={16} className="mr-1" strokeWidth={2.5} />
+                      <Users size={16} className="mr-1 text-primary" strokeWidth={2.5} />
                       Thêm học viên
                     </Button>
                     <Button
