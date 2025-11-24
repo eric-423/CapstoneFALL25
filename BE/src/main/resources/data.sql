@@ -1116,3 +1116,67 @@ VALUES (1, 1, 0.85),  -- Calories: 85% retention
        (8, 2, 0.98),  -- Protein: 98% retention
        (8, 3, 0.95),  -- Fat: 95% retention
        (8, 4, 0.98);  -- Carb: 98% retention
+
+
+-- ============================================
+-- ATTENDANCE SYSTEM TABLES
+-- ============================================
+-- Note: These statements are for reference. 
+-- JPA/Hibernate will auto-create tables based on entities.
+-- If running manually, ensure MySQL 8.0.19+ for IF NOT EXISTS support.
+
+-- Update schedules table to add start_time and end_time
+-- For MySQL < 8.0.19, run these separately and handle errors:
+-- ALTER TABLE schedules ADD COLUMN start_time TIME NULL;
+-- ALTER TABLE schedules ADD COLUMN end_time TIME NULL;
+SET @dbname = DATABASE();
+SET @tablename = 'schedules';
+SET @columnname = 'start_time';
+SET @preparedStatement = (SELECT IF(
+  (
+    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      (table_name = @tablename)
+      AND (table_schema = @dbname)
+      AND (column_name = @columnname)
+  ) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE ', @tablename, ' ADD COLUMN ', @columnname, ' TIME NULL')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @columnname = 'end_time';
+SET @preparedStatement = (SELECT IF(
+  (
+    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      (table_name = @tablename)
+      AND (table_schema = @dbname)
+      AND (column_name = @columnname)
+  ) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE ', @tablename, ' ADD COLUMN ', @columnname, ' TIME NULL')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Create attendance table
+CREATE TABLE IF NOT EXISTS attendance (
+    id           INT AUTO_INCREMENT PRIMARY KEY,
+    user_id      INT NOT NULL,
+    branch_id    INT NULL,
+    work_date    DATE NOT NULL,
+    check_in     DATETIME NULL,
+    check_out    DATETIME NULL,
+    status       VARCHAR(20) NULL,
+    work_minutes INT NULL,
+    note         VARCHAR(255) NULL,
+    created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_att_user   FOREIGN KEY (user_id)  REFERENCES users(id),
+    CONSTRAINT fk_att_branch FOREIGN KEY (branch_id) REFERENCES branch(id),
+    UNIQUE KEY unique_user_work_date (user_id, work_date)
+);

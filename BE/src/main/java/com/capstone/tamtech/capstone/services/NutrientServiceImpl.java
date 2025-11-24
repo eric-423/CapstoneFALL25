@@ -3,10 +3,17 @@ package com.capstone.tamtech.capstone.services;
 import com.capstone.tamtech.capstone.dto.NutrientDTO;
 import com.capstone.tamtech.capstone.entities.Nutrients;
 import com.capstone.tamtech.capstone.exception.ResourceNotFoundException;
+import com.capstone.tamtech.capstone.payload.PagedResponse;
 import com.capstone.tamtech.capstone.payload.request.NutrientRequest;
+import com.capstone.tamtech.capstone.payload.request.NutrientsSearchRequest;
+import com.capstone.tamtech.capstone.payload.request.ProductSearchRequest;
 import com.capstone.tamtech.capstone.repositories.NutrientRepository;
 import com.capstone.tamtech.capstone.services.impl.NutrientService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -51,9 +58,47 @@ public class NutrientServiceImpl implements NutrientService {
     }
 
     @Override
-    public List<NutrientDTO> getAllNutrients() {
-        List<Nutrients> nutrients = nutrientRepository.findAll();
-        return nutrients.stream().map(this::mapToDTO).toList();
+    public PagedResponse<NutrientDTO> getAllNutrients(NutrientsSearchRequest searchRequest) {
+        Pageable pageable = createPageable(searchRequest);
+        Page<Nutrients> nutrients = nutrientRepository.findByCodeContainsIgnoreCaseOrNameContainsIgnoreCaseOrUnitIgnoreCase(
+                searchRequest.getKeyword() != null ? searchRequest.getKeyword() : "",
+                searchRequest.getKeyword() != null ? searchRequest.getKeyword() : "",
+                searchRequest.getUnit() != null ? searchRequest.getUnit() : "",
+                pageable
+        );
+
+        List<NutrientDTO> content = nutrients.stream().map(this::mapToDTO).toList();
+        return createPagedResponse(nutrients, content);
+    }
+
+    private Pageable createPageable(NutrientsSearchRequest nutrientsSearchRequest) {
+        int page = nutrientsSearchRequest.getPage() != null && nutrientsSearchRequest.getPage() >= 0
+                ? nutrientsSearchRequest.getPage()
+                : 0;
+        int size = nutrientsSearchRequest.getSize() != null && nutrientsSearchRequest.getSize() > 0
+                ? nutrientsSearchRequest.getSize()
+                : 10;
+
+        if (size > 100) {
+            size = 100;
+        }
+        Sort sort = Sort.by(Sort.Direction.fromString(
+                nutrientsSearchRequest.getSortDirection() != null ? nutrientsSearchRequest.getSortDirection() : "ASC"));
+
+        return PageRequest.of(page, size, sort);
+    }
+
+    private <T> PagedResponse<T> createPagedResponse(Page<?> page, List<T> content) {
+        PagedResponse<T> response = new PagedResponse<>();
+        response.setContent(content);
+        response.setPageNumber(page.getNumber());
+        response.setPageSize(page.getSize());
+        response.setTotalElements(page.getTotalElements());
+        response.setTotalPages(page.getTotalPages());
+        response.setLast(page.isLast());
+        response.setFirst(page.isFirst());
+        response.setEmpty(page.isEmpty());
+        return response;
     }
 
     @Override

@@ -1,8 +1,10 @@
 package com.capstone.tamtech.capstone.controllers;
 
 import com.capstone.tamtech.capstone.dto.CookingMethodDTO;
+import com.capstone.tamtech.capstone.payload.PagedResponse;
 import com.capstone.tamtech.capstone.payload.ResponseData;
 import com.capstone.tamtech.capstone.payload.request.CookingMethodRequest;
+import com.capstone.tamtech.capstone.payload.request.CookingMethodSearchRequest;
 import com.capstone.tamtech.capstone.services.impl.CookingMehodService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,13 +21,19 @@ public class CookingMethodController {
     private CookingMehodService cookingMethodService;
 
     @GetMapping
-    public ResponseEntity<?> getAllCookingMethods() {
-        ResponseData responseData = new ResponseData();
-        List<CookingMethodDTO> cookingMethods = cookingMethodService.getAllCookingMethods();
-        responseData.setData(cookingMethods);
-        responseData.setStatus(200);
-        responseData.setDesc("Retrieved " + cookingMethods.size() + " cooking method(s) successfully");
-        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    public ResponseEntity<?> getAllCookingMethods(@RequestParam(defaultValue = "") String keyword,
+                                                  @RequestParam(defaultValue = "0") Integer page,
+                                                  @RequestParam(defaultValue = "10") Integer size,
+                                                  @RequestParam(defaultValue = "ASC") String sortDirection) {
+        CookingMethodSearchRequest cookingMethodSearchRequest = new CookingMethodSearchRequest();
+        cookingMethodSearchRequest.setKeyword(cookingMethodSearchRequest.getKeyword());
+        cookingMethodSearchRequest.setPage(page);
+        cookingMethodSearchRequest.setSize(size);
+        cookingMethodSearchRequest.setSortDirection(sortDirection);
+
+        PagedResponse<CookingMethodDTO> pagedResponse = cookingMethodService.getAllCookingMethods(cookingMethodSearchRequest);
+
+        return new ResponseEntity<>(pagedResponse, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")

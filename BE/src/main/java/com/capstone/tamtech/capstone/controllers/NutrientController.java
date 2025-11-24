@@ -1,15 +1,15 @@
 package com.capstone.tamtech.capstone.controllers;
 
 import com.capstone.tamtech.capstone.dto.NutrientDTO;
+import com.capstone.tamtech.capstone.payload.PagedResponse;
 import com.capstone.tamtech.capstone.payload.ResponseData;
 import com.capstone.tamtech.capstone.payload.request.NutrientRequest;
+import com.capstone.tamtech.capstone.payload.request.NutrientsSearchRequest;
 import com.capstone.tamtech.capstone.services.impl.NutrientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/nutrients")
@@ -19,13 +19,21 @@ public class NutrientController {
     private NutrientService nutrientService;
 
     @GetMapping
-    public ResponseEntity<?> getAllNutrients() {
-        ResponseData responseData = new ResponseData();
-        List<NutrientDTO> nutrients = nutrientService.getAllNutrients();
-        responseData.setData(nutrients);
-        responseData.setStatus(200);
-        responseData.setDesc("Retrieved " + nutrients.size() + " nutrient(s) successfully");
-        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    public ResponseEntity<?> getAllNutrients(@RequestParam (value = "keyword", defaultValue = "") String keyword,
+                                           @RequestParam(value = "unit", defaultValue = "") String unit,
+                                           @RequestParam(value = "page", defaultValue = "0") Integer page,
+                                           @RequestParam(value = "size", defaultValue = "10") Integer size,
+                                           @RequestParam(value = "sortDirection", defaultValue = "ASC") String sortDirection) {
+
+        NutrientsSearchRequest nutrientsSearchRequest = new NutrientsSearchRequest();
+        nutrientsSearchRequest.setKeyword(keyword);
+        nutrientsSearchRequest.setUnit(unit);
+        nutrientsSearchRequest.setPage(page);
+        nutrientsSearchRequest.setSize(size);
+        nutrientsSearchRequest.setSortDirection(sortDirection);
+
+        PagedResponse<NutrientDTO> pagedResponse = nutrientService.getAllNutrients(nutrientsSearchRequest);
+        return new ResponseEntity<>(pagedResponse, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
