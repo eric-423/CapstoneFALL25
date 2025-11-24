@@ -126,6 +126,39 @@ public class UserTrainingServiceImpl implements UserTrainingService {
     @Transactional(readOnly = true)
     public List<UserTrainingDTO> getMyTrainings(String status) {
         Users currentUser = getCurrentUser();
+
+        List<Integer> trainingsId = trainingRepository.findByRole_IdAndIsActive(currentUser.getRoleHistories().stream().filter(rh -> rh.isActive()).findFirst().get().getId(), true).stream().map(Trainings::getId).toList();
+        List<UserTrainingDTO> result = new ArrayList<>();
+        List<UserTraining> userTrainings = userTrainingRepository.findByUser_Id(currentUser.getId());
+
+        for(UserTraining userTraining : userTrainings){
+            if(trainingsId.contains(userTraining.getTraining().getId())){
+                result.add(toDtoWithStats(userTraining));
+            }else{
+                UserTrainingDTO userTrainingDTO = new UserTrainingDTO();
+                Trainings trainings = userTraining.getTraining();
+
+                userTrainingDTO.setTrainingId(userTraining.getTraining().getId());
+                userTrainingDTO.setTrainingName(trainings.getName());
+                userTrainingDTO.setTrainingPoint(0);
+                userTrainingDTO.setUserId(currentUser.getId());
+                userTrainingDTO.setUserFullName(currentUser.getFullName());
+                userTrainingDTO.setUserEmail(currentUser.getEmail());
+                userTrainingDTO.setUserPhone(currentUser.getPhoneNumber());
+                userTrainingDTO.setPoint(0);
+                userTrainingDTO.setIsPassed(false);
+                userTrainingDTO.setTotalLessons(trainings.getLessonsList().size());
+                userTrainingDTO.setCompletedLessons(0);
+                userTrainingDTO.setCompletionPercent(0.0);
+                userTrainingDTO.setStatus("NOT_STARTED");
+                userTrainingDTO.setEnrolledAt(null);
+                userTrainingDTO.setCompletedAt(null);
+
+                result.add((userTrainingDTO));
+            }
+        }
+
+
         return userTrainingRepository.findByUser_Id(currentUser.getId())
                 .stream()
                 .map(this::toDtoWithStats)
@@ -362,10 +395,7 @@ public class UserTrainingServiceImpl implements UserTrainingService {
         if (Boolean.TRUE.equals(userTraining.getIsPassed())) {
             return "COMPLETED";
         }
-        if (completedLessons > 0) {
-            return totalLessons > 0 && completedLessons >= totalLessons ? "COMPLETED" : "IN_PROGRESS";
-        }
-        return "NOT_STARTED";
+        return "IN_PROGRESS";
     }
 
     private void updatePassingStatus(UserTraining userTraining) {

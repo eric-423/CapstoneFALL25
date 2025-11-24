@@ -22,7 +22,8 @@ public interface TrainingRepository extends JpaRepository<Trainings, Integer> {
 
     Page<Trainings> findByRoleIdAndIsActiveTrue(int roleId, Pageable pageable);
 
-    List<Trainings> findByIsActiveTrue();
+    List<Trainings> findByRole_IdAndIsActive(int id, Boolean isActive);
+
 
     Page<Trainings> findByIsActiveTrue(Pageable pageable);
 
