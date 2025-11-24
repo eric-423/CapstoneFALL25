@@ -349,6 +349,7 @@ public class UserTrainingServiceImpl implements UserTrainingService {
     private Lessons verifyLessonBelongsToTraining(int lessonId, UserTraining userTraining) {
         Lessons lesson = lessonRepository.findById(lessonId)
                 .orElseThrow(() -> new ResourceNotFoundException("Lesson not found"));
+
         if (lesson.getTraining().getId() != userTraining.getTraining().getId()) {
             throw new AccessDeniedException("Lesson does not belong to training");
         }
