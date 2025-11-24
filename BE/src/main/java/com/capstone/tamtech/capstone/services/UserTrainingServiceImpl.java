@@ -132,14 +132,24 @@ public class UserTrainingServiceImpl implements UserTrainingService {
         List<UserTrainingDTO> result = new ArrayList<>();
         List<UserTraining> userTrainings = userTrainingRepository.findByUser_Id(currentUser.getId());
 
-        for(UserTraining userTraining : userTrainings){
-            if(trainingsId.contains(userTraining.getTraining().getId())){
-                result.add(toDtoWithStats(userTraining));
-            }else{
-                UserTrainingDTO userTrainingDTO = new UserTrainingDTO();
-                Trainings trainings = userTraining.getTraining();
+        for (Integer trainingId : trainingsId) {
 
-                userTrainingDTO.setTrainingId(userTraining.getTraining().getId());
+            UserTraining userTraining = null;
+
+            for (UserTraining item : userTrainings) {
+                if (item.getTraining().getId() == trainingId) {
+                    userTraining = item;
+                    break;
+                }
+            }
+
+            if(userTraining!=null){
+                result.add(toDtoWithStats(userTraining));
+            } else{
+                UserTrainingDTO userTrainingDTO = new UserTrainingDTO();
+                Trainings trainings = trainingRepository.findById(trainingId).orElseThrow(() -> new ResourceNotFoundException("Training not found"));
+
+                userTrainingDTO.setTrainingId(trainings.getId());
                 userTrainingDTO.setTrainingName(trainings.getName());
                 userTrainingDTO.setTrainingPoint(0);
                 userTrainingDTO.setUserId(currentUser.getId());
