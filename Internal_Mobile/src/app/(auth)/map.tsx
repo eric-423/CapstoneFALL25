@@ -5,7 +5,7 @@ import { confirmOrder, sendShipperLocation } from "@/utils/api";
 import { GOOGLE_API_KEY } from "@/utils/constant";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import * as Location from "expo-location";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -325,7 +325,7 @@ const MapScreen = () => {
                 description={`Lat: ${destination.latitude.toFixed(
                   6
                 )}, Lng: ${destination.longitude.toFixed(6)}`}
-                pinColor={APP_COLOR.SOFT_BLUE}
+                pinColor={APP_COLOR.ORANGE}
               />
               <MapViewDirections
                 origin={{
@@ -422,10 +422,11 @@ const MapScreen = () => {
           title="Xác nhận giao hàng"
           onPress={() => {
             confirmOrder(appState?.token || "", orderIdNum).then((res) => {
-              if (res.success) {
+              if (res) {
                 Alert.alert("Thành công", "Đơn hàng đã được xác nhận");
+                router.replace("/(shippers)");
               } else {
-                Alert.alert("Lỗi", res.message);
+                Alert.alert("Lỗi", "Không thể xác nhận đơn hàng");
               }
             });
           }}

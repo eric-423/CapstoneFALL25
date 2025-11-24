@@ -3,8 +3,6 @@ import { createContext, useContext, useState } from "react";
 interface AppContextType {
   appState: IUserLogin | null;
   setAppState: (v: any) => void;
-  cart: ICart | Record<string, never>;
-  setCart: (v: any) => void;
   counter: ICounter | null;
   setCounter: (v: any) => void;
 }
@@ -16,15 +14,12 @@ interface IProps {
 
 const AppProvider = (props: IProps) => {
   const [appState, setAppState] = useState<IUserLogin | null>(null);
-  const [cart, setCart] = useState<ICart | Record<string, never>>({});
   const [counter, setCounter] = useState<ICounter | null>(null);
   return (
     <AppContext.Provider
       value={{
         appState,
         setAppState,
-        cart,
-        setCart,
         counter,
         setCounter,
       }}
