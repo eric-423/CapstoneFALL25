@@ -20,10 +20,6 @@ export interface User {
     memberAssociationName: string | null;
 }
 
-export interface UserDetail extends User {
-    // Có thể thêm fields khác nếu detail response khác list
-}
-
 export interface CreateUserRequest {
     fullName: string;
     address: string;
@@ -99,7 +95,7 @@ export const getUsers = async (): Promise<User[]> => {
 /**
  * Lấy chi tiết user
  */
-export const getUserById = async (userId: number): Promise<UserDetail> => {
+export const getUserById = async (userId: number): Promise<User> => {
     const response = await fetch(`/api/users/${userId}`, {
         method: 'GET',
         credentials: 'include',

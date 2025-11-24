@@ -29,6 +29,8 @@ const useAuthState = () => {
       case 'MANAGER':
       case 'BRANCH_MANAGER':
         return '/manager';
+      case 'STAFF':
+        return '/staff/orders';
       case 'CHEFF':
         return '/chef';
       case 'WAITER':
@@ -120,6 +122,7 @@ const useAuthState = () => {
       ADMIN: ['/admin'],
       MANAGER: ['/admin', '/manager'],
       BRANCH_MANAGER: ['/admin', '/manager'],
+      STAFF: ['/staff'],
       CHEFF: ['/chef'],
       WAITER: ['/waiter'],
       SHIPPER: ['/shipper'],
@@ -147,7 +150,7 @@ const useAuthState = () => {
   const logout = useCallback(async () => {
 
     const currentRole = authState.user?.role?.toUpperCase();
-    const employeeRoles = ['ADMIN', 'MANAGER', 'BRANCH_MANAGER', 'CHEF', 'CHEFF', 'WAITER', 'SHIPPER'];
+    const employeeRoles = ['ADMIN', 'MANAGER', 'BRANCH_MANAGER', 'STAFF', 'CHEF', 'CHEFF', 'WAITER', 'SHIPPER'];
     const isEmployee = currentRole && employeeRoles.includes(currentRole);
     const redirectPath = isEmployee ? '/inside/login' : '/login';
 
@@ -238,6 +241,10 @@ const useAuthState = () => {
         case 'MANAGER':
         case 'BRANCH_MANAGER':
           router.push('/manager');
+          break;
+        case 'STAFF':
+        case 'Staff':
+          router.push('/staff/orders');
           break;
         case 'CHEFF':
           router.push('/chef');

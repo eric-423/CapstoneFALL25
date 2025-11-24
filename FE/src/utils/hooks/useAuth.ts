@@ -169,20 +169,17 @@ const useAuth = () => {
       }
     };
 
-    // Check less frequently (every 30 seconds instead of 5)
-    const intervalId = setInterval(checkTokenExpiration, 30000);
+    const intervalId = setInterval(checkTokenExpiration, 10000);
 
     return () => clearInterval(intervalId);
   }, [accessToken, refreshToken, authState.isAuthenticated, refreshTokenMutation]);
 
-  // Clean up on unmount
   useEffect(() => {
     return () => {
       isMountedRef.current = false;
     };
   }, []);
 
-  // Memoize the return value to prevent unnecessary re-renders
   return useMemo(
     () => ({
       user: authState.user,

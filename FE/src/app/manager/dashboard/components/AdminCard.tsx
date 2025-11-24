@@ -32,11 +32,11 @@ export function AdminCard({ title, value, icon: Icon, trend, subtitle, isLoading
     }
 
     return (
-        <Card className="p-3 rounded-xl bg-white/60 backdrop-blur-sm border-white/20 border shadow-sm hover:shadow-md hover:bg-white transition-all duration-200 h-full">
+        <Card className="p-3 rounded-xl bg-[#FDE3CF]/90 backdrop-blur-sm border-white/20 border shadow-md hover:shadow-lg hover:bg-white transition-all duration-200 h-full">
             <div className="flex items-center gap-3 h-full">
                 {/* Icon */}
                 <div className="flex-shrink-0">
-                    <div className="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-[#EC6426]/20 to-[#F8A91F]/20 text-[#EC6426] rounded-lg">
+                    <div className="w-8 h-8 flex items-center justify-center  rounded-lg">
                         <Icon size={18} strokeWidth={2.5} />
                     </div>
                 </div>
@@ -54,9 +54,8 @@ export function AdminCard({ title, value, icon: Icon, trend, subtitle, isLoading
                     <h3 className="text-base font-bold text-gray-900">{value}</h3>
                     {trend && typeof trend.value === 'number' && (
                         <div
-                            className={`flex items-center justify-end gap-0.5 text-xs font-bold ${
-                                trend.isPositive ? 'text-green-600' : 'text-red-600'
-                            }`}
+                            className={`flex items-center justify-end gap-0.5 text-xs font-bold ${trend.isPositive ? 'text-green-600' : 'text-red-600'
+                                }`}
                         >
                             {trend.isPositive ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
                             <span>{Math.abs(trend.value).toFixed(1)}%</span>

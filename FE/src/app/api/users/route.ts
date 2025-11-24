@@ -3,7 +3,6 @@ import { cookies } from 'next/headers';
 
 const API_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
-// GET: Lấy danh sách users với filter và phân trang
 export async function GET(request: NextRequest) {
     try {
         const cookieStore = await cookies();
@@ -16,7 +15,6 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        // Forward all query parameters
         const searchParams = request.nextUrl.searchParams;
         const queryString = searchParams.toString();
 
@@ -42,7 +40,6 @@ export async function GET(request: NextRequest) {
         const data = await response.json();
         return NextResponse.json(data);
     } catch (error) {
-        console.error('Get Users API Error:', error);
         return NextResponse.json(
             { error: error instanceof Error ? error.message : 'Failed to fetch users' },
             { status: 500 }

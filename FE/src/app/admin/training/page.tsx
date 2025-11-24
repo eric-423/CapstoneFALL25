@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
   GraduationCap,
   Search,
@@ -18,9 +19,11 @@ import {
   ExternalLink,
   FileText,
   UserPlus,
+  ArrowRight,
 } from "lucide-react";
 
 import { useQuery } from "@tanstack/react-query";
+import { toast } from "react-toastify";
 
 import { AdminGuard } from "@/components/guards";
 import { Button } from "@/components/ui/button";
@@ -52,6 +55,9 @@ import {
   updateLessonDocument,
   deleteLessonDocument,
   AssignUserToTraining,
+  getAvailableUsersForTraining,
+  getTrainingUsers,
+  type GetUsersByRoleResponse,
 } from "@/apis/trainning.api";
 import { TrainingCourse, StaffRole } from "@/utils/types/training.type";
 import { AddTrainingDialog } from "@/app/admin/training/components/AddTrainingDialog";
@@ -295,13 +301,14 @@ const mapTrainingCourse = (item: TrainingApiItem): TrainingCourse => {
   };
 };
 
-const detailStatsConfig = (training: TrainingCourse) => [
+const detailStatsConfig = (training: TrainingCourse, userCount: number = 0) => [
   { label: "Điểm khóa", value: training.point ?? 0 },
   { label: "Bài học", value: training.lessonCount ?? 0 },
   {
     label: "Tổng điểm bài",
     value: training.totalLessonPoint ?? training.point ?? 0,
   },
+  { label: "Học viên", value: userCount, isClickable: true },
 ];
 
 export default function TrainingPage() {
@@ -420,16 +427,18 @@ export default function TrainingPage() {
     open: false,
     trainingId: null,
   });
-  const [assignUserForm, setAssignUserForm] = useState<{
-    userIds: string;
-    branchId: string;
-    roleId: string;
-  }>({
-    userIds: "",
-    branchId: "",
-    roleId: "",
-  });
   const [assignUserLoading, setAssignUserLoading] = useState(false);
+  const [availableUsers, setAvailableUsers] = useState<
+    GetUsersByRoleResponse["data"]["content"]
+  >([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [selectedUserIds, setSelectedUserIds] = useState<Set<number>>(
+    new Set()
+  );
+  const [selectedCourse, setSelectedCourse] = useState<TrainingCourse | null>(
+    null
+  );
+  const [trainingUsersCount, setTrainingUsersCount] = useState<number>(0);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -625,7 +634,7 @@ export default function TrainingPage() {
   };
 
   const detailStats = detailState.training
-    ? detailStatsConfig(detailState.training)
+    ? detailStatsConfig(detailState.training, trainingUsersCount)
     : [];
   const hasPrevLessonPage = lessonsPagination.page > 0;
   const hasNextLessonPage =
@@ -648,6 +657,7 @@ export default function TrainingPage() {
       training: null,
       error: null,
     });
+    setTrainingUsersCount(0);
     resetLessonsState();
     setLessonDetailState({
       open: false,
@@ -683,12 +693,20 @@ export default function TrainingPage() {
         throw new Error("Không tìm thấy dữ liệu khóa đào tạo");
       }
 
+      const mappedTraining = mapTrainingCourse(trainingItem);
       setDetailState({
         open: true,
         isLoading: false,
-        training: mapTrainingCourse(trainingItem),
+        training: mappedTraining,
         error: null,
       });
+      try {
+        const usersResponse = await getTrainingUsers(trainingId);
+        setTrainingUsersCount(usersResponse.data?.length || 0);
+      } catch (usersError) {
+        console.error("Failed to fetch training users:", usersError);
+        setTrainingUsersCount(0);
+      }
     } catch (error) {
       const message =
         error instanceof Error
@@ -1288,9 +1306,9 @@ export default function TrainingPage() {
                 <div className="flex-1 flex flex-col min-w-0">
                   <div className="flex items-start justify-between gap-4 mb-2">
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-2xl font-bold text-gray-900 mb-1 group-hover:text-primary transition-colors line-clamp-2">
+                      <h4 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-primary transition-colors line-clamp-1">
                         {course.name}
-                      </h3>
+                      </h4>
                       <p className="text-sm text-gray-600 line-clamp-3 mb-2">
                         {course.description}
                       </p>
@@ -1387,16 +1405,33 @@ export default function TrainingPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => {
+                      onClick={async () => {
+                        setSelectedCourse(course);
                         setAssignUserDialog({
                           open: true,
                           trainingId: course.id,
                         });
-                        setAssignUserForm({
-                          userIds: "",
-                          branchId: "",
-                          roleId: "",
-                        });
+                        setSelectedUserIds(new Set());
+                        setAvailableUsers([]);
+
+                        try {
+                          setLoadingUsers(true);
+                          const response = await getAvailableUsersForTraining(
+                            course.id
+                          );
+                          // Xử lý response an toàn
+                          const users = response?.data?.content || [];
+                          setAvailableUsers(Array.isArray(users) ? users : []);
+                        } catch (error) {
+                          console.error(
+                            "Failed to fetch available users:",
+                            error
+                          );
+                          toast.error("❌ Không thể tải danh sách học viên!");
+                          setAvailableUsers([]);
+                        } finally {
+                          setLoadingUsers(false);
+                        }
                       }}
                       className="border-2 border-purple-500 text-purple-500 hover:bg-purple-500 hover:text-white font-semibold rounded-xl transition-all"
                       title="Thêm người dùng vào khóa đào tạo"
@@ -1426,9 +1461,6 @@ export default function TrainingPage() {
           <DialogContent className="w-[97vw] max-w-[97vw] sm:!max-w-[92vw] lg:!max-w-[75vw] xl:!max-w-[65vw] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Chi tiết khóa đào tạo</DialogTitle>
-              <DialogDescription>
-                Thông tin mô tả, phân quyền và thống kê của khóa đào tạo
-              </DialogDescription>
             </DialogHeader>
 
             {detailState.isLoading && (
@@ -1465,30 +1497,38 @@ export default function TrainingPage() {
                           : "Ngưng hoạt động"}
                       </span>
                     </div>
-
-                    {/* {detailState.training.roleName && (
-                                        <p className="text-sm text-primary font-semibold">
-                                            Vai trò chính: {detailState.training.roleName}
-                                        </p>
-                                    )} */}
-
                     <p className="text-gray-600 text-sm leading-relaxed">
                       {detailState.training.description}
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                     {detailStats.map((stat) => (
                       <Card
                         key={stat.label}
-                        className="p-4 border border-gray-100 shadow-none"
+                        className={`p-4 border border-gray-100 shadow-none ${
+                          stat.isClickable
+                            ? "hover:border-orange-300 hover:shadow-sm transition-all"
+                            : ""
+                        }`}
                       >
                         <p className="text-xs uppercase text-gray-500 font-semibold">
                           {stat.label}
                         </p>
-                        <p className="text-xl font-bold text-gray-900 mt-1">
-                          {stat.value}
-                        </p>
+                        <div className="flex items-center justify-between mt-1">
+                          <p className="text-xl font-bold text-gray-900">
+                            {stat.value}
+                          </p>
+                          {stat.isClickable && detailState.training && (
+                            <Link
+                              href={`/admin/training/${detailState.training.id}/users`}
+                              className="ml-2 p-1.5 rounded-lg hover:bg-orange-50 text-orange-600 hover:text-orange-700 transition-colors"
+                              title="Xem danh sách học viên"
+                            >
+                              <ArrowRight size={18} />
+                            </Link>
+                          )}
+                        </div>
                       </Card>
                     ))}
                   </div>
@@ -1983,9 +2023,6 @@ export default function TrainingPage() {
                                                           Sửa
                                                         </>
                                                       )}
-                                                    </Button>
-                                                    <Button>
-                                                      <Users />
                                                     </Button>
                                                     <Button
                                                       type="button"
@@ -2511,147 +2548,269 @@ export default function TrainingPage() {
         </Dialog>
         <Dialog
           open={assignUserDialog.open}
-          onOpenChange={(open) =>
+          onOpenChange={(open) => {
             setAssignUserDialog({
               open,
               trainingId: open ? assignUserDialog.trainingId : null,
-            })
-          }
+            });
+            if (!open) {
+              setSelectedUserIds(new Set());
+              setAvailableUsers([]);
+              setSelectedCourse(null);
+            }
+          }}
         >
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Thêm người dùng vào khóa đào tạo</DialogTitle>
+              <DialogTitle>Thêm học viên vào khóa đào tạo</DialogTitle>
               <DialogDescription>
-                Nhập thông tin để gán người dùng vào khóa đào tạo
+                {selectedCourse && (
+                  <span>
+                    Chọn học viên cho khóa:{" "}
+                    <strong>{selectedCourse.name}</strong>
+                    {selectedCourse.assignedRoles &&
+                      selectedCourse.assignedRoles.length > 0 && (
+                        <span className="ml-2">
+                          (Vai trò:{" "}
+                          {selectedCourse.assignedRoles
+                            .map((role) => getRoleText(role))
+                            .join(", ")}
+                          )
+                        </span>
+                      )}
+                  </span>
+                )}
               </DialogDescription>
             </DialogHeader>
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                if (!assignUserDialog.trainingId) return;
 
-                const userIds = Number(assignUserForm.userIds);
-                const branchId = Number(assignUserForm.branchId);
-                const roleId = Number(assignUserForm.roleId);
-
-                if (!userIds || !branchId || !roleId) {
-                  alert("Vui lòng điền đầy đủ thông tin!");
-                  return;
-                }
-
-                try {
-                  setAssignUserLoading(true);
-                  await AssignUserToTraining(
-                    assignUserDialog.trainingId,
-                    userIds,
-                    branchId,
-                    roleId
-                  );
-                  alert("Đã thêm người dùng vào khóa đào tạo thành công!");
-                  setAssignUserDialog({ open: false, trainingId: null });
-                  setAssignUserForm({ userIds: "", branchId: "", roleId: "" });
-                  setShouldRefetch(true);
-                } catch (error) {
-                  console.error("Failed to assign user:", error);
-                  alert("Không thể thêm người dùng vào khóa đào tạo!");
-                } finally {
-                  setAssignUserLoading(false);
-                }
-              }}
-              className="space-y-4"
-            >
-              <div>
-                <label className="text-sm font-semibold text-gray-700 block mb-2">
-                  ID Người dùng <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  type="number"
-                  placeholder="Nhập ID người dùng"
-                  value={assignUserForm.userIds}
-                  onChange={(e) =>
-                    setAssignUserForm((prev) => ({
-                      ...prev,
-                      userIds: e.target.value,
-                    }))
-                  }
-                  required
-                  className="w-full"
-                />
+            {loadingUsers ? (
+              <div className="flex items-center justify-center py-10">
+                <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin mr-3" />
+                <span className="text-gray-600">
+                  Đang tải danh sách học viên...
+                </span>
               </div>
+            ) : !availableUsers || availableUsers.length === 0 ? (
+              <div className="text-center py-10 text-gray-500">
+                <Users size={48} className="mx-auto mb-3 text-gray-400" />
+                <p>
+                  Không tìm thấy học viên phù hợp với vai trò của khóa đào tạo
+                  này.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="max-h-[400px] overflow-y-auto rounded-lg p-4 space-y-2">
+                  {(availableUsers || []).map((userItem) => {
+                    type UserWithData = {
+                      data?: {
+                        id: number;
+                        fullName?: string;
+                        email?: string;
+                        phone?: string;
+                      };
+                      id?: number;
+                      fullName?: string;
+                      email?: string;
+                      phone?: string;
+                    };
+                    const user = userItem as UserWithData;
+                    const userId = user?.data?.id || user?.id;
+                    if (!userId) return null;
 
-              <div>
-                <label className="text-sm font-semibold text-gray-700 block mb-2">
-                  ID Chi nhánh <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  type="number"
-                  placeholder="Nhập ID chi nhánh"
-                  value={assignUserForm.branchId}
-                  onChange={(e) =>
-                    setAssignUserForm((prev) => ({
-                      ...prev,
-                      branchId: e.target.value,
-                    }))
-                  }
-                  required
-                  className="w-full"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-semibold text-gray-700 block mb-2">
-                  ID Vai trò <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  type="number"
-                  placeholder="Nhập ID vai trò"
-                  value={assignUserForm.roleId}
-                  onChange={(e) =>
-                    setAssignUserForm((prev) => ({
-                      ...prev,
-                      roleId: e.target.value,
-                    }))
-                  }
-                  required
-                  className="w-full"
-                />
-              </div>
+                    const isSelected = selectedUserIds.has(userId);
+                    const fullName =
+                      user?.data?.fullName ||
+                      user?.fullName ||
+                      `User #${userId}`;
+                    const email = user?.data?.email || user?.email || "";
+                    const phone = user?.data?.phone || user?.phone || "";
 
-              <div className="flex gap-3 pt-4 border-t border-gray-200">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    setAssignUserDialog({ open: false, trainingId: null });
-                    setAssignUserForm({
-                      userIds: "",
-                      branchId: "",
-                      roleId: "",
-                    });
-                  }}
-                  className="flex-1"
-                  disabled={assignUserLoading}
-                >
-                  Hủy
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={assignUserLoading}
-                  className="flex-1 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white"
-                >
-                  {assignUserLoading ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                      Đang thêm...
-                    </>
-                  ) : (
-                    <>
-                      <UserPlus size={18} className="mr-2" />
-                      Thêm người dùng
-                    </>
-                  )}
-                </Button>
+                    return (
+                      <div
+                        key={userId}
+                        onClick={() => {
+                          const newSelected = new Set(selectedUserIds);
+                          if (isSelected) {
+                            newSelected.delete(userId);
+                          } else {
+                            newSelected.add(userId);
+                          }
+                          setSelectedUserIds(newSelected);
+                        }}
+                        className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                          isSelected
+                            ? "border-orange-500 bg-orange-50"
+                            : "border-brown-200 hover:border-orange-300 hover:bg-brown-50"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => {
+                            const newSelected = new Set(selectedUserIds);
+                            if (isSelected) {
+                              newSelected.delete(userId);
+                            } else {
+                              newSelected.add(userId);
+                            }
+                            setSelectedUserIds(newSelected);
+                          }}
+                          className="w-5 h-5 border-radius-10 text-orange-500 border-orange-300 rounded focus:ring-orange-500 focus:ring-2 focus:border-radius-10 cursor-pointer accent-orange-500"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-gray-900 truncate">
+                            {fullName}
+                          </p>
+                          <p className="text-sm text-gray-600 truncate">
+                            {email} {phone && `• ${phone}`}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                  <p className="text-sm text-gray-600">
+                    Đã chọn:{" "}
+                    <strong className="text-orange-600">
+                      {selectedUserIds.size}
+                    </strong>{" "}
+                    học viên
+                  </p>
+                  <div className="flex gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setAssignUserDialog({ open: false, trainingId: null });
+                        setSelectedUserIds(new Set());
+                        setAvailableUsers([]);
+                        setSelectedCourse(null);
+                      }}
+                      disabled={assignUserLoading}
+                    >
+                      Hủy
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={async () => {
+                        if (
+                          !assignUserDialog.trainingId ||
+                          selectedUserIds.size === 0
+                        ) {
+                          alert("Vui lòng chọn ít nhất một học viên!");
+                          return;
+                        }
+
+                        if (!selectedCourse) {
+                          alert("Không tìm thấy thông tin khóa đào tạo!");
+                          return;
+                        }
+
+                        try {
+                          setAssignUserLoading(true);
+                          const roleId = selectedCourse.roleId || 1;
+                          type UserWithBranch = {
+                            data?: { id: number; branchId?: number };
+                            id?: number;
+                            branchId?: number;
+                          };
+
+                          const selectedUsersData = (
+                            availableUsers || []
+                          ).filter((u) => {
+                            const user = u as UserWithBranch;
+                            const uid = user?.data?.id || user?.id;
+                            return uid && selectedUserIds.has(uid);
+                          }) as UserWithBranch[];
+                          const usersByBranch = new Map<number, number[]>();
+
+                          for (const userId of selectedUserIds) {
+                            const userData = selectedUsersData.find((u) => {
+                              const user = u as UserWithBranch;
+                              const uid = user?.data?.id || user?.id;
+                              return uid === userId;
+                            }) as UserWithBranch | undefined;
+                            const branchId =
+                              userData?.data?.branchId ||
+                              userData?.branchId ||
+                              1;
+
+                            if (!usersByBranch.has(branchId)) {
+                              usersByBranch.set(branchId, []);
+                            }
+                            usersByBranch.get(branchId)!.push(userId);
+                          }
+                          for (const [branchId, userIds] of usersByBranch) {
+                            await AssignUserToTraining(
+                              assignUserDialog.trainingId!,
+                              userIds,
+                              branchId,
+                              roleId
+                            );
+                          }
+                          toast.success(
+                            `Đã thêm ${selectedUserIds.size} học viên vào khóa đào tạo thành công!`
+                          );
+                          setAssignUserDialog({
+                            open: false,
+                            trainingId: null,
+                          });
+                          setSelectedUserIds(new Set());
+                          setAvailableUsers([]);
+                          setSelectedCourse(null);
+                          setShouldRefetch(true);
+                          if (
+                            detailState.training &&
+                            assignUserDialog.trainingId ===
+                              detailState.training.id
+                          ) {
+                            try {
+                              const usersResponse = await getTrainingUsers(
+                                assignUserDialog.trainingId
+                              );
+                              setTrainingUsersCount(
+                                usersResponse.data?.length || 0
+                              );
+                            } catch (usersError) {
+                              console.error(
+                                "Failed to refresh training users count:",
+                                usersError
+                              );
+                            }
+                          }
+                        } catch (error) {
+                          console.error("Failed to assign users:", error);
+                          alert("Không thể thêm học viên vào khóa đào tạo!");
+                        } finally {
+                          setAssignUserLoading(false);
+                        }
+                      }}
+                      disabled={assignUserLoading || selectedUserIds.size === 0}
+                      className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white"
+                    >
+                      {assignUserLoading ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                          Đang thêm...
+                        </>
+                      ) : (
+                        <>
+                          <UserPlus size={18} className="mr-2" />
+                          Thêm{" "}
+                          {selectedUserIds.size > 0
+                            ? `${selectedUserIds.size} `
+                            : ""}
+                          học viên
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
               </div>
-            </form>
+            )}
           </DialogContent>
         </Dialog>
       </AdminPageLayout>

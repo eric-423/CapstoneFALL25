@@ -18,15 +18,18 @@ export async function POST(
     const { id } = await params;
     const body = await request.json();
 
-    const response = await fetch(`${API_URL}/training-user/admin/${id}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "*/*",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(body),
-    });
+    const response = await fetch(
+      `${API_URL}/user-trainings/admin/trainings/${id}/assign-users`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "*/*",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+      }
+    );
 
     const payload = await response.json().catch(() => null);
 

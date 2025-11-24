@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
-// Sử dụng API_URL từ environment variables
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://tam-tac.com/api';
 
 export async function GET(
@@ -40,7 +39,6 @@ export async function GET(
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-            console.error('❌ Statistics API error:', errorData);
             return NextResponse.json(
                 errorData,
                 { status: response.status }
@@ -48,12 +46,9 @@ export async function GET(
         }
 
         const data = await response.json();
-        console.log('✅ Statistics API success');
         return NextResponse.json(data);
 
     } catch (error: unknown) {
-        console.error('💥 Statistics API Error:', error);
-
         const errorMessage = (error as Error)?.message || 'Failed to fetch statistics';
 
         return NextResponse.json(

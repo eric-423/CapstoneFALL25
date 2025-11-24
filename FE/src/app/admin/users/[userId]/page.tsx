@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import {
-    User,
+    User as UserIcon,
     ArrowLeft,
     Mail,
     Phone,
@@ -26,7 +26,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AdminPageLayout, AdminPageHeader } from '../../components/AdminPageLayout';
-import { getUserById, getUserRoleHistory, banUser, unbanUser, type UserDetail, type RoleHistory } from '@/apis/admin-user.api';
+import { getUserById, getUserRoleHistory, banUser, unbanUser, type User, type RoleHistory } from '@/apis/admin-user.api';
 import { UserFormDialog } from '../components/UserFormDialog';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import Link from 'next/link';
@@ -35,7 +35,7 @@ export default function UserDetailPage() {
     const params = useParams();
     const userId = parseInt(params.userId as string);
 
-    const [user, setUser] = useState<UserDetail | null>(null);
+    const [user, setUser] = useState<User | null>(null);
     const [roleHistory, setRoleHistory] = useState<RoleHistory[]>([]);
     const [loading, setLoading] = useState(true);
     const [loadingHistory, setLoadingHistory] = useState(false);
@@ -128,7 +128,7 @@ export default function UserDetailPage() {
         return (
             <AdminPageLayout>
                 <div className="flex flex-col items-center justify-center h-64">
-                    <User className="h-16 w-16 text-gray-300 mb-4" />
+                    <UserIcon className="h-16 w-16 text-gray-300 mb-4" />
                     <p className="text-gray-500">Không tìm thấy người dùng</p>
                     <Link href="/admin/users">
                         <Button className="mt-4">Quay lại danh sách</Button>
@@ -143,7 +143,7 @@ export default function UserDetailPage() {
             <AdminPageHeader
                 title={user.fullName}
                 description={`ID: ${user.id} • ${user.email}`}
-                icon={User}
+                icon={UserIcon}
                 actions={
                     <div className="flex gap-2">
                         <Button
@@ -194,7 +194,7 @@ export default function UserDetailPage() {
                         : 'text-gray-600 hover:text-[#2D1E1A]'
                         }`}
                 >
-                    <User className="h-4 w-4 inline-block mr-2" />
+                    <UserIcon className="h-4 w-4 inline-block mr-2" />
                     Thông tin cá nhân
                 </button>
                 <button
@@ -255,7 +255,7 @@ export default function UserDetailPage() {
 
                             <div className="space-y-3">
                                 <div className="flex items-start gap-3">
-                                    <User className="h-5 w-5 text-gray-400 mt-0.5" />
+                                    <UserIcon className="h-5 w-5 text-gray-400 mt-0.5" />
                                     <div>
                                         <p className="text-xs text-gray-500">Họ và tên</p>
                                         <p className="text-sm font-semibold text-[#2D1E1A]">{user.fullName}</p>

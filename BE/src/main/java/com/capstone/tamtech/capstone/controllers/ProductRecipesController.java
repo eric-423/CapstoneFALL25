@@ -3,6 +3,7 @@ package com.capstone.tamtech.capstone.controllers;
 import com.capstone.tamtech.capstone.dto.ProductRecipesDTO;
 import com.capstone.tamtech.capstone.payload.ResponseData;
 import com.capstone.tamtech.capstone.payload.request.ProductRecipesRequest;
+import com.capstone.tamtech.capstone.payload.request.ProductRecipesRequestForMany;
 import com.capstone.tamtech.capstone.services.impl.ProductRecipesService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -41,13 +42,12 @@ public class ProductRecipesController {
     }
 
     @PostMapping("/create-many/{productId}")
-    public ResponseEntity<?> createManyRecipeForOneProduct(@RequestBody List<ProductRecipesRequest> requests) {
+    public ResponseEntity<?> createManyRecipeForOneProduct(@PathVariable int productId, @RequestBody List<ProductRecipesRequestForMany> requests) {
         ResponseData responseData = new ResponseData();
+
         try {
-            List<ProductRecipesDTO> result = new ArrayList<>();
-            for (ProductRecipesRequest request : requests) {
-                result.add(productRecipesService.createRecipe(request));
-            }
+            List<ProductRecipesDTO> result = productRecipesService.createManyRecipes(productId, requests);
+
             responseData.setDesc("Created " + requests.size() + " recipe(s) successfully");
             responseData.setData(result);
             return new ResponseEntity<>(responseData, HttpStatus.CREATED);
@@ -60,14 +60,12 @@ public class ProductRecipesController {
     @PutMapping("/update-many/{productId}")
     public ResponseEntity<?> updateManyRecipeForOneProduct(
             @PathVariable int productId,
-            @RequestBody List<ProductRecipesRequest> requests) {
+            @RequestBody List<ProductRecipesRequestForMany> requests) {
         ResponseData responseData = new ResponseData();
         try {
-            List<ProductRecipesRequest> normalizedRequests = requests == null ? new ArrayList<>() : requests;
-            normalizedRequests.forEach(request -> request.setProductId(productId));
 
             List<ProductRecipesDTO> result = productRecipesService.updateManyRecipeForOneProduct(productId,
-                    normalizedRequests);
+                    requests);
             responseData.setDesc("Replaced recipe list with " + result.size() + " item(s)");
             responseData.setData(result);
             return new ResponseEntity<>(responseData, HttpStatus.OK);

@@ -3,7 +3,6 @@ import { cookies } from 'next/headers';
 
 const API_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
-// GET: Lấy role history của user
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ userId: string }> }
@@ -43,7 +42,6 @@ export async function GET(
         const data = await response.json();
         return NextResponse.json(data);
     } catch (error) {
-        console.error('Get Role History API Error:', error);
         return NextResponse.json(
             { error: error instanceof Error ? error.message : 'Failed to fetch role history' },
             { status: 500 }

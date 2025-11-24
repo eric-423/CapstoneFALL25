@@ -101,6 +101,22 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/nutrients/{id}").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(HttpMethod.DELETE, "/api/nutrients/{id}").hasAnyRole("ADMIN", "MANAGER")
 
+                        .requestMatchers(HttpMethod.GET, "/api/utensils-types")
+                        .hasAnyRole("MANAGER", "ADMIN", "CHEFF", "WAITER")
+                        .requestMatchers(HttpMethod.GET, "/api/utensils-types/{id}")
+                        .hasAnyRole("MANAGER", "ADMIN", "CHEFF", "WAITER")
+                        .requestMatchers(HttpMethod.POST, "/api/utensils-types").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.PUT, "/api/utensils-types/{id}").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/utensils-types/{id}").hasAnyRole("ADMIN", "MANAGER")
+
+                        .requestMatchers(HttpMethod.GET, "/api/cooking-utensils")
+                        .hasAnyRole("MANAGER", "ADMIN", "CHEFF", "WAITER")
+                        .requestMatchers(HttpMethod.GET, "/api/cooking-utensils/{id}")
+                        .hasAnyRole("MANAGER", "ADMIN", "CHEFF", "WAITER")
+                        .requestMatchers(HttpMethod.POST, "/api/cooking-utensils").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.PUT, "/api/cooking-utensils/{id}").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/cooking-utensils/{id}").hasAnyRole("ADMIN", "MANAGER")
+
                         .requestMatchers(HttpMethod.GET, "/api/units")
                         .hasAnyRole("MANAGER", "ADMIN", "CHEFF", "WAITER")
                         .requestMatchers(HttpMethod.GET, "/api/units/{id}")
@@ -136,6 +152,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/material-nutrients").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(HttpMethod.PUT, "/api/material-nutrients/**").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(HttpMethod.DELETE, "/api/material-nutrients/**").hasAnyRole("ADMIN", "MANAGER")
+
+                        .requestMatchers(HttpMethod.GET, "/api/trainings/me")
+                        .hasAnyRole("ADMIN", "MANAGER", "STAFF", "CHEFF", "WAITER")
+                        .requestMatchers(HttpMethod.GET, "/api/trainings/me/**")
+                        .hasAnyRole("ADMIN", "MANAGER", "STAFF", "CHEFF", "WAITER")
+                        .requestMatchers(HttpMethod.POST, "/api/trainings/me/**")
+                        .hasAnyRole("ADMIN", "MANAGER", "STAFF", "CHEFF", "WAITER")
 
                         .requestMatchers(HttpMethod.GET, "/api/trainings")
                         .hasAnyRole("MANAGER", "ADMIN", "CHEFF", "WAITER")
@@ -224,12 +247,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/orders/*/bill/regenerate")
                         .hasAnyRole("ADMIN", "MANAGER")
 
-                        .requestMatchers(HttpMethod.GET, "/api/trainings/me")
-                        .hasAnyRole("ADMIN", "MANAGER", "STAFF", "CHEFF", "WAITER")
-                        .requestMatchers(HttpMethod.GET, "/api/trainings/me/**")
-                        .hasAnyRole("ADMIN", "MANAGER", "STAFF", "CHEFF", "WAITER")
-                        .requestMatchers(HttpMethod.POST, "/api/trainings/me/**")
-                        .hasAnyRole("ADMIN", "MANAGER", "STAFF", "CHEFF", "WAITER")
                         .requestMatchers("/api/roles/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/roles/{roleId}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/roles/{roleId}").hasRole("ADMIN")
@@ -240,6 +257,15 @@ public class SecurityConfig {
                         .requestMatchers("/api/role-histories/**").hasRole("ADMIN")
 
                         .requestMatchers(HttpMethod.POST, "/api/orders").hasRole("CUSTOMER")
+
+                        .requestMatchers(HttpMethod.POST, "/api/attendance/check-in")
+                        .hasAnyRole("ADMIN", "MANAGER", "STAFF", "CHEFF", "WAITER", "SHIPPER")
+                        .requestMatchers(HttpMethod.POST, "/api/attendance/check-out")
+                        .hasAnyRole("ADMIN", "MANAGER", "STAFF", "CHEFF", "WAITER", "SHIPPER")
+                        .requestMatchers(HttpMethod.GET, "/api/attendance")
+                        .hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.GET, "/api/attendance/summary")
+                        .hasAnyRole("ADMIN", "MANAGER")
 
                         .anyRequest().authenticated());
 
