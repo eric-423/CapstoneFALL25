@@ -4,13 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
-public class MaterialNutrientRequest {
-    private String state;
-    private Double amountPer100Unit;
-    private List<Integer> nutrientIdList;
+public class UtensilsTypeRequest {
+    private String name;
+    private String description;
 }
+

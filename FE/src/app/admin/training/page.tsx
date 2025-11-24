@@ -67,19 +67,22 @@ import {
   AdminStatsCard,
   AdminStatsGrid,
 } from "../components/AdminPageLayout";
+import { uploadMediaToSupabase } from "@/components/common/upFileToSupabase";
 
 const TRAINING_PAGE_SIZE = 50;
 const TRAINING_LESSON_PAGE_SIZE = 5;
+const TRAINING_MEDIA_BUCKET =
+  process.env.NEXT_PUBLIC_SUPABASE_TRAINING_BUCKET;
 
 type RoleLike =
   | string
   | {
-      name?: string;
-      role?: string;
-      code?: string;
-      roleName?: string;
-      roleCode?: string;
-    };
+    name?: string;
+    role?: string;
+    code?: string;
+    roleName?: string;
+    roleCode?: string;
+  };
 
 interface MediaResource {
   url?: string;
@@ -235,10 +238,10 @@ const mapTrainingCourse = (item: TrainingApiItem): TrainingCourse => {
         typeof role === "string"
           ? role
           : role?.name ||
-              role?.role ||
-              role?.code ||
-              role?.roleName ||
-              role?.roleCode
+          role?.role ||
+          role?.code ||
+          role?.roleName ||
+          role?.roleCode
       )
     )
     .filter(isStaffRole);
@@ -260,22 +263,22 @@ const mapTrainingCourse = (item: TrainingApiItem): TrainingCourse => {
     documentUrl: item.documentUrl ?? item.documents?.[0]?.url,
     duration: Number(
       item.duration ??
-        item.durationMinutes ??
-        item.estimatedDuration ??
-        item.lessonCount ??
-        item.totalLessonPoint ??
-        0
+      item.durationMinutes ??
+      item.estimatedDuration ??
+      item.lessonCount ??
+      item.totalLessonPoint ??
+      0
     ),
     status: mapBackendStatusToCourseStatus(item.status, item.isActive),
     publishedAt: item.publishedAt ?? item.updateDate ?? item.createdAt,
     createdAt: item.createdAt ?? new Date().toISOString(),
     enrolledCount: Number(
       item.enrolledCount ??
-        item.totalEnrolled ??
-        item.totalLessonPoint ??
-        item.lessonCount ??
-        item.userTrainings?.length ??
-        0
+      item.totalEnrolled ??
+      item.totalLessonPoint ??
+      item.lessonCount ??
+      item.userTrainings?.length ??
+      0
     ),
     completedCount: Number(
       item.completedCount ?? item.totalCompleted ?? item.lessonCount ?? 0
@@ -290,10 +293,10 @@ const mapTrainingCourse = (item: TrainingApiItem): TrainingCourse => {
     roleId:
       Number(
         item.roleId ??
-          item.role?.id ??
-          item.role?.roleId ??
-          item.trainingRoleId ??
-          0
+        item.role?.id ??
+        item.role?.roleId ??
+        item.trainingRoleId ??
+        0
       ) || undefined,
     roleName:
       item.roleName ?? item.role?.name ?? item.role?.roleName ?? undefined,
@@ -404,6 +407,7 @@ export default function TrainingPage() {
     refLink: "",
     description: "",
   });
+  const [fileDocument, setFileDocument] = useState<File | null>(null);
   const [documentFormErrors, setDocumentFormErrors] = useState<
     Record<string, string>
   >({});
@@ -574,8 +578,8 @@ export default function TrainingPage() {
         selectedStatus === "all" ? true : course.status === selectedStatus;
       const matchesSearch = query
         ? course.name.toLowerCase().includes(query) ||
-          course.description.toLowerCase().includes(query) ||
-          (course.recipeName?.toLowerCase().includes(query) ?? false)
+        course.description.toLowerCase().includes(query) ||
+        (course.recipeName?.toLowerCase().includes(query) ?? false)
         : true;
       return matchesStatus && matchesSearch;
     });
@@ -768,6 +772,7 @@ export default function TrainingPage() {
     });
     setLessonFormErrors({});
     setLessonFormLoading(false);
+    setFileDocument(null);
   };
 
   const handleConfirmDelete = async () => {
@@ -780,9 +785,9 @@ export default function TrainingPage() {
       const payload = await deleteTraining(deleteDialog.training.id);
       const message =
         payload &&
-        typeof payload === "object" &&
-        "desc" in payload &&
-        typeof payload.desc === "string"
+          typeof payload === "object" &&
+          "desc" in payload &&
+          typeof payload.desc === "string"
           ? payload.desc
           : "Xoá khóa đào tạo thành công";
       console.info(message);
@@ -892,6 +897,7 @@ export default function TrainingPage() {
     setDocumentEditMode({ open: false, document: null });
     setDeletingDocumentId(null);
     setDocumentToDelete(null);
+    setFileDocument(null);
   };
 
   const openDocumentForm = () => {
@@ -899,6 +905,7 @@ export default function TrainingPage() {
     setDocumentFormErrors({});
     setDocumentEditMode({ open: false, document: null });
     setDocumentFormOpen(true);
+    setFileDocument(null);
   };
 
   const openDocumentEditForm = (document: LessonDocument) => {
@@ -910,6 +917,7 @@ export default function TrainingPage() {
     setDocumentFormErrors({});
     setDocumentFormOpen(false);
     setDocumentEditMode({ open: true, document });
+    setFileDocument(null);
   };
 
   const closeDocumentForm = () => {
@@ -917,17 +925,31 @@ export default function TrainingPage() {
     setDocumentForm({ name: "", refLink: "", description: "" });
     setDocumentFormErrors({});
     setDocumentEditMode({ open: false, document: null });
+    setFileDocument(null);
   };
 
   const validateDocumentForm = () => {
     const newErrors: Record<string, string> = {};
+    const isEditModeActive =
+      documentEditMode.open && documentEditMode.document !== null;
 
     if (!documentForm.name.trim())
       newErrors.name = "Vui lòng nhập tên tài liệu";
-    if (!documentForm.refLink.trim())
-      newErrors.refLink = "Vui lòng nhập link tài liệu";
     if (!documentForm.description.trim())
       newErrors.description = "Vui lòng nhập mô tả";
+
+    if (!isEditModeActive && !fileDocument) {
+      newErrors.file = "Vui lòng chọn file tài liệu";
+    }
+
+    if (
+      isEditModeActive &&
+      !fileDocument &&
+      !documentForm.refLink?.trim()
+    ) {
+      newErrors.file =
+        "Tài liệu hiện không có link hợp lệ, vui lòng chọn lại file";
+    }
 
     setDocumentFormErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -938,9 +960,81 @@ export default function TrainingPage() {
     if (!lessonDetailState.lesson) return;
     if (!validateDocumentForm()) return;
 
+    const MAX_SIZE = 50 * 1024 * 1024;
+    if (fileDocument && fileDocument.size > MAX_SIZE) {
+      setDocumentFormErrors({ file: "File không được vượt quá 50MB" });
+      return;
+    }
+
+    if (fileDocument) {
+      const hasDiacritics = /[^\x00-\x7F]/.test(fileDocument.name);
+
+      if (hasDiacritics) {
+        setDocumentFormErrors({
+          file: "Tên file không được chứa dấu. Vui lòng đổi tên không dấu.",
+        });
+        return;
+      }
+
+    }
+
+    setDocumentFormErrors({});
+    setDocumentFormLoading(true);
+
+    const bucketName = TRAINING_MEDIA_BUCKET;
+    if (!bucketName) {
+      setDocumentFormErrors({
+        form: "Chưa cấu hình bucket Supabase. Vui lòng kiểm tra biến môi trường.",
+      });
+      setDocumentFormLoading(false);
+      return;
+    }
+
+    let documentLink = documentForm.refLink?.trim() ?? "";
+    if (fileDocument) {
+      try {
+        const uploadResult = await uploadMediaToSupabase({
+          bucket: bucketName,
+          file: fileDocument,
+          // folder: `lesson-${lessonDetailState.lesson.id}`,
+          fileName: fileDocument.name,
+        });
+        documentLink = uploadResult.publicUrl;
+        setDocumentForm((prev) => ({
+          ...prev,
+          refLink: uploadResult.publicUrl,
+        }));
+
+
+      } catch (uploadError) {
+        console.log('djtmem', uploadError);
+        if (uploadError instanceof Error && uploadError.message.includes('The resource already exists')) {
+          setDocumentFormErrors({
+            form: "File này đã tồn tại. Không thể up file",
+          });
+          setDocumentFormLoading(false);
+          return;
+        } else {
+          setDocumentFormErrors({
+            form: "Không thể tải file. Vui lòng thử lại.",
+          })
+          setDocumentFormLoading(false);
+          return;
+        }
+      }
+    }
+
+    if (!documentLink) {
+      setDocumentFormErrors({
+        file: "Không tìm thấy link tài liệu. Vui lòng chọn lại file.",
+      });
+      setDocumentFormLoading(false);
+      return;
+    }
+
     const payload: CreateDocumentPayload = {
       name: documentForm.name.trim(),
-      refLink: documentForm.refLink.trim(),
+      refLink: documentLink,
       description: documentForm.description.trim(),
       lessonId: lessonDetailState.lesson.id,
     };
@@ -949,7 +1043,6 @@ export default function TrainingPage() {
       documentEditMode.open && documentEditMode.document !== null;
 
     try {
-      setDocumentFormLoading(true);
       if (isEditMode && documentEditMode.document) {
         await updateLessonDocument(documentEditMode.document.id, payload);
       } else {
@@ -984,6 +1077,7 @@ export default function TrainingPage() {
       setDocumentFormErrors({ form: serverDesc });
     } finally {
       setDocumentFormLoading(false);
+      setFileDocument(null);
     }
   };
 
@@ -1216,11 +1310,10 @@ export default function TrainingPage() {
                 variant={
                   selectedStatus === status.value ? "default" : "outline"
                 }
-                className={`rounded-xl font-semibold whitespace-nowrap transition-all ${
-                  selectedStatus === status.value
-                    ? "bg-gradient-to-r from-primary to-secondary text-white shadow-lg"
-                    : "border-2 border-gray-200 text-gray-600 hover:border-primary"
-                }`}
+                className={`rounded-xl font-semibold whitespace-nowrap transition-all ${selectedStatus === status.value
+                  ? "bg-gradient-to-r from-primary to-secondary text-white shadow-lg"
+                  : "border-2 border-gray-200 text-gray-600 hover:border-primary"
+                  }`}
               >
                 {status.label}
                 <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-white/20">
@@ -1486,11 +1579,10 @@ export default function TrainingPage() {
                         {detailState.training.name}
                       </h2>
                       <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                          detailState.training.isActive
-                            ? "bg-green-100 text-green-700"
-                            : "bg-gray-200 text-gray-600"
-                        }`}
+                        className={`px-3 py-1 rounded-full text-xs font-semibold ${detailState.training.isActive
+                          ? "bg-green-100 text-green-700"
+                          : "bg-gray-200 text-gray-600"
+                          }`}
                       >
                         {detailState.training.isActive
                           ? "Đang hoạt động"
@@ -1506,11 +1598,10 @@ export default function TrainingPage() {
                     {detailStats.map((stat) => (
                       <Card
                         key={stat.label}
-                        className={`p-4 border border-gray-100 shadow-none ${
-                          stat.isClickable
-                            ? "hover:border-orange-300 hover:shadow-sm transition-all"
-                            : ""
-                        }`}
+                        className={`p-4 border border-gray-100 shadow-none ${stat.isClickable
+                          ? "hover:border-orange-300 hover:shadow-sm transition-all"
+                          : ""
+                          }`}
                       >
                         <p className="text-xs uppercase text-gray-500 font-semibold">
                           {stat.label}
@@ -1566,11 +1657,10 @@ export default function TrainingPage() {
                         <button
                           type="button"
                           onClick={toggleIncludeDeletedLessons}
-                          className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
-                            lessonsPagination.includeDeleted
-                              ? "border-orange-300 text-orange-600 bg-orange-50"
-                              : "border-gray-200 text-gray-500 bg-white"
-                          }`}
+                          className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${lessonsPagination.includeDeleted
+                            ? "border-orange-300 text-orange-600 bg-orange-50"
+                            : "border-gray-200 text-gray-500 bg-white"
+                            }`}
                         >
                           {lessonsPagination.includeDeleted
                             ? "Hiện bài đang ẩn"
@@ -1815,7 +1905,7 @@ export default function TrainingPage() {
                                         const isEditingThisDoc =
                                           documentEditMode.open &&
                                           documentEditMode.document?.id ===
-                                            doc.id;
+                                          doc.id;
                                         return (
                                           <Card
                                             key={doc.id}
@@ -1873,33 +1963,44 @@ export default function TrainingPage() {
                                                     )}
                                                   </div>
                                                   <div className="space-y-1">
-                                                    <label className="text-xs font-semibold text-gray-700">
-                                                      Link tài liệu{" "}
-                                                      <span className="text-red-500">
-                                                        *
-                                                      </span>
+                                                    <label
+                                                      className="text-xs font-semibold text-gray-700"
+                                                      htmlFor="document-file-input-edit"
+                                                    >
+                                                      File tài liệu (tùy chọn)
                                                     </label>
-                                                    <Input
-                                                      placeholder="https://..."
-                                                      value={
-                                                        documentForm.refLink
-                                                      }
+                                                    <input
+                                                      type="file"
+                                                      accept="image/*,video/*,application/pdf"
+                                                      id="document-file-input-edit"
+                                                      aria-label="Tải file tài liệu (tùy chọn)"
                                                       onChange={(e) =>
-                                                        setDocumentForm(
-                                                          (prev) => ({
-                                                            ...prev,
-                                                            refLink:
-                                                              e.target.value,
-                                                          })
+                                                        setFileDocument(
+                                                          e.target.files?.[0] ?? null
                                                         )
                                                       }
-                                                      className={`h-9 text-sm border-2 ${documentFormErrors.refLink ? "border-red-400" : "border-gray-200"} focus:border-primary`}
+                                                      className="block w-full text-sm text-gray-700 border-2 border-gray-200 rounded-md cursor-pointer focus:border-primary file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90"
                                                     />
-                                                    {documentFormErrors.refLink && (
+                                                    {fileDocument && (
+                                                      <p className="text-xs text-gray-500">
+                                                        Đã chọn: {fileDocument.name}
+                                                      </p>
+                                                    )}
+                                                    {!fileDocument &&
+                                                      documentEditMode.document?.refLink && (
+                                                        <a
+                                                          href={documentEditMode.document.refLink}
+                                                          target="_blank"
+                                                          rel="noopener noreferrer"
+                                                          className="text-xs text-primary underline-offset-4 hover:underline inline-flex items-center gap-1"
+                                                        >
+                                                          Xem tài liệu hiện tại
+                                                          <ExternalLink size={12} />
+                                                        </a>
+                                                      )}
+                                                    {documentFormErrors.file && (
                                                       <p className="text-xs text-red-500">
-                                                        {
-                                                          documentFormErrors.refLink
-                                                        }
+                                                        {documentFormErrors.file}
                                                       </p>
                                                     )}
                                                   </div>
@@ -2002,16 +2103,16 @@ export default function TrainingPage() {
                                                       disabled={
                                                         documentFormOpen ||
                                                         deletingDocumentId ===
-                                                          doc.id ||
+                                                        doc.id ||
                                                         (documentEditMode.open &&
                                                           documentEditMode
                                                             .document?.id !==
-                                                            doc.id)
+                                                          doc.id)
                                                       }
                                                       className="border-2 border-primary text-primary hover:bg-primary hover:text-white font-semibold rounded-xl transition-all disabled:opacity-50"
                                                     >
                                                       {deletingDocumentId ===
-                                                      doc.id ? (
+                                                        doc.id ? (
                                                         <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                                                       ) : (
                                                         <>
@@ -2024,9 +2125,6 @@ export default function TrainingPage() {
                                                         </>
                                                       )}
                                                     </Button>
-                                                    <Button>
-                                                      <Users />
-                                                    </Button>
                                                     <Button
                                                       type="button"
                                                       size="sm"
@@ -2037,16 +2135,16 @@ export default function TrainingPage() {
                                                       disabled={
                                                         documentFormOpen ||
                                                         deletingDocumentId ===
-                                                          doc.id ||
+                                                        doc.id ||
                                                         (documentEditMode.open &&
                                                           documentEditMode
                                                             .document?.id !==
-                                                            doc.id)
+                                                          doc.id)
                                                       }
                                                       className="border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-semibold rounded-xl transition-all disabled:opacity-50"
                                                     >
                                                       {deletingDocumentId ===
-                                                      doc.id ? (
+                                                        doc.id ? (
                                                         <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
                                                       ) : (
                                                         <>
@@ -2130,26 +2228,35 @@ export default function TrainingPage() {
                                             )}
                                           </div>
                                           <div className="space-y-1">
-                                            <label className="text-xs font-semibold text-gray-700">
-                                              Link tài liệu{" "}
-                                              <span className="text-red-500">
-                                                *
-                                              </span>
+                                            <label
+                                              className="text-xs font-semibold text-gray-700"
+                                              htmlFor="document-file-input-create"
+                                            >
+                                              File tài liệu{" "}
+                                              <span className="text-red-500">*</span>
                                             </label>
-                                            <Input
-                                              placeholder="https://..."
-                                              value={documentForm.refLink}
+                                            <input
+                                              type="file"
+                                              accept="image/*,video/*,application/pdf"
+                                              id="document-file-input-create"
+                                              aria-label="Tải file tài liệu"
                                               onChange={(e) =>
-                                                setDocumentForm((prev) => ({
-                                                  ...prev,
-                                                  refLink: e.target.value,
-                                                }))
+                                                setFileDocument(e.target.files?.[0] ?? null)
                                               }
-                                              className={`h-9 text-sm border-2 ${documentFormErrors.refLink ? "border-red-400" : "border-gray-200"} focus:border-primary`}
+                                              className="block w-full text-sm text-gray-700 border-2 border-gray-200 rounded-md cursor-pointer focus:border-primary file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90"
                                             />
-                                            {documentFormErrors.refLink && (
+                                            {fileDocument ? (
+                                              <p className="text-xs text-gray-500">
+                                                Đã chọn: {fileDocument.name}
+                                              </p>
+                                            ) : (
+                                              <p className="text-xs text-gray-500">
+                                                Upload file để hệ thống tự tạo đường dẫn Supabase.
+                                              </p>
+                                            )}
+                                            {documentFormErrors.file && (
                                               <p className="text-xs text-red-500">
-                                                {documentFormErrors.refLink}
+                                                {documentFormErrors.file}
                                               </p>
                                             )}
                                           </div>
@@ -2641,13 +2748,12 @@ export default function TrainingPage() {
                           }
                           setSelectedUserIds(newSelected);
                         }}
-                        className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                          isSelected
-                            ? "border-orange-500 bg-orange-50"
-                            : "border-brown-200 hover:border-orange-300 hover:bg-brown-50"
-                        }`}
+                        className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${isSelected
+                          ? "border-orange-500 bg-orange-50"
+                          : "border-brown-200 hover:border-orange-300 hover:bg-brown-50"
+                          }`}
                       >
-                        <input
+                        <Input
                           type="checkbox"
                           checked={isSelected}
                           onChange={() => {
@@ -2768,7 +2874,7 @@ export default function TrainingPage() {
                           if (
                             detailState.training &&
                             assignUserDialog.trainingId ===
-                              detailState.training.id
+                            detailState.training.id
                           ) {
                             try {
                               const usersResponse = await getTrainingUsers(

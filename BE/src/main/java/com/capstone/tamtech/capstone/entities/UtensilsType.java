@@ -19,6 +19,9 @@ public class UtensilsType {
     @Column(name = "utensils_type_name")
     private String name;
 
+    @Column(name = "utensils_type_description")
+    private String description;
+
     @OneToMany(mappedBy = "utensilsType", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE,CascadeType.REFRESH,CascadeType.DETACH})
     private List<CookingUtensil> cookingUtensils;
 
