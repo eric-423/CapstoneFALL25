@@ -81,13 +81,34 @@ public class ProductRecipesServiceImpl implements ProductRecipesService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Cooking Method not found with id: " + request.getCookingMethodId()));
 
+        // Check if product already has recipes (warning only - allow creation)
+        boolean productHasRecipes = productRecipesRepository.existsByProductId(request.getProductId());
+        if (productHasRecipes) {
+            // Log or handle warning if needed, but allow creation
+        }
+
+        // Validate orderStep if provided
+        Integer orderStep = request.getOrderStep() != null && request.getOrderStep() > 0 
+                ? request.getOrderStep() 
+                : null;
+        
+        if (orderStep != null) {
+            // Check for duplicate orderStep for the same product
+            boolean duplicateOrderStep = productRecipesRepository.existsByProductIdAndOrderStep(
+                    request.getProductId(), orderStep);
+            if (duplicateOrderStep) {
+                throw new IllegalArgumentException(
+                        "Product với id " + request.getProductId() + 
+                        " đã có công thức với orderStep " + orderStep + ". Vui lòng chọn orderStep khác.");
+            }
+        }
+
         ProductRecipes recipe = new ProductRecipes();
         recipe.setProduct(product);
         recipe.setMaterial(material);
         recipe.setCookingMethod(cookingMethod);
         recipe.setQuantity(request.getQuantity());
-        recipe.setOrderStep(
-                request.getOrderStep() != null && request.getOrderStep() > 0 ? request.getOrderStep() : null);
+        recipe.setOrderStep(orderStep);
 
         ProductRecipes saved = productRecipesRepository.save(recipe);
 
@@ -97,13 +118,39 @@ public class ProductRecipesServiceImpl implements ProductRecipesService {
     }
 
     @Override
+    @Transactional
     public List<ProductRecipesDTO> createManyRecipes(int productId, List<ProductRecipesRequestForMany> requests) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Product not found with id: " + productId));
+
+        // Check for duplicate orderSteps within the request list
+        List<Integer> orderSteps = new ArrayList<>();
+        for (ProductRecipesRequestForMany request : requests) {
+            Integer orderStep = request.getOrderStep() != null && request.getOrderStep() > 0 
+                    ? request.getOrderStep() 
+                    : null;
+            if (orderStep != null) {
+                if (orderSteps.contains(orderStep)) {
+                    throw new IllegalArgumentException(
+                            "Trong danh sách công thức mới có trùng orderStep " + orderStep + 
+                            ". Vui lòng sửa lại orderStep cho các công thức.");
+                }
+                orderSteps.add(orderStep);
+                
+                // Check if product already has recipe with this orderStep
+                boolean duplicateOrderStep = productRecipesRepository.existsByProductIdAndOrderStep(
+                        productId, orderStep);
+                if (duplicateOrderStep) {
+                    throw new IllegalArgumentException(
+                            "Product với id " + productId + 
+                            " đã có công thức với orderStep " + orderStep + ". Vui lòng chọn orderStep khác.");
+                }
+            }
+        }
+
         List<ProductRecipesDTO> result = new ArrayList<>();
         for (ProductRecipesRequestForMany request : requests) {
-            Product product = productRepository.findById(productId)
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "Product not found with id: " + productId));
-
             Material material = materialRepository.findById(request.getMaterialId())
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "Material not found with id: " + request.getMaterialId()));
@@ -121,6 +168,7 @@ public class ProductRecipesServiceImpl implements ProductRecipesService {
                     request.getOrderStep() != null && request.getOrderStep() > 0 ? request.getOrderStep() : null);
 
             ProductRecipes saved = productRecipesRepository.save(recipe);
+            result.add(toDTO(saved));
 
             productService.reCalculateCaloriesForProduct(saved.getProduct().getId());
         }
@@ -146,12 +194,30 @@ public class ProductRecipesServiceImpl implements ProductRecipesService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Cooking Method not found with id: " + request.getCookingMethodId()));
 
+        // Validate orderStep if provided - check for duplicates excluding current recipe
+        Integer orderStep = request.getOrderStep() != null && request.getOrderStep() > 0 
+                ? request.getOrderStep() 
+                : null;
+        
+        if (orderStep != null) {
+            // Check for duplicate orderStep for the same product, excluding current recipe
+            List<ProductRecipes> existingRecipes = productRecipesRepository.findByProductIdAndOrderStep(
+                    request.getProductId(), orderStep);
+            // Filter out current recipe
+            boolean duplicateOrderStep = existingRecipes.stream()
+                    .anyMatch(r -> r.getId() != id);
+            if (duplicateOrderStep) {
+                throw new IllegalArgumentException(
+                        "Product với id " + request.getProductId() + 
+                        " đã có công thức khác với orderStep " + orderStep + ". Vui lòng chọn orderStep khác.");
+            }
+        }
+
         recipe.setProduct(product);
         recipe.setMaterial(material);
         recipe.setCookingMethod(cookingMethod);
         recipe.setQuantity(request.getQuantity());
-        recipe.setOrderStep(
-                request.getOrderStep() != null && request.getOrderStep() > 0 ? request.getOrderStep() : null);
+        recipe.setOrderStep(orderStep);
 
         ProductRecipes updated = productRecipesRepository.save(recipe);
 
@@ -186,6 +252,22 @@ public class ProductRecipesServiceImpl implements ProductRecipesService {
 
         if (requests == null || requests.isEmpty()) {
             return List.of();
+        }
+
+        // Check for duplicate orderSteps within the request list
+        List<Integer> orderSteps = new ArrayList<>();
+        for (ProductRecipesRequestForMany request : requests) {
+            Integer orderStep = request.getOrderStep() != null && request.getOrderStep() > 0 
+                    ? request.getOrderStep() 
+                    : null;
+            if (orderStep != null) {
+                if (orderSteps.contains(orderStep)) {
+                    throw new IllegalArgumentException(
+                            "Trong danh sách công thức mới có trùng orderStep " + orderStep + 
+                            ". Vui lòng sửa lại orderStep cho các công thức.");
+                }
+                orderSteps.add(orderStep);
+            }
         }
 
         List<ProductRecipes> recipesToSave = new ArrayList<>();

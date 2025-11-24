@@ -132,7 +132,6 @@ public class MaterialServiceImpl implements MaterialService {
         material.setName(request.getName());
         material.setUnits(unitsRepository.findById(request.getUnitId())
                 .orElseThrow(() -> new ResourceNotFoundException("Units not found")));
-        material.setThreshold(request.getThreshold());
         material.setMaterialType(materialType);
         material.setIsDeleted(Boolean.FALSE);
 
@@ -160,9 +159,7 @@ public class MaterialServiceImpl implements MaterialService {
                     .orElseThrow(() -> new ResourceNotFoundException("Units not found")));
         }
 
-        if (request.getThreshold() != null) {
-            material.setThreshold(request.getThreshold());
-        }
+        // Threshold is now managed at MaterialWarehouse level, not Material level
 
         if (request.getMaterialTypeId() != null) {
             MaterialType materialType = materialTypeRepository.findById(request.getMaterialTypeId())
@@ -199,7 +196,7 @@ public class MaterialServiceImpl implements MaterialService {
         dto.setId(material.getId());
         dto.setName(material.getName());
         dto.setUnitId(material.getUnits().getId());
-        dto.setThreshold(material.getThreshold());
+        dto.setThreshold(null); // Threshold is now at MaterialWarehouse level
         dto.setIsDeleted(material.getIsDeleted());
 
         double totalQuantity = 0.0;
