@@ -61,7 +61,6 @@ public class MaterialNutrientServiceImpl implements MaterialNutrientService {
         materialNutrient.setKeyMaterialNutrient(key);
         materialNutrient.setMaterial(material);
         materialNutrient.setNutrient(nutrient);
-        materialNutrient.setState(request.getState());
         materialNutrient.setAmountPer100Unit(request.getAmountPer100Unit());
 
         materialNutritionRepository.save(materialNutrient);
@@ -80,7 +79,6 @@ public class MaterialNutrientServiceImpl implements MaterialNutrientService {
         MaterialNutrients materialNutrient = materialNutritionRepository.findById(key)
                 .orElseThrow(() -> new ResourceNotFoundException("Material Nutrient not found"));
 
-        materialNutrient.setState(request.getState());
         materialNutrient.setAmountPer100Unit(request.getAmountPer100Unit());
 
         materialNutritionRepository.save(materialNutrient);
@@ -100,7 +98,6 @@ public class MaterialNutrientServiceImpl implements MaterialNutrientService {
             MaterialNutrients materialNutrient = materialNutritionRepository.findById(key)
                     .orElseThrow(() -> new ResourceNotFoundException("Material Nutrient not found for nutrient id: " + item.getNutrientId()));
 
-            materialNutrient.setState(item.getState());
             materialNutrient.setAmountPer100Unit(item.getAmountPer100Unit());
 
             materialNutritionRepository.save(materialNutrient);
@@ -188,7 +185,6 @@ public class MaterialNutrientServiceImpl implements MaterialNutrientService {
         dto.setMaterialName(materialNutrient.getMaterial().getName());
         dto.setNutrientId(materialNutrient.getNutrient().getId());
         dto.setNutrientName(materialNutrient.getNutrient().getName());
-        dto.setState(materialNutrient.getState());
         dto.setAmountPer100Unit(materialNutrient.getAmountPer100Unit());
         return dto;
     }
