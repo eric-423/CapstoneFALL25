@@ -514,6 +514,98 @@ export const getMyLessonDocuments = async (
   return data;
 };
 
+export interface StartLessonResponse {
+  status: number;
+  desc: string;
+  data: {
+    lessonId: number;
+    title: string;
+    description: string;
+    content: string;
+    videoUrl: string | null;
+    point: number;
+    orderIndex: number;
+    isLearned: boolean;
+    startDate: string;
+    completedAt: string | null;
+  };
+}
+
+export const startLesson = async (
+  userTrainingId: number,
+  lessonId: number
+): Promise<StartLessonResponse> => {
+  const response = await fetch(
+    `/api/user-trainings/me/user-trainings/${userTrainingId}/lessons/${lessonId}/start`,
+    {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw {
+      response: {
+        data,
+        status: response.status,
+      },
+    };
+  }
+
+  return data;
+};
+
+export interface CompleteLessonResponse {
+  status: number;
+  desc: string;
+  data: {
+    lessonId: number;
+    title: string;
+    description: string;
+    content: string;
+    videoUrl: string | null;
+    point: number;
+    orderIndex: number;
+    isLearned: boolean;
+    startDate: string;
+    completedAt: string;
+  };
+}
+
+export const completeLesson = async (
+  userTrainingId: number,
+  lessonId: number
+): Promise<CompleteLessonResponse> => {
+  const response = await fetch(
+    `/api/user-trainings/me/user-trainings/${userTrainingId}/lessons/${lessonId}/complete`,
+    {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw {
+      response: {
+        data,
+        status: response.status,
+      },
+    };
+  }
+
+  return data;
+};
+
 export const createLessonDocument = async (
   lessonId: number,
   payload: CreateDocumentPayload
