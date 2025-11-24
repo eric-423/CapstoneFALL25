@@ -17,4 +17,10 @@ public interface ProductRecipesRepository extends JpaRepository<ProductRecipes, 
     List<ProductRecipes> findByMaterialId(int materialId);
 
     List<ProductRecipes> findByCookingMethodId(int cookingMethodId);
+
+    boolean existsByProductId(int productId);
+
+    boolean existsByProductIdAndOrderStep(int productId, Integer orderStep);
+
+    List<ProductRecipes> findByProductIdAndOrderStep(int productId, Integer orderStep);
 }

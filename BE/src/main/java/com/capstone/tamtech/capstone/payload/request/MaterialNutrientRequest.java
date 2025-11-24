@@ -12,5 +12,5 @@ import java.util.List;
 public class MaterialNutrientRequest {
     private String state;
     private Double amountPer100Unit;
-    private List<Integer> nutrientIdList;
+    private Integer nutrientId;
 }

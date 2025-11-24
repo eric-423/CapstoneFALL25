@@ -461,14 +461,14 @@ public class OrderServiceImpl implements OrderService {
         double subTotal = 0.0;
         Date now = new Date();
         if (waiterConfirmOrderRequest.getOrderItems() != null) {
-            for (OrderItem incoming : waiterConfirmOrderRequest.getOrderItems()) {
-                boolean hasCombo = incoming.getCombo() != null && incoming.getCombo().getId() > 0;
-                boolean hasProduct = incoming.getProduct() != null && incoming.getProduct().getId() > 0;
+            for (OrderItemRequest incoming : waiterConfirmOrderRequest.getOrderItems()) {
+                boolean hasCombo = incoming.getComboId() != 0;
+                boolean hasProduct = incoming.getProductId()!=0;
 
                 if (hasProduct) {
                     OrderItem newItem = new OrderItem();
                     newItem.setOrder(order);
-                    productRepository.findById(incoming.getProduct().getId()).ifPresent(newItem::setProduct);
+                    productRepository.findById(incoming.getProductId()).ifPresent(newItem::setProduct);
                     int qty = Math.max(0, incoming.getQuantity());
                     newItem.setQuantity(qty);
                     double unitPrice = newItem.getProduct() != null ? newItem.getProduct().getPrice() : 0.0;
@@ -484,7 +484,7 @@ public class OrderServiceImpl implements OrderService {
                 if (hasCombo) {
                     OrderItem newItem = new OrderItem();
                     newItem.setOrder(order);
-                    comboRepository.findById(incoming.getCombo().getId()).ifPresent(newItem::setCombo);
+                    comboRepository.findById(incoming.getComboId()).ifPresent(newItem::setCombo);
                     int qty = Math.max(0, incoming.getQuantity());
                     newItem.setQuantity(qty);
                     Double unitPrice = newItem.getCombo() != null ? newItem.getCombo().getPrice() : 0.0;
@@ -514,15 +514,15 @@ public class OrderServiceImpl implements OrderService {
         List<OrderItem> orderItems = order.getOrderItems();
 
         if (waiterConfirmOrderRequest.getOrderItems() != null) {
-            for (OrderItem incoming : waiterConfirmOrderRequest.getOrderItems()) {
+            for (OrderItemRequest incoming : waiterConfirmOrderRequest.getOrderItems()) {
                 for (OrderItem existing : orderItems) {
                     boolean match = false;
-                    if (existing.getProduct() != null && incoming.getProduct() != null &&
-                            existing.getProduct().getId() == incoming.getProduct().getId()) {
+                    if (existing.getProduct() != null && incoming.getProductId() != 0 &&
+                            existing.getProduct().getId() == incoming.getProductId()) {
                         match = true;
                     }
-                    if (existing.getCombo() != null && incoming.getCombo() != null &&
-                            existing.getCombo().getId() == incoming.getCombo().getId()) {
+                    if (existing.getCombo() != null && incoming.getComboId() != 0 &&
+                            existing.getCombo().getId() == incoming.getComboId()) {
                         match = true;
                     }
                     if (match) {

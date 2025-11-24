@@ -6,17 +6,11 @@ import { APP_COLOR, APP_FONT } from "@/constants/Colors";
 import { useCurrentApp } from "@/context/app.context";
 import { typography } from "@/themes/typography";
 import { LoginShipper } from "@/utils/api";
-import {
-  authenticateWithBiometric,
-  checkBiometricAuth,
-} from "@/utils/biometric";
 import { StaffSignInSchema } from "@/utils/validate.schema";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { Formik } from "formik";
 import { useEffect, useState } from "react";
 import {
-  Alert,
   Image,
   Pressable,
   ScrollView,
@@ -72,32 +66,6 @@ const WelcomePage = () => {
     }
     prepare();
   }, []);
-  const handleQuickLogin = async () => {
-    try {
-      const token = await AsyncStorage.getItem("access_token");
-      if (token) {
-        const isBiometricAuth = await checkBiometricAuth();
-        if (isBiometricAuth) {
-          const authenticated = await authenticateWithBiometric();
-          if (authenticated) {
-            router.replace("/(shippers)");
-          } else {
-            console.log("Xác thực không thành công.");
-          }
-        } else {
-          console.log("Không có phương thức xác thực vân tay.");
-        }
-      } else {
-        Alert.alert(
-          "Đăng nhập quá hạn",
-          "Hãy đăng nhập để sử dụng tính năng này"
-        );
-      }
-    } catch (error) {
-      console.error("Lỗi đăng nhập vân tay:", error);
-    }
-  };
-
   const handleForgotPassword = async (email: string) => {
     try {
       // Uncomment and implement your forgot password API
@@ -186,19 +154,12 @@ const WelcomePage = () => {
                       </Pressable>
                     )}
                     <View style={{ height: 10 }} />
-                    <View style={{ flexDirection: "row", marginTop: 10 }}>
+                    <View style={{ marginTop: 10 }}>
                       <ShareButton
                         title="Đăng nhập"
                         onPress={handleSubmit}
                         textStyle={styles.loginBtnText}
                         btnStyle={styles.loginBtn}
-                        pressStyle={{ alignSelf: "stretch" }}
-                      />
-                      <ShareButton
-                        title=" "
-                        onPress={handleQuickLogin}
-                        textStyle={styles.loginBtnText}
-                        btnStyle={styles.loginBtnFast}
                         pressStyle={{ alignSelf: "stretch" }}
                       />
                     </View>
@@ -260,14 +221,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     backgroundColor: "#EC6426",
     marginHorizontal: "auto",
-  },
-  loginBtnFast: {
-    width: 50,
-    height: 50,
-    borderRadius: 50,
-    paddingVertical: 10,
-    marginLeft: 20,
-    backgroundColor: "#EC6426",
   },
   normalText: {
     ...typography.bodyMedium,

@@ -19,9 +19,6 @@ public class Material {
     @Column(name = "material_name")
     private String name;
 
-    @Column(name = "threshold")
-    private Double threshold;
-
     @Column(name = "is_deleted")
     private Boolean isDeleted = false;
 

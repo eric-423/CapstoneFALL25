@@ -18,5 +18,6 @@ public class AddMaterialToWarehouseRequest {
     public static class MaterialItem {
         private int materialId;
         private double quantity;
+        private Double threshold;
     }
 }
