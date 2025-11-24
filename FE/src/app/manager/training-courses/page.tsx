@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle,
   BookOpenCheck,
@@ -13,6 +14,7 @@ import {
 
 import {
   getMyTrainning,
+  enrollCourse,
   type MyTrainingStatus,
   type TrainingResponse,
 } from "@/apis/trainning.api";
@@ -38,10 +40,6 @@ const STATUS_CONFIG: Record<
     label: "Hoàn thành",
     className: "bg-green-100 text-green-700 border-green-200",
   },
-  FAILED: {
-    label: "Không đạt",
-    className: "bg-red-100 text-red-700 border-red-200",
-  },
 };
 
 interface TrainingCardData {
@@ -62,7 +60,6 @@ const STATUS_TABS: { label: string; value: TrainingStatusFilter }[] = [
   { label: STATUS_CONFIG.NOT_STARTED.label, value: "NOT_STARTED" },
   { label: STATUS_CONFIG.IN_PROGRESS.label, value: "IN_PROGRESS" },
   { label: STATUS_CONFIG.COMPLETED.label, value: "COMPLETED" },
-  { label: STATUS_CONFIG.FAILED.label, value: "FAILED" },
 ];
 
 const GRADIENTS = [
@@ -232,6 +229,8 @@ const formatDate = (value?: string) => {
 
 export default function ManagerTrainingCoursesPage() {
   const [statusFilter, setStatusFilter] = useState<TrainingStatusFilter>("ALL");
+  const queryClient = useQueryClient();
+  const router = useRouter();
 
   const { data, isLoading, isFetching, error, refetch } =
     useQuery<TrainingResponse>({
@@ -243,14 +242,34 @@ export default function ManagerTrainingCoursesPage() {
       staleTime: 60_000,
     });
 
+  const enrollMutation = useMutation({
+    mutationFn: enrollCourse,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["manager-training-courses"],
+      });
+      refetch();
+    },
+  });
+
   const courses = useMemo<TrainingCardData[]>(() => {
     const rootPayload = data?.data ?? data;
     return unwrapTrainingItems(rootPayload).map(normalizeTraining);
   }, [data]);
 
+  const filteredCourses = useMemo(() => {
+    if (statusFilter === "ALL") {
+      return courses;
+    }
+    return courses.filter((course) => {
+      const courseStatus = course.status.toUpperCase();
+      return courseStatus === statusFilter.toUpperCase();
+    });
+  }, [courses, statusFilter]);
+
   const sortedCourses = useMemo(
     () =>
-      [...courses].sort((a, b) => {
+      [...filteredCourses].sort((a, b) => {
         if (a.progress === b.progress) {
           return (
             (b.lastUpdated?.localeCompare(a.lastUpdated ?? "") ?? 0) ||
@@ -259,7 +278,7 @@ export default function ManagerTrainingCoursesPage() {
         }
         return b.progress - a.progress;
       }),
-    [courses]
+    [filteredCourses]
   );
 
   const errorMessage =
@@ -444,18 +463,46 @@ export default function ManagerTrainingCoursesPage() {
                   </div>
                 </div>
 
-                <div>
-                  <div className="flex items-center justify-between text-sm font-medium text-slate-700 mb-2">
-                    <span>Learning Path Progress</span>
-                    <span>{Math.round(course.progress)}%</span>
+                {course.status === "NOT_STARTED" ? (
+                  <div className="mt-auto">
+                    <Button
+                      onClick={() => enrollMutation.mutate(course.id)}
+                      disabled={enrollMutation.isPending}
+                      className="w-full bg-gradient-to-r from-[#F97316] to-[#EC6426] hover:from-[#EC6426] hover:to-[#F97316] text-white font-semibold py-3 rounded-xl shadow-lg transition-all duration-300"
+                    >
+                      {enrollMutation.isPending ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Đang đăng ký...
+                        </>
+                      ) : (
+                        "Đăng ký khóa học"
+                      )}
+                    </Button>
                   </div>
-                  <div className="h-3 rounded-full bg-white/50 border border-white overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-[#FACC15] via-[#F97316] to-[#EC6426] transition-all duration-500"
-                      style={{ width: `${course.progress}%` }}
-                    ></div>
+                ) : (
+                  <div className="space-y-3 mt-auto">
+                    <div>
+                      <div className="flex items-center justify-between text-sm font-medium text-slate-700 mb-2">
+                        <span>Learning Path Progress</span>
+                        <span>{Math.round(course.progress)}%</span>
+                      </div>
+                      <div className="h-3 rounded-full bg-white/50 border border-white overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-[#FACC15] via-[#F97316] to-[#EC6426] transition-all duration-500"
+                          style={{ width: `${course.progress}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => router.push(`/training/${course.id}`)}
+                      className="w-full bg-gradient-to-r from-[#3B82F6] to-[#2563EB] hover:from-[#2563EB] hover:to-[#3B82F6] text-white font-semibold py-3 rounded-xl shadow-lg transition-all duration-300"
+                    >
+                      <BookOpenCheck className="w-4 h-4 mr-2" />
+                      Vào bài học
+                    </Button>
                   </div>
-                </div>
+                )}
               </div>
             );
           })}
