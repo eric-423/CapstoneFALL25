@@ -18,12 +18,9 @@ public interface ProductRecipesRepository extends JpaRepository<ProductRecipes, 
 
     List<ProductRecipes> findByCookingMethodId(int cookingMethodId);
 
-    // Check if a product has recipes
     boolean existsByProductId(int productId);
 
-    // Check if orderStep already exists for a product (excluding current recipe if updating)
     boolean existsByProductIdAndOrderStep(int productId, Integer orderStep);
 
-    // Find recipe by product and orderStep (excluding current recipe if updating)
     List<ProductRecipes> findByProductIdAndOrderStep(int productId, Integer orderStep);
 }

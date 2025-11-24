@@ -159,8 +159,6 @@ public class MaterialServiceImpl implements MaterialService {
                     .orElseThrow(() -> new ResourceNotFoundException("Units not found")));
         }
 
-        // Threshold is now managed at MaterialWarehouse level, not Material level
-
         if (request.getMaterialTypeId() != null) {
             MaterialType materialType = materialTypeRepository.findById(request.getMaterialTypeId())
                     .orElseThrow(() -> new ResourceNotFoundException("Material type not found"));

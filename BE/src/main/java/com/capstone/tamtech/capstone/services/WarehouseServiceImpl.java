@@ -67,7 +67,7 @@ public class WarehouseServiceImpl implements WarehouseService {
                 dto.setMaterialId(mw.getMaterial().getId());
                 dto.setMaterialName(mw.getMaterial().getName());
                 dto.setUnit(mw.getMaterial().getUnits().getName());
-                dto.setThreshold(mw.getThreshold()); // Threshold is now at MaterialWarehouse level
+                dto.setThreshold(mw.getThreshold());
                 if (mw.getMaterial().getMaterialType() != null) {
                     dto.setMaterialTypeName(mw.getMaterial().getMaterialType().getName());
                 }
@@ -139,10 +139,9 @@ public class WarehouseServiceImpl implements WarehouseService {
                 materialWarehouse.setWarehouse(warehouse);
                 materialWarehouse.setMaterial(material);
                 materialWarehouse.setQuantity(item.getQuantity());
-                materialWarehouse.setThreshold(item.getThreshold()); // Set threshold from request
+                materialWarehouse.setThreshold(item.getThreshold());
             } else {
                 materialWarehouse.setQuantity(materialWarehouse.getQuantity() + item.getQuantity());
-                // Update threshold if provided
                 if (item.getThreshold() != null) {
                     materialWarehouse.setThreshold(item.getThreshold());
                 }
@@ -156,7 +155,7 @@ public class WarehouseServiceImpl implements WarehouseService {
             dto.setMaterialId(material.getId());
             dto.setMaterialName(material.getName());
             dto.setUnit(material.getUnits().getName());
-            dto.setThreshold(materialWarehouse.getThreshold()); // Threshold is now at MaterialWarehouse level
+            dto.setThreshold(materialWarehouse.getThreshold());
             if (material.getMaterialType() != null) {
                 dto.setMaterialTypeName(material.getMaterialType().getName());
             }
