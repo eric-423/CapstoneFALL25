@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 public class MaterialNutrientCreateRequest {
-    private String state;
     private Double amountPer100Unit;
     private int materialId;
     private int nutrientId;

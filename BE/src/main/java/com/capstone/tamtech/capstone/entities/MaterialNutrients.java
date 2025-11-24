@@ -24,8 +24,6 @@ public class MaterialNutrients {
     @JoinColumn(name = "nutrient_id", insertable = false, updatable = false)
     private Nutrients nutrient;
 
-    @Column(name = "state")
-    private String state;
 
     @Column(name = "amount_per_100_unit")
     private Double amountPer100Unit;
