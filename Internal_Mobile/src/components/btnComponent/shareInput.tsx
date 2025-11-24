@@ -203,6 +203,7 @@ const ShareInput = (props: IProps) => {
 const styles = StyleSheet.create({
   inputGroup: {
     gap: 5,
+    width: 250,
   },
   text: {
     fontSize: 20,

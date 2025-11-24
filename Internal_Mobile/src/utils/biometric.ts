@@ -1,5 +1,5 @@
-import * as LocalAuthentication from "expo-local-authentication";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as LocalAuthentication from "expo-local-authentication";
 
 export const isBiometricAvailable = async () => {
   const compatible = await LocalAuthentication.hasHardwareAsync();
@@ -7,12 +7,24 @@ export const isBiometricAvailable = async () => {
   return compatible && enrolled;
 };
 
+export const supportsFingerprint = async () => {
+  try {
+    const types = await LocalAuthentication.supportedAuthenticationTypesAsync();
+    return types.includes(LocalAuthentication.AuthenticationType.FINGERPRINT);
+  } catch (error) {
+    console.error("Fingerprint support check error:", error);
+    return false;
+  }
+};
+
 export const authenticateWithBiometric = async () => {
   try {
     const result = await LocalAuthentication.authenticateAsync({
-      promptMessage: "Xác thực vân tay để đăng nhập",
+      promptMessage: "Mở khóa bằng vân tay để đăng nhập",
       fallbackLabel: "Sử dụng mật khẩu",
+      cancelLabel: "Huỷ",
       disableDeviceFallback: false,
+      requireConfirmation: false,
     });
 
     if (result.success) {
