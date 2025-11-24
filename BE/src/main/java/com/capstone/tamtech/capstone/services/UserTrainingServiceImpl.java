@@ -383,6 +383,7 @@ public class UserTrainingServiceImpl implements UserTrainingService {
         return UserTrainingDTO.builder()
                 .id(userTraining.getId())
                 .trainingId(training.getId())
+                .userTrainingId(userTraining.getId())
                 .trainingName(training.getName())
                 .trainingPoint(trainingPoint)
                 .userId(userTraining.getUser().getId())
