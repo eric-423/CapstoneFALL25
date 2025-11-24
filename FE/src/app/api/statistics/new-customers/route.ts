@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
     try {
@@ -52,5 +52,6 @@ export async function GET(request: NextRequest) {
             { error: error instanceof Error ? error.message : 'Failed to fetch new customers statistics' },
             { status: 500 }
         );
+
     }
 }

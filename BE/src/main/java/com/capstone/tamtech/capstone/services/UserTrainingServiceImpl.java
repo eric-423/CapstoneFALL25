@@ -402,4 +402,53 @@ public class UserTrainingServiceImpl implements UserTrainingService {
                 .isPassed(Boolean.TRUE.equals(userTraining.getIsPassed()))
                 .build();
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserManagementDTO> getAvailableUsersForTraining(int trainingId, Integer branchId) {
+        Trainings training = trainingRepository.findById(trainingId)
+                .orElseThrow(() -> new ResourceNotFoundException("Training not found"));
+
+        Integer requiredRoleId = training.getRole() != null ? training.getRole().getId() : null;
+        if (requiredRoleId == null) {
+            throw new IllegalArgumentException("Training does not have an assigned role");
+        }
+
+        List<Users> eligibleUsers = roleHistoryRepository.findActiveUsersByRoleAndBranch(
+                requiredRoleId,
+                branchId);
+
+        Set<Integer> assignedUserIds = userTrainingRepository.findByTraining_Id(trainingId)
+                .stream()
+                .map(ut -> ut.getUser().getId())
+                .collect(Collectors.toSet());
+
+        List<Users> availableUsers = eligibleUsers.stream()
+                .filter(user -> !assignedUserIds.contains(user.getId()))
+                .filter(user -> user.getIsBan() == null || !user.getIsBan())
+                .toList();
+
+        return availableUsers.stream()
+                .map(this::toUserManagementDTO)
+                .toList();
+    }
+
+    private UserManagementDTO toUserManagementDTO(Users user) {
+        UserManagementDTO dto = new UserManagementDTO();
+        dto.setId(user.getId());
+        dto.setFullName(user.getFullName());
+        dto.setAddress(user.getAddress());
+        dto.setPhoneNumber(user.getPhoneNumber());
+        dto.setEmail(user.getEmail());
+        dto.setDateOfBirth(user.getDateOfBirth());
+        dto.setNote(user.getNote());
+        dto.setIsBan(user.getIsBan());
+        dto.setCreatedAt(user.getCreatedAt());
+        dto.setMemberPoint(user.getMemberPoint());
+        dto.setEmailVerified(user.getEmailVerified());
+        dto.setPhoneVerified(user.getPhoneVerified());
+        dto.setIsBusy(user.getIsBusy());
+
+        return dto;
+    }
 }

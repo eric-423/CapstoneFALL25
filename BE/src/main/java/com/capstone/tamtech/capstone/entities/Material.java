@@ -12,34 +12,36 @@ import java.util.List;
 @NoArgsConstructor
 public class Material {
 
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        @Column(name = "material_id")
-        private int id;
-        @Column(name = "material_name")
-        private String name;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "material_id")
+    private int id;
+    @Column(name = "material_name")
+    private String name;
 
-        @Column(name = "calories_per_unit")
-        private Double caloriesPerUnit;
+    @Column(name = "threshold")
+    private Double threshold;
 
-        @Column(name = "unit", length = 20)
-        private String unit;
+    @Column(name = "is_deleted")
+    private Boolean isDeleted = false;
 
-        @Column(name = "threshold")
-        private Double threshold;
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH})
+    @JoinColumn(name = "material_type_id")
+    private MaterialType materialType;
 
-        @Column(name = "is_deleted")
-        private Boolean isDeleted = false;
+    @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE,
+            CascadeType.REFRESH}, mappedBy = "material")
+    private List<ProductRecipes> productRecipes;
 
-        @ManyToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH })
-        @JoinColumn(name = "material_type_id")
-        private MaterialType materialType;
+    @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE,
+            CascadeType.REFRESH}, mappedBy = "material")
+    private List<MaterialWarehouse> materialWarehouses;
 
-        @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE,
-                        CascadeType.REFRESH }, mappedBy = "material")
-        private List<ProductRecipes> productRecipes;
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH})
+    @JoinColumn(name = "unit_id")
+    private Units units;
 
-        @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE,
-                        CascadeType.REFRESH }, mappedBy = "material")
-        private List<MaterialWarehouse> materialWarehouses;
+    @OneToMany(mappedBy = "material", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH,
+            CascadeType.DETACH}, fetch = FetchType.LAZY)
+    private List<MaterialNutrients> materialNutrients;
 }

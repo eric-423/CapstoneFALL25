@@ -13,4 +13,6 @@ public interface DiningTableService {
     DiningTableDTO getDiningTableById(int id);
 
     OrderDTO getCurrentOrderForDiningTable(int tableId);
+
+    List<DiningTableDTO> getAllDiningTableWithBranch(int branchId);
 }

@@ -2,10 +2,8 @@ package com.capstone.tamtech.capstone.services;
 
 import com.capstone.tamtech.capstone.dto.ProductDTO;
 import com.capstone.tamtech.capstone.dto.ProductSearchDTO;
-import com.capstone.tamtech.capstone.entities.BranchProduct;
-import com.capstone.tamtech.capstone.entities.Product;
-import com.capstone.tamtech.capstone.entities.ProductRecipes;
-import com.capstone.tamtech.capstone.entities.keys.KeyProductRecipes;
+import com.capstone.tamtech.capstone.entities.*;
+import com.capstone.tamtech.capstone.entities.keys.KeyCookingMethodNutrients;
 import com.capstone.tamtech.capstone.exception.ResourceNotFoundException;
 import com.capstone.tamtech.capstone.payload.PagedResponse;
 import com.capstone.tamtech.capstone.payload.request.ProductCreateRequest;
@@ -40,7 +38,16 @@ public class ProductServiceImpl implements ProductService {
     private BranchRepository branchRepository;
 
     @Autowired
+    private CookingMethodNutrientRepository cookingMethodNutrientRepository;
+
+    @Autowired
     private ProductRecipesRepository productRecipesRepository;
+
+    @Autowired
+    private MaterialRepository materialRepository;
+
+    @Autowired
+    private CookingMethodRepository cookingMethodRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -93,7 +100,6 @@ public class ProductServiceImpl implements ProductService {
                 searchRequest.getMaxPrice(),
                 pageable);
 
-
         List<ProductDTO> productDTOs = productPage.getContent().stream()
                 .map(product -> toDTO(product))
                 .collect(Collectors.toList());
@@ -119,14 +125,23 @@ public class ProductServiceImpl implements ProductService {
                         "Không tìm thấy loại sản phẩm với ID: " + productCreateRequest.getTypeId())));
 
         for (RecipesRequest request : productCreateRequest.getRecipesRequests()) {
-            KeyProductRecipes key = new KeyProductRecipes();
-            key.setProductId(product.getId());
-            key.setMaterialId(request.getMaterialId());
+            Material material = materialRepository.findById(request.getMaterialId())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Material not found with id: " + request.getMaterialId()));
 
             ProductRecipes productRecipes = new ProductRecipes();
-
-            productRecipes.setKeyProductRecipes(key);
+            productRecipes.setProduct(product);
+            productRecipes.setMaterial(material);
             productRecipes.setQuantity(request.getQuantity());
+            productRecipes.setOrderStep(request.getOrderStep() > 0 ? request.getOrderStep() : null);
+
+            if (request.getCookingMethodId() > 0) {
+                productRecipes.setCookingMethod(cookingMethodRepository.findById(request.getCookingMethodId())
+                        .orElseThrow(() -> new ResourceNotFoundException(
+                                "Cooking method not found with id: " + request.getCookingMethodId())));
+            } else {
+                productRecipes.setCookingMethod(null);
+            }
 
             productRecipesRepository.save(productRecipes);
 
@@ -136,6 +151,8 @@ public class ProductServiceImpl implements ProductService {
 
         product.setProductRecipes(productRecipesList);
         productRepository.save(product);
+
+        reCalculateCaloriesForProduct(product.getId());
 
         return toDTO(product);
     }
@@ -159,14 +176,23 @@ public class ProductServiceImpl implements ProductService {
                         "Không tìm thấy loại sản phẩm với ID: " + productCreateRequest.getTypeId())));
 
         for (RecipesRequest request : productCreateRequest.getRecipesRequests()) {
-            KeyProductRecipes key = new KeyProductRecipes();
-            key.setProductId(product.getId());
-            key.setMaterialId(request.getMaterialId());
+            Material material = materialRepository.findById(request.getMaterialId())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Material not found with id: " + request.getMaterialId()));
 
             ProductRecipes productRecipes = new ProductRecipes();
-
-            productRecipes.setKeyProductRecipes(key);
+            productRecipes.setProduct(product);
+            productRecipes.setMaterial(material);
             productRecipes.setQuantity(request.getQuantity());
+            productRecipes.setOrderStep(request.getOrderStep() > 0 ? request.getOrderStep() : null);
+
+            if (request.getCookingMethodId() > 0) {
+                productRecipes.setCookingMethod(cookingMethodRepository.findById(request.getCookingMethodId())
+                        .orElseThrow(() -> new ResourceNotFoundException(
+                                "Cooking method not found with id: " + request.getCookingMethodId())));
+            } else {
+                productRecipes.setCookingMethod(null);
+            }
 
             productRecipesRepository.save(productRecipes);
 
@@ -177,12 +203,18 @@ public class ProductServiceImpl implements ProductService {
         product.setProductRecipes(productRecipesList);
         productRepository.save(product);
 
+        reCalculateCaloriesForProduct(product.getId());
+
         return toDTO(product);
     }
 
     private ProductDTO toDTO(Product product) {
         ProductDTO productDTO = new ProductDTO();
 
+        if(product.getCaloriesCache() == null){
+            product.setCaloriesCache(reCalculateCaloriesForProduct(product.getId()));
+            productRepository.save(product);
+        }
         productDTO.setProductId(product.getId());
         productDTO.setProductName(product.getName());
         productDTO.setProductDescription(product.getDescription());
@@ -190,7 +222,7 @@ public class ProductServiceImpl implements ProductService {
         productDTO.setProductPrice(product.getPrice());
         productDTO.setProductType(product.getProductType().getName());
         productDTO.setStatus(product.isActive());
-        productDTO.setCalories(getCalories(product.getId()));
+        productDTO.setCalories(product.getCaloriesCache());
         return productDTO;
     }
 
@@ -230,6 +262,10 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private ProductSearchDTO mapToProductSearchDTO(Product product, Map<Integer, Integer> quantityMap) {
+        if(product.getCaloriesCache() == null){
+            product.setCaloriesCache(reCalculateCaloriesForProduct(product.getId()));
+            productRepository.save(product);
+        }
         return ProductSearchDTO.builder()
                 .productId(product.getId())
                 .productName(product.getName())
@@ -242,17 +278,57 @@ public class ProductServiceImpl implements ProductService {
                 .quantityInBranch(quantityMap.getOrDefault(product.getId(), 0))
                 .createdDate(product.getCreatedDate())
                 .updatedDate(product.getUpdateDate())
-                .calories(getCalories(product.getId()))
+                .calories(product.getCaloriesCache())
                 .build();
     }
 
-    private double getCalories(int productId){
-        double calories = 0;
-        List<ProductRecipes> productRecipesList = productRecipesRepository.findByKeyProductRecipesProductId(productId);
-        for(ProductRecipes productRecipes : productRecipesList) {
-            calories += productRecipes.getMaterial().getCaloriesPerUnit() * productRecipes.getQuantity();
+    @Transactional
+    public double reCalculateCaloriesForProduct(int productId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Không tìm thấy sản phẩm với ID: " + productId));
+
+        List<ProductRecipes> recipes = productRecipesRepository.findByProductId(productId);
+        double totalCalories = 0.0;
+
+        for (ProductRecipes recipe : recipes) {
+            Material material = recipe.getMaterial();
+            double rawQuantity = recipe.getQuantity();
+
+            if (material != null) {
+                List<MaterialNutrients> materialNutrients = material.getMaterialNutrients();
+                for (MaterialNutrients mn : materialNutrients) {
+                    double baseNutrient = (rawQuantity * mn.getAmountPer100Unit()) / 100.0;
+                    Nutrients nutrients = mn.getNutrient();
+                    CookingMethod cookingMethod = recipe.getCookingMethod()!=null ? recipe.getCookingMethod() : null;
+
+                    if(cookingMethod!=null){
+                        KeyCookingMethodNutrients keyCookingMethodNutrients = new KeyCookingMethodNutrients();
+                        keyCookingMethodNutrients.setCookingMethodId(
+                                recipe.getCookingMethod() != null ? recipe.getCookingMethod().getId() : 0);
+                        keyCookingMethodNutrients.setNutrientId(nutrients.getId());
+
+                        CookingMethodNutrients cookingMethodNutrients = cookingMethodNutrientRepository
+                                .findById(keyCookingMethodNutrients)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                        "Không tìm thấy thông tin dinh dưỡng phương pháp nấu với khóa: "
+                                                + keyCookingMethodNutrients));
+
+                        double cookedNutrient = baseNutrient * cookingMethodNutrients.getRetentionFactor();
+                        double nutritionCalories = cookedNutrient * nutrients.getEnergyPerUnit();
+                        totalCalories += nutritionCalories;
+                    } else {
+                        double nutritionCalories = baseNutrient * nutrients.getEnergyPerUnit();
+                        totalCalories += nutritionCalories;
+                    }
+                }
+            }
         }
-        return calories;
+
+        product.setCaloriesCache(totalCalories);
+        productRepository.save(product);
+
+        return totalCalories;
     }
 
     private <T> PagedResponse<T> createPagedResponse(Page<?> page, List<T> content) {
