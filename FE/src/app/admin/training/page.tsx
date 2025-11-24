@@ -2125,9 +2125,6 @@ export default function TrainingPage() {
                                                         </>
                                                       )}
                                                     </Button>
-                                                    <Button>
-                                                      <Users />
-                                                    </Button>
                                                     <Button
                                                       type="button"
                                                       size="sm"
