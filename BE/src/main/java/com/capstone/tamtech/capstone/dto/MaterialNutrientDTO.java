@@ -12,6 +12,5 @@ public class MaterialNutrientDTO {
     private String materialName;
     private int nutrientId;
     private String nutrientName;
-    private String state;
     private Double amountPer100Unit;
 }

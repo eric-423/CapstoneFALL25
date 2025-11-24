@@ -106,7 +106,6 @@ public class AttendanceServiceImpl implements AttendanceService {
                 attendance.setStatus("ON_TIME");
             }
         } else {
-            // Không có schedule, mặc định là ON_TIME
             attendance.setStatus("ON_TIME");
         }
 

@@ -13,5 +13,5 @@ import java.util.List;
 public class WaiterConfirmOrderRequest {
     private int  orderId;
     private int waiterId;
-    private List<OrderItem> orderItems;
+    private List<OrderItemRequest> orderItems;
 }
