@@ -23,7 +23,7 @@ const AppFunction = (props: IFunction) => {
       }}
       onPress={() => {
         if (title === "Thông tin tài khoản") {
-          router.navigate("/(auth)/map");
+          router.navigate("/(auth)/account-info");
         } else if (title === "Đăng xuất") {
           Alert.alert("Đăng xuất", "Bạn có chắc chắn muốn đăng xuất?", [
             {
