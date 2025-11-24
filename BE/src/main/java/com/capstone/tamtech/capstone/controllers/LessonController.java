@@ -17,6 +17,18 @@ public class LessonController {
     @Autowired
     private LessonService lessonService;
 
+    @GetMapping("/me/trainings/{trainingId}/lessons")
+    public ResponseEntity<?> getMyLessonsByTrainingId(
+            @PathVariable int trainingId,
+            @ModelAttribute LessonSearchRequest lessonSearchRequest) {
+        ResponseData responseData = new ResponseData();
+        if (lessonSearchRequest == null) {
+            lessonSearchRequest = new LessonSearchRequest();
+        }
+        responseData.setData(lessonService.getLessonByTrainingId(trainingId, lessonSearchRequest));
+        return ResponseEntity.ok(responseData);
+    }
+
     @GetMapping("/admin/trainings/{trainingId}/lessons")
     public ResponseEntity<?> getLessonsByTrainingId(
             @PathVariable int trainingId,
