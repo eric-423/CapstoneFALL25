@@ -7,13 +7,20 @@ import com.capstone.tamtech.capstone.entities.Nutrients;
 import com.capstone.tamtech.capstone.entities.ProductRecipes;
 import com.capstone.tamtech.capstone.entities.keys.KeyMaterialNutrient;
 import com.capstone.tamtech.capstone.exception.ResourceNotFoundException;
+import com.capstone.tamtech.capstone.payload.PagedResponse;
+import com.capstone.tamtech.capstone.payload.request.MaterialNutrientCreateRequest;
 import com.capstone.tamtech.capstone.payload.request.MaterialNutrientRequest;
+import com.capstone.tamtech.capstone.payload.request.ProductSearchRequest;
 import com.capstone.tamtech.capstone.repositories.MaterialNutritionRepository;
 import com.capstone.tamtech.capstone.repositories.MaterialRepository;
 import com.capstone.tamtech.capstone.repositories.NutrientRepository;
 import com.capstone.tamtech.capstone.repositories.ProductRecipesRepository;
 import com.capstone.tamtech.capstone.services.impl.MaterialNutrientService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -37,7 +44,7 @@ public class MaterialNutrientServiceImpl implements MaterialNutrientService {
     private ProductServiceImpl productService;
 
     @Override
-    public MaterialNutrientDTO createMaterialNutrient(MaterialNutrientRequest request) {
+    public MaterialNutrientDTO createMaterialNutrient(MaterialNutrientCreateRequest request) {
         Material material = materialRepository.findById(request.getMaterialId())
                 .orElseThrow(
                         () -> new ResourceNotFoundException("Material not found with id: " + request.getMaterialId()));
@@ -84,6 +91,24 @@ public class MaterialNutrientServiceImpl implements MaterialNutrientService {
     }
 
     @Override
+    public MaterialNutrientDTO updateMaterialWithManyNutrient(int materialId, MaterialNutrientRequest request) {
+        for(Integer nutrientId : request.getNutrientIdList()){
+            KeyMaterialNutrient key = new KeyMaterialNutrient();
+            key.setMaterialId(materialId);
+            key.setNutrientId(nutrientId);
+
+            MaterialNutrients materialNutrient = materialNutritionRepository.findById(key)
+                    .orElseThrow(() -> new ResourceNotFoundException("Material Nutrient not found for nutrient id: " + nutrientId));
+
+            materialNutrient.setState(request.getState());
+            materialNutrient.setAmountPer100Unit(request.getAmountPer100Unit());
+
+            materialNutritionRepository.save(materialNutrient);
+        }
+        return null;
+    }
+
+    @Override
     public MaterialNutrientDTO getMaterialNutrientById(int materialId, int nutrientId) {
         KeyMaterialNutrient key = new KeyMaterialNutrient();
         key.setMaterialId(materialId);
@@ -95,9 +120,43 @@ public class MaterialNutrientServiceImpl implements MaterialNutrientService {
     }
 
     @Override
-    public List<MaterialNutrientDTO> getAllMaterialNutrients() {
-        List<MaterialNutrients> materialNutrients = materialNutritionRepository.findAll();
-        return materialNutrients.stream().map(this::mapToDTO).toList();
+    public PagedResponse<MaterialNutrientDTO> getAllMaterialNutrients(int materialId, int nutriendId, int page, int size, String sortDirection) {
+        Pageable pageable = createPageable(materialId, nutriendId, page, size, sortDirection);
+
+        if(materialId==0){
+            Page<MaterialNutrients> materialNutrientsPage = materialNutritionRepository.findByNutrient_Id(materialId, pageable);
+            List<MaterialNutrientDTO> content = materialNutrientsPage.stream().map(this::mapToDTO).toList();
+            return createPagedResponse(materialNutrientsPage, content);
+        } else if(nutriendId==0){
+            Page<MaterialNutrients> materialNutrientsPage = materialNutritionRepository.findByMaterial_Id(materialId, pageable);
+            List<MaterialNutrientDTO> content = materialNutrientsPage.stream().map(this::mapToDTO).toList();
+            return createPagedResponse(materialNutrientsPage, content);
+        } else {
+            Page<MaterialNutrients> materialNutrientsPage = materialNutritionRepository.findByMaterial_IdAndNutrient_Id(materialId, nutriendId, pageable);
+            List<MaterialNutrientDTO> content = materialNutrientsPage.stream().map(this::mapToDTO).toList();
+            return createPagedResponse(materialNutrientsPage, content);
+        }
+    }
+
+    private <T> PagedResponse<T> createPagedResponse(Page<?> page, List<T> content) {
+        PagedResponse<T> response = new PagedResponse<>();
+        response.setContent(content);
+        response.setPageNumber(page.getNumber());
+        response.setPageSize(page.getSize());
+        response.setTotalElements(page.getTotalElements());
+        response.setTotalPages(page.getTotalPages());
+        response.setLast(page.isLast());
+        response.setFirst(page.isFirst());
+        response.setEmpty(page.isEmpty());
+        return response;
+    }
+
+    private Pageable createPageable(int materialId, int nutrientId, int page, int size, String sortDirection){
+
+        Sort sort = Sort.by(Sort.Direction.fromString(
+                        sortDirection != null ? sortDirection : "ASC"));
+
+        return PageRequest.of(page, size, sort);
     }
 
     @Override

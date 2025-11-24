@@ -4,13 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class MaterialNutrientRequest {
-    private String state;
-    private Double amountPer100Unit;
-    private List<Integer> nutrientIdList;
+public class ProductRecipesRequestForMany {
+    private int materialId;
+    private int cookingMethodId;
+    private double quantity;
+    private Integer orderStep;
 }
