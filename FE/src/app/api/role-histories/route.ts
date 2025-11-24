@@ -3,7 +3,6 @@ import { cookies } from 'next/headers';
 
 const API_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
-// POST: Tạo role history
 export async function POST(request: NextRequest) {
     try {
         const cookieStore = await cookies();
@@ -41,7 +40,6 @@ export async function POST(request: NextRequest) {
         const data = await response.json();
         return NextResponse.json(data);
     } catch (error) {
-        console.error('Create Role History API Error:', error);
         return NextResponse.json(
             { error: error instanceof Error ? error.message : 'Failed to create role history' },
             { status: 500 }

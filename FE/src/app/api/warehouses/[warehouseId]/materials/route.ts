@@ -16,10 +16,12 @@ export async function GET(
             );
         }
 
+        const branchIdFromCookie = cookieStore.get('branchId')?.value;
         const { warehouseId } = await params;
+        const warehouseIdToUse = branchIdFromCookie || warehouseId;
 
         const response = await fetch(
-            `${process.env.NEXT_PUBLIC_BASE_URL}/warehouses/${warehouseId}/materials`,
+            `${process.env.NEXT_PUBLIC_BASE_URL}/warehouses/${warehouseIdToUse}/materials`,
             {
                 method: 'GET',
                 headers: {
@@ -32,7 +34,6 @@ export async function GET(
         const data = await response.json();
         return NextResponse.json(data);
     } catch (error) {
-        console.error('Error fetching warehouse materials:', error);
         return NextResponse.json(
             { error: 'Internal Server Error' },
             { status: 500 }
@@ -55,11 +56,13 @@ export async function POST(
             );
         }
 
+        const branchIdFromCookie = cookieStore.get('branchId')?.value;
         const { warehouseId } = await params;
+        const warehouseIdToUse = branchIdFromCookie || warehouseId;
         const body = await request.json();
 
         const response = await fetch(
-            `${process.env.NEXT_PUBLIC_BASE_URL}/warehouses/${warehouseId}/materials`,
+            `${process.env.NEXT_PUBLIC_BASE_URL}/warehouses/${warehouseIdToUse}/materials`,
             {
                 method: 'POST',
                 headers: {
@@ -73,7 +76,6 @@ export async function POST(
         const data = await response.json();
         return NextResponse.json(data);
     } catch (error) {
-        console.error('Error adding materials to warehouse:', error);
         return NextResponse.json(
             { error: 'Internal Server Error' },
             { status: 500 }

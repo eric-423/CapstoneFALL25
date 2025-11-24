@@ -164,6 +164,17 @@ export default function AdminLayout({
   useEffect(() => {
     if (!sidebarOpen) return;
 
+
+    // Memoize barcode scanner callbacks
+    const handleBarcodeSuccess = useCallback((orderId: number, _context?: BarcodeProcessContext) => {
+    }, []);
+
+    const handleBarcodeError = useCallback((error: Error) => {
+    }, []);
+
+    const handleBarcodeAlreadyHandled = useCallback((orderId: number, _context?: BarcodeProcessContext) => {
+    }, []);
+
     const handleClickOutside = (event: MouseEvent) => {
       if (window.innerWidth < 1024) {
         const target = event.target as HTMLElement;
@@ -189,6 +200,7 @@ export default function AdminLayout({
   const handleBarcodeError = useCallback((error: Error) => {
     console.error("Lỗi khi assign chef:", error);
   }, []);
+
 
   const handleBarcodeAlreadyHandled = useCallback(
     (orderId: number, _context?: BarcodeProcessContext) => {

@@ -18,8 +18,6 @@ export async function POST(request: NextRequest) {
         const baseURL = apiBaseURL;
         const fullUrl = `${baseURL}/auth/employee/login`;
 
-        console.log('[API Route] Making request to:', fullUrl);
-
         const cookieStore = await cookies();
         const token = cookieStore.get('token')?.value;
 
@@ -53,6 +51,13 @@ export async function POST(request: NextRequest) {
                 maxAge: maxAgeInSeconds,
             });
 
+            responseData.cookies.set('branchId', response.data.userInfo?.branchId, {
+                httpOnly: false,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                path: '/',
+                maxAge: maxAgeInSeconds,
+            });
 
             if (response.data.userInfo?.role) {
                 responseData.cookies.set('role', response.data.userInfo.role, {
@@ -68,16 +73,6 @@ export async function POST(request: NextRequest) {
         return responseData;
 
     } catch (error: unknown) {
-
-        if (axios.isAxiosError(error)) {
-            console.error('  - Error message:', error.message);
-            console.error('  - Request URL:', error.config?.url);
-            console.error('  - Request baseURL:', error.config?.baseURL);
-            console.error('  - Response status:', error.response?.status);
-            console.error('  - Response data:', error.response?.data);
-            console.error('  - Error code:', error.code);
-        }
-
         const errorMessage = (error as { response?: { data?: { message?: string; error?: string } } })?.response?.data?.message
             || (error as { response?: { data?: { message?: string; error?: string } } })?.response?.data?.error
             || (axios.isAxiosError(error) && error.code === 'ECONNREFUSED' ? 'Không thể kết nối đến server. Vui lòng kiểm tra lại.' : 'Đăng nhập thất bại. Vui lòng thử lại.');
