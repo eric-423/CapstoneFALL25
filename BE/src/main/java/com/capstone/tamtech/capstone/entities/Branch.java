@@ -56,4 +56,8 @@ public class Branch {
     @OneToMany(mappedBy = "branch", fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE,
             CascadeType.REFRESH, CascadeType.DETACH })
     private List<BranchProduct> branchProducts;
+
+    @OneToOne(mappedBy = "branch", fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE,
+            CascadeType.REFRESH, CascadeType.DETACH })
+    private Warehouse warehouses;
 }
