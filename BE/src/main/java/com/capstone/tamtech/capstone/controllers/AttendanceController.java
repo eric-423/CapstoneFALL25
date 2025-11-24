@@ -79,7 +79,6 @@ public class AttendanceController {
             @RequestParam(value = "month", required = true) String month) {
         ResponseData responseData = new ResponseData();
         try {
-            // Parse month string (format: "2025-11")
             String[] parts = month.split("-");
             if (parts.length != 2) {
                 throw new IllegalArgumentException("Month format phải là YYYY-MM (ví dụ: 2025-11)");
