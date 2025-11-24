@@ -236,6 +236,7 @@ public class SecurityConfig {
 
                         .requestMatchers(HttpMethod.GET, "/api/users/statistics").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
+                        .requestMatchers("/api/role-histories/update/test/role-names").permitAll()
                         .requestMatchers("/api/role-histories/**").hasRole("ADMIN")
 
                         .requestMatchers(HttpMethod.POST, "/api/orders").hasRole("CUSTOMER")

@@ -31,4 +31,6 @@ public interface UserTrainingService {
     LessonProgressDTO completeLesson(int userTrainingId, int lessonId);
 
     List<DocumentDTO> getLessonDocumentsForCurrentUser(int lessonId);
+
+    List<UserManagementDTO> getAvailableUsersForTraining(int trainingId, Integer branchId);
 }
