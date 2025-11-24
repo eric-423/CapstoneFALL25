@@ -91,7 +91,6 @@ export default function WarehouseMaterialsPage({ params }: WarehouseMaterialsPag
         <AdminPageLayout>
             <AdminPageHeader
                 title={warehouseAddress}
-                description="Quản lý nguyên liệu trong kho"
                 icon={WarehouseIcon}
                 actions={
                     <div className="flex gap-3">
