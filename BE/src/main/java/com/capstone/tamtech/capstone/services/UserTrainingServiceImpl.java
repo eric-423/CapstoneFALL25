@@ -126,8 +126,9 @@ public class UserTrainingServiceImpl implements UserTrainingService {
     @Transactional(readOnly = true)
     public List<UserTrainingDTO> getMyTrainings(String status) {
         Users currentUser = getCurrentUser();
+        System.out.println("Current User ID: " + currentUser.getId());
 
-        List<Integer> trainingsId = trainingRepository.findByRole_IdAndIsActive(currentUser.getRoleHistories().stream().filter(rh -> rh.isActive()).findFirst().get().getId(), true).stream().map(Trainings::getId).toList();
+        List<Integer> trainingsId = trainingRepository.findByRole_IdAndIsActive(currentUser.getRoleHistories().stream().filter(rh -> rh.isActive()).findFirst().get().getRole().getId(), true).stream().map(Trainings::getId).toList();
         List<UserTrainingDTO> result = new ArrayList<>();
         List<UserTraining> userTrainings = userTrainingRepository.findByUser_Id(currentUser.getId());
 
