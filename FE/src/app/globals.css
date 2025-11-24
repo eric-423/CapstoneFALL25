@@ -307,6 +307,10 @@
     opacity: 0.6;
   }
 
+  .AdminStatsCard {
+    background-color: #fbdcc5 !important;
+  }
+
   /* Toastify customization */
   .Toastify__toast--error {
     border: 1px solid #f8cbcb !important;
@@ -314,7 +318,11 @@
     color: #b91c1c;
   }
 
-  
+  .card {
+    background-color: #f8e4d4;
+  }
+
+
   .toast-success.Toastify__toast {
     background: rgba(183, 232, 146, 0.5);
     color: #0c1205;
