@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
     try {
-        let accessToken = request.cookies.get('token')?.value;
+        const accessToken = request.cookies.get('token')?.value;
 
         if (!accessToken) {
             return NextResponse.json(
@@ -54,19 +54,4 @@ export async function GET(request: NextRequest) {
         );
 
     }
-
-    const data = await response.json();
-    return NextResponse.json(data);
-  } catch (error) {
-    console.error("New Customers Statistics API Error:", error);
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to fetch new customers statistics",
-      },
-      { status: 500 }
-    );
-  }
 }
