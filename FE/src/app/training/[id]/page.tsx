@@ -1,20 +1,17 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
-import {
-  CheckCircle2,
-  FileText,
-  PlayCircle,
-  ChevronRight,
-  ChevronDown,
-} from "lucide-react";
+import { CheckCircle2, FileText, PlayCircle } from "lucide-react";
 import {
   getTrainningById,
   getMyTrainingLessons,
   getLessonDetail,
   getMyLessonDocuments,
+  startLesson,
+  completeLesson,
+  getMyTrainning,
   type TrainingLesson,
   type LessonDocument,
 } from "@/apis/trainning.api";
@@ -24,22 +21,42 @@ import { Loader2, AlertCircle } from "lucide-react";
 
 export default function TrainingDetailPage() {
   const params = useParams();
-  const trainingId = Number(params.id);
+  const userTrainingId = Number(params.id);
+  const queryClient = useQueryClient();
   const [selectedLessonId, setSelectedLessonId] = useState<number | null>(null);
   const [expandedModules, setExpandedModules] = useState<Set<number>>(
     new Set()
   );
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [isVideoCompleted, setIsVideoCompleted] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const { data: myTrainingsData } = useQuery({
+    queryKey: ["my-trainings"],
+    queryFn: () => getMyTrainning("ALL"),
+  });
+
+  const trainingId = useMemo(() => {
+    if (!myTrainingsData?.data || !Array.isArray(myTrainingsData.data)) {
+      return null;
+    }
+    const userTraining = myTrainingsData.data.find(
+      (item: { userTrainingId?: number; trainingId?: number }) =>
+        item.userTrainingId === userTrainingId
+    );
+    return userTraining?.trainingId || null;
+  }, [myTrainingsData, userTrainingId]);
 
   const { data: trainingData, isLoading: isLoadingTraining } = useQuery({
     queryKey: ["training", trainingId],
-    queryFn: () => getTrainningById(trainingId),
+    queryFn: () => getTrainningById(trainingId!),
     enabled: !!trainingId,
   });
 
   const { data: lessonsData, isLoading: isLoadingLessons } = useQuery({
     queryKey: ["my-training-lessons", trainingId],
     queryFn: () =>
-      getMyTrainingLessons(trainingId, {
+      getMyTrainingLessons(trainingId!, {
         includeDeleted: false,
         page: 0,
         size: 100,
@@ -66,6 +83,57 @@ export default function TrainingDetailPage() {
     return lessonDocuments.data;
   }, [lessonDocuments]);
 
+  const startLessonMutation = useMutation({
+    mutationFn: (lessonId: number) => {
+      if (!userTrainingId) throw new Error("User Training ID not found");
+      return startLesson(userTrainingId, lessonId);
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({
+        queryKey: ["lesson-detail", selectedLessonId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["my-training-lessons", trainingId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["lesson-documents", selectedLessonId],
+      });
+
+      const responseVideoUrl = data?.data?.videoUrl;
+
+      if (responseVideoUrl) {
+        setVideoUrl(responseVideoUrl);
+      }
+    },
+  });
+
+  const handleStartLesson = () => {
+    if (selectedLessonId) {
+      startLessonMutation.mutate(selectedLessonId);
+    }
+  };
+
+  const completeLessonMutation = useMutation({
+    mutationFn: (lessonId: number) => {
+      if (!userTrainingId) throw new Error("User Training ID not found");
+      return completeLesson(userTrainingId, lessonId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["lesson-detail", selectedLessonId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["my-training-lessons", trainingId],
+      });
+    },
+  });
+
+  const handleCompleteLesson = () => {
+    if (selectedLessonId) {
+      completeLessonMutation.mutate(selectedLessonId);
+    }
+  };
+
   const training = trainingData?.data as
     | {
         id: number;
@@ -86,8 +154,6 @@ export default function TrainingDetailPage() {
 
   const isLessonCompleted = (lessonId: number): boolean => {
     const lesson = lessons.find((l) => l.id === lessonId);
-    // Check if lesson has completion status in response
-    // This might need to be adjusted based on actual API response structure
     if (!lesson) return false;
     const lessonWithStatus = lesson as TrainingLesson & {
       isCompleted?: boolean;
@@ -109,7 +175,6 @@ export default function TrainingDetailPage() {
     return groups;
   }, [lessons]);
 
-  // Auto-expand first module
   useEffect(() => {
     const moduleNumbers = Object.keys(groupedLessons)
       .map(Number)
@@ -121,7 +186,6 @@ export default function TrainingDetailPage() {
     }
   }, [groupedLessons, expandedModules.size]);
 
-  // Auto-select first lesson if none selected
   useEffect(() => {
     if (!selectedLessonId && lessons.length > 0) {
       const firstLesson = lessons.sort(
@@ -131,6 +195,15 @@ export default function TrainingDetailPage() {
       setSelectedLessonId(firstLesson.id);
     }
   }, [lessons, selectedLessonId]);
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+    }
+
+    setVideoUrl(null);
+    setIsVideoCompleted(false);
+  }, [selectedLessonId]);
 
   const toggleModule = (moduleNum: number) => {
     setExpandedModules((prev) => {
@@ -231,11 +304,6 @@ export default function TrainingDetailPage() {
                           {training.name}
                         </span>
                       </div>
-                      {isExpanded ? (
-                        <ChevronDown className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                      ) : (
-                        <ChevronRight className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                      )}
                     </button>
 
                     {isExpanded && (
@@ -311,9 +379,36 @@ export default function TrainingDetailPage() {
                     </div>
                   </div>
                 </div>
-                <Button className="bg-green-600 hover:bg-green-700 text-white">
-                  <CheckCircle2 className="w-4 h-4 mr-2" />
-                  Complete
+                <Button
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                  onClick={handleCompleteLesson}
+                  disabled={
+                    completeLessonMutation.isPending ||
+                    !videoUrl ||
+                    !isVideoCompleted
+                  }
+                >
+                  {completeLessonMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Đang hoàn thành...
+                    </>
+                  ) : !videoUrl ? (
+                    <>
+                      <FileText className="w-4 h-4 mr-2" />
+                      Vui lòng bắt đầu bài học
+                    </>
+                  ) : !isVideoCompleted ? (
+                    <>
+                      <FileText className="w-4 h-4 mr-2" />
+                      Vui lòng xem hết video
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4 mr-2" />
+                      Complete
+                    </>
+                  )}
                 </Button>
               </div>
               <div className="mb-6">
@@ -328,30 +423,67 @@ export default function TrainingDetailPage() {
                 </button>
               </div>
               <div className="space-y-4">
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <PlayCircle className="w-5 h-5 text-blue-600" />
-                      <span className="font-medium text-gray-900">
-                        {(lessonDetail.data as TrainingLesson).title}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-green-600" />
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-blue-600 border-blue-600"
+                {/* Video Player */}
+                {videoUrl ? (
+                  <div className="border border-gray-200 rounded-lg overflow-hidden bg-black">
+                    <div className="w-full aspect-video">
+                      <video
+                        ref={videoRef}
+                        src={videoUrl}
+                        controls
+                        autoPlay
+                        className="w-full h-full"
+                        onEnded={() => {
+                          setIsVideoCompleted(true);
+                        }}
+                        key={selectedLessonId}
                       >
-                        Get started
-                      </Button>
+                        Trình duyệt của bạn không hỗ trợ video tag.
+                      </video>
                     </div>
+                    {!isVideoCompleted && (
+                      <div className="bg-yellow-50 border-t border-yellow-200 p-3">
+                        <p className="text-sm text-yellow-800 text-center">
+                          ⚠️ Vui lòng xem hết video để có thể hoàn thành bài học
+                        </p>
+                      </div>
+                    )}
                   </div>
-                  <p className="text-sm text-gray-600">Video • 8 min</p>
-                  <p className="text-sm text-gray-600">
-                    {(lessonDetail.data as TrainingLesson).point} điểm
-                  </p>
-                </div>
+                ) : (
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <PlayCircle className="w-5 h-5 text-blue-600" />
+                        <span className="font-medium text-gray-900">
+                          {(lessonDetail.data as TrainingLesson).title}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600" />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-blue-600 border-blue-600"
+                          onClick={handleStartLesson}
+                          disabled={startLessonMutation.isPending}
+                        >
+                          {startLessonMutation.isPending ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Đang bắt đầu...
+                            </>
+                          ) : (
+                            "Get started"
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-600">Video • 8 min</p>
+                    <p className="text-sm text-gray-600">
+                      {(lessonDetail.data as TrainingLesson).point} điểm
+                    </p>
+                  </div>
+                )}
                 {isLoadingDocuments ? (
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="w-6 h-6 animate-spin text-[#EC6426]" />

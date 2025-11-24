@@ -44,6 +44,7 @@ const STATUS_CONFIG: Record<
 
 interface TrainingCardData {
   id: number;
+  userTrainingId: number;
   name: string;
   description: string;
   point: number;
@@ -196,6 +197,7 @@ const normalizeTraining = (item: Record<string, unknown>): TrainingCardData => {
 
   return {
     id,
+    userTrainingId: toNumber(item.userTrainingId ?? item.userIdTraining ?? 0),
     name:
       (typeof item.name === "string" && item.name) ||
       (typeof item.trainingName === "string" && item.trainingName) ||
@@ -495,7 +497,9 @@ export default function ManagerTrainingCoursesPage() {
                       </div>
                     </div>
                     <Button
-                      onClick={() => router.push(`/training/${course.id}`)}
+                      onClick={() =>
+                        router.push(`/training/${course.userTrainingId}`)
+                      }
                       className="w-full bg-gradient-to-r from-[#3B82F6] to-[#2563EB] hover:from-[#2563EB] hover:to-[#3B82F6] text-white font-semibold py-3 rounded-xl shadow-lg transition-all duration-300"
                     >
                       <BookOpenCheck className="w-4 h-4 mr-2" />
