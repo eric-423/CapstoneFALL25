@@ -18,6 +18,8 @@ public class LessonDTO {
 
     private String description;
 
+    private String videoUrl;
+
     private Integer point;
 
     private Integer orderIndex;

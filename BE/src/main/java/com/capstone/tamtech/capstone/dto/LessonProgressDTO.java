@@ -16,6 +16,7 @@ public class LessonProgressDTO {
     private String title;
     private String description;
     private String content;
+    private String videoUrl;
     private Integer point;
     private Integer orderIndex;
     private Boolean isLearned;
