@@ -3,7 +3,11 @@ import { FONTS } from "@/themes/typography";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { StyleSheet, Text, View } from "react-native";
 import { LineChart } from "react-native-chart-kit";
-const ManageCard = () => {
+interface IManageCard {
+  title: string;
+}
+const ManageCard = (props: IManageCard) => {
+  const { title } = props;
   return (
     <View
       style={{
@@ -22,15 +26,17 @@ const ManageCard = () => {
           alignItems: "center",
         }}
       >
-        <Text
-          style={{
-            fontSize: 16,
-            fontFamily: FONTS.bold,
-            color: APP_COLOR.BROWN,
-          }}
-        >
-          Vận hành
-        </Text>
+        {title && (
+          <Text
+            style={{
+              fontSize: 16,
+              fontFamily: FONTS.bold,
+              color: APP_COLOR.BROWN,
+            }}
+          >
+            {title}
+          </Text>
+        )}
         <AntDesign name="doubleright" size={20} color={APP_COLOR.ORANGE} />
       </View>
       <View
@@ -42,14 +48,29 @@ const ManageCard = () => {
           justifyContent: "space-around",
         }}
       >
-        <View style={styles.textSection}>
-          <Text style={styles.boldText}>0 ĐH</Text>
-          <Text style={styles.text}>Đã lấy</Text>
-        </View>
-        <View style={styles.textSection}>
-          <Text style={styles.boldText}>0 ĐH</Text>
-          <Text style={styles.text}>Đã giao</Text>
-        </View>
+        {title === "Vận hành" ? (
+          <View style={styles.container}>
+            <View style={styles.textSection}>
+              <Text style={styles.boldText}>0 ĐH</Text>
+              <Text style={styles.text}>Đã lấy</Text>
+            </View>
+            <View style={styles.textSection}>
+              <Text style={styles.boldText}>0 ĐH</Text>
+              <Text style={styles.text}>Đã giao</Text>
+            </View>
+          </View>
+        ) : (
+          <View style={styles.container}>
+            <View style={styles.textSection}>
+              <Text style={styles.boldText}>0 VND</Text>
+              <Text style={styles.text}>Tháng này</Text>
+            </View>
+            <View style={styles.textSection}>
+              <Text style={styles.boldText}>0 VND</Text>
+              <Text style={styles.text}>Hôm nay</Text>
+            </View>
+          </View>
+        )}
         <View
           style={{
             borderRadius: 8,
@@ -112,6 +133,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: APP_COLOR.BROWN,
     fontFamily: FONTS.bold,
+  },
+  container: {
+    flexDirection: "row",
+    gap: 10,
+    width: "50%",
+    justifyContent: "space-around",
   },
 });
 export default ManageCard;
