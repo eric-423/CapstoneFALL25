@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export async function POST(
+export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -16,18 +16,16 @@ export async function POST(
     }
 
     const { id } = await params;
-    const body = await request.json();
 
     const response = await fetch(
-      `${API_URL}/user-trainings/admin/trainings/${id}/assign-users`,
+      `${API_URL}/trainings/admin/${id}/available-users`,
       {
-        method: "POST",
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
           Accept: "*/*",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(body),
       }
     );
 
@@ -35,26 +33,20 @@ export async function POST(
 
     if (!response.ok) {
       return NextResponse.json(
-        payload ?? { error: "Failed to assign user to training" },
+        payload ?? { error: "Failed to fetch available users" },
         { status: response.status }
       );
     }
 
-    return NextResponse.json(
-      payload ?? {
-        status: 0,
-        desc: "User assigned to training successfully",
-        data: null,
-      }
-    );
+    return NextResponse.json(payload ?? {});
   } catch (error) {
-    console.error("Assign User To Training API Error:", error);
+    console.error("Get Available Users API Error:", error);
     return NextResponse.json(
       {
         error:
           error instanceof Error
             ? error.message
-            : "Failed to assign user to training",
+            : "Failed to fetch available users",
       },
       { status: 500 }
     );
