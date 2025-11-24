@@ -159,12 +159,7 @@ public class UserTrainingServiceImpl implements UserTrainingService {
         }
 
 
-        return userTrainingRepository.findByUser_Id(currentUser.getId())
-                .stream()
-                .map(this::toDtoWithStats)
-                .filter(dto -> status == null || status.isBlank()
-                        || status.equalsIgnoreCase(dto.getStatus()))
-                .toList();
+        return result;
     }
 
     @Override
