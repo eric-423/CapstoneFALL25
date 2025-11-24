@@ -141,35 +141,8 @@ const OrderItemCard = ({
               {currencyFormatter(order.amount)} đ
             </Text>
           </View>
-          <View>
-            <View style={{ flexDirection: "row" }}>
-              <AntDesign name="gift" size={24} color={APP_COLOR.BROWN} />
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                <Text style={[styles.text, { marginLeft: 5 }]}>
-                  Điểm tích lũy:
-                </Text>
-                <Text
-                  style={{
-                    fontFamily: APP_FONT.SEMIBOLD,
-                    color: APP_COLOR.ORANGE,
-                    fontSize: 17,
-                    marginLeft: 10,
-                  }}
-                >
-                  +{order.pointEarned} điểm
-                </Text>
-              </View>
-            </View>
-          </View>
           <View
             style={{
-              marginTop: 5,
               paddingBottom: 10,
               borderBottomColor: "#eee",
               borderBottomWidth: 1,
