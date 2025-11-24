@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 
 export async function GET(request: NextRequest) {
     try {
-        let accessToken = request.cookies.get('token')?.value;
+        const accessToken = request.cookies.get('token')?.value;
 
         if (!accessToken) {
             return NextResponse.json(
