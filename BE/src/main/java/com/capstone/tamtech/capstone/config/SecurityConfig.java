@@ -174,6 +174,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/me/**").hasAnyRole("ADMIN", "MANAGER", "STAFF", "CHEFF", "WAITER")
                         .requestMatchers("/api/user-trainings/me/**")
                         .hasAnyRole("ADMIN", "MANAGER", "STAFF", "CHEFF", "WAITER")
+                        .requestMatchers("/api/lessons/me/**")
+                        .hasAnyRole("ADMIN", "MANAGER", "STAFF", "CHEFF", "WAITER")
 
                         .requestMatchers("/api/combos/search").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/combos/{id}").permitAll()
