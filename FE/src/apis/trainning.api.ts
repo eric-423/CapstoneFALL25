@@ -179,9 +179,14 @@ export const getTrainningById = async (traningId: number) => {
   return response.json();
 };
 
-export const getMyTrainning = async (
-  status?: "ACTIVE" | "INACTIVE" | "ALL"
-) => {
+export type MyTrainingStatus =
+  | "ALL"
+  | "NOT_STARTED"
+  | "IN_PROGRESS"
+  | "COMPLETED"
+  | "FAILED";
+
+export const getMyTrainning = async (status?: MyTrainingStatus) => {
   const params = new URLSearchParams();
   if (status && status !== "ALL") {
     params.append("status", status);
