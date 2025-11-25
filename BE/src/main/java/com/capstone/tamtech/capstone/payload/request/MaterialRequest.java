@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class MaterialRequest {
     private String name;
-    private Double caloriesPerUnit;
     private Integer unitId;
     private Double threshold;
     private Integer materialTypeId;
