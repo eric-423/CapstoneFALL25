@@ -38,10 +38,6 @@ const STATUS_CONFIG: Record<
     label: "Hoàn thành",
     className: "bg-green-100 text-green-700 border-green-200",
   },
-  FAILED: {
-    label: "Không đạt",
-    className: "bg-red-100 text-red-700 border-red-200",
-  },
 };
 
 interface TrainingCardData {
@@ -62,7 +58,6 @@ const STATUS_TABS: { label: string; value: TrainingStatusFilter }[] = [
   { label: STATUS_CONFIG.NOT_STARTED.label, value: "NOT_STARTED" },
   { label: STATUS_CONFIG.IN_PROGRESS.label, value: "IN_PROGRESS" },
   { label: STATUS_CONFIG.COMPLETED.label, value: "COMPLETED" },
-  { label: STATUS_CONFIG.FAILED.label, value: "FAILED" },
 ];
 
 const GRADIENTS = [
