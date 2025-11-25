@@ -1,17 +1,19 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { BookOpen, Search, ChevronLeft, ChevronRight, ChefHat } from 'lucide-react';
+import { Leaf, Plus, Edit2, Trash2, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AdminPageLayout, AdminPageHeader } from '../components/AdminPageLayout';
-import { getAllBranchProducts, type Product, type AllBranchProductSearchParams } from '@/apis/product.api';
-import { RecipeBuilder } from './components/RecipeBuilder';
+import { getNutrients, deleteNutrient, type Nutrient, type NutrientSearchParams } from '@/apis/nutrient.api';
+import { NutrientFormDialog } from './components/NutrientFormDialog';
+import { NutrientConfirmDialog } from './components/NutrientConfirmDialog';
 
-export default function RecipesPage() {
-    const [products, setProducts] = useState<Product[]>([]);
+export default function NutrientsPage() {
+    const [nutrients, setNutrients] = useState<Nutrient[]>([]);
     const [loading, setLoading] = useState(true);
+    const [actionLoading, setActionLoading] = useState(false);
 
     // Pagination states
     const [currentPage, setCurrentPage] = useState(0);
@@ -21,40 +23,79 @@ export default function RecipesPage() {
 
     // Filter states
     const [searchKeyword, setSearchKeyword] = useState('');
+    const [sortDirection, setSortDirection] = useState<'ASC' | 'DESC'>('ASC');
 
     // Dialog states
-    const [showRecipeBuilder, setShowRecipeBuilder] = useState(false);
-    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+    const [showFormDialog, setShowFormDialog] = useState(false);
+    const [editingNutrient, setEditingNutrient] = useState<Nutrient | null>(null);
 
-    const fetchProducts = useCallback(async () => {
+    // Confirm dialog states
+    const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+    const [deletingNutrient, setDeletingNutrient] = useState<Nutrient | null>(null);
+
+    const fetchNutrients = useCallback(async () => {
         try {
             setLoading(true);
 
-            const searchRequest: AllBranchProductSearchParams = {
+            const searchRequest: NutrientSearchParams = {
                 keyword: searchKeyword,
                 page: currentPage,
                 size: pageSize,
+                sortDirection,
             };
 
-            const response = await getAllBranchProducts(searchRequest);
-            setProducts(response.content);
+            const response = await getNutrients(searchRequest);
+            // Assuming response structure matches what we defined in api
+            setNutrients(response.content);
             setTotalElements(response.totalElements);
             setTotalPages(response.totalPages);
         } catch (error) {
-            console.error('Failed to fetch products:', error);
-            toast.error('❌ Không thể tải danh sách sản phẩm!');
+            console.error('Failed to fetch nutrients:', error);
+            toast.error('❌ Không thể tải danh sách dinh dưỡng!');
         } finally {
             setLoading(false);
         }
-    }, [currentPage, pageSize, searchKeyword]);
+    }, [currentPage, pageSize, searchKeyword, sortDirection]);
 
     useEffect(() => {
-        fetchProducts();
-    }, [fetchProducts]);
+        fetchNutrients();
+    }, [fetchNutrients]);
 
-    const handleManageRecipe = (product: Product) => {
-        setSelectedProduct(product);
-        setShowRecipeBuilder(true);
+    const handleCreate = () => {
+        setEditingNutrient(null);
+        setShowFormDialog(true);
+    };
+
+    const handleEdit = (nutrient: Nutrient) => {
+        setEditingNutrient(nutrient);
+        setShowFormDialog(true);
+    };
+
+    const handleDeleteClick = (nutrient: Nutrient) => {
+        setDeletingNutrient(nutrient);
+        setShowConfirmDialog(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!deletingNutrient) return;
+
+        try {
+            setActionLoading(true);
+            await deleteNutrient(deletingNutrient.id);
+            toast.success(`✅ Đã xóa dinh dưỡng "${deletingNutrient.name}"!`);
+            await fetchNutrients();
+            setShowConfirmDialog(false);
+            setDeletingNutrient(null);
+        } catch (error) {
+            console.error('Failed to delete nutrient:', error);
+            toast.error('❌ Không thể xóa dinh dưỡng!');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleFormSuccess = () => {
+        fetchNutrients();
     };
 
     // Handle page change
@@ -64,7 +105,7 @@ export default function RecipesPage() {
         }
     };
 
-    if (loading && products.length === 0) {
+    if (loading && nutrients.length === 0) {
         return (
             <AdminPageLayout>
                 <div className="flex items-center justify-center h-64">
@@ -77,9 +118,18 @@ export default function RecipesPage() {
     return (
         <AdminPageLayout>
             <AdminPageHeader
-                title="Quản lý Công thức"
-                description="Thiết lập công thức chế biến cho từng sản phẩm"
-                icon={BookOpen}
+                title="Quản lý Dinh dưỡng"
+                description="Danh mục các chất dinh dưỡng và năng lượng"
+                icon={Leaf}
+                actions={
+                    <Button
+                        onClick={handleCreate}
+                        className="bg-[#EC6426] hover:bg-[#EC6426]/90 text-white"
+                    >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Thêm dinh dưỡng
+                    </Button>
+                }
             />
 
             {/* Filters */}
@@ -89,7 +139,7 @@ export default function RecipesPage() {
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                         <Input
-                            placeholder="Tìm kiếm sản phẩm..."
+                            placeholder="Tìm kiếm dinh dưỡng..."
                             value={searchKeyword}
                             onChange={(e) => setSearchKeyword(e.target.value)}
                             className="pl-10"
@@ -119,20 +169,23 @@ export default function RecipesPage() {
                 </div>
             </div>
 
-            {/* Products Table */}
+            {/* Nutrients Table */}
             <div className="bg-white rounded-xl border-2 border-gray-200 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
                             <tr>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                                    Sản phẩm
+                                    Tên dinh dưỡng
                                 </th>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                                    Loại
+                                    Mã
                                 </th>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                                    Giá bán
+                                    Đơn vị
+                                </th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                    Năng lượng / Đơn vị
                                 </th>
                                 <th className="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
                                     Thao tác
@@ -140,41 +193,48 @@ export default function RecipesPage() {
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {products.map((product) => (
-                                <tr key={product.productId} className="hover:bg-gray-50 transition-colors">
+                            {nutrients.map((nutrient) => (
+                                <tr key={nutrient.id} className="hover:bg-gray-50 transition-colors">
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
-                                            {product.productImage ? (
-                                                <img
-                                                    src={product.productImage}
-                                                    alt={product.productName}
-                                                    className="w-10 h-10 rounded-lg object-cover border border-gray-200"
-                                                />
-                                            ) : (
-                                                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200">
-                                                    <BookOpen className="h-5 w-5 text-gray-400" />
-                                                </div>
-                                            )}
-                                            <span className="font-semibold text-gray-900">{product.productName}</span>
+                                            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                                <Leaf className="h-4 w-4 text-green-600" />
+                                            </div>
+                                            <span className="font-semibold text-gray-900">{nutrient.name}</span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className="text-sm text-gray-700">{product.productType}</span>
+                                        <span className="text-sm font-mono text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                                            {nutrient.code}
+                                        </span>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className="text-sm font-medium text-[#EC6426]">
-                                            {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.productPrice)}
+                                        <span className="text-sm text-gray-700">{nutrient.unit}</span>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <span className="text-sm text-gray-700 font-medium">
+                                            {nutrient.energyPerUnit} kcal
                                         </span>
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center justify-center gap-2">
                                             <Button
-                                                onClick={() => handleManageRecipe(product)}
+                                                onClick={() => handleEdit(nutrient)}
                                                 size="sm"
-                                                className="bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100"
+                                                variant="outline"
+                                                className="text-orange-600 border-orange-200 hover:bg-orange-50"
+                                                disabled={actionLoading}
                                             >
-                                                <ChefHat className="h-4 w-4 mr-2" />
-                                                Công thức
+                                                <Edit2 className="h-3 w-3" />
+                                            </Button>
+                                            <Button
+                                                onClick={() => handleDeleteClick(nutrient)}
+                                                size="sm"
+                                                variant="outline"
+                                                className="text-red-600 border-red-200 hover:bg-red-50"
+                                                disabled={actionLoading}
+                                            >
+                                                <Trash2 className="h-3 w-3" />
                                             </Button>
                                         </div>
                                     </td>
@@ -184,10 +244,10 @@ export default function RecipesPage() {
                     </table>
                 </div>
 
-                {products.length === 0 && !loading && (
+                {nutrients.length === 0 && !loading && (
                     <div className="text-center py-12">
-                        <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                        <p className="text-gray-500">Không tìm thấy sản phẩm nào</p>
+                        <Leaf className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                        <p className="text-gray-500">Không tìm thấy dữ liệu dinh dưỡng</p>
                     </div>
                 )}
 
@@ -223,13 +283,20 @@ export default function RecipesPage() {
                 )}
             </div>
 
-            {selectedProduct && (
-                <RecipeBuilder
-                    open={showRecipeBuilder}
-                    onOpenChange={setShowRecipeBuilder}
-                    product={selectedProduct}
-                />
-            )}
+            <NutrientFormDialog
+                open={showFormDialog}
+                onOpenChange={setShowFormDialog}
+                nutrient={editingNutrient}
+                onSuccess={handleFormSuccess}
+            />
+
+            <NutrientConfirmDialog
+                open={showConfirmDialog}
+                onOpenChange={setShowConfirmDialog}
+                onConfirm={handleConfirmDelete}
+                nutrientName={deletingNutrient?.name || ''}
+                loading={actionLoading}
+            />
         </AdminPageLayout>
     );
 }
