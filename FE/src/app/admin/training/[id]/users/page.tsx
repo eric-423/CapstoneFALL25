@@ -85,10 +85,6 @@ export default function TrainingUsersPage() {
         label: "Hoàn thành",
         className: "bg-green-100 text-green-700",
       },
-      FAILED: {
-        label: "Không đạt",
-        className: "bg-red-100 text-red-700",
-      },
     };
 
     const config = statusConfig[status] || statusConfig.NOT_STARTED;
