@@ -59,6 +59,16 @@ export async function POST(request: NextRequest) {
                 maxAge: maxAgeInSeconds,
             });
 
+            if (response.data.userInfo?.id) {
+                responseData.cookies.set('userId', response.data.userInfo.id.toString(), {
+                    httpOnly: false,
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: 'strict',
+                    path: '/',
+                    maxAge: maxAgeInSeconds,
+                });
+            }
+
             if (response.data.userInfo?.role) {
                 responseData.cookies.set('role', response.data.userInfo.role, {
                     httpOnly: false,

@@ -1,48 +1,17 @@
 'use client';
 
-import { useEffect, useState, useMemo, useRef } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { getTablesByBranch } from '@/apis/branch.api';
-import { TableData } from '@/apis/table.api';
+import { TableData, OrderItem } from '@/apis/table.api';
+import { waiterConfirmOrder, waiterDeliveredOrder, WaiterConfirmRequest, WaiterDeliveredRequest } from '@/apis/order.api';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Clock, Users, ChefHat, CheckCircle, DollarSign, LayoutGrid, RefreshCw, TrendingUp, QrCode, Download, Eye, X } from 'lucide-react';
+import { Clock, Users, ChefHat, CheckCircle, LayoutGrid, RefreshCw, TrendingUp, QrCode, Download, Eye, X, HandPlatter, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { AdminCard } from '@/app/admin/components/AdminCard';
 import Image from 'next/image';
-
-const getOrderStatusBadge = (order: TableData['currentOrder']) => {
-    if (!order) return null;
-
-    const orderItems = order.orderItems || [];
-    const allConfirmed = orderItems.length > 0 && orderItems.every(item => item.isConfirmed);
-    const allDelivered = orderItems.length > 0 && orderItems.every(item => item.isDelivered);
-
-    if (allDelivered) {
-        return <Badge className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-lg border-2 bg-blue-50 text-blue-700 border-blue-200"><CheckCircle size={14} strokeWidth={2.5} />Đã giao món</Badge>;
-    }
-    if (allConfirmed) {
-        return <Badge className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-lg border-2 bg-yellow-50 text-yellow-700 border-yellow-200"><ChefHat size={14} strokeWidth={2.5} />Đã xác nhận</Badge>;
-    }
-    return <Badge className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-lg border-2 bg-orange-50 text-orange-700 border-orange-200"><Clock size={14} strokeWidth={2.5} />Đã đặt món</Badge>;
-};
-
-const getOrderStatusIcon = (order: TableData['currentOrder']) => {
-    if (!order) return <Clock className="h-5 w-5 text-gray-400" />;
-
-    const orderItems = order.orderItems || [];
-    const allConfirmed = orderItems.length > 0 && orderItems.every(item => item.isConfirmed);
-    const allDelivered = orderItems.length > 0 && orderItems.every(item => item.isDelivered);
-
-    if (allDelivered) {
-        return <CheckCircle className="h-5 w-5 text-blue-600" />;
-    }
-    if (allConfirmed) {
-        return <ChefHat className="h-5 w-5 text-yellow-600" />;
-    }
-    return <Clock className="h-5 w-5 text-orange-600" />;
-};
 
 export default function StaffTablesPage() {
     const router = useRouter();
@@ -51,8 +20,22 @@ export default function StaffTablesPage() {
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [selectedTableForQR, setSelectedTableForQR] = useState<TableData | null>(null);
+    const [selectedTableForAction, setSelectedTableForAction] = useState<TableData | null>(null);
+    const [processingItemKey, setProcessingItemKey] = useState<string | null>(null);
+    const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
     const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
-    const qrCanvasRef = useRef<HTMLCanvasElement>(null);
+    const [excludedItemKeys, setExcludedItemKeys] = useState<Set<string>>(new Set());
+    const [isConfirmingAll, setIsConfirmingAll] = useState(false);
+    const [userRole, setUserRole] = useState<string | null>(null);
+    const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+    const [showPaymentMethodModal, setShowPaymentMethodModal] = useState(false);
+    const [paymentMethods, setPaymentMethods] = useState<Array<{ id: number; name: string }>>([]);
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<number | null>(null);
+
+    const showNotification = (message: string, type: 'success' | 'error') => {
+        setNotification({ message, type });
+        setTimeout(() => setNotification(null), 3000);
+    };
 
     const fetchTables = async (showRefreshing = false) => {
         try {
@@ -88,6 +71,13 @@ export default function StaffTablesPage() {
     };
 
     useEffect(() => {
+        // Get role from cookie
+        const role = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('role='))
+            ?.split('=')[1];
+        setUserRole(role || null);
+
         fetchTables();
 
         // Auto refresh every 30 seconds
@@ -126,23 +116,255 @@ export default function StaffTablesPage() {
         setQrCodeUrl('');
     };
 
+    const openActionModal = (table: TableData) => {
+        setSelectedTableForAction(table);
+    };
+
+    const closeActionModal = () => {
+        setSelectedTableForAction(null);
+        setExcludedItemKeys(new Set());
+    };
+
+    const toggleExcludeItem = (itemKey: string) => {
+        setExcludedItemKeys(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(itemKey)) {
+                newSet.delete(itemKey);
+            } else {
+                newSet.add(itemKey);
+            }
+            return newSet;
+        });
+    };
+
+    const handleConfirmAllUnconfirmed = async () => {
+        if (!selectedTableForAction?.currentOrder) return;
+
+        const waiterId = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('userId='))
+            ?.split('=')[1];
+
+        if (!waiterId) {
+            showNotification('Không tìm thấy thông tin waiter', 'error');
+            return;
+        }
+
+        // Get all unconfirmed items that are NOT excluded
+        const unconfirmedItems = selectedTableForAction.currentOrder.orderItems
+            .map((item, index) => ({ item, index }))
+            .filter(({ item, index }) => {
+                const itemKey = `${item.productId}-${index}`;
+                return !item.isConfirmed && !excludedItemKeys.has(itemKey);
+            });
+
+        if (unconfirmedItems.length === 0) {
+            showNotification('Không có món nào cần xác nhận', 'error');
+            return;
+        }
+
+        setIsConfirmingAll(true);
+
+        try {
+            const request: WaiterConfirmRequest = {
+                orderId: selectedTableForAction.currentOrder.id,
+                waiterId: parseInt(waiterId),
+                orderItems: unconfirmedItems.map(({ item }) => ({
+                    productId: item.productId,
+                    comboId: item.comboDTO?.id || 0,
+                    quantity: item.quantity,
+                    price: item.price,
+                    note: item.note || '',
+                })),
+            };
+
+            await waiterConfirmOrder(request);
+
+            showNotification(`Đã xác nhận ${unconfirmedItems.length} món thành công`, 'success');
+            setExcludedItemKeys(new Set());
+            fetchTables(true);
+            closeActionModal();
+        } catch (error) {
+            console.error('Error confirming items:', error);
+            showNotification('Không thể xác nhận món. Vui lòng thử lại.', 'error');
+        } finally {
+            setIsConfirmingAll(false);
+        }
+    };
+
+    const openPaymentModal = async () => {
+        try {
+            const response = await fetch('/api/payment-method');
+            if (!response.ok) {
+                throw new Error('Failed to fetch payment methods');
+            }
+            const result = await response.json();
+            setPaymentMethods(result.data || []);
+            setShowPaymentMethodModal(true);
+        } catch (error) {
+            console.error('Error fetching payment methods:', error);
+            showNotification('Không thể tải phương thức thanh toán', 'error');
+        }
+    };
+
+    const handlePaymentWithMethod = async () => {
+        if (!selectedTableForAction?.currentOrder || !selectedPaymentMethod) {
+            showNotification('Vui lòng chọn phương thức thanh toán', 'error');
+            return;
+        }
+
+        setIsProcessingPayment(true);
+
+        try {
+            const response = await fetch('/api/orders/dining-table/payment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    orderId: selectedTableForAction.currentOrder.id,
+                    paymentMethodId: selectedPaymentMethod,
+                    promotionCode: '',
+                    discountValue: 0,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Payment request failed');
+            }
+
+            const result = await response.json();
+
+            // Check if payment method is PayOS (id = 2)
+            if (selectedPaymentMethod === 2 && result.data?.paymentUrl) {
+                window.location.href = result.data.paymentUrl;
+            } else {
+                // Cash payment (id = 1) or no payment URL
+                showNotification('Thanh toán thành công!', 'success');
+                setShowPaymentMethodModal(false);
+                closeActionModal();
+                fetchTables(true);
+            }
+        } catch (error) {
+            console.error('Error processing payment:', error);
+            showNotification('Không thể xử lý thanh toán. Vui lòng thử lại.', 'error');
+        } finally {
+            setIsProcessingPayment(false);
+        }
+    };
+
+    const handleDeliverSingleItem = async (item: OrderItem, index: number) => {
+        if (!selectedTableForAction?.currentOrder) return;
+
+        const itemKey = `${item.productId}-${index}`;
+
+        const waiterId = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('userId='))
+            ?.split('=')[1];
+
+        if (!waiterId) {
+            showNotification('Không tìm thấy thông tin waiter', 'error');
+            return;
+        }
+
+        setProcessingItemKey(itemKey);
+
+        try {
+            const request: WaiterDeliveredRequest = {
+                orderId: selectedTableForAction.currentOrder.id,
+                waiterId: parseInt(waiterId),
+                orderItems: [{
+                    productId: item.productId,
+                    comboId: item.comboDTO?.id || 0,
+                    quantity: item.quantity,
+                    price: item.price,
+                    note: item.note || '',
+                }],
+            };
+
+            await waiterDeliveredOrder(request);
+
+            // Update local state immediately
+            setSelectedTableForAction(prev => {
+                if (!prev?.currentOrder) return prev;
+
+                const updatedOrderItems = prev.currentOrder.orderItems.map((orderItem, idx) => {
+                    if (idx === index) {
+                        return { ...orderItem, isDelivered: true };
+                    }
+                    return orderItem;
+                });
+
+                return {
+                    ...prev,
+                    currentOrder: {
+                        ...prev.currentOrder,
+                        orderItems: updatedOrderItems
+                    }
+                };
+            });
+
+            // Also update allTables state
+            setAllTables(prevTables =>
+                prevTables.map(table => {
+                    if (table.id === selectedTableForAction.id && table.currentOrder) {
+                        const updatedOrderItems = table.currentOrder.orderItems.map((orderItem, idx) => {
+                            if (idx === index) {
+                                return { ...orderItem, isDelivered: true };
+                            }
+                            return orderItem;
+                        });
+
+                        return {
+                            ...table,
+                            currentOrder: {
+                                ...table.currentOrder,
+                                orderItems: updatedOrderItems
+                            }
+                        };
+                    }
+                    return table;
+                })
+            );
+
+            showNotification(`Đã giao món thành công`, 'success');
+        } catch (error) {
+            console.error('Error delivering item:', error);
+            showNotification('Không thể cập nhật trạng thái. Vui lòng thử lại.', 'error');
+        } finally {
+            setProcessingItemKey(null);
+        }
+    };
+
     const stats = useMemo(() => {
         const total = allTables.length;
         const occupied = allTables.filter(t => t.currentOrder !== null).length;
         const available = total - occupied;
-        const totalRevenue = allTables.reduce((sum, table) => {
-            if (!table.currentOrder) return sum;
-            return sum + table.currentOrder.orderItems.reduce((total, item) => {
-                const isCombo = item.comboDTO !== null;
-                const itemPrice = isCombo ? item.comboDTO?.price || 0 : item.price;
-                return total + itemPrice * item.quantity;
-            }, 0);
-        }, 0);
-        const totalItems = allTables.reduce((sum, table) => {
-            if (!table.currentOrder) return sum;
-            return sum + table.currentOrder.orderItems.reduce((total, item) => total + item.quantity, 0);
-        }, 0);
-        return { total, occupied, available, totalRevenue, totalItems };
+
+        const tablesNeedingConfirmation: string[] = [];
+        const tablesNeedingServing: string[] = [];
+
+        allTables.forEach(table => {
+            if (table.currentOrder && table.currentOrder.orderItems.length > 0) {
+                const items = table.currentOrder.orderItems;
+                const hasUnconfirmedItems = items.some(item => !item.isConfirmed);
+                const allConfirmed = items.every(item => item.isConfirmed);
+                const hasUndeliveredItems = items.some(item => item.isConfirmed && !item.isDelivered);
+
+                if (hasUnconfirmedItems) {
+                    tablesNeedingConfirmation.push(table.name);
+                } else if (allConfirmed && hasUndeliveredItems) {
+                    tablesNeedingServing.push(table.name);
+                }
+            }
+        });
+
+        const confirmationSubtitle = tablesNeedingConfirmation.length > 0 ? tablesNeedingConfirmation.join(', ') : 'Không có bàn nào';
+        const servingSubtitle = tablesNeedingServing.length > 0 ? tablesNeedingServing.join(', ') : 'Không có bàn nào';
+
+        return { total, occupied, available, needsConfirmation: tablesNeedingConfirmation.length, needsServing: tablesNeedingServing.length, confirmationSubtitle, servingSubtitle };
+
     }, [allTables]);
 
     if (isLoading) {
@@ -177,6 +399,28 @@ export default function StaffTablesPage() {
 
     return (
         <div className="min-h-screen bg-[#EFE6DB]">
+            {/* Notification Toast */}
+            {notification && (
+                <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-top-2">
+                    <Card className={`p-4 min-w-[300px] shadow-xl border-2 ${notification.type === 'success'
+                        ? 'bg-green-50 border-green-500'
+                        : 'bg-red-50 border-red-500'
+                        }`}>
+                        <div className="flex items-center gap-3">
+                            {notification.type === 'success' ? (
+                                <CheckCircle className="h-5 w-5 text-green-600" />
+                            ) : (
+                                <AlertCircle className="h-5 w-5 text-red-600" />
+                            )}
+                            <p className={`font-semibold ${notification.type === 'success' ? 'text-green-900' : 'text-red-900'
+                                }`}>
+                                {notification.message}
+                            </p>
+                        </div>
+                    </Card>
+                </div>
+            )}
+
             <div className="max-w-[1800px] mx-auto space-y-4">
                 {/* Header - Compact */}
                 <div className="flex items-center justify-between">
@@ -226,16 +470,16 @@ export default function StaffTablesPage() {
                             subtitle={`${stats.occupied} bàn có khách`}
                         />
                         <AdminCard
-                            title="Tổng món"
-                            value={stats.totalItems}
+                            title="Bàn cần xác nhận"
+                            value={stats.needsConfirmation}
                             icon={ChefHat}
-                            subtitle={`${stats.totalItems} món đã đặt`}
+                            subtitle={stats.confirmationSubtitle}
                         />
                         <AdminCard
-                            title="Doanh thu"
-                            value={`${(stats.totalRevenue / 1000000).toFixed(1)}M`}
-                            icon={DollarSign}
-                            subtitle={`${stats.totalRevenue.toLocaleString()}đ`}
+                            title="Bàn cần phục vụ"
+                            value={stats.needsServing}
+                            icon={HandPlatter}
+                            subtitle={stats.servingSubtitle}
                         />
                     </div>
                 </div>
@@ -345,7 +589,7 @@ export default function StaffTablesPage() {
                                         </div>
 
                                         {/* Action Buttons */}
-                                        <div className="flex gap-2 mt-auto">
+                                        <div className="flex flex-wrap gap-2 mt-auto">
                                             <Button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
@@ -353,16 +597,30 @@ export default function StaffTablesPage() {
                                                 }}
                                                 variant="outline"
                                                 size="sm"
-                                                className="flex-1 text-xs h-8 border-2 border-[#EC6426] text-[#EC6426] hover:bg-[#EC6426] hover:text-white"
+                                                className="flex-1 min-w-[60px] text-xs h-8 border-2 border-[#EC6426] text-[#EC6426] hover:bg-[#EC6426] hover:text-white"
                                             >
                                                 <QrCode size={14} className="mr-1" />
                                                 QR
                                             </Button>
+                                            {hasOrder && (
+                                                <Button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        openActionModal(table);
+                                                    }}
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="flex-1 min-w-[60px] text-xs h-8 border-2 border-green-500 text-green-600 hover:bg-green-500 hover:text-white"
+                                                >
+                                                    <CheckCircle size={14} className="mr-1" />
+                                                    Xử lý
+                                                </Button>
+                                            )}
                                             <Button
                                                 onClick={() => handleTableClick(table.id)}
                                                 variant="outline"
                                                 size="sm"
-                                                className="flex-1 text-xs h-8 border-2 border-blue-500 text-blue-600 hover:bg-blue-500 hover:text-white"
+                                                className="flex-1 min-w-[60px] text-xs h-8 border-2 border-blue-500 text-blue-600 hover:bg-blue-500 hover:text-white"
                                             >
                                                 <Eye size={14} className="mr-1" />
                                                 Xem
@@ -458,6 +716,306 @@ export default function StaffTablesPage() {
                                 {window.location.origin}/order-table/{selectedTableForQR.id}
                             </p>
                         </div>
+                    </Card>
+                </div>
+            )}
+
+            {/* Waiter Action Modal */}
+            {selectedTableForAction && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                    <Card className="relative p-6 max-w-2xl w-full bg-white border-0 shadow-2xl rounded-2xl max-h-[90vh] overflow-y-auto">
+                        {/* Close Button */}
+                        <button
+                            onClick={closeActionModal}
+                            className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-lg transition-colors z-10"
+                        >
+                            <X className="h-5 w-5 text-gray-500" />
+                        </button>
+
+                        {/* Header */}
+                        <div className="text-center mb-6">
+                            <div className="w-14 h-14 mx-auto mb-3 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center">
+                                <CheckCircle className="h-7 w-7 text-white" strokeWidth={2.5} />
+                            </div>
+                            <h2 className="text-xl font-bold bg-gradient-to-r from-green-500 to-green-600 bg-clip-text text-transparent mb-1">
+                                Xử lý order - {selectedTableForAction.name}
+                            </h2>
+                            <p className="text-xs text-gray-600">
+                                Xác nhận hoặc giao món cho từng item
+                            </p>
+                        </div>
+
+                        {/* Table Info */}
+                        <div className="mb-4 p-3 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border-2 border-green-200">
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="text-sm text-gray-600">Khách hàng:</span>
+                                <span className="font-bold text-gray-900">{selectedTableForAction.currentOrder?.customerName}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm text-gray-600">Tổng món:</span>
+                                <span className="font-semibold text-gray-900">
+                                    {selectedTableForAction.currentOrder?.orderItems.length} món
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Order Items List */}
+                        <div className="space-y-3 max-h-[500px] overflow-y-auto mb-4">
+                            {selectedTableForAction.currentOrder?.orderItems.map((item, index) => {
+                                const isCombo = item.comboDTO !== null;
+                                const itemName = isCombo ? item.comboDTO?.name : item.productName;
+                                const itemPrice = isCombo ? item.comboDTO?.price || 0 : item.price;
+                                const itemKey = `${item.productId}-${index}`;
+                                const isExcluded = excludedItemKeys.has(itemKey);
+
+                                return (
+                                    <div
+                                        key={itemKey}
+                                        className={`p-4 rounded-lg border-2 transition-all ${isExcluded
+                                            ? 'bg-red-50 border-red-300 opacity-60'
+                                            : 'bg-white border-gray-200 hover:border-gray-300'
+                                            }`}
+                                    >
+                                        {/* Item Details */}
+                                        <div className="flex items-start justify-between gap-3 mb-3">
+                                            <div className="flex-grow">
+                                                <h4 className={`font-semibold mb-1 ${isExcluded ? 'text-gray-500 line-through' : 'text-gray-900'}`}>
+                                                    {itemName}
+                                                </h4>
+                                                <div className="flex items-center gap-3 text-xs text-gray-600 mb-2">
+                                                    <span>SL: {item.quantity}</span>
+                                                    <span>•</span>
+                                                    <span>{itemPrice.toLocaleString()}đ/món</span>
+                                                    <span>•</span>
+                                                    <span className="font-bold text-[#EC6426]">
+                                                        {(itemPrice * item.quantity).toLocaleString()}đ
+                                                    </span>
+                                                </div>
+                                                {item.note && (
+                                                    <p className="text-xs text-gray-600 italic">
+                                                        💬 {item.note}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Status & Action Buttons */}
+                                        <div className="flex items-center gap-2">
+                                            {/* Status badges */}
+                                            {item.isDelivered ? (
+                                                <Badge className="text-xs px-3 py-1 bg-blue-100 text-blue-700 border-blue-300">
+                                                    <HandPlatter size={12} className="mr-1" />
+                                                    Đã phục vụ
+                                                </Badge>
+                                            ) : item.isConfirmed ? (
+                                                <Badge className="text-xs px-3 py-1 bg-yellow-100 text-yellow-700 border-yellow-300">
+                                                    <ChefHat size={12} className="mr-1" />
+                                                    Đã xác nhận
+                                                </Badge>
+                                            ) : (
+                                                <Badge className="text-xs px-3 py-1 bg-orange-100 text-orange-700 border-orange-300">
+                                                    <Clock size={12} className="mr-1" />
+                                                    Chờ xử lý
+                                                </Badge>
+                                            )}
+
+                                            <div className="flex-grow" />
+
+                                            {/* Action Buttons */}
+                                            {!item.isDelivered && userRole === 'WAITER' && (
+                                                <div className="flex gap-2">
+                                                    {!item.isConfirmed && (
+                                                        <Button
+                                                            onClick={() => toggleExcludeItem(itemKey)}
+                                                            size="sm"
+                                                            variant="outline"
+                                                            className={`border-2 ${isExcluded
+                                                                ? 'border-green-500 text-green-600 hover:bg-green-500 hover:text-white'
+                                                                : 'border-red-500 text-red-600 hover:bg-red-500 hover:text-white'
+                                                                }`}
+                                                        >
+                                                            <X size={14} className="mr-1" />
+                                                            {isExcluded ? 'Hoàn tác' : 'Loại bỏ'}
+                                                        </Button>
+                                                    )}
+                                                    {item.isConfirmed && (
+                                                        <Button
+                                                            onClick={() => handleDeliverSingleItem(item, index)}
+                                                            disabled={processingItemKey === itemKey}
+                                                            size="sm"
+                                                            className="bg-gradient-to-r from-blue-500 to-blue-600 text-white border-0 hover:shadow-md disabled:opacity-50"
+                                                        >
+                                                            {processingItemKey === itemKey ? (
+                                                                <LoadingSpinner className="h-3 w-3" />
+                                                            ) : (
+                                                                <>
+                                                                    <HandPlatter size={14} className="mr-1" />
+                                                                    Đã phục vụ
+                                                                </>
+                                                            )}
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* Confirm All Button - WAITER only */}
+                        {userRole === 'WAITER' && selectedTableForAction.currentOrder?.orderItems.some(item => !item.isConfirmed) && (
+                            <div className="border-t-2 border-gray-200 pt-4">
+                                <Button
+                                    onClick={handleConfirmAllUnconfirmed}
+                                    disabled={isConfirmingAll}
+                                    className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 text-white border-0 shadow-md hover:shadow-lg disabled:opacity-50"
+                                >
+                                    {isConfirmingAll ? (
+                                        <>
+                                            <LoadingSpinner className="h-4 w-4 mr-2" />
+                                            Đang xác nhận...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <ChefHat size={18} className="mr-2" />
+                                            Xác nhận tất cả món chờ xử lý
+                                            {excludedItemKeys.size > 0 && (
+                                                <span className="ml-2 text-xs bg-white/20 px-2 py-0.5 rounded">
+                                                    (Bỏ qua {excludedItemKeys.size} món)
+                                                </span>
+                                            )}
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
+                        )}
+
+                        {/* Payment Button - STAFF only */}
+                        {userRole === 'STAFF' && selectedTableForAction.currentOrder?.orderItems.every(item => item.isDelivered) && (
+                            <div className="border-t-2 border-gray-200 pt-4">
+                                <Button
+                                    onClick={openPaymentModal}
+                                    className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white border-0 shadow-md hover:shadow-lg"
+                                >
+                                    <CheckCircle size={18} className="mr-2" />
+                                    Thanh toán
+                                </Button>
+                            </div>
+                        )}
+                    </Card>
+                </div>
+            )}
+
+            {/* Notification Toast */}
+            {notification && (
+                <div className="fixed top-4 right-4 z-[100] animate-in slide-in-from-top-2 duration-300">
+                    <Card className={`p-4 min-w-[300px] shadow-lg border-2 ${notification.type === 'success'
+                        ? 'bg-green-50 border-green-500'
+                        : 'bg-red-50 border-red-500'
+                        }`}>
+                        <div className="flex items-start gap-3">
+                            {notification.type === 'success' ? (
+                                <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                            ) : (
+                                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                            )}
+                            <div className="flex-grow">
+                                <p className={`font-semibold ${notification.type === 'success' ? 'text-green-900' : 'text-red-900'
+                                    }`}>
+                                    {notification.type === 'success' ? 'Thành công' : 'Lỗi'}
+                                </p>
+                                <p className={`text-sm ${notification.type === 'success' ? 'text-green-700' : 'text-red-700'
+                                    }`}>
+                                    {notification.message}
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => setNotification(null)}
+                                className="flex-shrink-0 hover:opacity-70"
+                            >
+                                <X className={`h-4 w-4 ${notification.type === 'success' ? 'text-green-600' : 'text-red-600'
+                                    }`} />
+                            </button>
+                        </div>
+                    </Card>
+                </div>
+            )}
+
+            {/* Payment Method Selection Modal */}
+            {showPaymentMethodModal && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                    <Card className="relative p-6 max-w-md w-full bg-white border-0 shadow-2xl rounded-2xl">
+                        {/* Close Button */}
+                        <button
+                            onClick={() => {
+                                setShowPaymentMethodModal(false);
+                                setSelectedPaymentMethod(null);
+                            }}
+                            className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        >
+                            <X className="h-5 w-5 text-gray-500" />
+                        </button>
+
+                        {/* Header */}
+                        <div className="text-center mb-6">
+                            <div className="w-14 h-14 mx-auto mb-3 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center">
+                                <CheckCircle className="h-7 w-7 text-white" strokeWidth={2.5} />
+                            </div>
+                            <h2 className="text-xl font-bold bg-gradient-to-r from-green-500 to-green-600 bg-clip-text text-transparent mb-1">
+                                Chọn phương thức thanh toán
+                            </h2>
+                            <p className="text-xs text-gray-600">
+                                Vui lòng chọn cách thanh toán cho đơn hàng
+                            </p>
+                        </div>
+
+                        {/* Payment Methods */}
+                        <div className="space-y-3 mb-6">
+                            {paymentMethods.map((method) => (
+                                <button
+                                    key={method.id}
+                                    onClick={() => setSelectedPaymentMethod(method.id)}
+                                    className={`w-full p-4 rounded-lg border-2 transition-all text-left ${selectedPaymentMethod === method.id
+                                            ? 'border-green-500 bg-green-50'
+                                            : 'border-gray-200 hover:border-green-300 bg-white'
+                                        }`}
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedPaymentMethod === method.id
+                                                    ? 'border-green-500'
+                                                    : 'border-gray-300'
+                                                }`}>
+                                                {selectedPaymentMethod === method.id && (
+                                                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                                                )}
+                                            </div>
+                                            <span className="font-semibold text-gray-900">{method.name}</span>
+                                        </div>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Confirm Button */}
+                        <Button
+                            onClick={handlePaymentWithMethod}
+                            disabled={!selectedPaymentMethod || isProcessingPayment}
+                            className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white border-0 shadow-md hover:shadow-lg disabled:opacity-50"
+                        >
+                            {isProcessingPayment ? (
+                                <>
+                                    <LoadingSpinner className="h-4 w-4 mr-2" />
+                                    Đang xử lý...
+                                </>
+                            ) : (
+                                <>
+                                    <CheckCircle size={18} className="mr-2" />
+                                    Xác nhận thanh toán
+                                </>
+                            )}
+                        </Button>
                     </Card>
                 </div>
             )}

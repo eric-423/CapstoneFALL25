@@ -22,7 +22,7 @@ export default function TableComboCard({ combo, onAddToCart }: TableComboCardPro
     };
 
     return (
-        <Card className='group hover:shadow-lg transition-all duration-200 border-2 border-orange-200 shadow-sm bg-gradient-to-br from-orange-50 to-white'>
+        <Card className='group hover:shadow-lg transition-all duration-200 border-2 border-orange-200 shadow-sm bg-gradient-to-br from-orange-50 to-white py-0'>
             <CardContent className='p-0'>
                 <div className='relative'>
                     <div className='relative h-36 sm:h-40 md:h-48 w-full overflow-hidden rounded-t-lg bg-gradient-to-br from-orange-100 to-orange-50'>
@@ -51,9 +51,6 @@ export default function TableComboCard({ combo, onAddToCart }: TableComboCardPro
                         <div className='space-y-1'>
                             <div className='text-base sm:text-lg font-bold text-orange-600'>
                                 {combo.price.toLocaleString()}đ
-                            </div>
-                            <div className='text-xs text-gray-500'>
-                                Chi nhánh: Chi nhánh chính
                             </div>
                         </div>
 

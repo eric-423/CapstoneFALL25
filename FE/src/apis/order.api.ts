@@ -402,6 +402,76 @@ export const markOrderAsCooked = async (orderId: number): Promise<MarkOrderAsCoo
   }
 };
 
+export interface WaiterOrderItemRequest {
+  productId: number;
+  comboId: number;
+  quantity: number;
+  price: number;
+  note: string;
+}
+
+export interface WaiterConfirmRequest {
+  orderId: number;
+  waiterId: number;
+  orderItems: WaiterOrderItemRequest[];
+}
+
+export interface WaiterDeliveredRequest {
+  orderId: number;
+  waiterId: number;
+  orderItems: WaiterOrderItemRequest[];
+}
+
+export const waiterConfirmOrder = async (request: WaiterConfirmRequest): Promise<void> => {
+  try {
+    const response = await fetch('/api/orders/waiter/confirm', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.json().catch(() => ({ error: 'Failed to confirm order' }));
+      const error = new Error(`Failed to confirm order: ${response.status} ${response.statusText}`);
+      (error as Error & { response?: { data: unknown; status: number } }).response = {
+        data: errorBody,
+        status: response.status,
+      };
+      throw error;
+    }
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const waiterDeliveredOrder = async (request: WaiterDeliveredRequest): Promise<void> => {
+  try {
+    const response = await fetch('/api/orders/waiter/delivered', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.json().catch(() => ({ error: 'Failed to mark as delivered' }));
+      const error = new Error(`Failed to mark as delivered: ${response.status} ${response.statusText}`);
+      (error as Error & { response?: { data: unknown; status: number } }).response = {
+        data: errorBody,
+        status: response.status,
+      };
+      throw error;
+    }
+  } catch (error) {
+    throw error;
+  }
+};
+
 export interface AssignShipperResponse {
   success: boolean;
   message?: string;
