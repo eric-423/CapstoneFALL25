@@ -35,7 +35,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
                         </CartProvider>
                         <ToastContainer
                             position='top-center'
-                            className={'mt-15 bg-[#B7E892]/50 text-black size-10 rounded-full shadow-md'}
                             autoClose={3000}
                             hideProgressBar={true}
                             newestOnTop={false}
@@ -43,6 +42,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
                             closeOnClick
                             closeButton={false}
                             icon={false}
+                            limit={5}
                         />
                     </AuthProvider>
                 </CookiesProvider>

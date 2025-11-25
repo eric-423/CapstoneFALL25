@@ -132,14 +132,24 @@ public class UserTrainingServiceImpl implements UserTrainingService {
         List<UserTrainingDTO> result = new ArrayList<>();
         List<UserTraining> userTrainings = userTrainingRepository.findByUser_Id(currentUser.getId());
 
-        for(UserTraining userTraining : userTrainings){
-            if(trainingsId.contains(userTraining.getTraining().getId())){
-                result.add(toDtoWithStats(userTraining));
-            }else{
-                UserTrainingDTO userTrainingDTO = new UserTrainingDTO();
-                Trainings trainings = userTraining.getTraining();
+        for (Integer trainingId : trainingsId) {
 
-                userTrainingDTO.setTrainingId(userTraining.getTraining().getId());
+            UserTraining userTraining = null;
+
+            for (UserTraining item : userTrainings) {
+                if (item.getTraining().getId() == trainingId) {
+                    userTraining = item;
+                    break;
+                }
+            }
+
+            if(userTraining!=null){
+                result.add(toDtoWithStats(userTraining));
+            } else{
+                UserTrainingDTO userTrainingDTO = new UserTrainingDTO();
+                Trainings trainings = trainingRepository.findById(trainingId).orElseThrow(() -> new ResourceNotFoundException("Training not found"));
+
+                userTrainingDTO.setTrainingId(trainings.getId());
                 userTrainingDTO.setTrainingName(trainings.getName());
                 userTrainingDTO.setTrainingPoint(0);
                 userTrainingDTO.setUserId(currentUser.getId());
@@ -184,6 +194,7 @@ public class UserTrainingServiceImpl implements UserTrainingService {
                             .title(lesson.getTitle())
                             .description(lesson.getDescription())
                             .content(lesson.getContent())
+                            .videoUrl(lesson.getVideoUrl())
                             .point(lesson.getPoint())
                             .orderIndex(lesson.getOrderIndex())
                             .isLearned(progress != null && Boolean.TRUE.equals(progress.getIsLearned()))
@@ -338,6 +349,7 @@ public class UserTrainingServiceImpl implements UserTrainingService {
     private Lessons verifyLessonBelongsToTraining(int lessonId, UserTraining userTraining) {
         Lessons lesson = lessonRepository.findById(lessonId)
                 .orElseThrow(() -> new ResourceNotFoundException("Lesson not found"));
+
         if (lesson.getTraining().getId() != userTraining.getTraining().getId()) {
             throw new AccessDeniedException("Lesson does not belong to training");
         }
@@ -350,6 +362,7 @@ public class UserTrainingServiceImpl implements UserTrainingService {
                 .title(lesson.getTitle())
                 .description(lesson.getDescription())
                 .content(lesson.getContent())
+                .videoUrl(lesson.getVideoUrl())
                 .point(lesson.getPoint())
                 .orderIndex(lesson.getOrderIndex())
                 .isLearned(progress != null && Boolean.TRUE.equals(progress.getIsLearned()))
@@ -370,6 +383,7 @@ public class UserTrainingServiceImpl implements UserTrainingService {
         return UserTrainingDTO.builder()
                 .id(userTraining.getId())
                 .trainingId(training.getId())
+                .userTrainingId(userTraining.getId())
                 .trainingName(training.getName())
                 .trainingPoint(trainingPoint)
                 .userId(userTraining.getUser().getId())

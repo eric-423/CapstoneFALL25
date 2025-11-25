@@ -22,6 +22,7 @@ import {
   MessageSquare,
   Settings,
   LogOut,
+  Package,
   BookOpen,
   GraduationCap,
   Menu,
@@ -125,35 +126,33 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { logout } = useAuthContext();
-  const pathname = usePathname();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const menuItems = useMemo(
-    () => [
-      { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
-      { href: "/admin/users", label: "Người dùng", icon: Users },
-      { href: "/admin/branches", label: "Chi nhánh", icon: Store },
-      {
-        href: "/admin/warehouses",
-        label: "Kho & Nguyên liệu",
-        icon: Warehouse,
-      },
-      { href: "/admin/recipes", label: "Công thức", icon: BookOpen },
-      { href: "/admin/combos", label: "Combo", icon: Gift },
-      { href: "/admin/training", label: "Khóa đào tạo", icon: GraduationCap },
-      { href: "/admin/orders", label: "Đơn hàng", icon: ShoppingBag },
-      { href: "/admin/finance", label: "Tài chính", icon: DollarSign },
-      { href: "/admin/promotions", label: "Khuyến mãi", icon: Gift },
-      { href: "/admin/feedback", label: "Phản hồi", icon: MessageSquare },
-      { href: "/admin/settings", label: "Cài đặt", icon: Settings },
-    ],
-    []
-  );
-  const activeIndex = useMemo(() => {
-    const index = menuItems.findIndex((item) => pathname === item.href);
-    return index >= 0 ? index : 0;
-  }, [pathname, menuItems]);
+    const { logout } = useAuthContext();
+    const pathname = usePathname();
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [isCollapsed, setIsCollapsed] = useState(false);
+
+    // Memoize menu items to prevent recreation on every render
+    const menuItems = useMemo(() => [
+        { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { href: '/admin/users', label: 'Người dùng', icon: Users },
+        { href: '/admin/branches', label: 'Chi nhánh', icon: Store },
+        { href: '/admin/materials', label: 'Nguyên liệu', icon: Package },
+        { href: '/admin/warehouses', label: 'Kho', icon: Warehouse },
+        { href: '/admin/recipes', label: 'Công thức', icon: BookOpen },
+        { href: '/admin/combos', label: 'Combo', icon: Gift },
+        { href: '/admin/training', label: 'Khóa đào tạo', icon: GraduationCap },
+        { href: '/admin/orders', label: 'Đơn hàng', icon: ShoppingBag },
+        { href: '/admin/finance', label: 'Tài chính', icon: DollarSign },
+        { href: '/admin/promotions', label: 'Khuyến mãi', icon: Gift },
+        { href: '/admin/feedback', label: 'Phản hồi', icon: MessageSquare },
+        { href: '/admin/settings', label: 'Cài đặt', icon: Settings },
+    ], []);
+
+    // Calculate active menu index for animated circle
+    const activeIndex = useMemo(() => {
+        const index = menuItems.findIndex(item => pathname === item.href);
+        return index >= 0 ? index : 0;
+    }, [pathname, menuItems]);
 
   const handleLogout = useCallback(() => {
     logout();

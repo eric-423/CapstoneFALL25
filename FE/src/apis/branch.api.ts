@@ -172,3 +172,17 @@ export const activateBranch = async (branchId: number): Promise<void> => {
     throw new Error('Failed to activate branch');
   }
 };
+
+// Import TableData type from table.api
+import { TableData } from './table.api';
+
+export const getTablesByBranch = async (branchId: number): Promise<TableData[]> => {
+  const response = await fetch(`/api/table/branch/${branchId}`);
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch tables by branch');
+  }
+
+  const data = await response.json();
+  return data;
+};

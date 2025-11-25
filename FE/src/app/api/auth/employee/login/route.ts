@@ -59,8 +59,28 @@ export async function POST(request: NextRequest) {
                 maxAge: maxAgeInSeconds,
             });
 
+            if (response.data.userInfo?.id) {
+                responseData.cookies.set('userId', response.data.userInfo.id.toString(), {
+                    httpOnly: false,
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: 'strict',
+                    path: '/',
+                    maxAge: maxAgeInSeconds,
+                });
+            }
+
             if (response.data.userInfo?.role) {
                 responseData.cookies.set('role', response.data.userInfo.role, {
+                    httpOnly: false,
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: 'strict',
+                    path: '/',
+                    maxAge: maxAgeInSeconds,
+                });
+            }
+
+            if (response.data.userInfo?.branchId !== undefined && response.data.userInfo?.branchId !== null) {
+                responseData.cookies.set('branchId', response.data.userInfo.branchId.toString(), {
                     httpOnly: false,
                     secure: process.env.NODE_ENV === 'production',
                     sameSite: 'strict',

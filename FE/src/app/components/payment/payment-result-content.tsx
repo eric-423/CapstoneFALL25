@@ -4,11 +4,22 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { STORE_INFO } from '@/utils/mockupData';
 
-import { CheckCircle2, Home, ShoppingBag, XCircle } from 'lucide-react';
+import { CheckCircle2, Home, ShoppingBag, XCircle, ClipboardList } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export function PaymentResultContent({ isSuccess = true }) {
     const router = useRouter();
+    const [userRole, setUserRole] = useState<string | null>(null);
+
+    useEffect(() => {
+        // Get role from cookie
+        const role = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('role='))
+            ?.split('=')[1];
+        setUserRole(role || null);
+    }, []);
 
     return (
         <div className='from-orange-50 to-amber-50 py-8 px-4 md:px-6'>
@@ -44,39 +55,54 @@ export function PaymentResultContent({ isSuccess = true }) {
                     {isSuccess ? (
                         <>
                             <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
-                                <Button
-                                    variant='outline'
-                                    className='py-3 bg-black/30 hover:bg-black/70'
-                                    onClick={() => router.push('/')}
-                                >
-                                    <Home className='h-4 w-4 mr-2' />
-                                    Về trang chủ
-                                </Button>
-                                <Button
-                                    variant='outline'
-                                    className='py-3 bg-black/30 hover:bg-black/70'
-                                    onClick={() => router.push('/menu')}
-                                >
-                                    <ShoppingBag className='h-4 w-4 mr-2' />
-                                    Tiếp tục đặt hàng
-                                </Button>
-
-                                {/* <Button
-                                    className='w-full bg-primary hover:bg-primary/90 text-white py-3'
-                                    onClick={() => router.push('/profile')}
-                                >
-                                    Xem chi tiết đơn hàng
-                                    <ArrowRight className='h-4 w-4' />
-                                </Button> */}
+                                {userRole === 'STAFF' || userRole === 'WAITER' ? (
+                                    <Button
+                                        variant='outline'
+                                        className='py-3 bg-gradient-to-r from-[#EC6426] to-[#F8A91F] hover:opacity-90 text-white border-0'
+                                        onClick={() => router.push('/staff/tables')}
+                                    >
+                                        <ClipboardList className='h-4 w-4 mr-2' />
+                                        Quay về quản lý bàn
+                                    </Button>
+                                ) : (
+                                    <>
+                                        <Button
+                                            variant='outline'
+                                            className='py-3 bg-black/30 hover:bg-black/70'
+                                            onClick={() => router.push('/')}
+                                        >
+                                            <Home className='h-4 w-4 mr-2' />
+                                            Về trang chủ
+                                        </Button>
+                                        <Button
+                                            variant='outline'
+                                            className='py-3 bg-black/30 hover:bg-black/70'
+                                            onClick={() => router.push('/menu')}
+                                        >
+                                            <ShoppingBag className='h-4 w-4 mr-2' />
+                                            Tiếp tục đặt hàng
+                                        </Button>
+                                    </>
+                                )}
                             </div>
                         </>
                     ) : (
                         <>
-                            <div className='flex items-center justify-center'>
-                                <Button variant='outline' className='py-3 w-50' onClick={() => router.push('/')}>
+                            <div className='flex items-center justify-center gap-3'>
+                                <Button variant='outline' className='py-3' onClick={() => router.push('/')}>
                                     <Home className='h-4 w-4 mr-2' />
                                     Về trang chủ
                                 </Button>
+                                {(userRole === 'STAFF' || userRole === 'WAITER') && (
+                                    <Button
+                                        variant='outline'
+                                        className='py-3 bg-gradient-to-r from-[#EC6426] to-[#F8A91F] text-white border-0'
+                                        onClick={() => router.push('/staff/tables')}
+                                    >
+                                        <ClipboardList className='h-4 w-4 mr-2' />
+                                        Quay về quản lý bàn
+                                    </Button>
+                                )}
                             </div>
                         </>
                     )}

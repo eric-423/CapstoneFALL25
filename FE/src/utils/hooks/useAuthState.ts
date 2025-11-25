@@ -33,8 +33,9 @@ const useAuthState = () => {
         return '/staff/orders';
       case 'CHEFF':
         return '/chef';
+      case 'STAFF':
       case 'WAITER':
-        return '/waiter';
+        return '/staff/tables';
       case 'SHIPPER':
         return '/shipper';
       case 'CUSTOMER':
@@ -124,7 +125,7 @@ const useAuthState = () => {
       BRANCH_MANAGER: ['/admin', '/manager'],
       STAFF: ['/staff'],
       CHEFF: ['/chef'],
-      WAITER: ['/waiter'],
+      WAITER: ['/staff'],
       SHIPPER: ['/shipper'],
       CUSTOMER: ['/'],
     };
@@ -249,8 +250,9 @@ const useAuthState = () => {
         case 'CHEFF':
           router.push('/chef');
           break;
+        case 'STAFF':
         case 'WAITER':
-          router.push('/waiter');
+          router.push('/staff/tables');
           break;
         case 'SHIPPER':
           router.push('/shipper');

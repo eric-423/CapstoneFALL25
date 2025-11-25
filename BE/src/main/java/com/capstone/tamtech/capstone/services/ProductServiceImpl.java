@@ -4,6 +4,7 @@ import com.capstone.tamtech.capstone.dto.ProductDTO;
 import com.capstone.tamtech.capstone.dto.ProductSearchDTO;
 import com.capstone.tamtech.capstone.entities.*;
 import com.capstone.tamtech.capstone.entities.keys.KeyCookingMethodNutrients;
+import com.capstone.tamtech.capstone.entities.keys.KeyMaterialWarehouse;
 import com.capstone.tamtech.capstone.exception.ResourceNotFoundException;
 import com.capstone.tamtech.capstone.payload.PagedResponse;
 import com.capstone.tamtech.capstone.payload.request.ProductCreateRequest;
@@ -19,6 +20,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.Key;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -48,6 +50,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     private CookingMethodRepository cookingMethodRepository;
+
+    @Autowired
+    private MaterialWarehouseRepository materialWarehouseRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -81,9 +86,48 @@ public class ProductServiceImpl implements ProductService {
 
         List<ProductSearchDTO> productDTOs = productPage.getContent().stream()
                 .map(product -> mapToProductSearchDTO(product, productQuantityMap))
-                .collect(Collectors.toList());
+                .toList();
 
-        return createPagedResponse(productPage, productDTOs);
+        List<ProductSearchDTO> result = productDTOs.stream().map(productSearchDTO -> {
+            Product product = productRepository.findById(productSearchDTO.getProductId()).get();
+            Branch branch = branchRepository.findById(searchRequest.getBranchId()).get();
+            productSearchDTO.setInStock(isInStock(product, branch));
+            return productSearchDTO;
+        }).collect(Collectors.toList());
+
+        return createPagedResponse(productPage, result);
+    }
+
+    private Boolean isInStock(Product product, Branch branch) {
+
+        List<ProductRecipes> recipes = product.getProductRecipes();
+        Map<Integer, Double> materialRequiredMap = new HashMap<>();
+
+        for (ProductRecipes recipe : recipes) {
+            int materialId = recipe.getMaterial().getId();
+            double requiredQuantity = recipe.getQuantity();
+
+            materialRequiredMap.put(materialId, requiredQuantity);
+        }
+
+        for(Map.Entry<Integer, Double> entry : materialRequiredMap.entrySet()) {
+            int materialId = entry.getKey();
+            double requiredQuantity = entry.getValue();
+
+            KeyMaterialWarehouse keyMaterialWarehouse = new KeyMaterialWarehouse();
+            keyMaterialWarehouse.setMaterialId(materialId);
+            keyMaterialWarehouse.setWarehouseId(branch.getWarehouses().getBranch().getId());
+
+            Double availableQuantity = materialWarehouseRepository
+                    .findById(keyMaterialWarehouse).get().getQuantity();
+
+            if (availableQuantity == null || availableQuantity < requiredQuantity) {
+                return false;
+            }
+        }
+
+
+        return true;
     }
 
     @Override
