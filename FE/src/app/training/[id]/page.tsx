@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
+import { toast } from "react-toastify";
 import { CheckCircle2, FileText, PlayCircle } from "lucide-react";
 import {
   getTrainningById,
@@ -51,6 +52,8 @@ export default function TrainingDetailPage() {
     queryKey: ["training", trainingId],
     queryFn: () => getTrainningById(trainingId!),
     enabled: !!trainingId,
+    refetchOnWindowFocus: true,
+    retry: 2,
   });
 
   const { data: lessonsData, isLoading: isLoadingLessons } = useQuery({
@@ -106,7 +109,20 @@ export default function TrainingDetailPage() {
 
       if (responseVideoUrl) {
         setVideoUrl(responseVideoUrl);
+        toast.success("Đã bắt đầu bài học!", {
+          position: "top-right",
+          autoClose: 3000,
+        });
       }
+    },
+    onError: (error: Error) => {
+      toast.error(
+        error.message || "Không thể bắt đầu bài học. Vui lòng thử lại!",
+        {
+          position: "top-right",
+          autoClose: 4000,
+        }
+      );
     },
   });
 
@@ -128,6 +144,22 @@ export default function TrainingDetailPage() {
       queryClient.invalidateQueries({
         queryKey: ["my-training-lessons", trainingId],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["my-trainings"],
+      });
+      toast.success("Chúc mừng! Bạn đã hoàn thành bài học này!", {
+        position: "top-right",
+        autoClose: 4000,
+      });
+    },
+    onError: (error: Error) => {
+      toast.error(
+        error.message || "Không thể hoàn thành bài học. Vui lòng thử lại!",
+        {
+          position: "top-right",
+          autoClose: 4000,
+        }
+      );
     },
   });
 
@@ -139,11 +171,11 @@ export default function TrainingDetailPage() {
 
   const training = trainingData?.data as
     | {
-        id: number;
-        name: string;
-        description?: string;
-        point?: number;
-      }
+      id: number;
+      name: string;
+      description?: string;
+      point?: number;
+    }
     | undefined;
 
   const lessons = useMemo<TrainingLesson[]>(() => {
@@ -177,6 +209,25 @@ export default function TrainingDetailPage() {
     console.log("📦 Grouped lessons:", groups);
     return groups;
   }, [lessons]);
+
+  const completedLessonsCount = useMemo(() => {
+    return lessons.filter((lesson) => {
+      const lessonWithStatus = lesson as TrainingLesson & {
+        isCompleted?: boolean;
+      };
+      return lessonWithStatus.isCompleted === true;
+    }).length;
+  }, [lessons]);
+
+  const courseProgress = useMemo(() => {
+    if (lessons.length === 0) return 0;
+    return Math.round((completedLessonsCount / lessons.length) * 100);
+  }, [completedLessonsCount, lessons.length]);
+
+  const currentLesson = useMemo(() => {
+    if (!selectedLessonId) return null;
+    return lessons.find((lesson) => lesson.id === selectedLessonId) ?? null;
+  }, [lessons, selectedLessonId]);
 
   useEffect(() => {
     const moduleNumbers = Object.keys(groupedLessons)
@@ -222,7 +273,7 @@ export default function TrainingDetailPage() {
 
   if (isLoadingTraining || isLoadingLessons) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: "#f8e4d4" }}>
         <Loader2 className="w-8 h-8 animate-spin text-[#EC6426]" />
       </div>
     );
@@ -240,263 +291,305 @@ export default function TrainingDetailPage() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
-        <div className="p-6 border-b border-gray-200">
-          <h1 className="text-lg font-semibold text-gray-900 mb-1">
-            {training.name}
-          </h1>
-          <p className="text-sm text-gray-500">FPT University</p>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-4">
-          <div className="mb-4">
-            <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
-              Tài liệu khóa học
-            </h2>
-            {lessons.length === 0 && !isLoadingLessons && (
-              <p className="text-sm text-gray-500 mt-2">Chưa có bài học nào</p>
+    <div className="min-h-screen" style={{ backgroundColor: "#f8e4d4" }}>
+      <section className="border-b border-gray-200 bg-white">
+        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+          <div className="mb-3">
+            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-1">
+              Learning Program
+            </p>
+            <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">
+              {training.name}
+            </h1>
+            {training.description && (
+              <p className="mt-1 max-w-3xl text-xs text-gray-600 line-clamp-1">
+                {training.description}
+              </p>
             )}
           </div>
-
-          {lessons.length === 0 && !isLoadingLessons ? (
-            <div className="text-center py-8 text-gray-500">
-              <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">Không có bài học nào trong khóa học này</p>
+          <div className="flex items-center gap-4">
+            <div className="flex-1">
+              <div className="flex items-center justify-between text-xs text-gray-600 mb-1.5">
+                <span>
+                  {completedLessonsCount}/{lessons.length || "0"} bài học
+                  {currentLesson && (
+                    <span className="ml-2 text-gray-500">
+                      • Đang học: {currentLesson.title}
+                    </span>
+                  )}
+                </span>
+                <span className="font-semibold text-gray-900">
+                  {courseProgress}%
+                </span>
+              </div>
+              <div className="h-2 rounded-full bg-gray-200 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-[#EC6426] transition-all duration-300"
+                  style={{ width: `${courseProgress}%` }}
+                />
+              </div>
             </div>
-          ) : (
-            Object.entries(groupedLessons)
-              .sort(([a], [b]) => Number(a) - Number(b))
-              .map(([moduleNum, moduleLessons]) => {
-                const moduleNumber = Number(moduleNum);
-                const isExpanded = expandedModules.has(moduleNumber);
-                const allCompleted = moduleLessons.every((lesson) =>
-                  isLessonCompleted(lesson.id)
-                );
+          </div>
+        </div>
+      </section>
 
-                return (
-                  <div key={moduleNumber} className="mb-2">
-                    <button
-                      onClick={() => toggleModule(moduleNumber)}
-                      className={cn(
-                        "w-full flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors",
-                        selectedLessonId &&
-                          moduleLessons.some(
-                            (l) => l.id === selectedLessonId
-                          ) &&
-                          "bg-blue-50"
-                      )}
-                    >
-                      <div className="flex items-center gap-3 flex-1">
-                        {allCompleted ? (
-                          <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
-                        ) : (
-                          <div className="w-5 h-5 rounded-full border-2 border-gray-300 flex-shrink-0" />
+      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[320px_1fr] lg:px-8">
+        <aside className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <div className="border-b border-gray-200 px-6 py-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-600">
+              Nội dung khóa học
+            </p>
+            <p className="text-sm text-gray-600 mt-1">
+              • {lessons.length} bài học
+            </p>
+          </div>
+          <div className="max-h-[70vh] overflow-y-auto bg-white rounded-b-2xl px-4 py-4">
+            {lessons.length === 0 && !isLoadingLessons ? (
+              <div className="text-center py-8 text-gray-500">
+                <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">Không có bài học nào trong khóa học này</p>
+              </div>
+            ) : (
+              Object.entries(groupedLessons)
+                .sort(([a], [b]) => Number(a) - Number(b))
+                .map(([moduleNum, moduleLessons]) => {
+                  const moduleNumber = Number(moduleNum);
+                  const isExpanded = expandedModules.has(moduleNumber);
+                  const allCompleted = moduleLessons.every((lesson) =>
+                    isLessonCompleted(lesson.id)
+                  );
+
+                  return (
+                    <div key={moduleNumber} className="mb-3">
+                      <button
+                        type="button"
+                        onClick={() => toggleModule(moduleNumber)}
+                        className={cn(
+                          "w-full rounded-xl border border-[#EC6426]/20 bg-white/50 px-4 py-5 text-left transition-all hover:bg-white hover:border-[#EC6426]/20 cursor-pointer",
+                          selectedLessonId &&
+                          moduleLessons.some((l) => l.id === selectedLessonId) &&
+                          "border-[#EC6426]/20 bg-white shadow-sm"
                         )}
-                        <span
-                          className={cn(
-                            "text-sm font-medium",
-                            selectedLessonId &&
-                              moduleLessons.some(
-                                (l) => l.id === selectedLessonId
-                              )
-                              ? "text-blue-600 underline"
-                              : "text-gray-900"
-                          )}
-                        >
-                          {training.name}
-                        </span>
-                      </div>
-                    </button>
+                      >
+                        <div className="flex items-center justify-between w-full">
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            {allCompleted ? (
+                              <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
+                            ) : (
+                              <div className="h-4 w-4 rounded-full border border-gray-300 flex-shrink-0" />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-semibold text-gray-900 truncate">
+                                Module {moduleNumber}
+                              </p>
+                              <p className="text-xs text-gray-500 mt-0.5">
+                                {moduleLessons.length} bài học
+                              </p>
+                            </div>
+                          </div>
+                          <span className="text-xs font-medium uppercase text-gray-400 ml-2 flex-shrink-0">
+                            {isExpanded ? "Thu gọn" : "Xem thêm"}
+                          </span>
+                        </div>
+                      </button>
 
-                    {isExpanded && (
-                      <div className="ml-8 mt-1 space-y-1">
-                        {moduleLessons
-                          .sort((a, b) => a.orderIndex - b.orderIndex)
-                          .map((lesson) => {
-                            const isSelected = selectedLessonId === lesson.id;
-                            const isCompleted = isLessonCompleted(lesson.id);
+                      {isExpanded && (
+                        <div className="mt-2 space-y-1.5 pl-3">
+                          {moduleLessons
+                            .sort((a, b) => a.orderIndex - b.orderIndex)
+                            .map((lesson) => {
+                              const isSelected = selectedLessonId === lesson.id;
+                              const isCompleted = isLessonCompleted(lesson.id);
 
-                            return (
-                              <button
-                                key={lesson.id}
-                                onClick={() => setSelectedLessonId(lesson.id)}
-                                className={cn(
-                                  "w-full text-left p-2 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2",
-                                  isSelected &&
-                                    "bg-blue-50 border-l-4 border-blue-600"
-                                )}
-                              >
-                                {isCompleted ? (
-                                  <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
-                                ) : (
-                                  <div className="w-4 h-4 rounded-full border border-gray-300 flex-shrink-0" />
-                                )}
-                                <span
+                              return (
+                                <Button
+                                  key={lesson.id}
+                                  variant="ghost"
+                                  onClick={() => setSelectedLessonId(lesson.id)}
                                   className={cn(
-                                    "text-sm",
+                                    "w-full rounded-lg px-3 py-2 text-left text-sm transition-all justify-start",
                                     isSelected
-                                      ? "text-blue-600 font-medium underline"
-                                      : "text-gray-700"
+                                      ? "bg-white shadow-sm border border-[#EC6426]/40 text-[#EC6426] font-medium"
+                                      : "bg-white/50 hover:bg-white hover:border hover:border-[#EC6426]/20 text-gray-700 border border-transparent"
                                   )}
                                 >
-                                  {lesson.title}
-                                </span>
-                              </button>
-                            );
-                          })}
-                      </div>
-                    )}
-                  </div>
-                );
-              })
-          )}
-        </div>
-      </div>
-
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {isLoadingLesson ? (
-          <div className="flex-1 flex items-center justify-center">
-            <Loader2 className="w-8 h-8 animate-spin text-[#EC6426]" />
+                                  <div className="flex items-center gap-2 w-full">
+                                    {isCompleted ? (
+                                      <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
+                                    ) : (
+                                      <div className="h-4 w-4 rounded-full border border-gray-300 flex-shrink-0" />
+                                    )}
+                                    <span className="truncate text-left">{lesson.title}</span>
+                                  </div>
+                                </Button>
+                              );
+                            })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+            )}
           </div>
-        ) : lessonDetail?.data ? (
-          <div className="flex-1 overflow-y-auto p-8">
-            <div className="max-w-4xl mx-auto">
-              <div className="flex items-start justify-between mb-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                    {(lessonDetail.data as TrainingLesson).title}
-                  </h2>
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
-                    <div className="flex items-center gap-1">
-                      <CheckCircle2 className="w-4 h-4 text-green-600" />
-                      <span>All videos completed</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <FileText className="w-4 h-4 text-green-600" />
-                      <span>All readings completed</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <CheckCircle2 className="w-4 h-4 text-green-600" />
-                      <span>All graded assessments completed</span>
-                    </div>
-                  </div>
+        </aside>
+
+        <main className="space-y-6">
+          {isLoadingLesson ? (
+            <div className="space-y-6">
+              <section className="space-y-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-2xl animate-pulse">
+                <div className="space-y-3">
+                  <div className="h-4 w-32 bg-gray-200 rounded" />
+                  <div className="h-8 w-3/4 bg-gray-200 rounded" />
+                  <div className="h-20 w-full bg-gray-200 rounded" />
                 </div>
-                <Button
-                  className="bg-green-600 hover:bg-green-700 text-white"
-                  onClick={handleCompleteLesson}
-                  disabled={
-                    completeLessonMutation.isPending ||
-                    !videoUrl ||
-                    !isVideoCompleted
-                  }
-                >
-                  {completeLessonMutation.isPending ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Đang hoàn thành...
-                    </>
-                  ) : !videoUrl ? (
-                    <>
-                      <FileText className="w-4 h-4 mr-2" />
-                      Vui lòng bắt đầu bài học
-                    </>
-                  ) : !isVideoCompleted ? (
-                    <>
-                      <FileText className="w-4 h-4 mr-2" />
-                      Vui lòng xem hết video
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="w-4 h-4 mr-2" />
-                      Complete
-                    </>
-                  )}
-                </Button>
-              </div>
-              <div className="mb-6">
-                <p className="text-gray-700 leading-relaxed">
-                  {(lessonDetail.data as TrainingLesson).description ||
-                    (lessonDetail.data as TrainingLesson).content}
-                </p>
-              </div>
-              <div className="mb-6">
-                <button className="text-sm text-gray-600 hover:text-gray-900">
-                  Show Learning Objectives
-                </button>
-              </div>
-              <div className="space-y-4">
-                {/* Video Player */}
-                {videoUrl ? (
-                  <div className="border border-gray-200 rounded-lg overflow-hidden bg-black">
-                    <div className="w-full aspect-video">
-                      <video
-                        ref={videoRef}
-                        src={videoUrl}
-                        controls
-                        autoPlay
-                        className="w-full h-full"
-                        onEnded={() => {
-                          setIsVideoCompleted(true);
-                        }}
-                        key={selectedLessonId}
-                      >
-                        Trình duyệt của bạn không hỗ trợ video tag.
-                      </video>
-                    </div>
-                    {!isVideoCompleted && (
-                      <div className="bg-yellow-50 border-t border-yellow-200 p-3">
-                        <p className="text-sm text-yellow-800 text-center">
-                          ⚠️ Vui lòng xem hết video để có thể hoàn thành bài học
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="border border-gray-200 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <PlayCircle className="w-5 h-5 text-blue-600" />
-                        <span className="font-medium text-gray-900">
-                          {(lessonDetail.data as TrainingLesson).title}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-green-600" />
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="text-blue-600 border-blue-600"
-                          onClick={handleStartLesson}
-                          disabled={startLessonMutation.isPending}
-                        >
-                          {startLessonMutation.isPending ? (
-                            <>
-                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                              Đang bắt đầu...
-                            </>
-                          ) : (
-                            "Get started"
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-                    <p className="text-sm text-gray-600">Video • 8 min</p>
-                    <p className="text-sm text-gray-600">
-                      {(lessonDetail.data as TrainingLesson).point} điểm
+                <div className="flex gap-2">
+                  <div className="h-10 w-24 bg-gray-200 rounded" />
+                  <div className="h-10 w-32 bg-gray-200 rounded" />
+                </div>
+                <div className="h-64 w-full bg-gray-200 rounded-2xl" />
+              </section>
+            </div>
+          ) : lessonDetail?.data ? (
+            <>
+              <section className="space-y-10 rounded-2xl border border-gray-200 bg-white p-4 shadow-2xl">
+                <div className="flex flex-col gap-4 border-b border-gray-100 pb-4 md:flex-row md:items-start md:justify-between">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                      Bài học hiện tại
+                    </p>
+                    <h2 className="mt-1 text-2xl font-semibold text-gray-900">
+                      {(lessonDetail.data as TrainingLesson).title}
+                    </h2>
+                    <p className="mt-2 text-sm text-gray-600">
+                      {(lessonDetail.data as TrainingLesson).description ||
+                        (lessonDetail.data as TrainingLesson).content}
                     </p>
                   </div>
-                )}
-                {isLoadingDocuments ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="w-6 h-6 animate-spin text-[#EC6426]" />
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                      onClick={handleStartLesson}
+                      disabled={startLessonMutation.isPending}
+                    >
+                      {startLessonMutation.isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Đang chuẩn bị
+                        </>
+                      ) : (
+                        <>
+                          <PlayCircle className="mr-2 h-4 w-4" />
+                          Bắt đầu
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                      onClick={handleCompleteLesson}
+                      disabled={
+                        completeLessonMutation.isPending ||
+                        !videoUrl ||
+                        !isVideoCompleted
+                      }
+                    >
+                      {completeLessonMutation.isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Đang hoàn thành...
+                        </>
+                      ) : !videoUrl ? (
+                        <>
+                          <FileText className="mr-2 h-4 w-4" />
+                          Bắt đầu bài học
+                        </>
+                      ) : !isVideoCompleted ? (
+                        <>
+                          <FileText className="mr-2 h-4 w-4" />
+                          Xem hết video
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 className="mr-2 h-4 w-4" />
+                          Hoàn thành
+                        </>
+                      )}
+                    </Button>
                   </div>
-                ) : documents.length > 0 ? (
-                  <div className="space-y-3">
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      Tài liệu
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                </div>
+
+                <div className="space-y-4">
+                  {videoUrl ? (
+                    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-black">
+                      <div className="aspect-video w-full">
+                        <video
+                          ref={videoRef}
+                          src={videoUrl}
+                          controls
+                          autoPlay
+                          className="h-full w-full"
+                          onEnded={() => {
+                            setIsVideoCompleted(true);
+                          }}
+                          key={selectedLessonId}
+                        >
+                          Trình duyệt của bạn không hỗ trợ video tag.
+                        </video>
+                      </div>
+                      {!isVideoCompleted && (
+                        <div className="border-t border-gray-200 bg-yellow-50 p-3 text-center text-sm text-yellow-800">
+                          Xem hết video để mở khóa nút hoàn thành.
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-6 text-center">
+                      <PlayCircle className="mx-auto h-10 w-10 text-gray-400" />
+                      <p className="mt-3 text-sm text-gray-600">
+                        Video sẽ xuất hiện tại đây sau khi bạn bắt đầu bài học.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              {isLoadingDocuments ? (
+                <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm animate-pulse">
+                  <div className="flex flex-col gap-3 border-b border-gray-100 pb-4">
+                    <div className="h-4 w-40 bg-gray-200 rounded" />
+                    <div className="h-6 w-48 bg-gray-200 rounded" />
+                  </div>
+                  <div className="mt-4 grid gap-4 md:grid-cols-2">
+                    {[1, 2].map((i) => (
+                      <div
+                        key={i}
+                        className="rounded-xl border border-gray-200 p-4 space-y-3"
+                      >
+                        <div className="h-5 w-5 bg-gray-200 rounded" />
+                        <div className="h-5 w-3/4 bg-gray-200 rounded" />
+                        <div className="h-4 w-full bg-gray-200 rounded" />
+                        <div className="h-4 w-24 bg-gray-200 rounded" />
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              ) : (
+                documents.length > 0 && (
+                  <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                    <div className="flex flex-col gap-3 border-b border-gray-100 pb-4 md:flex-row md:items-center md:justify-between">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                          Tài liệu học tập
+                        </p>
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          Nội dung bổ trợ cho bài học
+                        </h3>
+                      </div>
+                      <span className="text-sm text-gray-500">
+                        {documents.length} tài liệu
+                      </span>
+                    </div>
+                    <div className="mt-4 grid gap-4 md:grid-cols-2">
                       {documents.map((document) => {
                         const isVideo =
                           document.refLink?.includes(".mp4") ||
@@ -506,20 +599,20 @@ export default function TrainingDetailPage() {
                         return (
                           <div
                             key={document.id}
-                            className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                            className="rounded-xl border border-gray-200 p-4 transition-shadow hover:shadow-md"
                           >
                             <div className="flex items-start gap-3">
                               {isVideo ? (
-                                <PlayCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-1" />
+                                <PlayCircle className="mt-1 h-5 w-5 text-blue-600" />
                               ) : (
-                                <FileText className="w-5 h-5 text-gray-600 flex-shrink-0 mt-1" />
+                                <FileText className="mt-1 h-5 w-5 text-gray-600" />
                               )}
-                              <div className="flex-1 min-w-0">
-                                <h4 className="font-medium text-gray-900 mb-1 truncate">
+                              <div className="flex-1">
+                                <p className="font-medium text-gray-900">
                                   {document.name}
-                                </h4>
+                                </p>
                                 {document.description && (
-                                  <p className="text-sm text-gray-600 mb-2 line-clamp-2">
+                                  <p className="mt-1 text-sm text-gray-500 line-clamp-2">
                                     {document.description}
                                   </p>
                                 )}
@@ -527,9 +620,9 @@ export default function TrainingDetailPage() {
                                   href={document.refLink}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-sm text-blue-600 hover:text-blue-700 underline"
+                                  className="mt-2 inline-flex items-center text-sm font-medium text-[#EC6426] hover:text-[#c94f1f]"
                                 >
-                                  Xem tài liệu
+                                  Mở tài liệu
                                 </a>
                               </div>
                             </div>
@@ -537,16 +630,18 @@ export default function TrainingDetailPage() {
                         );
                       })}
                     </div>
-                  </div>
-                ) : null}
-              </div>
+                  </section>
+                )
+              )}
+            </>
+          ) : (
+            <div className="flex min-h-[480px] items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white">
+              <p className="text-sm text-gray-500">
+                Chọn một bài học ở bảng bên trái để bắt đầu học.
+              </p>
             </div>
-          </div>
-        ) : (
-          <div className="flex-1 flex items-center justify-center">
-            <p className="text-gray-500">Chọn một bài học để xem chi tiết</p>
-          </div>
-        )}
+          )}
+        </main>
       </div>
     </div>
   );
