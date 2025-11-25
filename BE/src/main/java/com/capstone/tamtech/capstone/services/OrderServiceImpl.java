@@ -434,6 +434,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public Boolean confirmOrderItem(WaiterConfirmOrderRequest waiterConfirmOrderRequest) {
         Order order = orderRepository.findById(waiterConfirmOrderRequest.getOrderId())
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
@@ -442,12 +443,17 @@ public class OrderServiceImpl implements OrderService {
         Integer branchId = order.getBranch() != null ? order.getBranch().getId() : null;
 
         double confirmedSubTotal = 0.0;
+        List<OrderItem> itemsToDelete = new ArrayList<>();
+        List<OrderItem> confirmedItems = new ArrayList<>();
+
         if (orderItems != null) {
             for (OrderItem oi : orderItems) {
                 if (oi.getIsConfirmed() == null || !oi.getIsConfirmed()) {
-                    inventoryService.restoreMaterialsForOrderItems(List.of(oi), branchId);
-                    orderItemRepository.delete(oi);
-                } else {
+                    itemsToDelete.add(oi);
+                } else if(oi.getIsDelivered()!=null){
+                    continue;
+                }else {
+                    confirmedItems.add(oi);
                     if (oi.getProduct() != null) {
                         confirmedSubTotal += oi.getPrice() * oi.getQuantity();
                     }
@@ -458,17 +464,27 @@ public class OrderServiceImpl implements OrderService {
             }
         }
 
+        if (!itemsToDelete.isEmpty()) {
+            inventoryService.restoreMaterialsForOrderItems(itemsToDelete, branchId);
+            for (OrderItem oi : itemsToDelete) {
+                order.getOrderItems().remove(oi);
+                orderItemRepository.delete(oi);
+            }
+        }
+
         double subTotal = 0.0;
         Date now = new Date();
+
         if (waiterConfirmOrderRequest.getOrderItems() != null) {
-            for (OrderItem incoming : waiterConfirmOrderRequest.getOrderItems()) {
-                boolean hasCombo = incoming.getCombo() != null && incoming.getCombo().getId() > 0;
-                boolean hasProduct = incoming.getProduct() != null && incoming.getProduct().getId() > 0;
+
+            for (OrderItemRequest incoming : waiterConfirmOrderRequest.getOrderItems()) {
+                boolean hasCombo = incoming.getComboId() != 0;
+                boolean hasProduct = incoming.getProductId() != 0;
 
                 if (hasProduct) {
                     OrderItem newItem = new OrderItem();
                     newItem.setOrder(order);
-                    productRepository.findById(incoming.getProduct().getId()).ifPresent(newItem::setProduct);
+                    productRepository.findById(incoming.getProductId()).ifPresent(newItem::setProduct);
                     int qty = Math.max(0, incoming.getQuantity());
                     newItem.setQuantity(qty);
                     double unitPrice = newItem.getProduct() != null ? newItem.getProduct().getPrice() : 0.0;
@@ -484,7 +500,7 @@ public class OrderServiceImpl implements OrderService {
                 if (hasCombo) {
                     OrderItem newItem = new OrderItem();
                     newItem.setOrder(order);
-                    comboRepository.findById(incoming.getCombo().getId()).ifPresent(newItem::setCombo);
+                    comboRepository.findById(incoming.getComboId()).ifPresent(newItem::setCombo);
                     int qty = Math.max(0, incoming.getQuantity());
                     newItem.setQuantity(qty);
                     Double unitPrice = newItem.getCombo() != null ? newItem.getCombo().getPrice() : 0.0;
@@ -508,26 +524,41 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public Boolean confirmDeliveredOrderItem(WaiterConfirmOrderRequest waiterConfirmOrderRequest) {
         Order order = orderRepository.findById(waiterConfirmOrderRequest.getOrderId())
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
         List<OrderItem> orderItems = order.getOrderItems();
 
-        if (waiterConfirmOrderRequest.getOrderItems() != null) {
-            for (OrderItem incoming : waiterConfirmOrderRequest.getOrderItems()) {
+        if (waiterConfirmOrderRequest.getOrderItems() != null && orderItems != null) {
+            for (OrderItemRequest incoming : waiterConfirmOrderRequest.getOrderItems()) {
+                boolean hasProduct = incoming.getProductId() != 0;
+                boolean hasCombo = incoming.getComboId() != 0;
+
                 for (OrderItem existing : orderItems) {
+                    if (existing.getIsConfirmed() == null || !existing.getIsConfirmed()) {
+                        continue;
+                    }
+                    if (existing.getIsDelivered() != null && existing.getIsDelivered()) {
+                        continue;
+                    }
+
                     boolean match = false;
-                    if (existing.getProduct() != null && incoming.getProduct() != null &&
-                            existing.getProduct().getId() == incoming.getProduct().getId()) {
+
+                    if (hasProduct && existing.getProduct() != null &&
+                            existing.getProduct().getId() == incoming.getProductId()) {
                         match = true;
                     }
-                    if (existing.getCombo() != null && incoming.getCombo() != null &&
-                            existing.getCombo().getId() == incoming.getCombo().getId()) {
+
+                    if (hasCombo && existing.getCombo() != null &&
+                            existing.getCombo().getId() == incoming.getComboId()) {
                         match = true;
                     }
+
                     if (match) {
                         existing.setIsDelivered(true);
                         orderItemRepository.save(existing);
+                        break;
                     }
                 }
             }
@@ -691,7 +722,7 @@ public class OrderServiceImpl implements OrderService {
     public boolean deliveredOrder(int orderId) {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
 
-        if(order.getStatus().getName().equals("DELIVERED")) {
+        if (order.getStatus().getName().equals("DELIVERED")) {
             throw new RuntimeException("Order has already been delivered");
         }
         OrderStatus orderStatus = orderStatusRepository.findByName("DELIVERED")
@@ -859,6 +890,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public OrderDTO payDiningTableOrder(
             com.capstone.tamtech.capstone.payload.request.DiningTablePaymentRequest paymentRequest)
             throws BadRequestException {

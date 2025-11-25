@@ -126,12 +126,51 @@ public class UserTrainingServiceImpl implements UserTrainingService {
     @Transactional(readOnly = true)
     public List<UserTrainingDTO> getMyTrainings(String status) {
         Users currentUser = getCurrentUser();
-        return userTrainingRepository.findByUser_Id(currentUser.getId())
-                .stream()
-                .map(this::toDtoWithStats)
-                .filter(dto -> status == null || status.isBlank()
-                        || status.equalsIgnoreCase(dto.getStatus()))
-                .toList();
+        System.out.println("Current User ID: " + currentUser.getId());
+
+        List<Integer> trainingsId = trainingRepository.findByRole_IdAndIsActive(currentUser.getRoleHistories().stream().filter(rh -> rh.isActive()).findFirst().get().getRole().getId(), true).stream().map(Trainings::getId).toList();
+        List<UserTrainingDTO> result = new ArrayList<>();
+        List<UserTraining> userTrainings = userTrainingRepository.findByUser_Id(currentUser.getId());
+
+        for (Integer trainingId : trainingsId) {
+
+            UserTraining userTraining = null;
+
+            for (UserTraining item : userTrainings) {
+                if (item.getTraining().getId() == trainingId) {
+                    userTraining = item;
+                    break;
+                }
+            }
+
+            if(userTraining!=null){
+                result.add(toDtoWithStats(userTraining));
+            } else{
+                UserTrainingDTO userTrainingDTO = new UserTrainingDTO();
+                Trainings trainings = trainingRepository.findById(trainingId).orElseThrow(() -> new ResourceNotFoundException("Training not found"));
+
+                userTrainingDTO.setTrainingId(trainings.getId());
+                userTrainingDTO.setTrainingName(trainings.getName());
+                userTrainingDTO.setTrainingPoint(0);
+                userTrainingDTO.setUserId(currentUser.getId());
+                userTrainingDTO.setUserFullName(currentUser.getFullName());
+                userTrainingDTO.setUserEmail(currentUser.getEmail());
+                userTrainingDTO.setUserPhone(currentUser.getPhoneNumber());
+                userTrainingDTO.setPoint(0);
+                userTrainingDTO.setIsPassed(false);
+                userTrainingDTO.setTotalLessons(trainings.getLessonsList().size());
+                userTrainingDTO.setCompletedLessons(0);
+                userTrainingDTO.setCompletionPercent(0.0);
+                userTrainingDTO.setStatus("NOT_STARTED");
+                userTrainingDTO.setEnrolledAt(null);
+                userTrainingDTO.setCompletedAt(null);
+
+                result.add((userTrainingDTO));
+            }
+        }
+
+
+        return result;
     }
 
     @Override
@@ -155,6 +194,7 @@ public class UserTrainingServiceImpl implements UserTrainingService {
                             .title(lesson.getTitle())
                             .description(lesson.getDescription())
                             .content(lesson.getContent())
+                            .videoUrl(lesson.getVideoUrl())
                             .point(lesson.getPoint())
                             .orderIndex(lesson.getOrderIndex())
                             .isLearned(progress != null && Boolean.TRUE.equals(progress.getIsLearned()))
@@ -309,6 +349,7 @@ public class UserTrainingServiceImpl implements UserTrainingService {
     private Lessons verifyLessonBelongsToTraining(int lessonId, UserTraining userTraining) {
         Lessons lesson = lessonRepository.findById(lessonId)
                 .orElseThrow(() -> new ResourceNotFoundException("Lesson not found"));
+
         if (lesson.getTraining().getId() != userTraining.getTraining().getId()) {
             throw new AccessDeniedException("Lesson does not belong to training");
         }
@@ -321,6 +362,7 @@ public class UserTrainingServiceImpl implements UserTrainingService {
                 .title(lesson.getTitle())
                 .description(lesson.getDescription())
                 .content(lesson.getContent())
+                .videoUrl(lesson.getVideoUrl())
                 .point(lesson.getPoint())
                 .orderIndex(lesson.getOrderIndex())
                 .isLearned(progress != null && Boolean.TRUE.equals(progress.getIsLearned()))
@@ -341,6 +383,7 @@ public class UserTrainingServiceImpl implements UserTrainingService {
         return UserTrainingDTO.builder()
                 .id(userTraining.getId())
                 .trainingId(training.getId())
+                .userTrainingId(userTraining.getId())
                 .trainingName(training.getName())
                 .trainingPoint(trainingPoint)
                 .userId(userTraining.getUser().getId())
@@ -362,10 +405,7 @@ public class UserTrainingServiceImpl implements UserTrainingService {
         if (Boolean.TRUE.equals(userTraining.getIsPassed())) {
             return "COMPLETED";
         }
-        if (completedLessons > 0) {
-            return totalLessons > 0 && completedLessons >= totalLessons ? "COMPLETED" : "IN_PROGRESS";
-        }
-        return "NOT_STARTED";
+        return "IN_PROGRESS";
     }
 
     private void updatePassingStatus(UserTraining userTraining) {

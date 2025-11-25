@@ -25,4 +25,7 @@ public class MaterialWarehouse {
 
     @Column(name = "quantity")
     private double quantity;
+
+    @Column(name = "threshold")
+    private Double threshold;
 }

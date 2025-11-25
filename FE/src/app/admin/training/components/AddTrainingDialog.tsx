@@ -157,7 +157,7 @@ export function AddTrainingDialog({
     const submitLabel = isEditMode ? 'Cập nhật Khóa Đào Tạo' : 'Tạo Khóa Đào Tạo';
 
     const dialogTrigger = trigger ?? (
-        <Button className="h-11 px-6 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg hover:shadow-xl transition-all font-semibold">
+        <Button className="h-11 px-6 bg-[#78A243] hover:bg-[#78A243]/90 text-white shadow-lg hover:shadow-xl transition-all font-semibold">
             <Plus size={22} className="mr-2" strokeWidth={2.5} />
             Tạo Khóa Đào Tạo
         </Button>
@@ -168,8 +168,8 @@ export function AddTrainingDialog({
             <DialogTrigger asChild>{dialogTrigger}</DialogTrigger>
             <DialogContent className="w-[96vw] max-w-[96vw] sm:!max-w-[90vw] lg:!max-w-[70vw] xl:!max-w-[60vw] max-h-[95vh] overflow-y-auto bg-white">
                 <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2 text-2xl font-bold bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">
-                        <GraduationCap size={28} className="text-orange-500" />
+                    <DialogTitle className="flex items-center gap-2 text-2xl font-bold text-[#78A243]">
+                        <GraduationCap size={28} className="text-[#78A243]" />
                         {dialogTitle}
                     </DialogTitle>
                 </DialogHeader>
@@ -177,14 +177,14 @@ export function AddTrainingDialog({
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="space-y-2">
                         <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                            <GraduationCap size={16} className="text-orange-500" />
+                            <GraduationCap size={16} className="text-[#78A243]" />
                             Tên khóa đào tạo <span className="text-red-500">*</span>
                         </label>
                         <Input
                             placeholder="VD: Cách làm món Phở, Quy trình phục vụ bàn..."
                             value={formData.name}
                             onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                            className={`h-11 border-2 ${errors.name ? 'border-red-400' : 'border-gray-200'} focus:border-orange-500 focus:ring-orange-500/20 focus:ring-4 transition-all`}
+                            className={`h-11 border-2 ${errors.name ? 'border-red-400' : 'border-gray-200'} focus:border-[#78A243] focus:ring-[#78A243]/20 focus:ring-4 transition-all`}
                         />
                         {errors.name && <p className="text-xs text-red-600 font-medium">{errors.name}</p>}
                     </div>
@@ -198,7 +198,7 @@ export function AddTrainingDialog({
                             value={formData.note}
                             onChange={(e) => setFormData(prev => ({ ...prev, note: e.target.value }))}
                             rows={3}
-                            className={`w-full px-3 py-2 rounded-md border-2 ${errors.note ? 'border-red-400' : 'border-gray-200'} focus:border-orange-500 focus:ring-orange-500/20 focus:ring-4 outline-none transition-all`}
+                            className={`w-full px-3 py-2 rounded-md border-2 ${errors.note ? 'border-red-400' : 'border-gray-200'} focus:border-[#78A243] focus:ring-[#78A243]/20 focus:ring-4 outline-none transition-all`}
                         />
                         {errors.note && <p className="text-xs text-red-600 font-medium">{errors.note}</p>}
                     </div>
@@ -213,14 +213,14 @@ export function AddTrainingDialog({
                             min={1}
                             value={formData.point}
                             onChange={(e) => setFormData(prev => ({ ...prev, point: e.target.value }))}
-                            className={`h-11 border-2 ${errors.point ? 'border-red-400' : 'border-gray-200'} focus:border-orange-500 focus:ring-orange-500/20 focus:ring-4 transition-all`}
+                            className={`h-11 border-2 ${errors.point ? 'border-red-400' : 'border-gray-200'} focus:border-[#78A243] focus:ring-[#78A243]/20 focus:ring-4 transition-all`}
                         />
                         {errors.point && <p className="text-xs text-red-600 font-medium">{errors.point}</p>}
                     </div>
 
                     <div className="space-y-2">
                         <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                            <Users size={16} className="text-orange-500" />
+                            <Users size={16} className="text-[#78A243]" />
                             Vai trò áp dụng <span className="text-red-500">*</span>
                         </label>
                         <select
@@ -234,7 +234,7 @@ export function AddTrainingDialog({
                                 }))
                             }
                             disabled={isLoadingRoles}
-                            className={`w-full h-11 border-2 rounded-md px-3 bg-white ${errors.roleId ? 'border-red-400' : 'border-gray-200'} focus:border-orange-500 focus:ring-4 focus:ring-orange-500/20 transition-all`}
+                            className={`w-full h-11 border-2 rounded-md px-3 bg-white ${errors.roleId ? 'border-red-400' : 'border-gray-200'} focus:border-[#78A243] focus:ring-4 focus:ring-[#78A243]/20 transition-all`}
                         >
                             <option value="">
                                 {isLoadingRoles ? 'Đang tải vai trò...' : 'Chọn vai trò'}
@@ -257,7 +257,7 @@ export function AddTrainingDialog({
                         <button
                             type="button"
                             aria-label={formData.isActive ? 'Tắt khóa học' : 'Kích hoạt khóa học'}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${formData.isActive ? 'bg-orange-500' : 'bg-gray-300'}`}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${formData.isActive ? 'bg-[#78A243]' : 'bg-gray-300'}`}
                             onClick={() => setFormData((prev) => ({ ...prev, isActive: !prev.isActive }))}
                         >
                             <span
@@ -282,7 +282,7 @@ export function AddTrainingDialog({
                         <Button
                             type="submit"
                             disabled={isLoading}
-                            className="flex-1 h-11 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg hover:shadow-xl transition-all font-semibold"
+                            className="flex-1 h-11 bg-[#78A243] hover:bg-[#78A243]/90 text-white shadow-lg hover:shadow-xl transition-all font-semibold"
                         >
                             {isLoading ? (
                                 <>

@@ -46,9 +46,9 @@ public class MaterialNutrientController {
     }
 
     @PutMapping("/{materialId}")
-    public ResponseEntity<?> updateMaterialNutrient(@PathVariable int materialId, @RequestBody MaterialNutrientRequest request) {
+    public ResponseEntity<?> updateMaterialNutrient(@PathVariable int materialId, @RequestBody List<MaterialNutrientRequest> request) {
         ResponseData responseData = new ResponseData();
-        responseData.setData(materialNutrientService.updateMaterialWithManyNutrient(materialId, request));
+        responseData.setData(materialNutrientService.updateManyMaterialNutrient(materialId, request));
         responseData.setStatus(200);
         responseData.setDesc("Material nutrient updated successfully");
         return new ResponseEntity<>(responseData, HttpStatus.OK);

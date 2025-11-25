@@ -279,29 +279,29 @@ VALUES ('Nướng', 'Nướng trên than hoa hoặc lò nướng'),
 
 
 
--- Material (Cập nhật để sử dụng unit_id)
-INSERT INTO material (material_name, material_type_id, unit_id, threshold, is_deleted)
-VALUES ('Sườn nướng', 1, 1, 20.0, false),
-       ('Thịt nướng', 1, 1, 20.0, false),
-       ('Gà nướng', 1, 1, 30.0, false),
-       ('Chả trứng', 1, 1, 50.0, false),
-       ('Bì bún', 1, 1, 50.0, false),
-       ('Chả lụa', 1, 1, 30.0, false),
-       ('Dưa leo', 2, 1, 100.0, false),
-       ('Cà chua', 2, 1, 50.0, false),
-       ('Đậu phộng', 2, 1, 50.0, false),
-       ('Giá đỗ', 2, 1, 50.0, false),
-       ('Xà lách', 2, 1, 50.0, false),
-       ('Chuối xanh', 2, 1, 100.0, false),
-       ('Gạo tấm', 3, 1, 200.0, false),
-       ('Gạo trắng', 3, 1, 200.0, false),
-       ('Nước mắm', 4, 3, 50.0, false),
-       ('Ớt', 4, 1, 20.0, false),
-       ('Hành lá', 4, 1, 30.0, false),
-       ('Tiêu', 4, 1, 50.0, false),
-       ('Trứng ốp la', 6, 5, 20.0, false),
-       ('Xúc xích Đức', 7, 6, 30.0, false),
-       ('Canh chua', 2, 3, 50.0, false);
+-- Material (Threshold đã được chuyển sang MaterialWarehouse)
+INSERT INTO material (material_name, material_type_id, unit_id, is_deleted)
+VALUES ('Sườn nướng', 1, 1, false),
+       ('Thịt nướng', 1, 1, false),
+       ('Gà nướng', 1, 1, false),
+       ('Chả trứng', 1, 1, false),
+       ('Bì bún', 1, 1, false),
+       ('Chả lụa', 1, 1, false),
+       ('Dưa leo', 2, 1, false),
+       ('Cà chua', 2, 1, false),
+       ('Đậu phộng', 2, 1, false),
+       ('Giá đỗ', 2, 1, false),
+       ('Xà lách', 2, 1, false),
+       ('Chuối xanh', 2, 1, false),
+       ('Gạo tấm', 3, 1, false),
+       ('Gạo trắng', 3, 1, false),
+       ('Nước mắm', 4, 3, false),
+       ('Ớt', 4, 1, false),
+       ('Hành lá', 4, 1, false),
+       ('Tiêu', 4, 1, false),
+       ('Trứng ốp la', 6, 5, false),
+       ('Xúc xích Đức', 7, 6, false),
+       ('Canh chua', 2, 3, false);
 
 
 
@@ -384,58 +384,59 @@ VALUES ('Cơm tấm sườn nướng', 'Cơm tấm với sườn heo nướng th
 
 
 
--- Product Recipes (Cập nhật với cooking_method_id)
-INSERT INTO product_recipes (product_id, material_id, cooking_method_id, quantity, created_at)
-VALUES (1, 12, 1, 200.0, NOW()),  -- Chuối xanh - Nướng
-       (1, 13, 2, 1000.0, NOW()),  -- Gạo tấm - Luộc
-       (1, 14, NULL, 100.0, NOW()),  -- Nước mắm - Không nấu (gia vị)
-       (1, 15, NULL, 50.0, NOW()),   -- Ớt - Không nấu (gia vị tươi)
-       (1, 6, 1, 100.0, NOW()),   -- Chả lụa - Nướng
-       (1, 7, NULL, 50.0, NOW()), -- Dưa leo - Không nấu
-       (2, 12, 1, 200.0, NOW()),  -- Chuối xanh - Nướng
-       (2, 13, 2, 1000.0, NOW()),  -- Gạo tấm - Luộc
-       (2, 4, 3, 50.0, NOW()),   -- Chả trứng - Chiên
-       (2, 5, NULL, 50.0, NOW()), -- Bì bún - Không nấu
-       (2, 7, NULL, 50.0, NOW()), -- Dưa leo - Không nấu
-       (3, 12, 1, 200.0, NOW()),  -- Chuối xanh - Nướng
-       (3, 13, 2, 1000.0, NOW()),  -- Gạo tấm - Luộc
-       (3, 3, 1, 150.0, NOW()),   -- Gà nướng - Nướng
-       (3, 7, NULL, 50.0, NOW()), -- Dưa leo - Không nấu
-       (4, 12, 1, 200.0, NOW()),  -- Chuối xanh - Nướng
-       (4, 13, 2, 1000.0, NOW()),  -- Gạo tấm - Luộc
-       (4, 2, 1, 150.0, NOW()),   -- Thịt nướng - Nướng
-       (4, 7, NULL, 50.0, NOW()), -- Dưa leo - Không nấu
-       (5, 12, 1, 200.0, NOW()),  -- Chuối xanh - Nướng
-       (5, 13, 2, 1000.0, NOW()),  -- Gạo tấm - Luộc
-       (5, 1, 7, 200.0, NOW()),   -- Sườn nướng - Nướng than hoa
-       (5, 7, NULL, 50.0, NOW()), -- Dưa leo - Không nấu
-       (6, 12, 1, 200.0, NOW()),  -- Chuối xanh - Nướng
-       (6, 13, 2, 1000.0, NOW()),  -- Gạo tấm - Luộc
-       (6, 1, 7, 150.0, NOW()),   -- Sườn nướng - Nướng than hoa
-       (6, 4, 3, 50.0, NOW()),    -- Chả trứng - Chiên
-       (6, 5, NULL, 50.0, NOW()), -- Bì bún - Không nấu
-       (6, 17, NULL, 50.0, NOW()), -- Hành lá - Không nấu
-       (6, 7, NULL, 50.0, NOW()), -- Dưa leo - Không nấu
-       (7, 12, 1, 200.0, NOW()),  -- Chuối xanh - Nướng
-       (7, 13, 2, 1000.0, NOW()),  -- Gạo tấm - Luộc
-       (7, 4, 3, 50.0, NOW()),    -- Chả trứng - Chiên
-       (7, 5, NULL, 50.0, NOW()), -- Bì bún - Không nấu
-       (7, 7, NULL, 50.0, NOW()), -- Dưa leo - Không nấu
-       (8, 12, 1, 200.0, NOW()),  -- Chuối xanh - Nướng
-       (8, 13, 2, 1000.0, NOW()),  -- Gạo tấm - Luộc
-       (8, 7, NULL, 50.0, NOW()), -- Dưa leo - Không nấu
-       (9, 18, NULL, 300.0, NOW()), -- Tiêu - Không nấu (gia vị)
-       (10, 18, NULL, 300.0, NOW()), -- Tiêu - Không nấu (gia vị)
-       (11, 3, 1, 200.0, NOW()), -- Gà nướng - Nướng
-       (12, 3, 1, 300.0, NOW()), -- Gà nướng - Nướng
-       (13, 3, 1, 200.0, NOW()), -- Gà nướng - Nướng
-       (14, 3, 1, 100.0, NOW()), -- Gà nướng - Nướng
-       (15, 18, NULL, 200.0, NOW()), -- Tiêu - Không nấu (gia vị)
-       (16, 16, 8, 1.0, NOW()),   -- Trứng ốp la - Ốp la
-       (17, 4, 3, 100.0, NOW()),  -- Chả trứng - Chiên
-       (18, 5, NULL, 100.0, NOW()), -- Bì bún - Không nấu
-       (19, 18, NULL, 500.0, NOW()), -- Tiêu - Không nấu (gia vị)
-       (20, 7, NULL, 100.0, NOW()); -- Dưa leo - Không nấu
+-- Product Recipes (Cập nhật với cooking_method_id và order_step)
+INSERT INTO product_recipes (product_id, material_id, cooking_method_id, quantity, order_step, created_at)
+VALUES (1, 13, 2, 1000.0, 1, NOW()),  -- Gạo tấm - Luộc (bước 1: nấu cơm)
+       (1, 1, 7, 200.0, 2, NOW()),   -- Sườn nướng - Nướng than hoa (bước 2: nướng sườn)
+       (1, 6, 1, 100.0, 3, NOW()),   -- Chả lụa - Nướng (bước 3: chuẩn bị chả)
+       (1, 12, 1, 200.0, 4, NOW()),  -- Chuối xanh - Nướng (bước 4: nướng chuối)
+       (1, 7, NULL, 50.0, 5, NOW()), -- Dưa leo - Không nấu (bước 5: chuẩn bị rau)
+       (1, 14, NULL, 100.0, 6, NOW()),  -- Nước mắm - Không nấu (bước 6: pha nước mắm)
+       (1, 15, NULL, 50.0, 7, NOW()),   -- Ớt - Không nấu (bước 7: chuẩn bị ớt)
+       (2, 13, 2, 1000.0, 1, NOW()),  -- Gạo tấm - Luộc (bước 1: nấu cơm)
+       (2, 4, 3, 50.0, 2, NOW()),   -- Chả trứng - Chiên (bước 2: chiên chả trứng)
+       (2, 12, 1, 200.0, 3, NOW()),  -- Chuối xanh - Nướng (bước 3: nướng chuối)
+       (2, 5, NULL, 50.0, 4, NOW()), -- Bì bún - Không nấu (bước 4: chuẩn bị bì)
+       (2, 7, NULL, 50.0, 5, NOW()), -- Dưa leo - Không nấu (bước 5: chuẩn bị rau)
+       (3, 13, 2, 1000.0, 1, NOW()),  -- Gạo tấm - Luộc (bước 1: nấu cơm)
+       (3, 3, 1, 150.0, 2, NOW()),   -- Gà nướng - Nướng (bước 2: nướng gà)
+       (3, 12, 1, 200.0, 3, NOW()),  -- Chuối xanh - Nướng (bước 3: nướng chuối)
+       (3, 7, NULL, 50.0, 4, NOW()), -- Dưa leo - Không nấu (bước 4: chuẩn bị rau)
+       (4, 13, 2, 1000.0, 1, NOW()),  -- Gạo tấm - Luộc (bước 1: nấu cơm)
+       (4, 2, 1, 150.0, 2, NOW()),   -- Thịt nướng - Nướng (bước 2: nướng thịt)
+       (4, 12, 1, 200.0, 3, NOW()),  -- Chuối xanh - Nướng (bước 3: nướng chuối)
+       (4, 7, NULL, 50.0, 4, NOW()), -- Dưa leo - Không nấu (bước 4: chuẩn bị rau)
+       (5, 13, 2, 1000.0, 1, NOW()),  -- Gạo tấm - Luộc (bước 1: nấu cơm)
+       (5, 1, 7, 200.0, 2, NOW()),   -- Sườn nướng - Nướng than hoa (bước 2: nướng sườn)
+       (5, 12, 1, 200.0, 3, NOW()),  -- Chuối xanh - Nướng (bước 3: nướng chuối)
+       (5, 7, NULL, 50.0, 4, NOW()), -- Dưa leo - Không nấu (bước 4: chuẩn bị rau)
+       (6, 13, 2, 1000.0, 1, NOW()),  -- Gạo tấm - Luộc (bước 1: nấu cơm)
+       (6, 1, 7, 150.0, 2, NOW()),   -- Sườn nướng - Nướng than hoa (bước 2: nướng sườn)
+       (6, 4, 3, 50.0, 3, NOW()),    -- Chả trứng - Chiên (bước 3: chiên chả trứng)
+       (6, 5, NULL, 50.0, 4, NOW()), -- Bì bún - Không nấu (bước 4: chuẩn bị bì)
+       (6, 12, 1, 200.0, 5, NOW()),  -- Chuối xanh - Nướng (bước 5: nướng chuối)
+       (6, 7, NULL, 50.0, 6, NOW()), -- Dưa leo - Không nấu (bước 6: chuẩn bị rau)
+       (6, 17, NULL, 50.0, 7, NOW()), -- Hành lá - Không nấu (bước 7: chuẩn bị hành)
+       (7, 13, 2, 1000.0, 1, NOW()),  -- Gạo tấm - Luộc (bước 1: nấu cơm)
+       (7, 4, 3, 50.0, 2, NOW()),    -- Chả trứng - Chiên (bước 2: chiên chả trứng)
+       (7, 12, 1, 200.0, 3, NOW()),  -- Chuối xanh - Nướng (bước 3: nướng chuối)
+       (7, 5, NULL, 50.0, 4, NOW()), -- Bì bún - Không nấu (bước 4: chuẩn bị bì)
+       (7, 7, NULL, 50.0, 5, NOW()), -- Dưa leo - Không nấu (bước 5: chuẩn bị rau)
+       (8, 13, 2, 1000.0, 1, NOW()),  -- Gạo tấm - Luộc (bước 1: nấu cơm)
+       (8, 12, 1, 200.0, 2, NOW()),  -- Chuối xanh - Nướng (bước 2: nướng chuối)
+       (8, 7, NULL, 50.0, 3, NOW()), -- Dưa leo - Không nấu (bước 3: chuẩn bị rau)
+       (9, 18, NULL, 300.0, 1, NOW()), -- Tiêu - Không nấu (gia vị)
+       (10, 18, NULL, 300.0, 1, NOW()), -- Tiêu - Không nấu (gia vị)
+       (11, 3, 1, 200.0, 1, NOW()), -- Gà nướng - Nướng
+       (12, 3, 1, 300.0, 1, NOW()), -- Gà nướng - Nướng
+       (13, 3, 1, 200.0, 1, NOW()), -- Gà nướng - Nướng
+       (14, 3, 1, 100.0, 1, NOW()), -- Gà nướng - Nướng
+       (15, 18, NULL, 200.0, 1, NOW()), -- Tiêu - Không nấu (gia vị)
+       (16, 16, 8, 1.0, 1, NOW()),   -- Trứng ốp la - Ốp la
+       (17, 4, 3, 100.0, 1, NOW()),  -- Chả trứng - Chiên
+       (18, 5, NULL, 100.0, 1, NOW()), -- Bì bún - Không nấu
+       (19, 18, NULL, 500.0, 1, NOW()), -- Tiêu - Không nấu (gia vị)
+       (20, 7, NULL, 100.0, 1, NOW()); -- Dưa leo - Không nấu
 
 
 
@@ -523,79 +524,79 @@ VALUES (1, 1, 100),
 
 
 
-INSERT INTO material_warehouse (material_id, warehouse_id, quantity)
-VALUES (1, 1, 50.0),
-       (2, 1, 50.0),
-       (3, 1, 100.0),
-       (4, 1, 200.0),
-       (5, 1, 200.0),
-       (6, 1, 100.0),
-       (7, 1, 500.0),
-       (8, 1, 200.0),
-       (9, 1, 300.0),
-       (10, 1, 200.0),
-       (11, 1, 300.0),
-       (12, 1, 5000.0),
-       (13, 1, 1000.0),
-       (14, 1, 500.0),
-       (15, 1, 300.0),
-       (16, 1, 1000.0),
-       (17, 1, 200.0),
-       (18, 1, 1000.0),
-       (1, 2, 45.0),
-       (2, 2, 45.0),
-       (3, 2, 90.0),
-       (4, 2, 180.0),
-       (5, 2, 180.0),
-       (6, 2, 90.0),
-       (7, 2, 450.0),
-       (8, 2, 180.0),
-       (9, 2, 270.0),
-       (10, 2, 180.0),
-       (11, 2, 270.0),
-       (12, 2, 4500.0),
-       (13, 2, 900.0),
-       (14, 2, 450.0),
-       (15, 2, 270.0),
-       (16, 2, 900.0),
-       (17, 2, 180.0),
-       (18, 2, 900.0),
-       (1, 3, 40.0),
-       (2, 3, 40.0),
-       (3, 3, 85.0),
-       (4, 3, 170.0),
-       (5, 3, 170.0),
-       (6, 3, 85.0),
-       (7, 3, 400.0),
-       (8, 3, 170.0),
-       (9, 3, 260.0),
-       (10, 3, 170.0),
-       (11, 3, 260.0),
-       (12, 3, 4000.0),
-       (13, 3, 850.0),
-       (14, 3, 400.0),
-       (15, 3, 260.0),
-       (16, 3, 850.0),
-       (17, 3, 170.0),
-       (18, 3, 800.0),
-       (1, 4, 48.0),
-       (2, 4, 48.0),
-       (3, 4, 95.0),
-       (4, 4, 190.0),
-       (5, 4, 190.0),
-       (6, 4, 95.0),
-       (7, 4, 480.0),
-       (8, 4, 190.0),
-       (9, 4, 290.0),
-       (10, 4, 190.0),
-       (11, 4, 290.0),
-       (12, 4, 4800.0),
-       (13, 4, 950.0),
-       (14, 4, 480.0),
-       (15, 4, 290.0),
-       (16, 4, 950.0),
-       (17, 4, 190.0),
-       (18, 4, 950.0);
+INSERT INTO material_warehouse (material_id, warehouse_id, quantity, threshold)
+VALUES (1, 1, 50.0, 20.0),
+       (2, 1, 50.0, 20.0),
+       (3, 1, 100.0, 30.0),
+       (4, 1, 200.0, 50.0),
+       (5, 1, 200.0, 50.0),
+       (6, 1, 100.0, 30.0),
+       (7, 1, 500.0, 100.0),
+       (8, 1, 200.0, 50.0),
+       (9, 1, 300.0, 50.0),
+       (10, 1, 200.0, 50.0),
+       (11, 1, 300.0, 50.0),
+       (12, 1, 5000.0, 100.0),
+       (13, 1, 1000.0, 200.0),
+       (14, 1, 500.0, 200.0),
+       (15, 1, 300.0, 50.0),
+       (16, 1, 1000.0, 20.0),
+       (17, 1, 200.0, 30.0),
+       (18, 1, 1000.0, 50.0),
+       (1, 2, 45.0, 20.0),
+       (2, 2, 45.0, 20.0),
+       (3, 2, 90.0, 30.0),
+       (4, 2, 180.0, 50.0),
+       (5, 2, 180.0, 50.0),
+       (6, 2, 90.0, 30.0),
+       (7, 2, 450.0, 100.0),
+       (8, 2, 180.0, 50.0),
+       (9, 2, 270.0, 50.0),
+       (10, 2, 180.0, 50.0),
+       (11, 2, 270.0, 50.0),
+       (12, 2, 4500.0, 100.0),
+       (13, 2, 900.0, 200.0),
+       (14, 2, 450.0, 200.0),
+       (15, 2, 270.0, 50.0),
+       (16, 2, 900.0, 20.0),
+       (17, 2, 180.0, 30.0),
+       (18, 2, 900.0, 50.0),
+       (1, 3, 40.0, 20.0),
+       (2, 3, 40.0, 20.0),
+       (3, 3, 85.0, 30.0),
+       (4, 3, 170.0, 50.0),
+       (5, 3, 170.0, 50.0),
+       (6, 3, 85.0, 30.0),
+       (7, 3, 400.0, 100.0),
+       (8, 3, 170.0, 50.0),
+       (9, 3, 260.0, 50.0),
+       (10, 3, 170.0, 50.0),
+       (11, 3, 260.0, 50.0),
+       (12, 3, 4000.0, 100.0),
+       (13, 3, 850.0, 200.0),
+       (14, 3, 400.0, 200.0),
+       (15, 3, 260.0, 50.0),
+       (16, 3, 850.0, 20.0),
+       (17, 3, 170.0, 30.0),
+       (18, 3, 800.0, 50.0),
+       (1, 4, 48.0, 20.0),
+       (2, 4, 48.0, 20.0),
+       (3, 4, 95.0, 30.0),
+       (4, 4, 190.0, 50.0),
+       (5, 4, 190.0, 50.0),
+       (6, 4, 95.0, 30.0),
+       (7, 4, 480.0, 100.0),
+       (8, 4, 190.0, 50.0),
+       (9, 4, 290.0, 50.0),
+       (10, 4, 190.0, 50.0),
+       (11, 4, 290.0, 50.0),
+       (12, 4, 4800.0, 100.0),
+       (13, 4, 950.0, 200.0),
+       (14, 4, 480.0, 200.0),
+       (15, 4, 290.0, 50.0),
+       (16, 4, 950.0, 20.0),
+       (17, 4, 190.0, 30.0),
+       (18, 4, 950.0, 50.0);
 
 
 
@@ -1046,39 +1047,39 @@ VALUES (23, 1, DATE_SUB(NOW(), INTERVAL 10 DAY), NULL, 'AVAILABLE', 1, 'Khuyến
 
 -- Material Nutrients (Nguyên liệu - Dinh dưỡng)
 -- Sườn nướng
-INSERT INTO material_nutrients (material_id, nutrient_id, state, amount_per_100_unit)
-VALUES (1, 1, 'raw', 0.85),  -- Calories: 85% retention khi nướng
-       (1, 2, 'raw', 0.90),  -- Protein: 90% retention
-       (1, 3, 'raw', 0.80),  -- Fat: 80% retention
-       (1, 4, 'raw', 0.95),  -- Carb: 95% retention
+INSERT INTO material_nutrients (material_id, nutrient_id, amount_per_100_unit)
+VALUES (1, 1, 0.85),  -- Calories: 85% retention khi nướng
+       (1, 2, 0.90),  -- Protein: 90% retention
+       (1, 3, 0.80),  -- Fat: 80% retention
+       (1, 4, 0.95),  -- Carb: 95% retention
        -- Thịt nướng
-       (2, 1, 'raw', 0.85),
-       (2, 2, 'raw', 0.90),
-       (2, 3, 'raw', 0.80),
+       (2, 1,  0.85),
+       (2, 2,  0.90),
+       (2, 3,  0.80),
        -- Gà nướng
-       (3, 1, 'raw', 0.88),
-       (3, 2, 'raw', 0.92),
-       (3, 3, 'raw', 0.82),
+       (3, 1,  0.88),
+       (3, 2,  0.92),
+       (3, 3,  0.82),
        -- Chả trứng
-       (4, 1, 'raw', 0.95),
-       (4, 2, 'raw', 0.98),
-       (4, 3, 'raw', 0.95),
+       (4, 1,  0.95),
+       (4, 2,  0.98),
+       (4, 3,  0.95),
        -- Gạo tấm
-       (13, 1, 'raw', 1.0),
-       (13, 2, 'raw', 1.0),
-       (13, 4, 'raw', 1.0),
+       (13, 1,  1.0),
+       (13, 2,  1.0),
+       (13, 4,  1.0),
        -- Dưa leo
-       (7, 1, 'raw', 1.0),
-       (7, 7, 'raw', 1.0),  -- Vitamin C
-       (7, 5, 'raw', 1.0),  -- Fiber
+       (7, 1,  1.0),
+       (7, 7,  1.0),  -- Vitamin C
+       (7, 5,  1.0),  -- Fiber
        -- Cà chua
-       (8, 1, 'raw', 1.0),
-       (8, 6, 'raw', 1.0),  -- Vitamin A
-       (8, 7, 'raw', 1.0),  -- Vitamin C
+       (8, 1,  1.0),
+       (8, 6,  1.0),  -- Vitamin A
+       (8, 7,  1.0),  -- Vitamin C
        -- Trứng ốp la
-       (19, 1, 'raw', 0.95),
-       (19, 2, 'raw', 0.98),
-       (19, 3, 'raw', 0.95);
+       (19, 1,  0.95),
+       (19, 2,  0.98),
+       (19, 3,  0.95);
 
 
 

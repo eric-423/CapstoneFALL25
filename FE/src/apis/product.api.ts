@@ -14,20 +14,21 @@ export interface SuccessResponse<T> {
 }
 
 export interface Product {
-    productId: number;
-    productName: string;
-    productDescription: string;
-    productImage: string;
-    productPrice: number;
-    rating?: number;
-    productType: string;
-    productTypeId?: number;
-    productQuantity?: number;
-    quantityInBranch?: number;
-    createdDate?: string;
-    updatedDate?: string;
-    active?: boolean;
-    inStock?: boolean;
+  productId: number;
+  productName: string;
+  productDescription: string;
+  productImage: string;
+  productPrice: number;
+  rating?: number;
+  productType: string;
+  productTypeId?: number;
+  productQuantity?: number;
+  quantityInBranch?: number;
+  createdDate?: string;
+  updatedDate?: string;
+  active?: boolean;
+  calories?: number;
+  inStock?: boolean;
 }
 
 export interface ProductType {

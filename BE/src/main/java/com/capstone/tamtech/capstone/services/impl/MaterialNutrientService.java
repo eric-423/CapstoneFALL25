@@ -11,7 +11,7 @@ public interface MaterialNutrientService {
     MaterialNutrientDTO createMaterialNutrient(MaterialNutrientCreateRequest request);
 
     MaterialNutrientDTO updateMaterialNutrient(int materialId, int nutrientId, MaterialNutrientRequest request);
-    MaterialNutrientDTO updateMaterialWithManyNutrient(int materialId, MaterialNutrientRequest request);
+    MaterialNutrientDTO updateManyMaterialNutrient(int materialId, List<MaterialNutrientRequest> request);
 
     MaterialNutrientDTO getMaterialNutrientById(int materialId, int nutrientId);
 

@@ -9,7 +9,7 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "postinstall": "node -e \"const fs = require('fs'); const path = require('path'); const file = path.join(__dirname, 'node_modules', 'react-native-maps', 'android', 'src', 'main', 'jni', 'CMakeLists.txt'); let content = fs.readFileSync(file, 'utf8'); if (content.includes('target_compile_reactnative_options')) { content = content.replace(/^target_compile_reactnative_options.*$/gm, '# target_compile_reactnative_options(react_codegen_RNMapsSpecs PRIVATE) # Commented out - not available in RN 0.79'); fs.writeFileSync(file, content); }\""
+    "postinstall": "node -e \"const fs = require('fs'); const path = require('path'); const file = path.join(__dirname, 'node_modules', 'react-native-maps', 'android', 'src', 'main', 'jni', 'CMakeLists.txt'); if (!fs.existsSync(file)) { process.exit(0); } let content = fs.readFileSync(file, 'utf8'); if (content.includes('target_compile_reactnative_options')) { content = content.replace(/^target_compile_reactnative_options.*$/gm, '# target_compile_reactnative_options(react_codegen_RNMapsSpecs PRIVATE) # Commented out - not available in RN 0.79'); fs.writeFileSync(file, content); }\""
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
@@ -25,6 +25,7 @@
     "axios": "^1.13.2",
     "debounce": "^2.2.0",
     "expo": "~53.0.23",
+    "expo-application": "~6.1.5",
     "expo-blur": "~14.1.5",
     "expo-constants": "~17.1.6",
     "expo-font": "~13.3.1",

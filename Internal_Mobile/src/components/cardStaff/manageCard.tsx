@@ -1,7 +1,8 @@
 import { APP_COLOR } from "@/constants/Colors";
 import { FONTS } from "@/themes/typography";
 import AntDesign from "@expo/vector-icons/AntDesign";
-import { StyleSheet, Text, View } from "react-native";
+import { router } from "expo-router";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { LineChart } from "react-native-chart-kit";
 interface IManageCard {
   title: string;
@@ -9,7 +10,14 @@ interface IManageCard {
 const ManageCard = (props: IManageCard) => {
   const { title } = props;
   return (
-    <View
+    <Pressable
+      onPress={() => {
+        if (title === "Vận hành") {
+          router.navigate("/(auth)/order-stats");
+        } else {
+          router.navigate("/(auth)/finance");
+        }
+      }}
       style={{
         padding: 10,
         borderRadius: 10,
@@ -119,7 +127,7 @@ const ManageCard = (props: IManageCard) => {
           />
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 };
 const styles = StyleSheet.create({

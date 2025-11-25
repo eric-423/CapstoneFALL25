@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { AlertTriangle, Trash2, X } from 'lucide-react';
+import { AlertTriangle, Tag, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
@@ -37,8 +37,8 @@ export function MaterialTypeConfirmDialog({
     const Icon = config.icon;
 
     return (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-            <Card className={`w-full max-w-md bg-white shadow-2xl rounded-2xl border-2 ${config.borderColor} overflow-hidden animate-in zoom-in-95 duration-200`}>
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] flex items-center justify-center p-4 animate-in fade-in duration-200">
+            <Card className={`w-full max-w-md bg-white shadow-2xl rounded-2xl border-2 ${config.borderColor} overflow-hidden animate-in zoom-in-95 duration-200 py-0`}>
                 {/* Header */}
                 <div className="p-6 border-b-2 border-gray-100">
                     <div className="flex items-start gap-4">
@@ -46,7 +46,7 @@ export function MaterialTypeConfirmDialog({
                             <Icon className={`h-6 w-6 ${config.iconColor}`} />
                         </div>
                         <div className="flex-1">
-                            <h2 className="text-xl font-bold text-[#2D1E1A]">
+                            <h2 className="text-xl font-bold text-gray-900">
                                 {config.title}
                             </h2>
                             <button
@@ -62,9 +62,9 @@ export function MaterialTypeConfirmDialog({
 
                 {/* Body */}
                 <div className="p-6 space-y-4">
-                    <p className="text-[#2D1E1A]">
+                    <p className="text-gray-700">
                         {config.message}{' '}
-                        <span className="font-bold text-[#2D1E1A]">{materialTypeName}</span>?
+                        <span className="font-bold text-gray-900">{materialTypeName}</span>?
                     </p>
 
                     <div className="p-4 rounded-lg bg-red-50 border-2 border-red-200">

@@ -14,6 +14,7 @@ import java.util.Date;
 public class UserTrainingDTO {
     private Integer id;
     private Integer trainingId;
+    private Integer userTrainingId;
     private String trainingName;
     private Integer trainingPoint;
     private Integer userId;

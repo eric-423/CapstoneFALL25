@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Check;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -51,4 +52,7 @@ public class ProductSearchDTO implements Serializable {
 
     @Schema(description = "Lượng calories của sản phẩm", example = "450")
     private double calories;
+
+    @Schema(description = "Trạng thái còn hàng", example = "true")
+    private boolean isInStock;
 }

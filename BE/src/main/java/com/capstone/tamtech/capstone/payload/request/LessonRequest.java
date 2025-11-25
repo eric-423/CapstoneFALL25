@@ -9,12 +9,13 @@ import lombok.NoArgsConstructor;
 @Data
 public class LessonRequest {
 
-
     private String title;
 
     private String content;
 
     private String description;
+
+    private String videoUrl;
 
     private Integer point;
 

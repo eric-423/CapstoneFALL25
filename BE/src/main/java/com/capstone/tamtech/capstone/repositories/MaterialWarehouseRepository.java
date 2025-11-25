@@ -13,4 +13,8 @@ public interface MaterialWarehouseRepository extends JpaRepository<MaterialWareh
     List<MaterialWarehouse> findByKeyMaterialWarehouseMaterialId(int materialId);
 
     List<MaterialWarehouse> findByKeyMaterialWarehouseWarehouseId(int warehouseId);
+
+    MaterialWarehouse findByKeyMaterialWarehouse(KeyMaterialWarehouse keyMaterialWarehouse);
+
+
 }

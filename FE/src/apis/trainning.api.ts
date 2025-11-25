@@ -68,6 +68,14 @@ export interface GetTrainingLessonsParams {
   sortDirection?: "ASC" | "DESC";
 }
 
+export interface GetMyTrainingLessonsParams {
+  includeDeleted?: boolean;
+  page?: number;
+  size?: number;
+  sortBy?: string;
+  sortDirection?: "ASC" | "DESC";
+}
+
 export interface CreateLessonPayload {
   title: string;
   content: string;
@@ -185,8 +193,7 @@ export type MyTrainingStatus =
   | "ALL"
   | "NOT_STARTED"
   | "IN_PROGRESS"
-  | "COMPLETED"
-  | "FAILED";
+  | "COMPLETED";
 
 export const getMyTrainning = async (status?: MyTrainingStatus) => {
   const params = new URLSearchParams();
@@ -334,6 +341,53 @@ export const getTrainingLessons = async (
   return response.json();
 };
 
+export const getMyTrainingLessons = async (
+  trainingId: number,
+  params?: GetMyTrainingLessonsParams
+): Promise<TrainingLessonsResponse> => {
+  const searchParams = new URLSearchParams();
+
+  if (params) {
+    if (params.includeDeleted !== undefined) {
+      searchParams.append("includeDeleted", params.includeDeleted.toString());
+    }
+    if (params.page !== undefined) {
+      searchParams.append("page", params.page.toString());
+    }
+    if (params.size !== undefined) {
+      searchParams.append("size", params.size.toString());
+    }
+    if (params.sortBy) {
+      searchParams.append("sortBy", params.sortBy);
+    }
+    if (params.sortDirection) {
+      searchParams.append("sortDirection", params.sortDirection);
+    }
+  }
+
+  const queryString = searchParams.toString();
+
+  const response = await fetch(
+    `/api/lessons/me/trainings/${trainingId}/lessons${queryString ? `?${queryString}` : ""}`,
+    {
+      method: "GET",
+      credentials: "include",
+    }
+  );
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw {
+      response: {
+        data: errorBody,
+        status: response.status,
+      },
+    };
+  }
+
+  return response.json();
+};
+
 export const getLessonDetail = async (
   lessonId: number
 ): Promise<LessonDetailResponse> => {
@@ -419,6 +473,126 @@ export const getLessonDocuments = async (
       "Content-Type": "application/json",
     },
   });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw {
+      response: {
+        data,
+        status: response.status,
+      },
+    };
+  }
+
+  return data;
+};
+
+export const getMyLessonDocuments = async (
+  lessonId: number
+): Promise<LessonDocumentsResponse> => {
+  const response = await fetch(
+    `/api/user-trainings/me/lessons/${lessonId}/documents`,
+    {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw {
+      response: {
+        data,
+        status: response.status,
+      },
+    };
+  }
+
+  return data;
+};
+
+export interface StartLessonResponse {
+  status: number;
+  desc: string;
+  data: {
+    lessonId: number;
+    title: string;
+    description: string;
+    content: string;
+    videoUrl: string | null;
+    point: number;
+    orderIndex: number;
+    isLearned: boolean;
+    startDate: string;
+    completedAt: string | null;
+  };
+}
+
+export const startLesson = async (
+  userTrainingId: number,
+  lessonId: number
+): Promise<StartLessonResponse> => {
+  const response = await fetch(
+    `/api/user-trainings/me/user-trainings/${userTrainingId}/lessons/${lessonId}/start`,
+    {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw {
+      response: {
+        data,
+        status: response.status,
+      },
+    };
+  }
+
+  return data;
+};
+
+export interface CompleteLessonResponse {
+  status: number;
+  desc: string;
+  data: {
+    lessonId: number;
+    title: string;
+    description: string;
+    content: string;
+    videoUrl: string | null;
+    point: number;
+    orderIndex: number;
+    isLearned: boolean;
+    startDate: string;
+    completedAt: string;
+  };
+}
+
+export const completeLesson = async (
+  userTrainingId: number,
+  lessonId: number
+): Promise<CompleteLessonResponse> => {
+  const response = await fetch(
+    `/api/user-trainings/me/user-trainings/${userTrainingId}/lessons/${lessonId}/complete`,
+    {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
 
   const data = await response.json().catch(() => ({}));
 
@@ -587,6 +761,12 @@ export interface TrainingUserItem {
   completedAt: string | null;
 }
 
+export interface EnrollCourseResponse {
+  status: number;
+  desc: string;
+  data: TrainingUserItem;
+}
+
 export interface GetTrainingUsersResponse {
   status: number;
   desc: string;
@@ -713,4 +893,28 @@ export const getAvailableUsersForTraining = async (
       empty: true,
     },
   };
+};
+
+export const enrollCourse = async (
+  trainingId: number
+): Promise<EnrollCourseResponse> => {
+  const response = await fetch(`/api/trainning/${trainingId}/enrrol-course`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw {
+      response: {
+        data: errorBody,
+        status: response.status,
+      },
+    };
+  }
+
+  return response.json();
 };
