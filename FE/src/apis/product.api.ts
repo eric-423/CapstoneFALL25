@@ -27,6 +27,8 @@ export interface Product {
   createdDate?: string;
   updatedDate?: string;
   active?: boolean;
+  calories?: number;
+  inStock?: boolean;
 }
 
 export interface ProductType {
