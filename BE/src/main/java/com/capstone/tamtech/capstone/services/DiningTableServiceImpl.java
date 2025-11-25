@@ -55,7 +55,8 @@ public class DiningTableServiceImpl implements DiningTableService {
             Order currentActiveOrder = allOrders.stream()
                     .filter(order -> order.getStatus() != null &&
                             !order.getStatus().getName().equalsIgnoreCase("COMPLETED") &&
-                            !order.getStatus().getName().equalsIgnoreCase("CANCEL"))
+                            !order.getStatus().getName().equalsIgnoreCase("CANCEL") &&
+                            !order.getStatus().getName().equalsIgnoreCase("PAID"))
                     .findFirst()
                     .orElse(null);
 
