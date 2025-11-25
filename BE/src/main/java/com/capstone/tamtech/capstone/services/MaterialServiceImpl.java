@@ -194,7 +194,7 @@ public class MaterialServiceImpl implements MaterialService {
         dto.setId(material.getId());
         dto.setName(material.getName());
         dto.setUnitId(material.getUnits().getId());
-        dto.setThreshold(null); // Threshold is now at MaterialWarehouse level
+        dto.setThreshold(null);
         dto.setIsDeleted(material.getIsDeleted());
 
         double totalQuantity = 0.0;
