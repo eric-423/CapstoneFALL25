@@ -49,7 +49,6 @@ export default function CombosManagementPage() {
   const [combos, setCombos] = useState<Combo[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // API filter params - only these trigger API calls
   const [apiParams, setApiParams] = useState<ComboSearchParams>({
     page: 0,
     size: 20,
@@ -57,7 +56,6 @@ export default function CombosManagementPage() {
     sortDirection: "ASC",
   });
 
-  // Local input states - for user input without triggering API
   const [keyword, setKeyword] = useState("");
   const [selectedBranchId, setSelectedBranchId] = useState<
     number | undefined
@@ -70,7 +68,6 @@ export default function CombosManagementPage() {
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
-  // Dialog states
   const [showDialog, setShowDialog] = useState(false);
   const [editingCombo, setEditingCombo] = useState<ComboDetail | null>(null);
   const [loadingComboDetail, setLoadingComboDetail] = useState(false);
@@ -107,7 +104,6 @@ export default function CombosManagementPage() {
   };
 
   const handleSearch = () => {
-    // Update API params to trigger search with current input values
     setApiParams({
       ...apiParams,
       page: 0,
@@ -120,13 +116,11 @@ export default function CombosManagementPage() {
   };
 
   const handleClearFilters = () => {
-    // Clear all input states
     setKeyword("");
     setSelectedBranchId(undefined);
     setActiveFilter(undefined);
     setMinPrice("");
     setMaxPrice("");
-    // Reset API params to default
     setApiParams({
       page: 0,
       size: 20,
@@ -181,7 +175,6 @@ export default function CombosManagementPage() {
         className={`bg-white -mb-6 -mr-4 sm:-mr-4 ml-8 ${montserrat.className}`}
       >
         <AdminPageLayout>
-          {/* Header */}
           <AdminPageHeader
             title="Quản lý Combo"
             description="Quản lý các combo sản phẩm và ưu đãi"
@@ -197,7 +190,6 @@ export default function CombosManagementPage() {
             }
           />
 
-          {/* Stats */}
           <AdminStatsGrid>
             <AdminStatsCard
               title="Tổng combo"
@@ -220,7 +212,6 @@ export default function CombosManagementPage() {
             />
           </AdminStatsGrid>
 
-          {/* Search & Filters */}
           <Card className="p-4 sm:p-6 bg-[#FDE3CF]/70 border-0 shadow-sm rounded-xl">
             <div className="space-y-3">
               <div className="flex gap-2">
@@ -359,7 +350,6 @@ export default function CombosManagementPage() {
             </div>
           </Card>
 
-          {/* Combos List */}
           <Card className="bg-[#FDE3CF]/70 border-0 shadow-sm rounded-xl overflow-hidden p-4 sm:p-6">
             <div className="space-y-3">
               {loading ? (
@@ -448,7 +438,6 @@ export default function CombosManagementPage() {
             </div>
           </Card>
 
-          {/* Pagination */}
           {totalPages > 1 && (
             <Card className="p-3 bg-[#FDE3CF]/70 border-0 shadow-sm rounded-xl">
               <div className="flex items-center justify-between">
@@ -492,7 +481,6 @@ export default function CombosManagementPage() {
             </Card>
           )}
 
-          {/* Combo Form Dialog */}
           <ComboFormDialog
             open={showDialog}
             onOpenChange={setShowDialog}
