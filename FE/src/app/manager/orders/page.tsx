@@ -128,107 +128,143 @@ const formatCurrency = (amount: number): string => {
 };
 
 
-const handlePrintInvoice = async (order: BranchOrderResponse) => {
-    if (PRINT_CONFIG.useServerPrint) {
-        try {
-            const result = await printBillAction(order.id);
-            if (result.success) {
-                alert('In hóa đơn thành công!');
-                return;
-            } else {
-                const useBrowserPrint = confirm(
-                    `Không thể kết nối máy in: ${result.error}\n\n` +
-                    `Bạn có muốn in qua trình duyệt không?`
-                );
-                if (!useBrowserPrint) {
-                    return;
-                }
-            }
-        } catch (error) {
-            console.error('Error printing via server:', error);
-            const useBrowserPrint = confirm(
-                'Có lỗi xảy ra khi in qua server.\n\n' +
-                'Bạn có muốn in qua trình duyệt không?'
-            );
-            if (!useBrowserPrint) {
-                return;
-            }
-        }
-    }
+const downloadInvoiceBlob = async (orderId: number) => {
+    const response = await fetch(`/api/orders/${orderId}/bill/download`, { credentials: 'include' });
+    if (!response.ok) throw new Error('Không lấy được invoice');
+    return response.blob();
+};
 
+const focusBarcodeScanner = () => {
+    window.focus();
+    document.body.focus();
+
+    const input = document.createElement('input');
+    input.style.cssText = 'position:fixed;left:-9999px;opacity:0;';
+    input.autofocus = true;
+    document.body.appendChild(input);
+    input.focus();
+
+    const remove = () => input.parentNode && document.body.removeChild(input);
+    setTimeout(remove, 6000);
+
+    input.addEventListener('input', (e) => {
+        const v = (e.target as HTMLInputElement).value;
+        if (v.length > 6) {
+            window.dispatchEvent(new CustomEvent('barcodeScanned', { detail: v }));
+            remove();
+        }
+    });
+    input.addEventListener('blur', () => setTimeout(() => input.focus(), 100));
+};
+
+const printBlobInBrowser = async (blob: Blob) => {
+    const url = URL.createObjectURL(blob);
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;opacity:0;';
+    iframe.src = url;
+    document.body.appendChild(iframe);
+
+    let cleaned = false;
+    const cleanup = () => {
+        if (cleaned) return;
+        cleaned = true;
+        iframe.contentWindow?.removeEventListener('afterprint', afterPrint);
+        window.removeEventListener('afterprint', afterPrint);
+        document.removeEventListener('visibilitychange', onVisible);
+        if (iframe.parentNode) document.body.removeChild(iframe);
+        URL.revokeObjectURL(url);
+    };
+
+    const triggerPrint = () => {
+        const win = iframe.contentWindow;
+        if (!win) return;
+        win.focus();
+        win.print();
+        if (PRINT_CONFIG.isKioskMode) setTimeout(() => win.print(), 300);
+        setTimeout(focusBarcodeScanner, 700);
+    };
+
+    const onVisible = () => {
+        if (document.visibilityState === 'visible') {
+            focusBarcodeScanner();
+            document.removeEventListener('visibilitychange', onVisible);
+        }
+    };
+
+    const afterPrint = () => {
+        focusBarcodeScanner();
+        cleanup();
+    };
+
+    document.addEventListener('visibilitychange', onVisible);
+    iframe.onload = () => {
+        iframe.contentWindow?.addEventListener('afterprint', afterPrint);
+        setTimeout(triggerPrint, 800);
+    };
+    setTimeout(() => iframe.contentDocument?.readyState === 'complete' && triggerPrint(), 1500);
+    setTimeout(cleanup, 10000);
+    window.addEventListener('afterprint', afterPrint);
+};
+
+const requestServerPrint = async (orderId: number): Promise<boolean> => {
+    if (!PRINT_CONFIG.useServerPrint) return false;
+    const shouldStop = (message: string) =>
+        !confirm(`${message}\n\nBạn có muốn in qua trình duyệt không?`);
 
     try {
-        const response = await fetch(`/api/orders/${order.id}/bill/download`, { credentials: 'include' });
-        if (!response.ok) throw new Error('Download failed');
-
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-
-        const iframe = document.createElement('iframe');
-        iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;opacity:0;';
-        document.body.appendChild(iframe);
-        iframe.src = url;
-
-        let cleaned = false;
-        const cleanup = () => {
-            if (cleaned) return;
-            cleaned = true;
-            if (iframe.parentNode) {
-                document.body.removeChild(iframe);
-            }
-            URL.revokeObjectURL(url);
-        };
-
-        const ensureScanner = () => {
-            window.focus();
-            document.body.focus();
-
-            const input = document.createElement('input');
-            input.style.cssText = 'position:fixed;left:-9999px;opacity:0;';
-            input.autofocus = true;
-            document.body.appendChild(input);
-            input.focus();
-
-            const remove = () => input.parentNode && document.body.removeChild(input);
-            setTimeout(remove, 6000);
-
-            input.addEventListener('input', (e) => {
-                const v = (e.target as HTMLInputElement).value;
-                if (v.length > 6) {
-                    window.dispatchEvent(new CustomEvent('barcodeScanned', { detail: v }));
-                    remove();
-                }
-            });
-
-            input.addEventListener('blur', () => setTimeout(() => input.focus(), 100));
-        };
-
-        const printAndFocus = () => {
-            if (!iframe.contentWindow) return;
-            iframe.contentWindow.focus();
-            iframe.contentWindow.print();
-            if (PRINT_CONFIG.isKioskMode) setTimeout(() => iframe.contentWindow?.print(), 300);
-            setTimeout(ensureScanner, 700);
-        };
-
-        const onVisible = () => {
-            if (document.visibilityState === 'visible') {
-                ensureScanner();
-                document.removeEventListener('visibilitychange', onVisible);
-            }
-        };
-        document.addEventListener('visibilitychange', onVisible);
-
-        iframe.onload = () => setTimeout(printAndFocus, 800);
-        setTimeout(() => iframe.contentDocument?.readyState === 'complete' && printAndFocus(), 1500);
-
-        // Dọn dẹp an toàn
-        setTimeout(cleanup, 10000);
-        const afterPrint = () => { ensureScanner(); cleanup(); };
-        iframe.contentWindow?.addEventListener('afterprint', afterPrint);
-        window.addEventListener('afterprint', afterPrint);
-
+        const result = await printBillAction(orderId);
+        if (result.success) {
+            alert('In hóa đơn thành công!');
+            return true;
+        }
+        if (shouldStop(`Không thể kết nối máy in: ${result.error}`)) return true;
     } catch (error) {
+        console.error('Error printing via server:', error);
+        if (shouldStop('Có lỗi xảy ra khi in qua server.')) return true;
+    }
+    return false;
+};
+
+const blobToBase64 = (blob: Blob): Promise<string> =>
+    new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const base64 = (reader.result as string)?.split(",")[1] ?? "";
+            resolve(base64.replace(/\s+/g, ""));
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
+
+const tryLocalAgentPrint = async (orderId: number, base64: string) => {
+    try {
+        const agentRes = await fetch("http://localhost:3001/print", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                type: "PDF_BASE64",
+                orderId,
+                data: base64,
+            }),
+        });
+        if (!agentRes.ok) throw new Error("Gửi lệnh in thất bại");
+        toast.success("Đã gửi invoice tới máy in");
+        return true;
+    } catch (error) {
+        toast.error(error instanceof Error ? error.message : "In thất bại");
+        return false;
+    }
+};
+
+const handlePrint = async (order: BranchOrderResponse) => {
+    try {
+        const blob = await downloadInvoiceBlob(order.id);
+        const base64 = await blobToBase64(blob);
+        const agentPrinted = await tryLocalAgentPrint(order.id, base64);
+        if (agentPrinted) return;
+        if (await requestServerPrint(order.id)) return;
+        await printBlobInBrowser(blob);
+    } catch {
         alert('Lỗi in hóa đơn. Vui lòng thử lại.');
     }
 };
@@ -318,7 +354,7 @@ export default function ManagerOrdersPage() {
             } else {
                 toast.error('Không thể assign shipper. Vui lòng thử lại.');
             }
-        } catch (error) {
+        } catch {
             toast.error('Lỗi khi chuyển cho shipper. Vui lòng thử lại.');
         } finally {
             setAssigningShipper(prev => {
@@ -522,7 +558,7 @@ export default function ManagerOrdersPage() {
                                                         <Button
                                                             variant="outline"
                                                             size="sm"
-                                                            onClick={() => handlePrintInvoice(order)}
+                                                            onClick={() => handlePrint(order)}
                                                             className="flex-1 lg:flex-none whitespace-nowrap border-2 border-[#EC6426] text-[#EC6426] hover:bg-[#EC6426] hover:text-white transition-all duration-300 rounded-xl font-semibold"
                                                         >
                                                             <>

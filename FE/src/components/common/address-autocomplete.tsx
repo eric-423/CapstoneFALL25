@@ -32,24 +32,49 @@ export function AddressAutocomplete({
     const [inputValue, setInputValue] = useState(value ?? '');
 
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
     const autocompleteServiceRef = useRef<google.maps.places.AutocompleteService | null>(null);
     const placesServiceRef = useRef<google.maps.places.PlacesService | null>(null);
     const requestIdRef = useRef(0);
     const debounceRef = useRef<NodeJS.Timeout | null>(null);
     const blurTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const isSelectingRef = useRef(false);
+    const justSelectedRef = useRef(false);
 
     const MIN_CHARS = 1;
     const DEBOUNCE_MS = 300;
 
     useEffect(() => {
-        // Sync value từ props nhưng không làm mất focus nếu user đang nhập
-        if (!isFocused) {
+        const checkExistingScript = () => {
+            if (window.google?.maps?.places) {
+                try {
+                    autocompleteServiceRef.current = new window.google.maps.places.AutocompleteService();
+                    const div = document.createElement('div');
+                    placesServiceRef.current = new window.google.maps.places.PlacesService(div);
+                    setIsScriptLoaded(true);
+                    return true;
+                } catch {
+                    return false;
+                }
+            }
+            return false;
+        };
+
+        if (!checkExistingScript()) {
+            const timeout = setTimeout(() => {
+                checkExistingScript();
+            }, 500);
+            return () => clearTimeout(timeout);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (!isFocused && !justSelectedRef.current) {
             setInputValue(value ?? '');
         }
     }, [value, isFocused]);
 
-    // Cleanup timeouts khi component unmount
     useEffect(() => {
         return () => {
             if (debounceRef.current) {
@@ -62,15 +87,54 @@ export function AddressAutocomplete({
     }, []);
 
     const handleScriptLoad = useCallback(() => {
-        if (!window.google?.maps?.places) return;
-        autocompleteServiceRef.current = new window.google.maps.places.AutocompleteService();
-        const div = document.createElement('div');
-        placesServiceRef.current = new window.google.maps.places.PlacesService(div);
-        setIsScriptLoaded(true);
+        if (window.google?.maps?.places) {
+            try {
+                autocompleteServiceRef.current = new window.google.maps.places.AutocompleteService();
+                const div = document.createElement('div');
+                placesServiceRef.current = new window.google.maps.places.PlacesService(div);
+                setIsScriptLoaded(true);
+                return;
+            } catch {
+                setIsScriptError(true);
+                return;
+            }
+        }
+
+        let checkInterval: NodeJS.Timeout | null = null;
+        let timeoutId: NodeJS.Timeout | null = null;
+        let attempts = 0;
+        const maxAttempts = 50;
+
+        checkInterval = setInterval(() => {
+            attempts++;
+            if (window.google?.maps?.places) {
+                if (checkInterval) clearInterval(checkInterval);
+                if (timeoutId) clearTimeout(timeoutId);
+                try {
+                    autocompleteServiceRef.current = new window.google.maps.places.AutocompleteService();
+                    const div = document.createElement('div');
+                    placesServiceRef.current = new window.google.maps.places.PlacesService(div);
+                    setIsScriptLoaded(true);
+                } catch {
+                    setIsScriptError(true);
+                }
+            } else if (attempts >= maxAttempts) {
+                if (checkInterval) clearInterval(checkInterval);
+                if (timeoutId) clearTimeout(timeoutId);
+            }
+        }, 100);
+
+        timeoutId = setTimeout(() => {
+            if (checkInterval) clearInterval(checkInterval);
+            setIsScriptError(true);
+        }, 5000);
     }, []);
 
     const search = useCallback((query: string) => {
-        if (!autocompleteServiceRef.current || !isScriptLoaded) return;
+        if (!autocompleteServiceRef.current || !isScriptLoaded) {
+            return;
+        }
+
         const id = ++requestIdRef.current;
         setIsFetching(true);
         setPredictions([]);
@@ -78,9 +142,16 @@ export function AddressAutocomplete({
         autocompleteServiceRef.current!.getPlacePredictions(
             { input: query, componentRestrictions: { country: 'vn' }, types: ['address'] },
             (results, status) => {
-                if (id !== requestIdRef.current) return;
+                if (id !== requestIdRef.current) {
+                    return;
+                }
+
                 setIsFetching(false);
-                if (status === 'OK' && results) setPredictions(results.slice(0, 5));
+                if (status === 'OK' && results && results.length > 0) {
+                    setPredictions(results.slice(0, 5));
+                } else {
+                    setPredictions([]);
+                }
             }
         );
     }, [isScriptLoaded]);
@@ -91,6 +162,10 @@ export function AddressAutocomplete({
     }, [search]);
 
     useEffect(() => {
+        if (justSelectedRef.current) {
+            return;
+        }
+
         const normalizedValue =
             typeof inputValue === 'string'
                 ? inputValue
@@ -99,44 +174,52 @@ export function AddressAutocomplete({
                     : '';
         const q = normalizedValue.trim();
 
-        // Clear timeout nếu có
         if (debounceRef.current) {
             clearTimeout(debounceRef.current);
             debounceRef.current = null;
         }
 
-        // Nếu không đủ điều kiện, clear predictions
-        if (disabled || !isFocused || !isScriptLoaded || q.length < MIN_CHARS) {
+        if (disabled || !isScriptLoaded) {
             setPredictions([]);
             setIsFetching(false);
             return;
         }
 
-        // Chỉ search nếu có ít nhất MIN_CHARS và đang focus
+        if (q.length < MIN_CHARS) {
+            setPredictions([]);
+            setIsFetching(false);
+            return;
+        }
+
         debouncedSearch(q);
-    }, [inputValue, isFocused, isScriptLoaded, disabled, debouncedSearch]);
+    }, [inputValue, isScriptLoaded, disabled, debouncedSearch]);
 
     const handleSelect = useCallback((p: google.maps.places.AutocompletePrediction) => {
         isSelectingRef.current = true;
+        justSelectedRef.current = true;
 
-        // Clear blur timeout
         if (blurTimeoutRef.current) {
             clearTimeout(blurTimeoutRef.current);
             blurTimeoutRef.current = null;
         }
 
+        setPredictions([]);
+        setIsFetching(false);
+        setIsFocused(false);
+
+        if (debounceRef.current) {
+            clearTimeout(debounceRef.current);
+            debounceRef.current = null;
+        }
+
         const finalize = (addr: string) => {
             setInputValue(addr);
             onChange(addr);
-            setPredictions([]);
-            // Đánh dấu đã chọn xong sau một chút
+
             setTimeout(() => {
                 isSelectingRef.current = false;
-                // Giữ focus để user có thể tiếp tục chỉnh sửa nếu muốn
-                if (textareaRef.current && document.activeElement !== textareaRef.current) {
-                    textareaRef.current.focus();
-                }
-            }, 100);
+                justSelectedRef.current = false;
+            }, 500);
         };
 
         if (!placesServiceRef.current || !isScriptLoaded) {
@@ -153,15 +236,26 @@ export function AddressAutocomplete({
     }, [onChange, isScriptLoaded]);
 
     const canUse = Boolean(apiKey) && !isScriptError;
+    const isAutocompleteReady = canUse && isScriptLoaded;
 
     return (
-        <div className="relative">
+        <div ref={containerRef} className="relative w-full overflow-visible">
             {canUse && (
                 <Script
+                    id="google-maps-places-script"
                     src={`https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`}
-                    onLoad={handleScriptLoad}
-                    onError={() => setIsScriptError(true)}
-                    strategy="lazyOnload"
+                    onLoad={() => {
+                        handleScriptLoad();
+                    }}
+                    onError={() => {
+                        setIsScriptError(true);
+                    }}
+                    onReady={() => {
+                        if (window.google?.maps?.places && !isScriptLoaded) {
+                            handleScriptLoad();
+                        }
+                    }}
+                    strategy="afterInteractive"
                 />
             )}
 
@@ -169,16 +263,15 @@ export function AddressAutocomplete({
                 ref={textareaRef}
                 value={inputValue}
                 onChange={(e) => {
-                    setInputValue(e.target.value);
-                    // Đảm bảo focus được giữ khi user đang nhập
-                    if (!isFocused && !disabled) {
+                    const newValue = e.target.value;
+                    setInputValue(newValue);
+                    if (!disabled) {
                         setIsFocused(true);
                     }
                 }}
                 onFocus={() => {
                     if (!disabled) {
                         isSelectingRef.current = false;
-                        // Clear blur timeout nếu có
                         if (blurTimeoutRef.current) {
                             clearTimeout(blurTimeoutRef.current);
                             blurTimeoutRef.current = null;
@@ -187,61 +280,82 @@ export function AddressAutocomplete({
                     }
                 }}
                 onBlur={() => {
-                    // Chỉ blur nếu không phải đang chọn từ dropdown
                     if (!isSelectingRef.current) {
-                        // Delay blur để user có thể click vào dropdown
                         blurTimeoutRef.current = setTimeout(() => {
-                            if (!isSelectingRef.current) {
+                            if (!isSelectingRef.current && predictions.length === 0) {
                                 setIsFocused(false);
                             }
-                        }, 250);
+                        }, 300);
                     }
                 }}
                 placeholder={placeholder}
                 rows={rows}
-                disabled={disabled || !canUse}
+                disabled={disabled}
                 className="resize-none"
             />
 
-            {canUse && isFocused && (isFetching || predictions.length > 0) && !disabled && (
-                <div
-                    className="absolute left-0 right-0 top-full z-[60] mt-1 overflow-hidden rounded-lg border border-border bg-background shadow-xl max-h-[300px] overflow-y-auto animate-in fade-in-0 slide-in-from-top-2 duration-200 ease-out"
-                    onMouseDown={(e) => {
-                        e.preventDefault();
-                    }}
-                    onMouseEnter={() => {
-                        if (blurTimeoutRef.current) {
-                            clearTimeout(blurTimeoutRef.current);
-                            blurTimeoutRef.current = null;
-                        }
-                    }}
-                >
-                    {isFetching && (
-                        <div className="px-3 py-2 text-sm text-muted-foreground animate-pulse">
-                            Đang tìm...
-                        </div>
-                    )}
-                    {predictions.map((p, index) => (
-                        <button
-                            key={p.place_id}
-                            type="button"
-                            className="w-full px-3 py-2 text-left text-sm hover:bg-accent transition-all duration-150 hover:translate-x-1 opacity-0 animate-in fade-in-0 slide-in-from-left-2"
-                            style={{
-                                animationDelay: `${index * 30}ms`,
-                                animationFillMode: 'forwards'
-                            }}
-                            onMouseDown={(e) => {
-                                e.preventDefault();
-                                isSelectingRef.current = true;
-                            }}
-                            onClick={() => handleSelect(p)}
-                        >
-                            <div className="font-medium">{p.structured_formatting.main_text}</div>
-                            <div className="text-xs text-muted-foreground">{p.structured_formatting.secondary_text}</div>
-                        </button>
-                    ))}
-                </div>
+            {!canUse && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                    {!apiKey ? 'API Key chưa được cấu hình. ' : ''}Không thể tải Google Autocomplete. Bạn vẫn có thể nhập địa chỉ thủ công.
+                </p>
             )}
+            {canUse && !isScriptLoaded && !isScriptError && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                    Đang tải Google Maps API...
+                </p>
+            )}
+            {canUse && isScriptError && (
+                <p className="mt-1 text-xs text-destructive">
+                    Lỗi khi tải Google Maps API. Vui lòng kiểm tra lại API key hoặc kết nối mạng.
+                </p>
+            )}
+
+            {(isAutocompleteReady && !disabled && (isFetching || predictions.length > 0)) && (
+                    <div
+                        ref={dropdownRef}
+                        className="absolute left-0 right-0 top-full z-[9999] mt-1 overflow-hidden rounded-lg border border-border bg-background shadow-xl max-h-[300px] overflow-y-auto"
+                        onMouseDown={(e) => {
+                            e.preventDefault();
+                        }}
+                        onMouseEnter={() => {
+                            if (blurTimeoutRef.current) {
+                                clearTimeout(blurTimeoutRef.current);
+                                blurTimeoutRef.current = null;
+                            }
+                            isSelectingRef.current = true;
+                        }}
+                        onMouseLeave={() => {
+                            isSelectingRef.current = false;
+                        }}
+                    >
+                        {isFetching && (
+                            <div className="px-3 py-2 text-sm text-muted-foreground">
+                                Đang tìm...
+                            </div>
+                        )}
+                        {predictions.length > 0 && predictions.map((p) => (
+                            <button
+                                key={p.place_id}
+                                type="button"
+                                className="w-full px-3 py-2 text-left text-sm hover:bg-accent transition-colors"
+                                onMouseDown={(e) => {
+                                    e.preventDefault();
+                                    isSelectingRef.current = true;
+                                }}
+                                onClick={() => handleSelect(p)}
+                            >
+                                <div className="font-medium">
+                                    {p.structured_formatting?.main_text || p.description}
+                                </div>
+                                {p.structured_formatting?.secondary_text && (
+                                    <div className="text-xs text-muted-foreground">
+                                        {p.structured_formatting.secondary_text}
+                                    </div>
+                                )}
+                            </button>
+                        ))}
+                    </div>
+                )}
         </div>
     );
 }

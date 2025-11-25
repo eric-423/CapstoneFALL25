@@ -305,6 +305,8 @@ export default function MenuPage() {
               </div>
             </div>
           </div>
+
+
           <div className="container mx-auto px-10 md:px-10 pt-8 py-20">
             <div className="flex flex-col lg:flex-row gap-8">
               <div className="lg:w-1/4">
@@ -361,6 +363,7 @@ export default function MenuPage() {
                       >
                         <ProductList products={productList} />
                       </div>
+
                       {totalPages > 1 && (
                         <div className="mt-10 flex flex-col items-center gap-4">
                           <div className="flex flex-wrap items-center justify-center gap-2">
@@ -382,11 +385,10 @@ export default function MenuPage() {
                               ) : (
                                 <Button
                                   key={item}
-                                  className={`h-10 w-10 rounded-xl font-semibold transition-colors duration-200 ${
-                                    item === page
-                                      ? "bg-[#EC6426] text-white shadow-lg"
-                                      : "bg-[#EC6426]/30 text-[#EC6426] hover:bg-[#EC6426]/50"
-                                  }`}
+                                  className={`h-10 w-10 rounded-xl font-semibold transition-colors duration-200 ${item === page
+                                    ? "bg-[#EC6426] text-white shadow-lg"
+                                    : "bg-[#EC6426]/30 text-[#EC6426] hover:bg-[#EC6426]/50"
+                                    }`}
                                   onClick={() => handlePageChange(item)}
                                 >
                                   {item + 1}

@@ -43,7 +43,7 @@ const ORDER_STATUSES = [
     color: 'text-blue-600',
     bgColor: 'bg-blue-100',
     borderColor: 'border-blue-300',
-    percent: 10,
+    percent: 17.5,
   },
   {
     key: 'COOKING',
@@ -52,7 +52,7 @@ const ORDER_STATUSES = [
     color: 'text-orange-600',
     bgColor: 'bg-orange-100',
     borderColor: 'border-orange-300',
-    percent: 20,
+    percent: 35,
   },
   {
     key: 'COOKED',
@@ -61,7 +61,7 @@ const ORDER_STATUSES = [
     color: 'text-amber-600',
     bgColor: 'bg-amber-100',
     borderColor: 'border-amber-300',
-    percent: 55,
+    percent: 50,
   },
   {
     key: 'SHIPPING',
@@ -70,7 +70,7 @@ const ORDER_STATUSES = [
     color: 'text-purple-600',
     bgColor: 'bg-purple-100',
     borderColor: 'border-purple-300',
-    percent: 65,
+    percent: 67.5,
   },
   {
     key: 'DELIVERED',
@@ -79,7 +79,7 @@ const ORDER_STATUSES = [
     color: 'text-green-600',
     bgColor: 'bg-green-100',
     borderColor: 'border-green-300',
-    percent: 80,
+    percent: 83,
   },
   {
     key: 'COMPLETED',
