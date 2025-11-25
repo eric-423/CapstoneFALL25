@@ -161,24 +161,24 @@ export default function AddressManagementSection({ userId }: AddressManagementSe
             return;
         }
 
+        const isDefaultValue = addresses.length === 0 || formData.isDefault;
+
         if (editingAddress) {
-            // Update existing address
             updateAddressMutation.mutate({
                 userId,
                 informationId: editingAddress.informationId,
                 name: formData.name.trim(),
                 address: formData.address.trim(),
                 phoneNumber: formData.phoneNumber.trim(),
-                isDefault: formData.isDefault,
+                isDefault: isDefaultValue,
             });
         } else {
-            // Create new address
             saveAddressMutation.mutate({
                 userId,
                 name: formData.name.trim(),
                 address: formData.address.trim(),
                 phoneNumber: formData.phoneNumber.trim(),
-                isDefault: formData.isDefault,
+                isDefault: isDefaultValue,
             });
         }
     };
@@ -189,7 +189,7 @@ export default function AddressManagementSection({ userId }: AddressManagementSe
             name: '',
             address: '',
             phoneNumber: '',
-            isDefault: false,
+            isDefault: addresses.length === 0,
         });
         setIsDialogOpen(true);
     };
@@ -373,7 +373,7 @@ export default function AddressManagementSection({ userId }: AddressManagementSe
                                 <input
                                     type='checkbox'
                                     id='dialog-isDefault'
-                                    checked={formData.isDefault}
+                                    checked={addresses.length === 0 || formData.isDefault}
                                     onChange={(e) => setFormData({ ...formData, isDefault: e.target.checked })}
                                     className='h-4 w-4 rounded border-gray-300 text-[#EC6426] focus:ring-[#EC6426]'
                                     aria-label='Đặt làm địa chỉ mặc định'

@@ -15,6 +15,7 @@ import { GraduationCap, Plus, Users } from 'lucide-react';
 import { createTraining, CreateTrainingPayload, updateTraining } from '@/apis/trainning.api';
 import { Role, getRoles } from '@/apis/role.api';
 import { TrainingCourse } from '@/utils/types/training.type';
+import { toast } from 'react-toastify';
 
 interface TrainingFormData {
     name: string;
@@ -121,15 +122,27 @@ export function AddTrainingDialog({
 
             if (isEditMode && training) {
                 await updateTraining(training.id, payload);
+                toast.success("Cập nhật khóa đào tạo thành công!", { toastId: `update-training-${training.id}` });
             } else {
                 await createTraining(payload);
+                toast.success("Tạo khóa đào tạo mới thành công!", { toastId: "create-training" });
             }
 
             setOpen(false);
             resetForm();
             onSuccess?.();
         } catch (error) {
-            console.log(error);
+            const serverDesc =
+                (error as { response?: { data?: { desc?: string; error?: string } } })
+                    ?.response?.data?.desc ||
+                (error as { response?: { data?: { error?: string } } })?.response?.data
+                    ?.error ||
+                (error instanceof Error
+                    ? error.message
+                    : isEditMode
+                        ? "Không thể cập nhật khóa đào tạo"
+                        : "Không thể tạo khóa đào tạo");
+            toast.error(serverDesc, { toastId: `training-error-${isEditMode ? 'edit' : 'create'}` });
         } finally {
             setIsLoading(false);
         }

@@ -26,6 +26,7 @@ export interface CreateTrainingPayload {
 export type UpdateTrainingPayload = CreateTrainingPayload;
 
 export interface TrainingLesson {
+  videoUrl?: string;
   id: number;
   title: string;
   content: string;
@@ -79,6 +80,7 @@ export interface CreateLessonPayload {
   title: string;
   content: string;
   description: string;
+  videoUrl: string;
   point: number;
   orderIndex: number;
   trainingId: number;
