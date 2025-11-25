@@ -22,16 +22,17 @@ public class CookingMethodController {
 
     @GetMapping
     public ResponseEntity<?> getAllCookingMethods(@RequestParam(defaultValue = "") String keyword,
-                                                  @RequestParam(defaultValue = "0") Integer page,
-                                                  @RequestParam(defaultValue = "10") Integer size,
-                                                  @RequestParam(defaultValue = "ASC") String sortDirection) {
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(defaultValue = "ASC") String sortDirection) {
         CookingMethodSearchRequest cookingMethodSearchRequest = new CookingMethodSearchRequest();
-        cookingMethodSearchRequest.setKeyword(cookingMethodSearchRequest.getKeyword());
+        cookingMethodSearchRequest.setKeyword(keyword);
         cookingMethodSearchRequest.setPage(page);
         cookingMethodSearchRequest.setSize(size);
         cookingMethodSearchRequest.setSortDirection(sortDirection);
 
-        PagedResponse<CookingMethodDTO> pagedResponse = cookingMethodService.getAllCookingMethods(cookingMethodSearchRequest);
+        PagedResponse<CookingMethodDTO> pagedResponse = cookingMethodService
+                .getAllCookingMethods(cookingMethodSearchRequest);
 
         return new ResponseEntity<>(pagedResponse, HttpStatus.OK);
     }
