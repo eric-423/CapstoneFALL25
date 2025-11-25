@@ -10,7 +10,6 @@ import com.capstone.tamtech.capstone.exception.ResourceNotFoundException;
 import com.capstone.tamtech.capstone.payload.PagedResponse;
 import com.capstone.tamtech.capstone.payload.request.MaterialNutrientCreateRequest;
 import com.capstone.tamtech.capstone.payload.request.MaterialNutrientRequest;
-import com.capstone.tamtech.capstone.payload.request.ProductSearchRequest;
 import com.capstone.tamtech.capstone.repositories.MaterialNutritionRepository;
 import com.capstone.tamtech.capstone.repositories.MaterialRepository;
 import com.capstone.tamtech.capstone.repositories.NutrientRepository;
@@ -120,7 +119,11 @@ public class MaterialNutrientServiceImpl implements MaterialNutrientService {
     public PagedResponse<MaterialNutrientDTO> getAllMaterialNutrients(int materialId, int nutriendId, int page, int size, String sortDirection) {
         Pageable pageable = createPageable(materialId, nutriendId, page, size, sortDirection);
 
-        if(materialId==0){
+        if(materialId==0 && nutriendId==0){
+            Page<MaterialNutrients> materialNutrientsPage = materialNutritionRepository.findAll(pageable);
+            List<MaterialNutrientDTO> content = materialNutrientsPage.stream().map(this::mapToDTO).toList();
+            return createPagedResponse(materialNutrientsPage, content);
+        }else if(materialId==0){
             Page<MaterialNutrients> materialNutrientsPage = materialNutritionRepository.findByNutrient_Id(materialId, pageable);
             List<MaterialNutrientDTO> content = materialNutrientsPage.stream().map(this::mapToDTO).toList();
             return createPagedResponse(materialNutrientsPage, content);
@@ -149,9 +152,9 @@ public class MaterialNutrientServiceImpl implements MaterialNutrientService {
     }
 
     private Pageable createPageable(int materialId, int nutrientId, int page, int size, String sortDirection){
-
-        Sort sort = Sort.by(Sort.Direction.fromString(
-                        sortDirection != null ? sortDirection : "ASC"));
+        Sort.Direction direction = Sort.Direction.fromString(
+                sortDirection != null ? sortDirection : "ASC");
+        Sort sort = Sort.by(direction, "amountPer100Unit");
 
         return PageRequest.of(page, size, sort);
     }
