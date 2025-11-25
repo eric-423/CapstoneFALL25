@@ -67,8 +67,9 @@ export default function TrainingDetailPage() {
         sortDirection: "ASC",
       }),
     enabled: !!trainingId,
-    refetchOnWindowFocus: true,
-    retry: 2,
+    refetchOnMount: "always",
+    refetchOnReconnect: "always",
+    gcTime: 0,
   });
 
   const { data: lessonDetail, isLoading: isLoadingLesson } = useQuery({

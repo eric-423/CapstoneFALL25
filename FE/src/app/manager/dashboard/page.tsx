@@ -1,10 +1,10 @@
 "use client";
 
+import { Montserrat } from "next/font/google";
 import {
   DollarSign,
   ShoppingCart,
   Users,
-  TrendingUp,
   Activity,
   Clock,
   CheckCircle,
@@ -15,7 +15,7 @@ import { RevenueChart } from "./components/RevenueChart";
 import { OrderChannelsChart } from "./components/OrderChannelsChart";
 import { TopDishesList } from "./components/TopDishesList";
 import { useAdminContext } from "@/utils/contexts/AdminContext";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   getRevenueStatistics,
@@ -27,11 +27,14 @@ import {
 } from "@/apis/statistics.api";
 import { revenueData } from "./mockData";
 
+const montserrat = Montserrat({
+  subsets: ["latin", "vietnamese"],
+  variable: "--font-montserrat",
+  display: "swap",
+});
+
 export default function ManagerDashboardPage() {
   const { selectedBranch, timePeriod, dateRange } = useAdminContext();
-
-  // Memoize branch IDs to prevent unnecessary refetches
-  // Manager chỉ quản lý branch của họ, không cần getAll branches
   const branchId = useMemo(
     () => (selectedBranch?.id ? parseInt(selectedBranch.id) : 1),
     [selectedBranch?.id]
@@ -45,12 +48,10 @@ export default function ManagerDashboardPage() {
     "DAILY" | "MONTHLY"
   >("DAILY");
   const [serviceDate, setServiceDate] = useState("");
-
-  // Use React Query for all statistics with proper caching
   const { data: revenueStats, isLoading: isLoadingRevenue } = useQuery({
     queryKey: ["manager-dashboard-revenue", branchId, timePeriod],
     queryFn: () => getRevenueStatistics(branchId),
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 2 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
   });
@@ -108,12 +109,11 @@ export default function ManagerDashboardPage() {
   const { data: topSellingItems, isLoading: isLoadingTopSelling } = useQuery({
     queryKey: ["manager-dashboard-top-selling", branchIdOrUndefined],
     queryFn: () => getTopSellingItems(branchIdOrUndefined, 5),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
   });
 
-  // Combined loading state
   const isLoading =
     isLoadingRevenue ||
     isLoadingOrderCount ||
@@ -122,7 +122,6 @@ export default function ManagerDashboardPage() {
     isLoadingRevenue7Days ||
     isLoadingTopSelling;
 
-  // Memoize operational KPIs to prevent unnecessary recalculations
   const operationalKPIs = useMemo(() => {
     const baseKPIs = {
       avgServiceTime: 12.5,
@@ -143,170 +142,165 @@ export default function ManagerDashboardPage() {
 
   return (
     <ManagerGuard>
-      <div className="min-h-screen bg-[#EFE6DB]">
-        <div className="max-w-[1800px] mx-auto space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-primary mb-1">
+      {isLoading ? (
+        <p className="text-gray-600 text-sm">
+          <span className="ml-2 text-xs text-orange-500">Đang tải...</span>
+        </p>
+      ) : (
+        <div
+          className={`bg-white -mb-6 -mr-6 sm:-mr-8 scale-[0.98] ${montserrat.className}`}
+        >
+          <div className="max-w-[1800px] origin-top-left ml-4">
+            <div className="flex items-center justify-between">
+              <h1 className="text-3xl font-bold text-primary">
                 {selectedBranch ? selectedBranch.name : "Tổng quan chi nhánh"}
               </h1>
-              <p className="text-gray-600 text-sm">
-                {isLoading && (
-                  <span className="ml-2 text-xs text-orange-500">
-                    Đang tải...
-                  </span>
-                )}
-              </p>
-            </div>
-            <div className="text-xs text-gray-500">
-              {new Date().toLocaleString("vi-VN")}
-            </div>
-          </div>
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="w-4 h-4 text-[#EC6426]" />
-              <h2 className="text-base font-semibold text-gray-800"> KPI</h2>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <div className="lg:col-span-1">
-                <TopDishesList
-                  data={topSellingItems?.items}
-                  isLoading={isLoadingTopSelling}
-                />
+              <div className="text-xs text-gray-500">
+                {new Date().toLocaleString("vi-VN")}
               </div>
-              <div className="lg:col-span-2 grid grid-cols-2 gap-2.5 h-full">
-                <div className="space-y-2.5">
-                  <AdminCard
-                    title="Doanh thu hôm nay"
-                    value={
-                      revenueStats
-                        ? `${revenueStats.totalRevenue.toLocaleString("vi-VN")}đ`
-                        : "..."
+            </div>
+            <div className="mb-4">
+              <div className="flex items-center gap-2 mb-2 mt-4">
+                <Activity className="w-4 h-4 text-[#EC6426]" />
+                <h2 className="text-base font-semibold text-gray-800">
+                  Phân tích & Hoạt động
+                </h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="lg:col-span-2">
+                  <RevenueChart
+                    data={
+                      revenue7DaysData
+                        ? revenue7DaysData.dailyRevenues.map((item) => ({
+                            date: item.date,
+                            revenue: item.revenue,
+                          }))
+                        : revenueData
                     }
-                    icon={DollarSign}
-                    subtitle={
-                      revenueStats ? `${revenueStats.totalOrders} đơn` : ""
-                    }
-                    isLoading={isLoadingRevenue}
-                  />
-                  <AdminCard
-                    title="Tổng đơn hàng"
-                    value={
-                      orderCountStats ? orderCountStats.totalOrders : "..."
-                    }
-                    icon={ShoppingCart}
-                    subtitle={
-                      orderCountStats
-                        ? `${orderCountStats.shippingOrders + orderCountStats.pickupOrders + orderCountStats.diningOrders} kênh`
-                        : ""
-                    }
-                    isLoading={isLoadingOrderCount}
-                  />
-                  <AdminCard
-                    title="Khách hàng mới"
-                    value={
-                      newCustomerStats
-                        ? newCustomerStats.newCustomersToday
-                        : "..."
-                    }
-                    icon={Users}
-                    trend={
-                      newCustomerStats
-                        ? {
-                            value: newCustomerStats.percentageChange,
-                            isPositive: newCustomerStats.percentageChange >= 0,
-                          }
-                        : undefined
-                    }
-                    subtitle={
-                      newCustomerStats
-                        ? `vs. ${newCustomerStats.newCustomersComparison} hôm qua`
-                        : ""
-                    }
-                    isLoading={isLoadingNewCustomers}
                   />
                 </div>
-                <div className="space-y-2.5">
-                  <AdminCard
-                    title="TG phục vụ TB"
-                    value={
-                      serviceTimeStats
-                        ? `${serviceTimeStats.averageServiceTimeMinutes.toFixed(1)}p`
-                        : "..."
-                    }
-                    icon={Clock}
-                    trend={
-                      serviceTimeStats
-                        ? {
-                            value: serviceTimeStats.percentageChange,
-                            isPositive: serviceTimeStats.percentageChange <= 0,
-                          }
-                        : undefined
-                    }
-                    subtitle={
-                      serviceTimeStats
-                        ? `${serviceTimeStats.totalOrdersProcessed} đơn`
-                        : ""
-                    }
-                    isLoading={isLoadingServiceTime}
-                  />
-                  <AdminCard
-                    title="SLA Phục vụ"
-                    value={`${operationalKPIs.slaCompliance.toFixed(1)}%`}
-                    icon={CheckCircle}
-                    subtitle={
-                      operationalKPIs.slaCompliance >= 90
-                        ? "Đạt chuẩn"
-                        : "Dưới mục tiêu"
-                    }
-                    isLoading={isLoadingServiceTime}
-                  />
-                  <AdminCard
-                    title="Tỷ lệ hoàn thành"
-                    value={
-                      orderCountStats && revenueStats
-                        ? `${((revenueStats.totalOrders / (orderCountStats.totalOrders || 1)) * 100).toFixed(1)}%`
-                        : "..."
-                    }
-                    icon={Activity}
-                    subtitle={
-                      orderCountStats
-                        ? `${orderCountStats.totalOrders} đơn xử lý`
-                        : ""
-                    }
-                    isLoading={isLoadingOrderCount || isLoadingRevenue}
+                <OrderChannelsChart data={orderCountStats} />
+              </div>
+            </div>
+            <div>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="lg:col-span-1">
+                  <TopDishesList
+                    data={topSellingItems?.items}
+                    isLoading={isLoadingTopSelling}
                   />
                 </div>
+                <div className="lg:col-span-2 grid grid-cols-2 gap-2.5 h-full bg-[#FDE3CF]/90 p-2 rounded-xl">
+                  <div className="space-y-2.5 ">
+                    <AdminCard
+                      title="Doanh thu hôm nay"
+                      value={
+                        revenueStats
+                          ? `${revenueStats.totalRevenue.toLocaleString("vi-VN")}đ`
+                          : "..."
+                      }
+                      icon={DollarSign}
+                      subtitle={
+                        revenueStats ? `${revenueStats.totalOrders} đơn` : ""
+                      }
+                      isLoading={isLoadingRevenue}
+                    />
+                    <AdminCard
+                      title="Tổng đơn hàng"
+                      value={
+                        orderCountStats ? orderCountStats.totalOrders : "..."
+                      }
+                      icon={ShoppingCart}
+                      subtitle={
+                        orderCountStats
+                          ? `${orderCountStats.shippingOrders + orderCountStats.pickupOrders + orderCountStats.diningOrders} kênh`
+                          : ""
+                      }
+                      isLoading={isLoadingOrderCount}
+                    />
+                    <AdminCard
+                      title="Khách hàng mới"
+                      value={
+                        newCustomerStats
+                          ? newCustomerStats.newCustomersToday
+                          : "..."
+                      }
+                      icon={Users}
+                      trend={
+                        newCustomerStats
+                          ? {
+                              value: newCustomerStats.percentageChange,
+                              isPositive:
+                                newCustomerStats.percentageChange >= 0,
+                            }
+                          : undefined
+                      }
+                      subtitle={
+                        newCustomerStats
+                          ? `vs. ${newCustomerStats.newCustomersComparison} hôm qua`
+                          : ""
+                      }
+                      isLoading={isLoadingNewCustomers}
+                    />
+                  </div>
+                  <div className="space-y-2.5">
+                    <AdminCard
+                      title="TG phục vụ TB"
+                      value={
+                        serviceTimeStats
+                          ? `${serviceTimeStats.averageServiceTimeMinutes.toFixed(1)}p`
+                          : "..."
+                      }
+                      icon={Clock}
+                      trend={
+                        serviceTimeStats
+                          ? {
+                              value: serviceTimeStats.percentageChange,
+                              isPositive:
+                                serviceTimeStats.percentageChange <= 0,
+                            }
+                          : undefined
+                      }
+                      subtitle={
+                        serviceTimeStats
+                          ? `${serviceTimeStats.totalOrdersProcessed} đơn`
+                          : ""
+                      }
+                      isLoading={isLoadingServiceTime}
+                    />
+                    <AdminCard
+                      title="SLA Phục vụ"
+                      value={`${operationalKPIs.slaCompliance.toFixed(1)}%`}
+                      icon={CheckCircle}
+                      subtitle={
+                        operationalKPIs.slaCompliance >= 90
+                          ? "Đạt chuẩn"
+                          : "Dưới mục tiêu"
+                      }
+                      isLoading={isLoadingServiceTime}
+                    />
+                    <AdminCard
+                      title="Tỷ lệ hoàn thành"
+                      value={
+                        orderCountStats && revenueStats
+                          ? `${((revenueStats.totalOrders / (orderCountStats.totalOrders || 1)) * 100).toFixed(1)}%`
+                          : "..."
+                      }
+                      icon={Activity}
+                      subtitle={
+                        orderCountStats
+                          ? `${orderCountStats.totalOrders} đơn xử lý`
+                          : ""
+                      }
+                      isLoading={isLoadingOrderCount || isLoadingRevenue}
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-
-          <div>
-            <div className="flex items-center gap-2 mb-2 mt-4">
-              <Activity className="w-4 h-4 text-[#EC6426]" />
-              <h2 className="text-base font-semibold text-gray-800">
-                Phân tích & Hoạt động
-              </h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              <div className="lg:col-span-2">
-                <RevenueChart
-                  data={
-                    revenue7DaysData
-                      ? revenue7DaysData.dailyRevenues.map((item) => ({
-                          date: item.date,
-                          revenue: item.revenue,
-                        }))
-                      : revenueData
-                  }
-                />
-              </div>
-              <OrderChannelsChart data={orderCountStats} />
             </div>
           </div>
         </div>
-      </div>
+      )}
     </ManagerGuard>
   );
 }
