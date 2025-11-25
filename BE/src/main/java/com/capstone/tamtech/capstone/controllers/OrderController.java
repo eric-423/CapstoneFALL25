@@ -87,7 +87,6 @@ public class OrderController {
     @PostMapping("/payment/webhook")
     public ResponseEntity<String> paymentWebhook(@RequestBody Object body)
             throws JsonProcessingException, IllegalArgumentException {
-        System.out.println("Received PayOS webhook: " + body.toString());
         PayOS payOS = new PayOS(clientId, apiKey, checksumKey);
         try {
             WebhookData data = payOS.webhooks().verify(body);

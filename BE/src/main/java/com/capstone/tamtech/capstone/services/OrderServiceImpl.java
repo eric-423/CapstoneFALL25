@@ -474,7 +474,6 @@ public class OrderServiceImpl implements OrderService {
 
         double subTotal = 0.0;
         Date now = new Date();
-        List<OrderItem> confirmedItemsToReplace = new ArrayList<>();
 
         if (waiterConfirmOrderRequest.getOrderItems() != null) {
 
@@ -891,6 +890,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public OrderDTO payDiningTableOrder(
             com.capstone.tamtech.capstone.payload.request.DiningTablePaymentRequest paymentRequest)
             throws BadRequestException {
