@@ -125,7 +125,6 @@ const useAuthState = () => {
       BRANCH_MANAGER: ['/admin', '/manager'],
       STAFF: ['/staff'],
       CHEFF: ['/chef'],
-      STAFF: ['/staff'],
       WAITER: ['/staff'],
       SHIPPER: ['/shipper'],
       CUSTOMER: ['/'],
