@@ -450,7 +450,9 @@ public class OrderServiceImpl implements OrderService {
             for (OrderItem oi : orderItems) {
                 if (oi.getIsConfirmed() == null || !oi.getIsConfirmed()) {
                     itemsToDelete.add(oi);
-                } else {
+                } else if(oi.getIsDelivered()!=null){
+                    continue;
+                }else {
                     confirmedItems.add(oi);
                     if (oi.getProduct() != null) {
                         confirmedSubTotal += oi.getPrice() * oi.getQuantity();
@@ -475,43 +477,6 @@ public class OrderServiceImpl implements OrderService {
         List<OrderItem> confirmedItemsToReplace = new ArrayList<>();
 
         if (waiterConfirmOrderRequest.getOrderItems() != null) {
-            for (OrderItemRequest incoming : waiterConfirmOrderRequest.getOrderItems()) {
-                boolean hasCombo = incoming.getComboId() != 0;
-                boolean hasProduct = incoming.getProductId() != 0;
-
-                if (hasProduct) {
-                    for (OrderItem existing : confirmedItems) {
-                        if (existing.getProduct() != null &&
-                                existing.getProduct().getId() == incoming.getProductId() &&
-                                existing.getIsConfirmed() != null && existing.getIsConfirmed() &&
-                                !confirmedItemsToReplace.contains(existing)) {
-                            confirmedItemsToReplace.add(existing);
-                            break;
-                        }
-                    }
-                }
-
-                if (hasCombo) {
-                    for (OrderItem existing : confirmedItems) {
-                        if (existing.getCombo() != null &&
-                                existing.getCombo().getId() == incoming.getComboId() &&
-                                existing.getIsConfirmed() != null && existing.getIsConfirmed() &&
-                                !confirmedItemsToReplace.contains(existing)) {
-                            confirmedItemsToReplace.add(existing);
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (!confirmedItemsToReplace.isEmpty()) {
-                inventoryService.restoreMaterialsForOrderItems(confirmedItemsToReplace, branchId);
-                for (OrderItem existing : confirmedItemsToReplace) {
-                    confirmedSubTotal -= existing.getPrice() * existing.getQuantity();
-                    order.getOrderItems().remove(existing);
-                    orderItemRepository.delete(existing);
-                }
-            }
 
             for (OrderItemRequest incoming : waiterConfirmOrderRequest.getOrderItems()) {
                 boolean hasCombo = incoming.getComboId() != 0;
