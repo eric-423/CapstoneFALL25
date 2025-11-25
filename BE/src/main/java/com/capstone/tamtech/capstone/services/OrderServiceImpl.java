@@ -434,6 +434,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public Boolean confirmOrderItem(WaiterConfirmOrderRequest waiterConfirmOrderRequest) {
         Order order = orderRepository.findById(waiterConfirmOrderRequest.getOrderId())
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
@@ -508,6 +509,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public Boolean confirmDeliveredOrderItem(WaiterConfirmOrderRequest waiterConfirmOrderRequest) {
         Order order = orderRepository.findById(waiterConfirmOrderRequest.getOrderId())
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
