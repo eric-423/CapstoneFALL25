@@ -107,10 +107,9 @@ export default function RootLayout({
       >
         <Providers>
           {children}
-          {/* Chatbox chỉ hiển thị cho user có role CUSTOMER, cần nằm trong Providers để dùng được AuthContext */}
-          <CustomerGuard>
-            <DifyChatbot />
-          </CustomerGuard>
+          {/* <CustomerGuard> */}
+          <DifyChatbot />
+          {/* </CustomerGuard> */}
         </Providers>
       </body>
     </html>
