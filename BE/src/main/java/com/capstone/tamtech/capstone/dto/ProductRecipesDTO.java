@@ -21,4 +21,5 @@ public class ProductRecipesDTO implements Serializable {
     private double quantity;
     private Integer orderStep;
     private Date createdAt;
+    private String unit;
 }
