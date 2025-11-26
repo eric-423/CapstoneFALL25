@@ -427,7 +427,7 @@
 
 
   #dify-chatbot-bubble-button {
-    background-color: #1C64F2 !important;
+    background-color: var(--primary) !important;
     position: fixed !important;
     bottom: 20px !important;
     right: 20px !important;
@@ -435,6 +435,7 @@
   }
 
   #dify-chatbot-bubble-window {
+    color: var(--primary) !important;
     width: 24rem !important;
     height: 40rem !important;
     position: fixed !important;
