@@ -143,7 +143,6 @@ export default function AdminLayout({
     { href: '/admin/nutrients', label: 'Dinh dưỡng', icon: Leaf },
     { href: '/admin/cooking-methods', label: 'Phương pháp nấu', icon: Flame },
     { href: '/admin/warehouses', label: 'Kho', icon: Warehouse },
-    { href: '/admin/recipes', label: 'Công thức', icon: BookOpen },
     { href: '/admin/combos', label: 'Combo', icon: Gift },
     { href: '/admin/training', label: 'Khóa đào tạo', icon: GraduationCap },
     { href: '/admin/orders', label: 'Đơn hàng', icon: ShoppingBag },

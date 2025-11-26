@@ -33,6 +33,7 @@ export function RoleGuard({
   }
 
   if (!isAuthenticated || !user) {
+    return null;
   }
 
   const hasPermission = allowedRoles.includes(user.role);

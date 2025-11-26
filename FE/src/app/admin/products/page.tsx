@@ -3,12 +3,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { AdminGuard } from '@/components/guards';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { UtensilsCrossed, Plus, Search, Loader2, Edit } from 'lucide-react';
+import { UtensilsCrossed, Plus, Search, Loader2, Edit, ChevronLeft, ChevronRight, ImageIcon } from 'lucide-react';
 import { toast } from 'react-toastify';
-import { AdminPageLayout, AdminPageHeader, AdminStatsGrid } from '../components/AdminPageLayout';
-import { AdminCard } from '../components/AdminCard';
+import { AdminPageLayout, AdminPageHeader } from '../components/AdminPageLayout';
+import { Card } from '@/components/ui/card';
 import {
     getAllBranchProducts,
     type Product,
@@ -25,7 +24,7 @@ export default function ProductsPage() {
     const [currentPage, setCurrentPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [totalElements, setTotalElements] = useState(0);
-    const [pageSize, setPageSize] = useState(12);
+    const [pageSize, setPageSize] = useState(10);
 
     // Dialogs
     const [showProductForm, setShowProductForm] = useState(false);
@@ -67,136 +66,180 @@ export default function ProductsPage() {
         setShowProductForm(true);
     };
 
+    const handlePageChange = (newPage: number) => {
+        if (newPage >= 0 && newPage < totalPages) {
+            setCurrentPage(newPage);
+        }
+    };
+
     return (
         <AdminGuard>
             <AdminPageLayout>
                 {/* Header */}
                 <AdminPageHeader
                     title="Quản Lý Sản Phẩm"
-                    description="Quản lý menu và giá sản phẩm"
+                    description="Quản lý menu, giá và công thức món ăn"
                     icon={UtensilsCrossed}
                     actions={
                         <Button
                             onClick={handleAddProduct}
-                            className="bg-gradient-to-r from-[#EC6426] to-[#F8A91F] hover:from-[#EC6426]/90 hover:to-[#F8A91F]/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold text-sm sm:text-base"
+                            className="bg-[#78A243] hover:bg-[#78A243]/90 text-white shadow-md hover:shadow-lg transition-all"
                         >
-                            <Plus size={18} className="mr-2" strokeWidth={2.5} />
+                            <Plus className="h-4 w-4 mr-2" />
                             Thêm Sản Phẩm
                         </Button>
                     }
                 />
 
-                {/* Stats */}
-                <AdminStatsGrid>
-                    <AdminCard
-                        title="Tổng sản phẩm"
-                        value={totalElements}
-                        icon={UtensilsCrossed}
-                    />
-                </AdminStatsGrid>
-
                 {/* Filters */}
-                <div className="bg-white rounded-xl border-2 border-gray-200 p-4 mb-6">
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                        <Input
-                            placeholder="Tìm kiếm sản phẩm..."
-                            value={searchKeyword}
-                            onChange={(e) => setSearchKeyword(e.target.value)}
-                            className="pl-10"
-                        />
+                <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-gradient-to-r from-[#EBD187]/20 to-[#78A243]/10 backdrop-blur-sm border-[#78A243]/20 border shadow-sm rounded-xl mb-6">
+                    <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[200px]">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#2D1E1A]/60" />
+                            <Input
+                                placeholder="Tìm kiếm sản phẩm..."
+                                value={searchKeyword}
+                                onChange={(e) => setSearchKeyword(e.target.value)}
+                                className="w-full max-w-[250px] pl-10 pr-4 py-2 border bg-white/80 border-[#78A243]/30 rounded-lg text-sm focus:border-[#78A243] focus:ring-1 focus:ring-[#78A243]/20 outline-none"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Page Size */}
+                    <div className="flex items-center gap-3 justify-end">
+                        <label className="text-sm text-[#2D1E1A]/80 font-medium whitespace-nowrap">Hiển thị:</label>
+                        <select
+                            value={pageSize}
+                            onChange={(e) => {
+                                setPageSize(parseInt(e.target.value));
+                                setCurrentPage(0);
+                            }}
+                            className="px-3 py-2 border bg-white/80 border-[#78A243]/30 rounded-lg text-sm text-[#2D1E1A] focus:border-[#78A243] outline-none"
+                        >
+                            <option value="5">5</option>
+                            <option value="10">10</option>
+                            <option value="20">20</option>
+                            <option value="50">50</option>
+                        </select>
+                        <span className="text-sm text-[#2D1E1A]/80 whitespace-nowrap">
+                            Tổng: <span className="font-bold text-[#78A243]">{totalElements}</span>
+                        </span>
                     </div>
                 </div>
 
-                {/* Products Grid */}
-                {loading ? (
-                    <div className="flex items-center justify-center h-64">
-                        <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-                        {products.map(product => (
-                            <Card key={product.productId} className="overflow-hidden bg-white border-0 shadow-sm hover:shadow-2xl transition-all duration-500 group rounded-2xl cursor-pointer flex flex-col h-full py-0">
-                                {/* Product Image */}
-                                <div className="relative h-56 bg-gray-100 flex items-center justify-center overflow-hidden">
-                                    {product.productImage ? (
-                                        <img
-                                            src={product.productImage}
-                                            alt={product.productName}
-                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                        />
-                                    ) : (
-                                        <span className="text-6xl">🍜</span>
-                                    )}
-
-                                    {/* Category Badge */}
-                                    <span className="absolute bottom-4 left-4 px-3 py-1.5 bg-white/90 backdrop-blur-sm rounded-lg text-xs font-bold text-gray-700 shadow-md">
-                                        {product.productType}
-                                    </span>
-                                </div>
-
-                                {/* Product Info */}
-                                <div className="p-5 flex-1 flex flex-col">
-                                    <h3 className="font-bold text-lg mb-2 text-gray-900 line-clamp-1 group-hover:text-primary transition-colors">
-                                        {product.productName}
-                                    </h3>
-                                    <p className="text-gray-600 text-sm mb-4 line-clamp-2 h-10 leading-relaxed">{product.productDescription}</p>
-
-                                    <div className="mt-auto">
-                                        {/* Price */}
-                                        <div className="mb-4 pt-4 border-t-2 border-gray-100">
-                                            <p className="text-xs text-gray-500 mb-1 font-medium">Giá bán</p>
-                                            <div className="flex items-baseline gap-1">
-                                                <span className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                                                    {new Intl.NumberFormat('vi-VN').format(product.productPrice)}
-                                                </span>
-                                                <span className="text-base font-bold text-gray-600">đ</span>
+                {/* Products Table */}
+                <Card className="overflow-hidden py-0">
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead className="bg-gradient-to-r from-[#78A243]/10 to-[#EBD187]/20 border-b-2 border-[#78A243]/30">
+                                <tr>
+                                    <th className="px-4 py-3 text-left text-sm font-bold text-[#2D1E1A]">Sản phẩm</th>
+                                    <th className="px-4 py-3 text-left text-sm font-bold text-[#2D1E1A]">Loại</th>
+                                    <th className="px-4 py-3 text-left text-sm font-bold text-[#2D1E1A]">Giá bán</th>
+                                    <th className="px-4 py-3 text-right text-sm font-bold text-[#2D1E1A]">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-[#78A243]/10">
+                                {loading ? (
+                                    <tr>
+                                        <td colSpan={4} className="p-8 text-center text-[#2D1E1A]/70">
+                                            <div className="flex justify-center mb-2">
+                                                <Loader2 className="h-6 w-6 animate-spin text-[#78A243]" />
                                             </div>
-                                        </div>
-
-                                        {/* Action Buttons */}
-                                        <div className="flex gap-2">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => handleEditProduct(product)}
-                                                className="flex-1 border-2 border-primary text-primary hover:bg-primary hover:text-white font-semibold rounded-xl transition-all duration-300 py-5"
-                                            >
-                                                <Edit size={16} className="mr-1" strokeWidth={2.5} />
-                                                Sửa
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </Card>
-                        ))}
+                                            Đang tải dữ liệu...
+                                        </td>
+                                    </tr>
+                                ) : products.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={4} className="p-8 text-center text-[#2D1E1A]/70">
+                                            Không tìm thấy sản phẩm nào
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    products.map((product) => (
+                                        <tr key={product.productId} className="hover:bg-[#EBD187]/10 transition-colors">
+                                            <td className="px-4 py-3">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-12 h-12 rounded-lg overflow-hidden border border-[#78A243]/20 bg-gray-50 shrink-0">
+                                                        {product.productImage ? (
+                                                            <img
+                                                                src={product.productImage}
+                                                                alt={product.productName}
+                                                                className="w-full h-full object-cover"
+                                                            />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                                                <ImageIcon className="h-6 w-6" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div>
+                                                        <div className="font-semibold text-[#2D1E1A]">{product.productName}</div>
+                                                        <div className="text-xs text-gray-500 line-clamp-1 max-w-[200px]">{product.productDescription}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-[#78A243]/10 text-[#78A243] border border-[#78A243]/20">
+                                                    {product.productType || 'Chưa phân loại'}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <span className="font-semibold text-[#DA7339]">
+                                                    {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.productPrice)}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-3 text-right">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => handleEditProduct(product)}
+                                                    className="text-[#78A243] border-[#78A243]/30 hover:bg-[#78A243]/10"
+                                                >
+                                                    <Edit className="h-4 w-4 mr-1" />
+                                                    Chi tiết & Công thức
+                                                </Button>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
                     </div>
-                )}
 
-                {/* Pagination */}
-                <div className="mt-6 sm:mt-10 flex justify-center gap-2">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
-                        disabled={currentPage === 0}
-                        className="rounded-xl font-semibold text-xs sm:text-sm"
-                    >
-                        Trước
-                    </Button>
-                    <span className="flex items-center px-4 font-semibold text-sm">
-                        Trang {currentPage + 1} / {totalPages || 1}
-                    </span>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))}
-                        disabled={currentPage >= totalPages - 1}
-                        className="rounded-xl font-semibold text-xs sm:text-sm"
-                    >
-                        Sau
-                    </Button>
-                </div>
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                        <div className="px-4 py-3 border-t border-[#78A243]/20 bg-gradient-to-r from-[#EBD187]/10 to-[#78A243]/5">
+                            <div className="flex items-center justify-between">
+                                <div className="text-sm text-[#2D1E1A]/80">
+                                    Trang <span className="font-semibold">{currentPage + 1}</span> / {totalPages}
+                                </div>
+                                <div className="flex gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handlePageChange(currentPage - 1)}
+                                        disabled={currentPage === 0}
+                                        className="border-[#78A243]/30 text-[#2D1E1A] hover:bg-[#78A243]/10"
+                                    >
+                                        <ChevronLeft className="h-4 w-4" />
+                                        Trước
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handlePageChange(currentPage + 1)}
+                                        disabled={currentPage >= totalPages - 1}
+                                        className="border-[#78A243]/30 text-[#2D1E1A] hover:bg-[#78A243]/10"
+                                    >
+                                        Sau
+                                        <ChevronRight className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </Card>
 
                 {/* Product Form Dialog */}
                 <ProductForm

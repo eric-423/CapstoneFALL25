@@ -24,7 +24,7 @@ export function BranchTabContent({ branchId, products, onRemove }: BranchTabCont
             ref={setNodeRef}
             className={`
                 min-h-full rounded-xl border-2 border-dashed transition-colors p-4
-                ${isOver ? 'border-orange-400 bg-orange-50' : 'border-gray-200 bg-gray-50/50'}
+                ${isOver ? 'border-[#78A243] bg-[#78A243]/10' : 'border-gray-200 bg-gray-50/50'}
             `}
         >
             {products.length === 0 ? (

@@ -202,6 +202,7 @@ export const getProduct = async (
     }
 
     // Use fetch to call the Next.js API route (Proxy)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const queryString = new URLSearchParams(params as any).toString();
     const response = await fetch(`/api/products/search?${queryString}`, {
         method: 'GET',
@@ -335,7 +336,7 @@ export const getAllBranchProducts = async (params: AllBranchProductSearchParams 
         sortDirection
     } = params;
 
-    const queryParams: any = {
+    const queryParams: Record<string, string | number | boolean> = {
         page,
         size,
     };
@@ -350,7 +351,8 @@ export const getAllBranchProducts = async (params: AllBranchProductSearchParams 
 
     // Use fetch to call the Next.js API route (Proxy)
     // This ensures we hit the route handler which injects the token from cookies
-    const queryString = new URLSearchParams(queryParams).toString();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const queryString = new URLSearchParams(queryParams as any).toString();
     const response = await fetch(`/api/products/all-branch/search?${queryString}`, {
         method: 'GET',
         headers: {
@@ -366,21 +368,52 @@ export const getAllBranchProducts = async (params: AllBranchProductSearchParams 
 
     return data?.data || data;
 };
+export interface RecipeRequest {
+    materialId: number;
+    quantity: number;
+    orderStep: number;
+    cookingMethodId: number;
+}
+
 export interface ProductCreateRequest {
     name: string;
     description: string;
     price: number;
     imageUrl: string;
     typeId: number;
-    recipesRequests?: any[]; // Optional for now
+    recipesRequests?: RecipeRequest[];
 }
 
 export const createProduct = async (data: ProductCreateRequest) => {
-    const response = await http.post('/products/create', data);
-    return response.data;
+    const response = await fetch('/api/products', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to create product');
+    }
+
+    const resData = await response.json();
+    return resData.data;
 };
 
 export const updateProduct = async (productId: number, data: ProductCreateRequest) => {
-    const response = await http.put(`/products/update/${productId}`, data);
-    return response.data;
+    const response = await fetch(`/api/products/${productId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to update product');
+    }
+
+    const resData = await response.json();
+    return resData.data;
 };

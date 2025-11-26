@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { AdminPageLayout, AdminPageHeader } from '../components/AdminPageLayout';
 import { getNutrients, deleteNutrient, type Nutrient, type NutrientSearchParams } from '@/apis/nutrient.api';
 import { NutrientFormDialog } from './components/NutrientFormDialog';
-import { NutrientConfirmDialog } from './components/NutrientConfirmDialog';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 
 export default function NutrientsPage() {
     const [nutrients, setNutrients] = useState<Nutrient[]>([]);
@@ -109,7 +109,7 @@ export default function NutrientsPage() {
         return (
             <AdminPageLayout>
                 <div className="flex items-center justify-center h-64">
-                    <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-8 h-8 border-4 border-[#78A243] border-t-transparent rounded-full animate-spin"></div>
                 </div>
             </AdminPageLayout>
         );
@@ -124,7 +124,7 @@ export default function NutrientsPage() {
                 actions={
                     <Button
                         onClick={handleCreate}
-                        className="bg-[#EC6426] hover:bg-[#EC6426]/90 text-white"
+                        className="bg-[#78A243] hover:bg-[#78A243]/90 text-white shadow-md hover:shadow-lg transition-all"
                     >
                         <Plus className="h-4 w-4 mr-2" />
                         Thêm dinh dưỡng
@@ -132,87 +132,87 @@ export default function NutrientsPage() {
                 }
             />
 
-            {/* Filters */}
-            <div className="bg-white rounded-xl border-2 border-gray-200 p-4 mb-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Filters Toolbar */}
+            <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-gradient-to-r from-[#EBD187]/20 to-[#78A243]/10 backdrop-blur-sm border-[#78A243]/20 border shadow-sm rounded-xl mb-6">
+                <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[200px]">
                     {/* Search */}
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#2D1E1A]/60" />
                         <Input
                             placeholder="Tìm kiếm dinh dưỡng..."
                             value={searchKeyword}
                             onChange={(e) => setSearchKeyword(e.target.value)}
-                            className="pl-10"
+                            className="w-full max-w-[250px] pl-10 pr-4 py-2 border bg-white/80 border-[#78A243]/30 rounded-lg text-sm focus:border-[#78A243] focus:ring-1 focus:ring-[#78A243]/20 outline-none"
                         />
                     </div>
+                </div>
 
-                    {/* Page Size */}
-                    <div className="flex items-center gap-3 justify-end">
-                        <label className="text-sm text-gray-700 font-medium whitespace-nowrap">Hiển thị:</label>
-                        <select
-                            value={pageSize}
-                            onChange={(e) => {
-                                setPageSize(parseInt(e.target.value));
-                                setCurrentPage(0);
-                            }}
-                            className="px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                        >
-                            <option value="5">5</option>
-                            <option value="10">10</option>
-                            <option value="20">20</option>
-                            <option value="50">50</option>
-                        </select>
-                        <span className="text-sm text-gray-600 whitespace-nowrap">
-                            Tổng: <span className="font-bold">{totalElements}</span>
-                        </span>
-                    </div>
+                {/* Page Size */}
+                <div className="flex items-center gap-3">
+                    <label className="text-sm text-[#2D1E1A] font-medium whitespace-nowrap">Hiển thị:</label>
+                    <select
+                        value={pageSize}
+                        onChange={(e) => {
+                            setPageSize(parseInt(e.target.value));
+                            setCurrentPage(0);
+                        }}
+                        className="px-3 py-2 border bg-white/80 border-[#78A243]/30 rounded-lg text-sm text-[#2D1E1A] focus:border-[#78A243] outline-none"
+                    >
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                    </select>
+                    <span className="text-sm text-[#2D1E1A]/80 whitespace-nowrap">
+                        Tổng: <span className="font-bold text-[#78A243]">{totalElements}</span>
+                    </span>
                 </div>
             </div>
 
             {/* Nutrients Table */}
-            <div className="bg-white rounded-xl border-2 border-gray-200 overflow-hidden">
+            <div className="bg-white rounded-xl border border-[#78A243]/20 shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full">
-                        <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+                        <thead className="bg-gradient-to-r from-[#78A243]/10 to-[#EBD187]/20 border-b-2 border-[#78A243]/30">
                             <tr>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                <th className="px-6 py-4 text-left text-sm font-bold text-[#2D1E1A]">
                                     Tên dinh dưỡng
                                 </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                <th className="px-6 py-4 text-left text-sm font-bold text-[#2D1E1A]">
                                     Mã
                                 </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                <th className="px-6 py-4 text-left text-sm font-bold text-[#2D1E1A]">
                                     Đơn vị
                                 </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                <th className="px-6 py-4 text-left text-sm font-bold text-[#2D1E1A]">
                                     Năng lượng / Đơn vị
                                 </th>
-                                <th className="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                <th className="px-6 py-4 text-center text-sm font-bold text-[#2D1E1A]">
                                     Thao tác
                                 </th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="divide-y divide-[#78A243]/10">
                             {nutrients.map((nutrient) => (
-                                <tr key={nutrient.id} className="hover:bg-gray-50 transition-colors">
+                                <tr key={nutrient.id} className="hover:bg-[#EBD187]/10 transition-colors">
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                                                <Leaf className="h-4 w-4 text-green-600" />
+                                            <div className="w-8 h-8 bg-[#78A243]/20 rounded-full flex items-center justify-center">
+                                                <Leaf className="h-4 w-4 text-[#78A243]" />
                                             </div>
-                                            <span className="font-semibold text-gray-900">{nutrient.name}</span>
+                                            <span className="font-semibold text-[#2D1E1A]">{nutrient.name}</span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className="text-sm font-mono text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                                        <span className="text-sm font-mono text-[#2D1E1A]/80 bg-[#EBD187]/20 px-2 py-1 rounded border border-[#EBD187]/50">
                                             {nutrient.code}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className="text-sm text-gray-700">{nutrient.unit}</span>
+                                        <span className="text-sm text-[#2D1E1A]">{nutrient.unit}</span>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className="text-sm text-gray-700 font-medium">
+                                        <span className="text-sm text-[#2D1E1A] font-medium">
                                             {nutrient.energyPerUnit} kcal
                                         </span>
                                     </td>
@@ -222,7 +222,7 @@ export default function NutrientsPage() {
                                                 onClick={() => handleEdit(nutrient)}
                                                 size="sm"
                                                 variant="outline"
-                                                className="text-orange-600 border-orange-200 hover:bg-orange-50"
+                                                className="text-[#78A243] border-[#78A243]/30 hover:bg-[#78A243]/10"
                                                 disabled={actionLoading}
                                             >
                                                 <Edit2 className="h-3 w-3" />
@@ -246,16 +246,16 @@ export default function NutrientsPage() {
 
                 {nutrients.length === 0 && !loading && (
                     <div className="text-center py-12">
-                        <Leaf className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                        <p className="text-gray-500">Không tìm thấy dữ liệu dinh dưỡng</p>
+                        <Leaf className="h-12 w-12 text-[#78A243]/30 mx-auto mb-3" />
+                        <p className="text-[#2D1E1A]/70">Không tìm thấy dữ liệu dinh dưỡng</p>
                     </div>
                 )}
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                    <div className="px-4 py-3 border-t border-gray-200 bg-gray-50">
+                    <div className="px-4 py-3 border-t border-[#78A243]/20 bg-gradient-to-r from-[#EBD187]/10 to-[#78A243]/5">
                         <div className="flex items-center justify-between">
-                            <div className="text-sm text-gray-700">
+                            <div className="text-sm text-[#2D1E1A]/80">
                                 Trang <span className="font-semibold">{currentPage + 1}</span> / {totalPages}
                             </div>
                             <div className="flex gap-2">
@@ -264,6 +264,7 @@ export default function NutrientsPage() {
                                     disabled={currentPage === 0}
                                     variant="outline"
                                     size="sm"
+                                    className="border-[#78A243]/30 text-[#2D1E1A] hover:bg-[#78A243]/10"
                                 >
                                     <ChevronLeft className="h-4 w-4" />
                                     Trước
@@ -273,6 +274,7 @@ export default function NutrientsPage() {
                                     disabled={currentPage >= totalPages - 1}
                                     variant="outline"
                                     size="sm"
+                                    className="border-[#78A243]/30 text-[#2D1E1A] hover:bg-[#78A243]/10"
                                 >
                                     Sau
                                     <ChevronRight className="h-4 w-4" />
@@ -290,11 +292,19 @@ export default function NutrientsPage() {
                 onSuccess={handleFormSuccess}
             />
 
-            <NutrientConfirmDialog
+            <ConfirmDialog
                 open={showConfirmDialog}
                 onOpenChange={setShowConfirmDialog}
                 onConfirm={handleConfirmDelete}
-                nutrientName={deletingNutrient?.name || ''}
+                title="Xóa dinh dưỡng"
+                content={
+                    <span>
+                        Bạn có chắc chắn muốn xóa dinh dưỡng <span className="font-bold text-gray-900">{deletingNutrient?.name}</span>?
+                    </span>
+                }
+                alertMessage="Hành động này không thể hoàn tác. Dữ liệu sẽ bị xóa vĩnh viễn khỏi hệ thống."
+                confirmText="Xóa dinh dưỡng"
+                variant="destructive"
                 loading={actionLoading}
             />
         </AdminPageLayout>

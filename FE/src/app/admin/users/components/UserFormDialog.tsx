@@ -492,7 +492,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSuccess }: UserForm
                                                 className="w-full px-3 py-2 border border-[#78A243]/30 rounded-lg text-sm focus:border-[#78A243] focus:ring-1 focus:ring-[#78A243]/20 transition-all bg-white"
                                             >
                                                 <option value="">Chọn vai trò</option>
-                                                {roles.map(role => (
+                                                {roles.filter(role => role.id !== 1).map(role => (
                                                     <option key={role.id} value={role.id}>
                                                         {role.name} {role.isInternal ? '🔒' : ''}
                                                     </option>

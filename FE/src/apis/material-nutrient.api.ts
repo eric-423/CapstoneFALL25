@@ -32,7 +32,7 @@ export interface MaterialNutrientResponse {
     empty: boolean;
 }
 
-export const getMaterialNutrients = async (params: MaterialNutrientSearchParams = {}) => {
+export const getMaterialNutrients = async (params: MaterialNutrientSearchParams = {}): Promise<MaterialNutrientResponse> => {
     const queryParams = new URLSearchParams();
     if (params.materialId) queryParams.append('materialId', params.materialId.toString());
     if (params.nutrientId) queryParams.append('nutrientId', params.nutrientId.toString());

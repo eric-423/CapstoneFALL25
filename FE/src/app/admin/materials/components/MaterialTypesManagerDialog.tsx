@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { getMaterialTypes, createMaterialType, updateMaterialType, deleteMaterialType, type MaterialType } from '@/apis/material.api';
-import { MaterialTypeConfirmDialog } from '../types/components/MaterialTypeConfirmDialog';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 
 interface MaterialTypesManagerDialogProps {
     open: boolean;
@@ -122,8 +122,9 @@ export function MaterialTypesManagerDialog({ open, onOpenChange }: MaterialTypes
             setShowConfirmDialog(false);
             setDeletingMaterialType(null);
         } catch (error) {
-            console.error('Failed to delete material type:', error);
-            toast.error('❌ Không thể xóa loại nguyên liệu!');
+            // console.error('Failed to delete material type:', error);
+            const errorMessage = error instanceof Error ? error.message : '❌ Không thể xóa loại nguyên liệu!';
+            toast.error(errorMessage);
         } finally {
             setActionLoading(false);
         }
@@ -228,11 +229,13 @@ export function MaterialTypesManagerDialog({ open, onOpenChange }: MaterialTypes
                 </DialogContent>
             </Dialog>
 
-            <MaterialTypeConfirmDialog
+            <ConfirmDialog
                 open={showConfirmDialog}
                 onOpenChange={setShowConfirmDialog}
                 onConfirm={handleConfirmDelete}
-                materialTypeName={deletingMaterialType?.name || ''}
+                title="Xóa loại nguyên liệu"
+                content={`Bạn có chắc chắn muốn xóa loại nguyên liệu "${deletingMaterialType?.name}" không? Hành động này không thể hoàn tác.`}
+                variant="destructive"
                 loading={actionLoading}
             />
         </>

@@ -23,21 +23,24 @@ import { AdminPageLayout, AdminPageHeader } from '../components/AdminPageLayout'
 import { getAllUsers, type UserSearchRequest } from '@/apis/user.api';
 import { banUser, unbanUser, type User } from '@/apis/admin-user.api';
 import { getBranches, type Branch } from '@/apis/branch.api';
+import { getRoles, type Role } from '@/apis/role.api';
 import { UserFormDialog } from './components/UserFormDialog';
-import { ConfirmDialog } from './components/ConfirmDialog';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { RolesManagementModal } from './components/RolesManagementModal';
 import Link from 'next/link';
+import useAuth from '@/utils/hooks/useAuth';
 
 export default function UsersManagementPage() {
+    const { user: currentUser } = useAuth();
     const [users, setUsers] = useState<User[]>([]);
     const [branches, setBranches] = useState<Branch[]>([]);
+    const [roles, setRoles] = useState<Role[]>([]);
     const [loading, setLoading] = useState(true);
     const [totalElements, setTotalElements] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
 
     // Filter states
-    const [searchInput, setSearchInput] = useState(''); // Temporary input value
-    const [searchKeyword, setSearchKeyword] = useState(''); // Applied filter value
+    const [searchKeyword, setSearchKeyword] = useState('');
     const [roleFilter, setRoleFilter] = useState<string>('');
     const [statusFilter, setStatusFilter] = useState<string>('');
     const [currentPage, setCurrentPage] = useState(0);
@@ -63,17 +66,21 @@ export default function UsersManagementPage() {
         verified: 0
     });
 
-    // Fetch branches for filter
+    // Fetch branches and roles
     useEffect(() => {
-        const loadBranches = async () => {
+        const loadData = async () => {
             try {
-                const data = await getBranches();
-                setBranches(data);
+                const [branchesData, rolesData] = await Promise.all([
+                    getBranches(),
+                    getRoles()
+                ]);
+                setBranches(branchesData);
+                setRoles(rolesData);
             } catch (error) {
-                console.error('Failed to fetch branches:', error);
+                console.error('Failed to fetch initial data:', error);
             }
         };
-        loadBranches();
+        loadData();
     }, []);
 
     const fetchUsers = useCallback(async () => {
@@ -98,11 +105,9 @@ export default function UsersManagementPage() {
             setTotalPages(response.data.totalPages);
 
             // Calculate stats from ALL filtered results
-            // If all results fit in one page, use current data to avoid extra API call
             let allFilteredUsers = response.data.content;
 
             if (response.data.totalElements > response.data.content.length) {
-                // Need to fetch all results for accurate stats
                 const statsRequest = { ...searchRequest, page: 0, size: response.data.totalElements };
                 const statsResponse = await getAllUsers(statsRequest);
                 allFilteredUsers = statsResponse.data.content;
@@ -168,16 +173,9 @@ export default function UsersManagementPage() {
 
     // Clear all filters
     const handleClearFilters = () => {
-        setSearchInput('');
         setSearchKeyword('');
         setRoleFilter('');
         setStatusFilter('');
-        setCurrentPage(0);
-    };
-
-    // Handle search - apply filter from input
-    const handleSearch = () => {
-        setSearchKeyword(searchInput);
         setCurrentPage(0);
     };
 
@@ -251,13 +249,11 @@ export default function UsersManagementPage() {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#2D1E1A]/60" />
                         <input
                             type="text"
-                            placeholder="Tìm kiếm người dùng... (Enter để tìm)"
-                            value={searchInput}
-                            onChange={(e) => setSearchInput(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    handleSearch();
-                                }
+                            placeholder="Tìm kiếm người dùng..."
+                            value={searchKeyword}
+                            onChange={(e) => {
+                                setSearchKeyword(e.target.value);
+                                setCurrentPage(0);
                             }}
                             className="w-full max-w-[200px] pl-10 pr-4 py-2 border bg-white/80 border-[#78A243]/30 rounded-lg text-sm focus:border-[#78A243] focus:ring-1 focus:ring-[#78A243]/20 outline-none"
                         />
@@ -270,13 +266,12 @@ export default function UsersManagementPage() {
                         }}
                         className="px-3 py-2 border bg-white/80 border-[#78A243]/30 rounded-lg text-sm text-[#2D1E1A] focus:border-[#78A243] outline-none"
                     >
-                        <option value="">Ất cả vai trò</option>
-                        <option value="ADMIN">ADMIN</option>
-                        <option value="MANAGER">MANAGER</option>
-                        <option value="WAITER">WAITER</option>
-                        <option value="CHEF">CHEF</option>
-                        <option value="SHIPPER">SHIPPER</option>
-                        <option value="CUSTOMER">CUSTOMER</option>
+                        <option value="">Tất cả vai trò</option>
+                        {roles.map((role) => (
+                            <option key={role.id} value={role.name}>
+                                {role.name}
+                            </option>
+                        ))}
                     </select>
                     <select
                         value={statusFilter}
@@ -286,12 +281,12 @@ export default function UsersManagementPage() {
                         }}
                         className="px-3 py-2 border bg-white/80 border-[#78A243]/30 rounded-lg text-sm text-[#2D1E1A] focus:border-[#78A243] outline-none"
                     >
-                        <option value="">Ất cả trạng thái</option>
+                        <option value="">Tất cả trạng thái</option>
                         <option value="active">Hoạt động</option>
                         <option value="inactive">Đã khóa</option>
                     </select>
 
-                    {(searchInput || searchKeyword || roleFilter || statusFilter) && (
+                    {(searchKeyword || roleFilter || statusFilter) && (
                         <Button
                             onClick={handleClearFilters}
                             variant="ghost"
@@ -368,7 +363,7 @@ export default function UsersManagementPage() {
                                                 </Badge>
                                             </td>
                                             <td className="px-4 py-3 text-sm text-[#2D1E1A]">
-                                                {user.memberAssociationName || 'N/A'}
+                                                {branches.find(b => b.id === user.branchId)?.name || 'N/A'}
                                             </td>
                                             <td className="px-4 py-3">
                                                 {user.isBan ? (
@@ -383,20 +378,40 @@ export default function UsersManagementPage() {
                                             </td>
                                             <td className="px-4 py-3">
                                                 <div className="flex items-center justify-end gap-2">
-                                                    <Link href={`/admin/users/${user.id}`}>
+                                                    {String(currentUser?.id) === String(user.id) || roles.find(r => r.id === 1)?.name === user.role ? (
                                                         <Button
                                                             size="sm"
                                                             variant="outline"
                                                             className="text-[#78A243] border-[#78A243]/30 hover:bg-[#78A243]/10"
+                                                            disabled
+                                                            title={
+                                                                String(currentUser?.id) === String(user.id) ? "Không thể xem chính mình" :
+                                                                    roles.find(r => r.id === 1)?.name === user.role ? "Không thể xem Admin/Owner" : "Xem chi tiết"
+                                                            }
                                                         >
                                                             <Eye className="h-3 w-3" />
                                                         </Button>
-                                                    </Link>
+                                                    ) : (
+                                                        <Link href={`/admin/users/${user.id}`}>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                className="text-[#78A243] border-[#78A243]/30 hover:bg-[#78A243]/10"
+                                                            >
+                                                                <Eye className="h-3 w-3" />
+                                                            </Button>
+                                                        </Link>
+                                                    )}
                                                     <Button
                                                         onClick={() => handleEditUser(user)}
                                                         size="sm"
                                                         variant="outline"
                                                         className="text-[#DA7339] border-[#DA7339]/30 hover:bg-[#DA7339]/10"
+                                                        disabled={String(currentUser?.id) === String(user.id) || roles.find(r => r.id === 1)?.name === user.role}
+                                                        title={
+                                                            String(currentUser?.id) === String(user.id) ? "Không thể chỉnh sửa chính mình" :
+                                                                roles.find(r => r.id === 1)?.name === user.role ? "Không thể chỉnh sửa Admin/Owner" : "Chỉnh sửa"
+                                                        }
                                                     >
                                                         <Edit2 className="h-3 w-3" />
                                                     </Button>
@@ -406,7 +421,11 @@ export default function UsersManagementPage() {
                                                             size="sm"
                                                             variant="outline"
                                                             className="text-[#78A243] border-[#78A243]/30 hover:bg-[#78A243]/10"
-                                                            disabled={actionLoading}
+                                                            disabled={actionLoading || String(currentUser?.id) === String(user.id) || roles.find(r => r.id === 1)?.name === user.role}
+                                                            title={
+                                                                String(currentUser?.id) === String(user.id) ? "Không thể mở khóa chính mình" :
+                                                                    roles.find(r => r.id === 1)?.name === user.role ? "Không thể mở khóa Admin/Owner" : "Mở khóa"
+                                                            }
                                                         >
                                                             <UserCheck className="h-3 w-3" />
                                                         </Button>
@@ -416,7 +435,11 @@ export default function UsersManagementPage() {
                                                             size="sm"
                                                             variant="outline"
                                                             className="text-[#DA7339] border-[#DA7339]/30 hover:bg-[#DA7339]/10"
-                                                            disabled={actionLoading}
+                                                            disabled={actionLoading || String(currentUser?.id) === String(user.id) || roles.find(r => r.id === 1)?.name === user.role}
+                                                            title={
+                                                                String(currentUser?.id) === String(user.id) ? "Không thể khóa chính mình" :
+                                                                    roles.find(r => r.id === 1)?.name === user.role ? "Không thể khóa Admin/Owner" : "Khóa tài khoản"
+                                                            }
                                                         >
                                                             <Ban className="h-3 w-3" />
                                                         </Button>
@@ -473,16 +496,23 @@ export default function UsersManagementPage() {
             />
 
             {/* Confirm Dialog */}
-            {confirmDialog.type && (
-                <ConfirmDialog
-                    open={confirmDialog.open}
-                    onOpenChange={(open) => setConfirmDialog({ open, type: null, userId: 0, userName: '' })}
-                    onConfirm={handleConfirmAction}
-                    type={confirmDialog.type}
-                    userName={confirmDialog.userName}
-                    loading={actionLoading}
-                />
-            )}
+            <ConfirmDialog
+                open={confirmDialog.open}
+                onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}
+                onConfirm={handleConfirmAction}
+                title={confirmDialog.type === 'ban' ? 'Khóa tài khoản' : 'Mở khóa tài khoản'}
+                content={
+                    <span>
+                        Bạn có chắc chắn muốn {confirmDialog.type === 'ban' ? 'khóa' : 'mở khóa'} tài khoản <span className="font-bold text-gray-900">{confirmDialog.userName}</span>?
+                    </span>
+                }
+                alertMessage={confirmDialog.type === 'ban'
+                    ? "Tài khoản bị khóa sẽ không thể đăng nhập vào hệ thống."
+                    : "Tài khoản sẽ có thể đăng nhập và sử dụng hệ thống bình thường."}
+                confirmText={confirmDialog.type === 'ban' ? 'Khóa tài khoản' : 'Mở khóa'}
+                variant={confirmDialog.type === 'ban' ? 'destructive' : 'success'}
+                loading={actionLoading}
+            />
 
             {/* Roles Management Modal */}
             <RolesManagementModal

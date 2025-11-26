@@ -266,7 +266,7 @@ export default function FinancePage() {
                                 <ResponsiveContainer width="100%" height="100%">
                                     <AreaChart
                                         data={revenueData.map(item => {
-                                            const dataPoint: any = {
+                                            const dataPoint: Record<string, string | number> = {
                                                 date: new Date(item.date).toLocaleDateString('vi-VN', {
                                                     day: '2-digit',
                                                     month: '2-digit',

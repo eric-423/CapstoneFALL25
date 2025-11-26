@@ -22,7 +22,7 @@ export function DraggableProductItem({ product }: DraggableProductItemProps) {
             {...listeners}
             {...attributes}
             className={`
-                flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-lg mb-2 cursor-grab hover:border-orange-300 hover:shadow-sm transition-all
+                flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-lg mb-2 cursor-grab hover:border-[#78A243]/50 hover:shadow-sm transition-all
                 ${isDragging ? 'opacity-50' : 'opacity-100'}
             `}
         >
