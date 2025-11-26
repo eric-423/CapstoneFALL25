@@ -1,5 +1,6 @@
 package com.capstone.tamtech.capstone.services;
 
+import com.capstone.tamtech.capstone.dto.MaterialAllBranchDTO;
 import com.capstone.tamtech.capstone.dto.MaterialDTO;
 import com.capstone.tamtech.capstone.entities.Material;
 import com.capstone.tamtech.capstone.entities.MaterialType;
@@ -40,7 +41,7 @@ public class MaterialServiceImpl implements MaterialService {
 
     @Override
     @Transactional(readOnly = true)
-    public PagedResponse<MaterialDTO> getAllMaterials(MaterialSearchRequest searchRequest) {
+    public PagedResponse<MaterialAllBranchDTO> getAllMaterials(MaterialSearchRequest searchRequest) {
         Pageable pageable = createPageable(searchRequest);
 
         Page<Material> materialPage;
@@ -50,8 +51,8 @@ public class MaterialServiceImpl implements MaterialService {
             materialPage = materialRepository.findByIsDeletedFalse(pageable);
         }
 
-        List<MaterialDTO> content = materialPage.getContent().stream()
-                .map(this::toDTO)
+        List<MaterialAllBranchDTO> content = materialPage.getContent().stream()
+                .map(this::toDTOForAllBranch)
                 .toList();
 
         return createPagedResponse(materialPage, content);
@@ -113,7 +114,7 @@ public class MaterialServiceImpl implements MaterialService {
 
     @Override
     @Transactional
-    public MaterialDTO createMaterial(MaterialRequest request) {
+    public MaterialAllBranchDTO createMaterial(MaterialRequest request) {
         materialRepository.findByName(request.getName()).ifPresent(m -> {
             throw new IllegalArgumentException("Material with the same name already exists");
         });
@@ -136,12 +137,12 @@ public class MaterialServiceImpl implements MaterialService {
         material.setIsDeleted(Boolean.FALSE);
 
         Material saved = materialRepository.save(material);
-        return toDTO(saved);
+        return toDTOForAllBranch(saved);
     }
 
     @Override
     @Transactional
-    public MaterialDTO updateMaterial(int id, MaterialRequest request) {
+    public MaterialAllBranchDTO updateMaterial(int id, MaterialRequest request) {
         Material material = materialRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Material not found"));
 
@@ -171,7 +172,7 @@ public class MaterialServiceImpl implements MaterialService {
         }
 
         Material updated = materialRepository.save(material);
-        return toDTO(updated);
+        return toDTOForAllBranch(updated);
     }
 
     @Override
@@ -195,6 +196,31 @@ public class MaterialServiceImpl implements MaterialService {
         dto.setName(material.getName());
         dto.setUnitId(material.getUnits().getId());
         dto.setThreshold(null);
+        dto.setIsDeleted(material.getIsDeleted());
+
+        double totalQuantity = 0.0;
+        List<MaterialWarehouse> materialWarehouses = materialWarehouseRepository
+                .findByKeyMaterialWarehouseMaterialId(material.getId());
+        if (materialWarehouses != null) {
+            totalQuantity = materialWarehouses.stream()
+                    .mapToDouble(mw -> mw.getQuantity())
+                    .sum();
+        }
+        dto.setQuantity(totalQuantity);
+
+        if (material.getMaterialType() != null) {
+            dto.setMaterialTypeId(material.getMaterialType().getId());
+            dto.setMaterialTypeName(material.getMaterialType().getName());
+        }
+
+        return dto;
+    }
+
+    private MaterialAllBranchDTO toDTOForAllBranch(Material material) {
+        MaterialAllBranchDTO dto = new MaterialAllBranchDTO();
+        dto.setId(material.getId());
+        dto.setName(material.getName());
+        dto.setUnitId(material.getUnits().getId());
         dto.setIsDeleted(material.getIsDeleted());
 
         double totalQuantity = 0.0;
