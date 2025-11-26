@@ -1,5 +1,4 @@
 import MainLayout from '@/layout/MainLayout/MainLayout';
-import DifyChatbot from '@/components/common/DifyChatbot';
 
 export default function PublicLayout({
     children,
@@ -9,7 +8,6 @@ export default function PublicLayout({
     return (
         <>
             <MainLayout>{children}</MainLayout>
-            <DifyChatbot />
         </>
     );
 }
