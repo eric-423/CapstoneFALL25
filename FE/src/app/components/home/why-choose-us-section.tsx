@@ -1,94 +1,159 @@
-import { Leaf, GraduationCap, DollarSign } from 'lucide-react';
-import Image from 'next/image';
-import { AnimatedCard } from '@/components/common/animated-card';
+import {
+  ShoppingCart,
+  Calendar,
+  Clock,
+  ChefHat,
+  Home,
+  Users,
+} from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
+import { Montserrat } from "next/font/google";
+import chefImg from "@/assets/images/chefImg.png";
+import configs from "@/utils/configs";
+
+const montserrat = Montserrat({
+  subsets: ["latin", "vietnamese"],
+  variable: "--font-montserrat",
+  display: "swap",
+});
 
 const WhyChooseUsSection = () => {
-    const features = [
-        {
-            icon: Leaf,
-            title: "NGUYÊN LIỆU TƯƠI NGON",
-            subtitle: "- AN TOÀN",
-            description: "Cam kết sử dụng nguyên liệu tươi ngon, an toàn cho sức khỏe với nguồn gốc rõ ràng",
-            image: "/images/content-1.jpg"
-        },
-        {
-            icon: GraduationCap,
-            title: "CÔNG THỨC LỚP HỌC QUYỀN",
-            subtitle: "NGON CHUẨN VỊ",
-            description: "Công thức được truyền dạy từ thế hệ này qua thế hệ khác, đảm bảo hương vị đặc trưng",
-            image: "/images/content-2.jpg"
-        },
-        {
-            icon: DollarSign,
-            title: "GIÁ CẢ PHẢI CHĂNG",
-            subtitle: "",
-            description: "Giá cả hợp lý, phù hợp với sinh viên và người lao động, đảm bảo chất lượng tốt nhất",
-            image: "/images/content-3.jpg"
-        }
-    ];
+  const services = [
+    {
+      icon: ShoppingCart,
+      title: "Đặt hàng online",
+      color: "bg-blue-200",
+      iconColor: "text-blue-600",
+    },
+    {
+      icon: Calendar,
+      title: "Ăn tại bàn",
+      color: "bg-amber-200",
+      iconColor: "text-amber-700",
+    },
+    {
+      icon: Clock,
+      title: "Phục vụ từ 8:00 đến 20:00",
+      color: "bg-orange-200",
+      iconColor: "text-orange-600",
+    },
+    {
+      icon: ChefHat,
+      title: "Không gian gần gũi",
+      color: "bg-amber-200",
+      iconColor: "text-amber-700",
+    },
+    {
+      icon: Home,
+      title: "Bếp sạch sẽ",
+      color: "bg-pink-200",
+      iconColor: "text-pink-600",
+    },
+    {
+      icon: Users,
+      title: "Đầu bếp chuyên nghiệp",
+      color: "bg-red-200",
+      iconColor: "text-red-600",
+    },
+  ];
 
-    return (
-        <section className="py-20 bg-gradient-to-b from-orange-50 to-white">
-            <div className="container mx-auto px-4">
-                {/* Section Header */}
-                <div className="text-center mb-16">
-                    <h2 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
-                        TẠI SAO CHỌN CƠM <span className="text-orange-500">TẤM TẮC</span>?
-                    </h2>
+  return (
+    <section className={`py-20 bg-[#FFFCF7] ${montserrat.className}`}>
+      <div className="container mx-auto px-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          <motion.div
+            className="relative"
+            initial={{ opacity: 0, x: -50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+          >
+            <div className="relative">
+              <div className="relative w-full aspect-square max-w-xl mx-auto">
+                <div className="absolute inset-0 bg-gradient-to-br from-orange-200/30 to-yellow-200/30 rounded-full blur-3xl"></div>
+                <div className="relative w-full h-full rounded-full overflow-hidden">
+                  <Image
+                    src={chefImg}
+                    alt="Đầu bếp"
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                    className="object-cover"
+                    priority
+                  />
                 </div>
-
-                {/* Features Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                    {features.map((feature, index) => (
-                        <AnimatedCard
-                            key={index}
-                            index={index}
-                            className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
-                        >
-                            {/* Image */}
-                            <div className="relative h-48 overflow-hidden">
-                                <Image
-                                    src={feature.image}
-                                    alt={feature.title}
-                                    fill
-                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                    className="object-cover transition-transform duration-300 hover:scale-105"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                            </div>
-
-                            {/* Content */}
-                            <div className="p-6 text-center">
-                                {/* Icon */}
-                                <div className="mb-4 flex justify-center">
-                                    <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center">
-                                        <feature.icon className="w-8 h-8 text-orange-500" />
-                                    </div>
-                                </div>
-
-                                {/* Title */}
-                                <h3 className="text-xl font-bold text-gray-800 mb-2">
-                                    {feature.title}
-                                </h3>
-
-                                {/* Subtitle */}
-                                {feature.subtitle && (
-                                    <p className="text-lg font-semibold text-orange-500 mb-3">
-                                        {feature.subtitle}
-                                    </p>
-                                )}
-
-                                {/* Description */}
-                                <p className="text-gray-600 leading-relaxed">
-                                    {feature.description}
-                                </p>
-                            </div>
-                        </AnimatedCard>
-                    ))}
+                <div className="absolute -top-8 -right-8 w-32 h-32 bg-white/80 rounded-full flex items-center justify-center shadow-lg z-10">
+                  <div className="w-24 h-24 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center">
+                    <ChefHat className="w-12 h-12 text-white" />
+                  </div>
                 </div>
+                <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-white/80 rounded-full flex items-center justify-center shadow-lg z-10">
+                  <div className="text-3xl">🥬</div>
+                </div>
+              </div>
             </div>
-        </section>
-    );
+          </motion.div>
+          <motion.div
+            className="space-y-8"
+            initial={{ opacity: 0, x: 50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: false, margin: "-100px" }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+          >
+            <div>
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-black mb-4 leading-tight">
+                Chúng tôi không chỉ là
+              </h2>
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-black mb-6 leading-tight">
+                Quán cơm tấm
+              </h2>
+              <p className="text-base md:text-lg text-gray-700 leading-relaxed max-w-2xl">
+                Đây là một loại hình phục vụ cơm tấm tự động, cùng với các món
+                ăn kèm. Chúng tôi cam kết mang đến trải nghiệm ẩm thực tốt nhất
+                cho bạn.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-4 md:gap-6">
+              {services.map((service, index) => {
+                const Icon = service.icon;
+                return (
+                  <motion.div
+                    key={index}
+                    className="flex items-center gap-3 bg-[#FFFCF7] rounded-full px-4 py-3  hover:shadow-lg transition-shadow cursor-pointer group"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: false }}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                  >
+                    <div
+                      className={`w-12 h-12 rounded-full ${service.color} flex items-center justify-center group-hover:scale-110 transition-transform`}
+                    >
+                      <Icon className={`w-6 h-6 ${service.iconColor}`} />
+                    </div>
+                    <span className="text-sm md:text-base font-semibold text-black">
+                      {service.title}
+                    </span>
+                  </motion.div>
+                );
+              })}
+            </div>
+            <div className="pt-4">
+              <Link href={configs.routes.about}>
+                <Button
+                  size="lg"
+                  className="bg-[#F8A91F] hover:bg-[#EC6426] text-white font-semibold px-8 py-6 rounded-full text-base md:text-lg"
+                >
+                  Về chúng tôi
+                </Button>
+              </Link>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
 };
 
 export default WhyChooseUsSection;

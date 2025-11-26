@@ -1,5 +1,6 @@
 "use client";
 
+import { Montserrat } from "next/font/google";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { ManagerGuard } from "@/components/guards";
 import { Button } from "@/components/ui/button";
@@ -44,6 +45,12 @@ import {
 } from "@/app/admin/components/AdminPageLayout";
 import { printBillAction } from "@/app/actions/printBill";
 import { toast } from "react-toastify";
+
+const montserrat = Montserrat({
+  subsets: ["latin", "vietnamese"],
+  variable: "--font-montserrat",
+  display: "swap",
+});
 
 const getKioskMode = (): boolean => {
   if (typeof window === "undefined") return false;
@@ -456,7 +463,9 @@ export default function ManagerOrdersPage() {
 
   return (
     <ManagerGuard>
-      <div className="bg-white -mb-6 -mr-4 sm:-mr-4 ml-4">
+      <div
+        className={`bg-white -mb-6 -mr-4 sm:-mr-4 ml-4 ${montserrat.className}`}
+      >
         <AdminPageLayout>
           <AdminPageHeader
             title="Quản Lý Đơn Hàng"

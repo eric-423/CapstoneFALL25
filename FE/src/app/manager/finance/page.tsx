@@ -8,20 +8,19 @@ import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tool
 import { TimePeriodSelector } from './components/TimePeriodSelector';
 import { generateRevenueData, branchComparisonData, branches } from './mockData';
 
-// Mock dashboard stats - Only Revenue focused
 const MOCK_DASHBOARD_STATS = {
-    totalRevenue: 4500000000, // 4.5B tổng doanh thu
-    monthlyRevenue: 380000000, // 380M doanh thu tháng này
-    dailyAverage: 12666667, // ~12.7M trung bình mỗi ngày
-    revenueGrowth: 12.5, // % tăng trưởng so với tháng trước
-    todayRevenue: 15500000, // 15.5M hôm nay
-    yesterdayRevenue: 14200000, // 14.2M hôm qua
+    totalRevenue: 4500000000,
+    monthlyRevenue: 380000000,
+    dailyAverage: 12666667,
+    revenueGrowth: 12.5,
+    todayRevenue: 15500000,
+    yesterdayRevenue: 14200000,
     topBranches: branchComparisonData.map(branch => ({
         id: branch.branch,
         name: branch.branch,
         revenue: branch.revenue,
         orders: branch.orders,
-        growth: (Math.random() * 20 - 5).toFixed(1) // Random growth -5% to +15%
+        growth: (Math.random() * 20 - 5).toFixed(1)
     })),
 };
 
@@ -33,7 +32,6 @@ export default function FinancePage() {
     const revenueData = generateRevenueData(selectedPeriod);
     const todayGrowth = ((stats.todayRevenue - stats.yesterdayRevenue) / stats.yesterdayRevenue * 100).toFixed(1);
 
-    // Toggle branch selection
     const toggleBranch = (branchName: string) => {
         setSelectedBranches(prev =>
             prev.includes(branchName)
@@ -46,7 +44,6 @@ export default function FinancePage() {
         <AdminGuard>
             <div className="min-h-screen bg-[#EFE6DB]">
                 <div className="max-w-[1800px] mx-auto space-y-4">
-                    {/* Header - Compact */}
                     <div className="flex justify-between items-center">
                         <div>
                             <h1 className="text-2xl font-bold bg-gradient-to-r from-[#EC6426] to-[#F8A91F] bg-clip-text text-transparent mb-1 flex items-center gap-2">
@@ -56,9 +53,7 @@ export default function FinancePage() {
                         </div>
                     </div>
 
-                    {/* Revenue Overview Cards - Compact */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        {/* Today's Revenue */}
                         <Card className="relative overflow-hidden p-3 bg-white border-0 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl group">
                             <div className="absolute inset-0 bg-gradient-to-br from-[#EC6426]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                             <div className="relative">
@@ -87,7 +82,6 @@ export default function FinancePage() {
                             </div>
                         </Card>
 
-                        {/* Monthly Revenue */}
                         <Card className="relative overflow-hidden p-3 bg-white border-0 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl group">
                             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                             <div className="relative">
@@ -107,7 +101,6 @@ export default function FinancePage() {
                             </div>
                         </Card>
 
-                        {/* Average Daily */}
                         <Card className="relative overflow-hidden p-3 bg-white border-0 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl group">
                             <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                             <div className="relative">
@@ -124,7 +117,6 @@ export default function FinancePage() {
                             </div>
                         </Card>
 
-                        {/* Total Revenue */}
                         <Card className="relative overflow-hidden p-3 bg-gradient-to-br from-[#EC6426] to-[#F8A91F] border-0 shadow-md hover:shadow-lg transition-all duration-300 rounded-xl group">
                             <div className="relative">
                                 <div className="flex items-center justify-between mb-2">
@@ -141,7 +133,6 @@ export default function FinancePage() {
                         </Card>
                     </div>
 
-                    {/* Revenue Trend Chart - Compact */}
                     <div>
                         <Card className="p-4 border-0 shadow-sm hover:shadow-lg transition-all duration-300 bg-white rounded-xl">
                             <div className="flex items-center justify-between mb-4">
@@ -164,14 +155,12 @@ export default function FinancePage() {
                                 />
                             </div>
 
-                            {/* Branch Selection */}
                             <div className="mb-4 pb-4 border-b border-gray-100">
                                 <div className="flex items-center justify-between mb-2">
                                     <div className="flex items-center gap-3">
                                         <p className="text-xs font-semibold text-gray-700">
                                             Hiển thị chi nhánh:
                                         </p>
-                                        {/* Dropdown for branch selection */}
                                         <div className="relative w-48">
                                             <button
                                                 onClick={() => setShowBranchDropdown(!showBranchDropdown)}
@@ -235,7 +224,6 @@ export default function FinancePage() {
                                     )}
                                 </div>
 
-                                {/* Selected branches display */}
                                 {selectedBranches.length > 0 && (
                                     <div className="mt-2 flex flex-wrap gap-1.5">
                                         {selectedBranches.map((branchName) => {
@@ -275,7 +263,6 @@ export default function FinancePage() {
                                                 'Tổng doanh thu': item.revenue / 1000000,
                                             };
 
-                                            // Add selected branches to data
                                             selectedBranches.forEach(branchName => {
                                                 dataPoint[branchName] = item[branchName as keyof typeof item]
                                                     ? (item[branchName as keyof typeof item] as number) / 1000000
@@ -330,7 +317,6 @@ export default function FinancePage() {
                                         />
                                         <Legend wrapperStyle={{ fontSize: '14px', fontWeight: '600' }} iconType="circle" />
 
-                                        {/* Total Revenue Line */}
                                         <Area
                                             type="monotone"
                                             dataKey="Tổng doanh thu"
@@ -340,7 +326,6 @@ export default function FinancePage() {
                                             animationDuration={1000}
                                         />
 
-                                        {/* Branch Lines */}
                                         {selectedBranches.map((branchName) => {
                                             const branch = branches.find(b => b.name === branchName);
                                             return branch ? (
@@ -359,7 +344,6 @@ export default function FinancePage() {
                                 </ResponsiveContainer>
                             </div>
 
-                            {/* Summary Stats */}
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 pt-4 border-t border-gray-100">
                                 <div className="text-center">
                                     <p className="text-xs text-gray-500 font-semibold mb-0.5">Cao nhất</p>
@@ -389,7 +373,6 @@ export default function FinancePage() {
                         </Card>
                     </div>
 
-                    {/* Revenue by Branch - Compact */}
                     <Card className="p-4 border-0 shadow-sm hover:shadow-lg transition-all duration-300 bg-white rounded-xl">
                         <div className="flex items-center gap-2 mb-4">
                             <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-green-600 rounded-lg flex items-center justify-center shadow-md">
