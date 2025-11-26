@@ -36,7 +36,7 @@ export default function Home() {
     queryKey: [GET_PRODUCTS_QUERY_KEY],
     queryFn: () => getProducts(),
     select: (data) => data.content.slice(0, 3),
-    staleTime: 5 * 60 * 1000, // 5 minutes cache
+    staleTime: 5 * 60 * 1000,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
   });
