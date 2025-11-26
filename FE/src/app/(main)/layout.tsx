@@ -5,5 +5,9 @@ export default function PublicLayout({
 }: {
     children: React.ReactNode;
 }) {
-    return <MainLayout>{children}</MainLayout>;
+    return (
+        <>
+            <MainLayout>{children}</MainLayout>
+        </>
+    );
 }

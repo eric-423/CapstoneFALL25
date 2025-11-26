@@ -6,7 +6,6 @@ import com.capstone.tamtech.capstone.exception.ResourceNotFoundException;
 import com.capstone.tamtech.capstone.payload.PagedResponse;
 import com.capstone.tamtech.capstone.payload.request.CookingMethodRequest;
 import com.capstone.tamtech.capstone.payload.request.CookingMethodSearchRequest;
-import com.capstone.tamtech.capstone.payload.request.ProductSearchRequest;
 import com.capstone.tamtech.capstone.repositories.CookingMethodRepository;
 import com.capstone.tamtech.capstone.services.impl.CookingMehodService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,17 +14,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
-
 
 @Service
 public class CookingMethodServiceImpl implements CookingMehodService {
 
     @Autowired
     private CookingMethodRepository cookingMethodRepository;
-
 
     @Override
     public CookingMethodDTO createCookingMethod(CookingMethodRequest cookingMethodRequest) {
@@ -47,14 +43,27 @@ public class CookingMethodServiceImpl implements CookingMehodService {
 
         if (size > 100) {
             size = 100;
-
         }
 
-
-        Sort sort = Sort.by(Sort.Direction.fromString(
-                searchRequest.getSortDirection() != null ? searchRequest.getSortDirection() : "ASC"));
+        String sortBy = mapSortField(searchRequest.getSortBy());
+        Sort.Direction direction = Sort.Direction.fromString(
+                searchRequest.getSortDirection() != null ? searchRequest.getSortDirection() : "ASC");
+        Sort sort = Sort.by(direction, sortBy);
 
         return PageRequest.of(page, size, sort);
+    }
+
+    private String mapSortField(String sortBy) {
+        if (sortBy == null || sortBy.isBlank()) {
+            return "name";
+        }
+
+        return switch (sortBy.toLowerCase()) {
+            case "name" -> "name";
+            case "description" -> "description";
+            case "id" -> "id";
+            default -> "name";
+        };
     }
 
     private <T> PagedResponse<T> createPagedResponse(Page<?> page, List<T> content) {
@@ -70,7 +79,6 @@ public class CookingMethodServiceImpl implements CookingMehodService {
         return response;
     }
 
-
     private CookingMethodDTO mapToDTO(CookingMethod cookingMethod) {
         CookingMethodDTO cookingMethodDTO = new CookingMethodDTO();
         cookingMethodDTO.setId(cookingMethod.getId());
@@ -81,7 +89,8 @@ public class CookingMethodServiceImpl implements CookingMehodService {
 
     @Override
     public CookingMethodDTO updateCookingMethod(int id, CookingMethodRequest cookingMethodRequest) {
-        CookingMethod cookingMethod = cookingMethodRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Cooking Method not found"));
+        CookingMethod cookingMethod = cookingMethodRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cooking Method not found"));
         cookingMethod.setDescription(cookingMethodRequest.getDescription());
         cookingMethod.setName(cookingMethodRequest.getName());
         cookingMethodRepository.save(cookingMethod);
@@ -90,16 +99,19 @@ public class CookingMethodServiceImpl implements CookingMehodService {
 
     @Override
     public CookingMethodDTO getCookingMethodById(int id) {
-        CookingMethod cookingMethod = cookingMethodRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Cooking Method not found"));
+        CookingMethod cookingMethod = cookingMethodRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cooking Method not found"));
         return mapToDTO(cookingMethod);
     }
 
     @Override
     public PagedResponse<CookingMethodDTO> getAllCookingMethods(CookingMethodSearchRequest cookingMethodSearchRequest) {
         String name = cookingMethodSearchRequest.getKeyword() != null ? cookingMethodSearchRequest.getKeyword() : "";
-        String description = cookingMethodSearchRequest.getKeyword() != null ? cookingMethodSearchRequest.getKeyword() : "";
+        String description = cookingMethodSearchRequest.getKeyword() != null ? cookingMethodSearchRequest.getKeyword()
+                : "";
         Pageable pageable = createPageable(cookingMethodSearchRequest);
-        Page<CookingMethod> cookingMethods = cookingMethodRepository.findByNameContainsIgnoreCaseOrDescriptionContainsIgnoreCase(name, description, pageable);
+        Page<CookingMethod> cookingMethods = cookingMethodRepository
+                .findByNameContainsIgnoreCaseOrDescriptionContainsIgnoreCase(name, description, pageable);
         List<CookingMethodDTO> content = cookingMethods.stream().map(this::mapToDTO).toList();
 
         return createPagedResponse(cookingMethods, content);
