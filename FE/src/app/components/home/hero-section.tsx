@@ -43,7 +43,7 @@ const HeroSection = memo(() => {
               className="relative w-full max-w-xl"
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
+              viewport={{ once: false, margin: "-100px" }}
               transition={{ duration: 0.8, ease: "easeOut" }}
             >
               <div className="relative w-full aspect-square rounded-full bg-[#FFFCF7] shadow-2xl overflow-visible">

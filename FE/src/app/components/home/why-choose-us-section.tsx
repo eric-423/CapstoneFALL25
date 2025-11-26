@@ -99,7 +99,7 @@ const WhyChooseUsSection = () => {
             className="space-y-8"
             initial={{ opacity: 0, x: 50 }}
             whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
+            viewport={{ once: false, margin: "-100px" }}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
             <div>
@@ -124,7 +124,7 @@ const WhyChooseUsSection = () => {
                     className="flex items-center gap-3 bg-[#FFFCF7] rounded-full px-4 py-3  hover:shadow-lg transition-shadow cursor-pointer group"
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
+                    viewport={{ once: false }}
                     transition={{ duration: 0.5, delay: index * 0.1 }}
                   >
                     <div
