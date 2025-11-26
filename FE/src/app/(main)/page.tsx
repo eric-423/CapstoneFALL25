@@ -1,24 +1,42 @@
-'use client';
+"use client";
 
-import { GET_BRANCHES_QUERY_KEY, GET_BRANCHES_STALE_TIME, getBranches } from '@/apis/branch.api';
-import { GET_PRODUCTS_QUERY_KEY, getProducts } from '@/apis/product.api';
-import { LoadingSpinner } from '@/components/common/loading-spinner';
-import { useQuery } from '@tanstack/react-query';
-import { lazy, Suspense } from 'react';
+import {
+  GET_BRANCHES_QUERY_KEY,
+  GET_BRANCHES_STALE_TIME,
+  getBranches,
+} from "@/apis/branch.api";
+import { GET_PRODUCTS_QUERY_KEY, getProducts } from "@/apis/product.api";
+import { LoadingSpinner } from "@/components/common/loading-spinner";
+import { useQuery } from "@tanstack/react-query";
+import { lazy, Suspense } from "react";
 
-// Lazy load sections to improve initial load time
-const HeroSection = lazy(() => import('@/app/components/home/hero-section').then(m => ({ default: m.default })));
-const WhyChooseUsSection = lazy(() => import('@/app/components/home/why-choose-us-section').then(m => ({ default: m.default })));
-const BestSellersSection = lazy(() => import('@/app/components/home/best-sellers-section').then(m => ({ default: m.default })));
-const ComTamSpecialtySection = lazy(() => import('@/app/components/home/com-tam-specialty-section').then(m => ({ default: m.default })));
-const FranchiseSection = lazy(() => import('@/app/components/home/franchise-section').then(m => ({ default: m.default })));
+const HeroSection = lazy(() =>
+  import("@/app/components/home/hero-section").then((m) => ({
+    default: m.default,
+  }))
+);
+const WhyChooseUsSection = lazy(() =>
+  import("@/app/components/home/why-choose-us-section").then((m) => ({
+    default: m.default,
+  }))
+);
+const BestSellersSection = lazy(() =>
+  import("@/app/components/home/best-sellers-section").then((m) => ({
+    default: m.default,
+  }))
+);
+const FranchiseSection = lazy(() =>
+  import("@/app/components/home/franchise-section").then((m) => ({
+    default: m.default,
+  }))
+);
 
 export default function Home() {
   const { data: products, isLoading: isLoadingProducts } = useQuery({
     queryKey: [GET_PRODUCTS_QUERY_KEY],
     queryFn: () => getProducts(),
     select: (data) => data.content.slice(0, 3),
-    staleTime: 5 * 60 * 1000, // 5 minutes cache
+    staleTime: 5 * 60 * 1000,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
   });
@@ -33,35 +51,22 @@ export default function Home() {
 
   return (
     <>
-      <main className='min-h-screen bg-background overflow-x-hidden'>
-        {/* Hero Section - Load immediately */}
+      <main className="min-h-screen bg-[#FFFCF7] overflow-x-hidden">
         <Suspense fallback={<div className="min-h-screen bg-black" />}>
           <HeroSection />
         </Suspense>
-
-        {/* Show loading only for sections that need data */}
-        {(isLoadingProducts || isLoadingBranches) ? (
-          <div className='flex items-center justify-center min-h-[400px]'>
+        {isLoadingProducts || isLoadingBranches ? (
+          <div className="flex items-center justify-center min-h-[400px]">
             <LoadingSpinner />
           </div>
         ) : (
           <>
-            {/* Why Choose Us Section */}
-            <Suspense fallback={<div className="min-h-[400px]" />}>
-              <WhyChooseUsSection />
-            </Suspense>
-
-            {/* Best Sellers Section */}
             <Suspense fallback={<div className="min-h-[400px]" />}>
               <BestSellersSection products={products} />
             </Suspense>
-
-            {/* Com Tam Specialty Section */}
             <Suspense fallback={<div className="min-h-[400px]" />}>
-              <ComTamSpecialtySection />
+              <WhyChooseUsSection />
             </Suspense>
-
-            {/* Franchise Section */}
             <Suspense fallback={<div className="min-h-[400px]" />}>
               <FranchiseSection />
             </Suspense>

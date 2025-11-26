@@ -1,132 +1,178 @@
-import { ProductCard } from '@/components/common/card';
-import { Button } from '@/components/ui/button';
-import { Product } from '@/apis/product.api';
-import { Star } from 'lucide-react';
-import Image from 'next/image';
-import { AnimatedCard } from '@/components/common/animated-card';
-import { memo, useMemo } from 'react';
+"use client";
 
-type BestSellersNewProps = {
-    products: Product[];
-};
+import { Button } from "@/components/ui/button";
+import { Product } from "@/apis/product.api";
+import { Star, ChevronLeft, ChevronRight } from "lucide-react";
+import Image from "next/image";
+import { motion } from "framer-motion";
+import { Montserrat } from "next/font/google";
+import { useRef, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { getTopSellingItems, SellingItem } from "@/apis/statistics.api";
 
-const BestSellersSection = memo(({ products = [] }: BestSellersNewProps) => {
-    // Mock data for fallback - matching the design
-    const mockBestSellers = [
-        {
-            id: 1,
-            title: "CƠM SƯỜN NƯỚNG MĂM",
-            description: "Sườn nướng cơm mắm, đồng cơm sườn và nem",
-            price: "35,000",
-            originalPrice: "45,000",
-            rating: 5,
-            image: "/images/content-4.jpg",
-            badge: "Đặt ngay"
-        },
-        {
-            id: 2,
-            title: "COMBO - SỰ BỔ CHỦ ÔNG",
-            description: "- Cơm tấm sườn nướng, bi, chả trứng\n- Canh bí đao\n- Nước mật ớt chặm",
-            price: "40,000",
-            image: "/images/content-5.jpg",
-            badge: "Thêm"
-        },
-        {
-            id: 3,
-            title: "COMBO - SỰ BỔ CHỦ ÔNG",
-            description: "- Cước sườn nướng, bi, chả trứng\n- Canh bí đao\n- Nước mật ớt chặm",
-            price: "45,000",
-            image: "/images/content-6.jpg",
-            badge: "Thêm"
-        }
-    ];
-
-    return (
-        <section className="py-20 bg-gradient-to-b from-yellow-200 to-yellow-100">
-            <div className="container mx-auto px-4">
-                {/* Section Header */}
-                <div className="text-center mb-16">
-                    <h2 className="text-4xl md:text-5xl font-bold text-gray-800 mb-8">
-                        BEST SELLERS
-                    </h2>
-                </div>
-
-                {/* Products Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-12">
-                    {products && products.length > 0 ? (
-                        products.map((product, index) => (
-                            <AnimatedCard key={product.productId} index={index}>
-                                <ProductCard item={product} descriptionOverflow={80} />
-                            </AnimatedCard>
-                        ))
-                    ) : (
-                        // Fallback mock cards when no products
-                        mockBestSellers.map((item, index) => (
-                            <AnimatedCard
-                                key={item.id}
-                                index={index}
-                                className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300"
-                            >
-                                {/* Image */}
-                                <div className="relative h-48 overflow-hidden">
-                                    <Image
-                                        src={item.image}
-                                        alt={item.title}
-                                        fill
-                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                        className="object-cover transition-transform duration-300 hover:scale-105"
-                                        loading="lazy"
-                                    />
-                                    {item.originalPrice && (
-                                        <div className="absolute top-4 left-4 bg-red-500 text-white px-2 py-1 rounded-lg text-sm font-semibold">
-                                            Giảm giá
-                                        </div>
-                                    )}
-                                    <div className="absolute top-4 right-4 bg-white rounded-full px-3 py-1 flex items-center shadow-md">
-                                        <Star className="w-4 h-4 text-yellow-500 mr-1" fill="#F59E0B" />
-                                        <span className="text-sm font-medium">{item.rating || 5}</span>
-                                    </div>
-                                </div>
-
-                                {/* Content */}
-                                <div className="p-6">
-                                    <h3 className="text-lg font-bold text-gray-800 mb-3">
-                                        {item.title}
-                                    </h3>
-
-                                    <p className="text-gray-600 text-sm mb-4 min-h-[60px] whitespace-pre-line">
-                                        {item.description}
-                                    </p>
-
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-xl font-bold text-orange-500">
-                                                {item.price}đ
-                                            </span>
-                                            {item.originalPrice && (
-                                                <span className="text-sm text-gray-400 line-through">
-                                                    {item.originalPrice}đ
-                                                </span>
-                                            )}
-                                        </div>
-
-                                        <Button
-                                            size="sm"
-                                            className="bg-orange-500 hover:bg-orange-600 text-white"
-                                        >
-                                            {item.badge}
-                                        </Button>
-                                    </div>
-                                </div>
-                            </AnimatedCard>
-                        ))
-                    )}
-                </div>
-            </div>
-        </section>
-    );
+const montserrat = Montserrat({
+  subsets: ["latin", "vietnamese"],
+  variable: "--font-montserrat",
+  display: "swap",
 });
 
-BestSellersSection.displayName = 'BestSellersSection';
+type BestSellersNewProps = {
+  products?: Product[];
+};
+
+type DisplayProduct = {
+  id: number;
+  title: string;
+  description: string;
+  price: string;
+  rating: number;
+  image: string;
+};
+
+const BestSellersSection = ({ products }: BestSellersNewProps) => {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const { data: topSellingData, isLoading } = useQuery({
+    queryKey: ["top-selling-items", 5],
+    queryFn: () => getTopSellingItems(undefined, 5),
+    staleTime: 5 * 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
+
+  const displayProducts: DisplayProduct[] = useMemo(() => {
+    if (topSellingData?.items && topSellingData.items.length > 0) {
+      return topSellingData.items.map((item: SellingItem) => {
+        const price =
+          item.totalRevenue > 0 && item.quantitySold > 0
+            ? Math.round(item.totalRevenue / item.quantitySold)
+            : 0;
+
+        return {
+          id: item.itemId,
+          title: item.itemName.toUpperCase(),
+          description: "Món ăn ngon, đậm đà hương vị Việt Nam.",
+          price: price.toLocaleString("vi-VN"),
+          rating: 5,
+          image: item.imageUrl || "/images/placeholder.jpg",
+        };
+      });
+    }
+
+    if (products && products.length > 0) {
+      return products.slice(0, 5).map((product) => ({
+        id: product.productId,
+        title: product.productName.toUpperCase(),
+        description:
+          product.productDescription ||
+          "Món ăn ngon, đậm đà hương vị Việt Nam.",
+        price: (product.productPrice || 0).toLocaleString("vi-VN"),
+        rating: 5,
+        image: product.productImage || "/images/placeholder.jpg",
+      }));
+    }
+
+    return [];
+  }, [topSellingData, products]);
+
+  const scroll = (direction: "left" | "right") => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = 400;
+      scrollContainerRef.current.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
+
+  return (
+    <section className={`py-20 bg-[#FFFCF7] pl-5 pr-5 ${montserrat.className}`}>
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-black">
+            Món ăn phổ biến
+          </h2>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => scroll("left")}
+              className="w-12 h-12 rounded-full bg-[#F8A91F] hover:bg-[#EC6426] flex items-center justify-center transition-colors shadow-md"
+            >
+              <ChevronLeft className="w-6 h-6 text-black" />
+            </button>
+            <button
+              onClick={() => scroll("right")}
+              className="w-12 h-12 rounded-full bg-[#F8A91F] hover:bg-[#EC6426] flex items-center justify-center transition-colors shadow-md"
+            >
+              <ChevronRight className="w-6 h-6 text-black" />
+            </button>
+          </div>
+        </div>
+        {isLoading ? (
+          <div className="flex items-center justify-center min-h-[300px]">
+            <div className="text-gray-600">Đang tải...</div>
+          </div>
+        ) : displayProducts.length > 0 ? (
+          <div
+            ref={scrollContainerRef}
+            className="flex gap-6 overflow-x-auto scrollbar-hide pb-4"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
+            {displayProducts.map((item, index) => (
+              <motion.div
+                key={item.id}
+                className="flex-shrink-0 w-72 bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow text-center"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: false }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+              >
+                <div className="relative h-48 overflow-hidden">
+                  <Image
+                    src={item.image}
+                    alt={item.title}
+                    fill
+                    sizes="288px"
+                    className="object-cover transition-transform duration-300 hover:scale-105"
+                    loading="lazy"
+                  />
+                </div>
+                <div className="p-5">
+                  <h3 className="text-lg font-bold text-black mb-2">
+                    {item.title}
+                  </h3>
+                  <div className="flex items-center gap-1 mb-3 justify-center">
+                    {[...Array(item.rating)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className="w-4 h-4 text-yellow-500 fill-yellow-500"
+                      />
+                    ))}
+                  </div>
+
+                  <p className="text-gray-600 text-sm mb-4 leading-relaxed">
+                    {item.description}
+                  </p>
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-xl font-bold text-black">
+                      {item.price}đ
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="bg-gray-100 border-2 border-orange-500 text-orange-500 hover:bg-orange-200 hover:text-orange-500 hover:border-orange-500 font-semibold rounded-full px-4 transition-colors"
+                    >
+                      Thêm vào giỏ
+                    </Button>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        ) : null}
+      </div>
+    </section>
+  );
+};
 
 export default BestSellersSection;

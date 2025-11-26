@@ -17,8 +17,6 @@ interface DecodedToken {
 
 export async function GET(request: NextRequest) {
   try {
-    const allCookies = request.cookies.getAll();
-
     const token = request.cookies.get('token')?.value;
 
     if (!token) {

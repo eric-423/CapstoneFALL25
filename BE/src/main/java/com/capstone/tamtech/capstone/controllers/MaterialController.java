@@ -1,5 +1,7 @@
 package com.capstone.tamtech.capstone.controllers;
 
+import com.capstone.tamtech.capstone.dto.MaterialAllBranchDTFO;
+import com.capstone.tamtech.capstone.dto.MaterialAllBranchDTO;
 import com.capstone.tamtech.capstone.dto.MaterialDTO;
 import com.capstone.tamtech.capstone.payload.PagedResponse;
 import com.capstone.tamtech.capstone.payload.ResponseData;
@@ -30,7 +32,7 @@ public class MaterialController {
             if (searchRequest == null) {
                 searchRequest = new MaterialSearchRequest();
             }
-            PagedResponse<MaterialDTO> pagedResponse = materialService.getAllMaterials(searchRequest);
+            PagedResponse<MaterialAllBranchDTO> pagedResponse = materialService.getAllMaterials(searchRequest);
             ResponseData responseData = new ResponseData();
             responseData.setData(pagedResponse);
             responseData.setDesc("Retrieved " + pagedResponse.getContent().size() + " material(s) from page "
@@ -64,7 +66,7 @@ public class MaterialController {
     @PostMapping
     public ResponseEntity<?> createMaterial(@RequestBody MaterialRequest request) {
         try {
-            MaterialDTO dto = materialService.createMaterial(request);
+            MaterialAllBranchDTO dto = materialService.createMaterial(request);
             ResponseData responseData = new ResponseData();
             responseData.setData(dto);
             responseData.setDesc("Material created successfully");
@@ -82,7 +84,7 @@ public class MaterialController {
             @Parameter(description = "ID nguyên liệu", required = true) @PathVariable int id,
             @RequestBody MaterialRequest request) {
         try {
-            MaterialDTO dto = materialService.updateMaterial(id, request);
+            MaterialAllBranchDTO dto = materialService.updateMaterial(id, request);
             ResponseData responseData = new ResponseData();
             responseData.setData(dto);
             responseData.setDesc("Material updated successfully");

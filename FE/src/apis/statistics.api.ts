@@ -166,9 +166,6 @@ export async function getNewCustomerStatistics(
   return result.data as NewCustomerStatistics;
 }
 
-/**
- * Lấy thống kê thời gian phục vụ trung bình
- */
 export async function getServiceTimeStatistics(
   branchId: number,
   date?: string,
@@ -257,9 +254,6 @@ export async function getTopMaterials(branchId?: number, limit: number = 5) {
   return result.data as TopMaterials;
 }
 
-/**
- * Lấy top món ăn bán chạy nhất (PUBLIC - dành cho khách hàng)
- */
 export async function getTopSellingItems(
   branchId?: number,
   limit: number = 5

@@ -8,23 +8,21 @@ import { Role } from '@/utils/enum';
 import { FC, PropsWithChildren, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-// CustomerGuard is component that will be used to protect routes
-// that should only be accessed by customer users.
 
 const CustomerGuard: FC<PropsWithChildren> = ({ children }) => {
   const { isLoading, user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading && user && !Role.USER.includes(user.role)) {
+    if (!isLoading && user && user.role !== Role.USER) {
       router.replace(config.routes.login);
     }
   }, [isLoading, user, router]);
 
   if (isLoading) return <LoadingSpinner />;
 
-  if (!user || !Role.USER.includes(user.role)) {
-    return null; // Let useEffect handle navigation
+  if (!user || user.role !== Role.USER) {
+    return null;
   }
 
   return <>{children}</>;
