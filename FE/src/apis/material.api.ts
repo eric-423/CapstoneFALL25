@@ -166,6 +166,11 @@ export async function deleteMaterialType(id: number): Promise<void> {
     if (!response.ok) {
         throw new Error('Failed to delete material type');
     }
+
+    const result = await response.json();
+    if (result.status !== 200) {
+        throw new Error(result.desc || 'Failed to delete material type');
+    }
 }
 
 // ==================== Material API ====================
@@ -196,7 +201,7 @@ export async function getMaterials(searchRequest?: MaterialSearchRequest): Promi
     return response.json();
 }
 
-export async function createMaterial(request: CreateMaterialRequest): Promise<void> {
+export async function createMaterial(request: CreateMaterialRequest): Promise<Material> {
     const response = await fetch('/api/materials', {
         method: 'POST',
         headers: {
@@ -209,6 +214,9 @@ export async function createMaterial(request: CreateMaterialRequest): Promise<vo
     if (!response.ok) {
         throw new Error('Failed to create material');
     }
+
+    const result = await response.json();
+    return result.data;
 }
 
 export async function updateMaterial(id: number, request: UpdateMaterialRequest): Promise<void> {
@@ -234,6 +242,11 @@ export async function deleteMaterial(id: number): Promise<void> {
 
     if (!response.ok) {
         throw new Error('Failed to delete material');
+    }
+
+    const result = await response.json();
+    if (result.status !== 200) {
+        throw new Error(result.desc || 'Failed to delete material');
     }
 }
 

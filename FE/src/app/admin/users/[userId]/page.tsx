@@ -28,7 +28,7 @@ import { Badge } from '@/components/ui/badge';
 import { AdminPageLayout, AdminPageHeader } from '../../components/AdminPageLayout';
 import { getUserById, getUserRoleHistory, banUser, unbanUser, type User, type RoleHistory } from '@/apis/admin-user.api';
 import { UserFormDialog } from '../components/UserFormDialog';
-import { ConfirmDialog } from '../components/ConfirmDialog';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import Link from 'next/link';
 
 export default function UserDetailPage() {
@@ -477,8 +477,9 @@ export default function UserDetailPage() {
                     open={confirmDialog.open}
                     onOpenChange={(open) => setConfirmDialog({ open, type: null })}
                     onConfirm={handleConfirmAction}
-                    type={confirmDialog.type}
-                    userName={user.fullName}
+                    title={confirmDialog.type === 'ban' ? 'Khóa tài khoản' : 'Mở khóa tài khoản'}
+                    content={`Bạn có chắc chắn muốn ${confirmDialog.type === 'ban' ? 'khóa' : 'mở khóa'} tài khoản "${user.fullName}" không?`}
+                    variant={confirmDialog.type === 'ban' ? 'destructive' : 'success'}
                     loading={actionLoading}
                 />
             )}
