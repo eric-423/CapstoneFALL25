@@ -315,6 +315,7 @@ public class ProductRecipesServiceImpl implements ProductRecipesService {
                 if (recipe.getMaterial() != null) {
                         dto.setMaterialId(recipe.getMaterial().getId());
                         dto.setMaterialName(recipe.getMaterial().getName());
+                        dto.setUnit(recipe.getMaterial().getUnits().getName());
                 }
 
                 if (recipe.getCookingMethod() != null) {
