@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import { AdminPageLayout, AdminPageHeader } from '../components/AdminPageLayout';
 import { getCookingMethods, type CookingMethod, type CookingMethodSearchParams } from '@/apis/cooking-method.api';
 import { CookingMethodFormDialog } from './components/CookingMethodFormDialog';
+import { CookingMethodNutrientForm } from './components/CookingMethodNutrientForm';
+import { Beaker } from 'lucide-react';
 
 export default function CookingMethodsPage() {
     const [cookingMethods, setCookingMethods] = useState<CookingMethod[]>([]);
@@ -26,6 +28,10 @@ export default function CookingMethodsPage() {
     // Dialog states
     const [showFormDialog, setShowFormDialog] = useState(false);
     const [editingMethod, setEditingMethod] = useState<CookingMethod | null>(null);
+
+    // Nutrient Dialog states
+    const [showNutrientDialog, setShowNutrientDialog] = useState(false);
+    const [nutrientMethod, setNutrientMethod] = useState<CookingMethod | null>(null);
 
     const fetchCookingMethods = useCallback(async () => {
         try {
@@ -180,6 +186,18 @@ export default function CookingMethodsPage() {
                                             >
                                                 <Edit2 className="h-3 w-3" />
                                             </Button>
+                                            <Button
+                                                onClick={() => {
+                                                    setNutrientMethod(method);
+                                                    setShowNutrientDialog(true);
+                                                }}
+                                                size="sm"
+                                                variant="outline"
+                                                className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                                                title="Quản lý dinh dưỡng"
+                                            >
+                                                <Beaker className="h-3 w-3" />
+                                            </Button>
                                         </div>
                                     </td>
                                 </tr>
@@ -232,6 +250,13 @@ export default function CookingMethodsPage() {
                 onOpenChange={setShowFormDialog}
                 cookingMethod={editingMethod}
                 onSuccess={handleFormSuccess}
+            />
+
+            <CookingMethodNutrientForm
+                open={showNutrientDialog}
+                onOpenChange={setShowNutrientDialog}
+                cookingMethodId={nutrientMethod?.id || null}
+                cookingMethodName={nutrientMethod?.name || ''}
             />
         </AdminPageLayout>
     );

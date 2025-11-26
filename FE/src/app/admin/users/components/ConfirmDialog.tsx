@@ -9,7 +9,7 @@ interface ConfirmDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onConfirm: () => void;
-    type: 'ban' | 'unban';
+    type: 'ban' | 'unban' | 'delete';
     userName: string;
     loading?: boolean;
 }
@@ -39,6 +39,17 @@ export function ConfirmDialog({ open, onOpenChange, onConfirm, type, userName, l
             iconColor: 'text-green-600',
             confirmBg: 'bg-green-600 hover:bg-green-700',
             borderColor: 'border-green-200',
+        },
+        delete: {
+            icon: Trash2,
+            title: 'Xóa dữ liệu',
+            message: 'Bạn có chắc chắn muốn xóa',
+            description: 'Hành động này không thể hoàn tác. Dữ liệu sẽ bị xóa vĩnh viễn khỏi hệ thống.',
+            confirmText: 'Xóa dữ liệu',
+            iconBg: 'bg-red-100',
+            iconColor: 'text-red-600',
+            confirmBg: 'bg-red-600 hover:bg-red-700',
+            borderColor: 'border-red-200',
         },
     };
 
