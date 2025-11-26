@@ -6,7 +6,6 @@ import com.capstone.tamtech.capstone.exception.ResourceNotFoundException;
 import com.capstone.tamtech.capstone.payload.PagedResponse;
 import com.capstone.tamtech.capstone.payload.request.NutrientRequest;
 import com.capstone.tamtech.capstone.payload.request.NutrientsSearchRequest;
-import com.capstone.tamtech.capstone.payload.request.ProductSearchRequest;
 import com.capstone.tamtech.capstone.repositories.NutrientRepository;
 import com.capstone.tamtech.capstone.services.impl.NutrientService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,12 +59,12 @@ public class NutrientServiceImpl implements NutrientService {
     @Override
     public PagedResponse<NutrientDTO> getAllNutrients(NutrientsSearchRequest searchRequest) {
         Pageable pageable = createPageable(searchRequest);
-        Page<Nutrients> nutrients = nutrientRepository.findByCodeContainsIgnoreCaseOrNameContainsIgnoreCaseOrUnitIgnoreCase(
-                searchRequest.getKeyword() != null ? searchRequest.getKeyword() : "",
-                searchRequest.getKeyword() != null ? searchRequest.getKeyword() : "",
-                searchRequest.getUnit() != null ? searchRequest.getUnit() : "",
-                pageable
-        );
+        Page<Nutrients> nutrients = nutrientRepository
+                .findByCodeContainsIgnoreCaseOrNameContainsIgnoreCaseOrUnitIgnoreCase(
+                        searchRequest.getKeyword() != null ? searchRequest.getKeyword() : "",
+                        searchRequest.getKeyword() != null ? searchRequest.getKeyword() : "",
+                        searchRequest.getUnit() != null ? searchRequest.getUnit() : "",
+                        pageable);
 
         List<NutrientDTO> content = nutrients.stream().map(this::mapToDTO).toList();
         return createPagedResponse(nutrients, content);
@@ -82,8 +81,9 @@ public class NutrientServiceImpl implements NutrientService {
         if (size > 100) {
             size = 100;
         }
-        Sort sort = Sort.by(Sort.Direction.fromString(
-                nutrientsSearchRequest.getSortDirection() != null ? nutrientsSearchRequest.getSortDirection() : "ASC"));
+        Sort.Direction direction = Sort.Direction.fromString(
+                nutrientsSearchRequest.getSortDirection() != null ? nutrientsSearchRequest.getSortDirection() : "ASC");
+        Sort sort = Sort.by(direction, "id");
 
         return PageRequest.of(page, size, sort);
     }

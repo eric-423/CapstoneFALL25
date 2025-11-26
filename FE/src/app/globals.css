@@ -447,4 +447,21 @@
     background-size: 200% 100%;
     animation: gradientShift 3s ease infinite;
   }
+
+  #dify-chatbot-bubble-button {
+    background-color: #1c64f2 !important;
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    z-index: 9999 !important;
+  }
+
+  #dify-chatbot-bubble-window {
+    width: 24rem !important;
+    height: 40rem !important;
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    z-index: 9999 !important;
+  }
 }

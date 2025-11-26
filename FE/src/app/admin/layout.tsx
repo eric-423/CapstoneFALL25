@@ -28,6 +28,7 @@ import {
   Menu,
   X,
   Warehouse,
+  Calendar,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 
@@ -141,6 +142,7 @@ export default function AdminLayout({
         { href: '/admin/recipes', label: 'Công thức', icon: BookOpen },
         { href: '/admin/combos', label: 'Combo', icon: Gift },
         { href: '/admin/training', label: 'Khóa đào tạo', icon: GraduationCap },
+        { href: '/admin/schedule', label: 'Lịch trình', icon: Calendar },
         { href: '/admin/orders', label: 'Đơn hàng', icon: ShoppingBag },
         { href: '/admin/finance', label: 'Tài chính', icon: DollarSign },
         { href: '/admin/promotions', label: 'Khuyến mãi', icon: Gift },
