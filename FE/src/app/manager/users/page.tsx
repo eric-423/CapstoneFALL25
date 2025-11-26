@@ -116,7 +116,7 @@ export default function UsersManagementPage() {
             });
         } catch (error) {
             console.error('Failed to fetch users:', error);
-            toast.error('❌ Không thể tải danh sách người dùng!');
+            toast.error('Không thể tải danh sách người dùng!');
         } finally {
             setLoading(false);
         }
@@ -263,6 +263,7 @@ export default function UsersManagementPage() {
                         />
                     </div>
                     <select
+                        title="Vai trò"
                         value={roleFilter}
                         onChange={(e) => {
                             setRoleFilter(e.target.value);
@@ -278,7 +279,9 @@ export default function UsersManagementPage() {
                         <option value="SHIPPER">SHIPPER</option>
                         <option value="CUSTOMER">CUSTOMER</option>
                     </select>
+
                     <select
+                        title="Trạng thái"
                         value={statusFilter}
                         onChange={(e) => {
                             setStatusFilter(e.target.value);

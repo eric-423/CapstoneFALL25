@@ -49,97 +49,39 @@ const clearPersistedChat = () => {
 
 export default function DifyChatbot() {
     const { user } = useAuth();
-    const isCustomer = user?.role?.toUpperCase() === 'CUSTOMER';
+
+    const removeExistingChatbot = () => {
+        if (typeof window === 'undefined') return;
+
+        const existingScript = document.getElementById(SCRIPT_ID);
+        if (existingScript) {
+            existingScript.remove();
+        }
+
+        const existingIframe = document.querySelector('iframe[src*="udify"]');
+        if (existingIframe?.parentElement) {
+            existingIframe.parentElement.removeChild(existingIframe);
+        }
+
+        clearPersistedChat();
+    };
 
     useEffect(() => {
         if (typeof window === 'undefined') return;
 
+        if (user && user.role && user.role.toUpperCase() !== 'CUSTOMER') {
+            removeExistingChatbot();
+        }
+    }, [user, user?.role]);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        if (user && user.role && user.role.toUpperCase() !== 'CUSTOMER') {
+            return;
+        }
+
         let aborted = false;
-
-        const removeExistingChatbot = () => {
-            const existingScript = document.getElementById(SCRIPT_ID);
-            if (existingScript) {
-                existingScript.remove();
-            }
-
-            const existingIframe = document.querySelector('iframe[src*="udify"]');
-            if (existingIframe?.parentElement) {
-                existingIframe.parentElement.removeChild(existingIframe);
-            }
-
-            clearPersistedChat();
-        };
-
-        const injectChatbotStyles = () => {
-            // Inject CSS vào iframe sau khi chatbot load
-            const styleId = 'dify-custom-styles';
-            if (document.getElementById(styleId)) {
-                return;
-            }
-
-            const style = document.createElement('style');
-            style.id = styleId;
-            style.textContent = `
-                /* Chatbot background và text colors */
-                body {
-                    background-color: var(--card, #ffffff) !important;
-                    color: var(--foreground, #1a1a1a) !important;
-                }
-                
-                /* Chat container */
-                [class*="chat-container"],
-                [class*="chat-body"],
-                [class*="chat-content"] {
-                    background-color: var(--card, #ffffff) !important;
-                }
-                
-                /* Messages */
-                [class*="message"],
-                [class*="bubble"],
-                [class*="chat-message"] {
-                    background-color: var(--muted, #f5f5f5) !important;
-                    color: var(--foreground, #1a1a1a) !important;
-                }
-                
-                /* Input field */
-                input,
-                textarea {
-                    background-color: var(--card, #ffffff) !important;
-                    color: var(--foreground, #1a1a1a) !important;
-                    border-color: var(--border, #e5e5e5) !important;
-                }
-                
-                /* Buttons */
-                button {
-                    background-color: var(--primary, #EC6426) !important;
-                    color: var(--primary-foreground, #ffffff) !important;
-                }
-                
-                button:hover {
-                    opacity: 0.9 !important;
-                }
-            `;
-            document.head.appendChild(style);
-
-            // Cố gắng inject vào iframe sau khi nó load
-            const tryInjectIntoIframe = () => {
-                const iframe = document.querySelector('iframe[src*="udify"]') as HTMLIFrameElement;
-                if (iframe && iframe.contentDocument) {
-                    try {
-                        const iframeStyle = iframe.contentDocument.createElement('style');
-                        iframeStyle.textContent = style.textContent;
-                        iframe.contentDocument.head.appendChild(iframeStyle);
-                    } catch {
-                        // Cross-origin error - không thể inject vào iframe
-                        console.warn('Cannot inject styles into Dify iframe (cross-origin)');
-                    }
-                }
-            };
-
-            // Thử inject sau khi iframe load
-            setTimeout(tryInjectIntoIframe, 1000);
-            setTimeout(tryInjectIntoIframe, 3000);
-        };
 
         const appendScript = () => {
             if (document.getElementById(SCRIPT_ID)) {
@@ -152,11 +94,6 @@ export default function DifyChatbot() {
             script.async = true;
             script.defer = true;
 
-            script.onload = () => {
-                // Inject styles sau khi script load
-                setTimeout(injectChatbotStyles, 500);
-            };
-
             if (document.head) {
                 document.head.appendChild(script);
             } else if (document.body) {
@@ -168,11 +105,6 @@ export default function DifyChatbot() {
                 });
             }
         };
-
-        // if (!isCustomer) {
-        //     removeExistingChatbot();
-        //     return;
-        // }
 
         const initChatbot = async () => {
             removeExistingChatbot();
@@ -217,7 +149,7 @@ export default function DifyChatbot() {
             aborted = true;
             removeExistingChatbot();
         };
-    }, [user?.id, isCustomer]);
+    }, [user, user?.id, user?.role]);
 
     return null;
 }
