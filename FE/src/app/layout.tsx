@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from '@/components/providers';
+import DifyChatbot from "@/components/common/DifyChatbot";
+import CustomerGuard from "@/guards/CustomerGuard";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -105,6 +107,10 @@ export default function RootLayout({
       >
         <Providers>
           {children}
+          {/* Chatbox chỉ hiển thị cho user có role CUSTOMER, cần nằm trong Providers để dùng được AuthContext */}
+          <CustomerGuard>
+            <DifyChatbot />
+          </CustomerGuard>
         </Providers>
       </body>
     </html>

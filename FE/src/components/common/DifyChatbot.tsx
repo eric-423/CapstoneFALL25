@@ -1,5 +1,6 @@
 'use client';
 
+import JwtDecode from '@/utils/jwtDecode';
 import { useEffect } from 'react';
 
 declare global {
@@ -9,6 +10,7 @@ declare global {
             inputs: Record<string, unknown>;
             systemVariables: Record<string, unknown>;
             userVariables: Record<string, unknown>;
+
         };
     }
 }
@@ -24,45 +26,44 @@ const checkChatbotElements = () => {
     return { chatbotButton, chatbotWindow };
 };
 
+
 export default function DifyChatbot() {
     useEffect(() => {
         if (typeof window === 'undefined') return;
 
-        window.difyChatbotConfig = {
-            token: DIFY_TOKEN,
-            inputs: {},
-            systemVariables: {},
-            userVariables: {},
-        };
+        const initChatbot = async () => {
+            try {
+                const response = await fetch('/api/auth/me/getToken', {
+                    credentials: 'include',
+                });
 
-        const existingScript = document.getElementById(SCRIPT_ID) as HTMLScriptElement;
+                if (response.ok) {
+                    const data = await response.json();
+                    const decode = JwtDecode(data.token);
 
-        if (existingScript) {
-            setTimeout(() => {
-                checkChatbotElements();
+                    console.log('Dify JWT:', data.token, 'UserId:', decode.id);
 
-                let checkCount = 0;
-                const maxChecks = 5;
-                const checkInterval = setInterval(() => {
-                    checkCount++;
-                    const { chatbotButton } = checkChatbotElements();
+                    window.difyChatbotConfig = {
+                        token: DIFY_TOKEN,
+                        inputs: {
+                            jwt_token: data.token,
+                            external_user_id: decode.id.toString(),
+                        },
+                        systemVariables: {},
+                        userVariables: {},
+                    };
 
-                    if (chatbotButton || checkCount >= maxChecks) {
-                        clearInterval(checkInterval);
-                    }
-                }, 1000);
-            }, 1000);
-            return;
-        }
+                } else {
+                    window.difyChatbotConfig = {
+                        token: DIFY_TOKEN,
+                        inputs: {},
+                        systemVariables: {},
+                        userVariables: {},
+                    };
+                }
 
-        const script = document.createElement('script');
-        script.src = SCRIPT_URL;
-        script.id = SCRIPT_ID;
-        script.async = true;
-        script.defer = true;
-
-        script.onload = () => {
-            if (!window.difyChatbotConfig) {
+            } catch (error) {
+                console.error('Error fetching JWT token for Dify:', error);
                 window.difyChatbotConfig = {
                     token: DIFY_TOKEN,
                     inputs: {},
@@ -71,40 +72,70 @@ export default function DifyChatbot() {
                 };
             }
 
-            setTimeout(() => {
-                checkChatbotElements();
 
-                let checkCount = 0;
-                const maxChecks = 10;
-                const checkInterval = setInterval(() => {
-                    checkCount++;
-                    const { chatbotButton } = checkChatbotElements();
 
-                    if (chatbotButton) {
-                        clearInterval(checkInterval);
-                    } else if (checkCount >= maxChecks) {
-                        clearInterval(checkInterval);
-                    }
+            const existingScript = document.getElementById(SCRIPT_ID) as HTMLScriptElement | null;
+
+            if (existingScript) {
+                setTimeout(() => {
+                    checkChatbotElements();
+
+                    let checkCount = 0;
+                    const maxChecks = 5;
+                    const checkInterval = setInterval(() => {
+                        checkCount++;
+                        const { chatbotButton } = checkChatbotElements();
+
+                        if (chatbotButton || checkCount >= maxChecks) {
+                            clearInterval(checkInterval);
+                        }
+                    }, 1000);
+                }, 1000);
+
+                return;
+            }
+
+            const script = document.createElement('script');
+            script.src = SCRIPT_URL;
+            script.id = SCRIPT_ID;
+            script.async = true;
+            script.defer = true;
+
+            script.onload = () => {
+                setTimeout(() => {
+                    checkChatbotElements();
+
+                    let checkCount = 0;
+                    const maxChecks = 10;
+                    const checkInterval = setInterval(() => {
+                        checkCount++;
+                        const { chatbotButton } = checkChatbotElements();
+
+                        if (chatbotButton || checkCount >= maxChecks) {
+                            clearInterval(checkInterval);
+                        }
+                    }, 500);
                 }, 500);
-            }, 500);
+            };
+
+            if (document.head) {
+                document.head.appendChild(script);
+            } else if (document.body) {
+                document.body.appendChild(script);
+            } else {
+                document.addEventListener('DOMContentLoaded', () => {
+                    if (document.head) {
+                        document.head.appendChild(script);
+                    } else if (document.body) {
+                        document.body.appendChild(script);
+                    }
+                });
+            }
         };
 
-        if (document.head) {
-            document.head.appendChild(script);
-        } else if (document.body) {
-            document.body.appendChild(script);
-        } else {
-            document.addEventListener('DOMContentLoaded', () => {
-                if (document.head) {
-                    document.head.appendChild(script);
-                } else {
-                    document.body.appendChild(script);
-                }
-            });
-        }
+        initChatbot();
 
-        return () => {
-        };
+        return () => { };
     }, []);
 
     return null;
