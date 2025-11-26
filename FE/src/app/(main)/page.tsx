@@ -51,7 +51,7 @@ export default function Home() {
 
   return (
     <>
-      <main className="min-h-screen bg-background overflow-x-hidden">
+      <main className="min-h-screen bg-[#FFFCF7] overflow-x-hidden">
         <Suspense fallback={<div className="min-h-screen bg-black" />}>
           <HeroSection />
         </Suspense>
