@@ -9,6 +9,7 @@ import { fadeInUp, staggerContainer } from "@/utils/animation";
 import minhduy from "@/assets/images/minhduy.png";
 import vietthai from "@/assets/images/vietthai.png";
 import ngocan from "@/assets/images/ngocan.png";
+import quanghuy from "@/assets/images/quanghuy.png";
 import futureValue from "@/assets/images/futureValue.png";
 import { motion } from "framer-motion";
 import { Eye } from "lucide-react";
@@ -183,7 +184,7 @@ export default function AboutPage() {
                       <CardContent className="text-center">
                         <div className="w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden relative">
                           <Image
-                            src={minhduy}
+                            src={quanghuy}
                             alt="Lê Quang Huy"
                             className="w-full h-full object-cover"
                             width={128}
