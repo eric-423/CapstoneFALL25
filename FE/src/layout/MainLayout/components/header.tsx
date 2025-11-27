@@ -55,11 +55,11 @@ export default function Header() {
         <Button
           variant="ghost"
           size="icon"
-          className="lg:hidden text-primary hover:bg-orange-50"
+          className="lg:hidden !bg-[#FFFCF7] !text-orange-500 hover:!text-orange-600 hover:!bg-[#FFFCF7]"
           onClick={() => setIsMenuOpen(true)}
           disabled={isMenuOpen}
         >
-          {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
         </Button>
       </div>
 
@@ -107,7 +107,7 @@ function NavLinks({
           key={link.href}
           href={link.href}
           onClick={onClick}
-          className={`font-medium text-primary hover:text-orange-600 transition-colors duration-300 ${mobile ? "text-lg py-4" : "text-base"}`}
+          className={`font-medium !text-orange-500 hover:!text-orange-600 transition-colors duration-300 ${mobile ? "text-lg py-4" : "text-base"}`}
         >
           {link.label}
         </Link>
@@ -139,11 +139,11 @@ function ActionButtons({
       <Button
         variant="ghost"
         size={mobile ? "default" : "icon"}
-        className="text-orange-500 hover:text-orange-600 hover:bg-orange-50 flex items-center gap-x-2"
+        className="!bg-[#FFFCF7] !text-orange-500 hover:!text-orange-600 hover:!bg-[#FFFCF7] flex items-center gap-x-2"
       >
         <svg
-          width="32"
-          height="32"
+          width="36"
+          height="36"
           viewBox="0 0 24 24"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -172,10 +172,10 @@ function ActionButtons({
             <Button
               variant="ghost"
               size={mobile ? "default" : "icon"}
-              className="text-orange-500 hover:text-orange-600 hover:bg-orange-50 flex items-center gap-x-2"
+              className="!bg-[#FFFCF7] !text-orange-500 hover:!text-orange-600 hover:!bg-[#FFFCF7] flex items-center gap-x-2"
               onClick={onClick}
             >
-              <User size={mobile ? 20 : 24} />
+              <User size={mobile ? 24 : 28} />
               {mobile && <span className="text-sm font-medium">Tài khoản</span>}
             </Button>
           </Link>
@@ -183,10 +183,10 @@ function ActionButtons({
           <Button
             variant="ghost"
             size={mobile ? "default" : "icon"}
-            className="text-orange-500 hover:text-orange-600 hover:bg-orange-50 flex items-center gap-x-2"
+            className="!bg-[#FFFCF7] !text-orange-500 hover:!text-orange-600 hover:!bg-[#FFFCF7] flex items-center gap-x-2"
             onClick={handleLogout}
           >
-            <LogOut size={mobile ? 20 : 24} />
+            <LogOut size={mobile ? 24 : 28} />
             {mobile && <span className="text-sm font-medium">Đăng xuất</span>}
           </Button>
         </>
@@ -196,9 +196,9 @@ function ActionButtons({
             <Button
               variant="ghost"
               size={mobile ? "default" : "icon"}
-              className="text-orange-500 hover:text-orange-600 hover:bg-orange-50 flex items-center gap-x-2"
+              className="!bg-[#FFFCF7] !text-orange-500 hover:!text-orange-600 hover:!bg-[#FFFCF7] flex items-center gap-x-2"
             >
-              <User size={mobile ? 20 : 24} />
+              <User size={mobile ? 24 : 28} />
               {mobile && <span className="text-sm font-medium">Đăng nhập</span>}
             </Button>
           </Link>

@@ -95,13 +95,13 @@ const BestSellersSection = ({ products }: BestSellersNewProps) => {
           <div className="flex items-center gap-3">
             <button
               onClick={() => scroll("left")}
-              className="w-12 h-12 rounded-full bg-[#F8A91F] hover:bg-[#EC6426] flex items-center justify-center transition-colors shadow-md"
+              className="w-12 h-12 rounded-full !bg-[#F8A91F] hover:bg-[#EC6426] flex items-center justify-center transition-colors shadow-md"
             >
               <ChevronLeft className="w-6 h-6 text-black" />
             </button>
             <button
               onClick={() => scroll("right")}
-              className="w-12 h-12 rounded-full bg-[#F8A91F] hover:bg-[#EC6426] flex items-center justify-center transition-colors shadow-md"
+              className="w-12 h-12 rounded-full !bg-[#F8A91F] hover:bg-[#EC6426] flex items-center justify-center transition-colors shadow-md"
             >
               <ChevronRight className="w-6 h-6 text-black" />
             </button>
