@@ -1,14 +1,12 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Product } from "@/apis/product.api";
-import { Star, ChevronLeft, ChevronRight } from "lucide-react";
-import Image from "next/image";
-import { motion } from "framer-motion";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Montserrat } from "next/font/google";
 import { useRef, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getTopSellingItems, SellingItem } from "@/apis/statistics.api";
+import { ProductCard } from "./product-card";
 
 const montserrat = Montserrat({
   subsets: ["latin", "vietnamese"],
@@ -86,7 +84,7 @@ const BestSellersSection = ({ products }: BestSellersNewProps) => {
   };
 
   return (
-    <section className={`py-20 bg-[#FFFCF7] pl-5 pr-5 ${montserrat.className}`}>
+    <section className={`py-15 bg-[#FFFCF7] pl-5 pr-5 ${montserrat.className}`}>
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-black">
@@ -118,55 +116,16 @@ const BestSellersSection = ({ products }: BestSellersNewProps) => {
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           >
             {displayProducts.map((item, index) => (
-              <motion.div
+              <ProductCard
                 key={item.id}
-                className="flex-shrink-0 w-72 bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow text-center"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: false }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-              >
-                <div className="relative h-48 overflow-hidden">
-                  <Image
-                    src={item.image}
-                    alt={item.title}
-                    fill
-                    sizes="288px"
-                    className="object-cover transition-transform duration-300 hover:scale-105"
-                    loading="lazy"
-                  />
-                </div>
-                <div className="p-5">
-                  <h3 className="text-lg font-bold text-black mb-2">
-                    {item.title}
-                  </h3>
-                  <div className="flex items-center gap-1 mb-3 justify-center">
-                    {[...Array(item.rating)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className="w-4 h-4 text-yellow-500 fill-yellow-500"
-                      />
-                    ))}
-                  </div>
-
-                  <p className="text-gray-600 text-sm mb-4 leading-relaxed">
-                    {item.description}
-                  </p>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-xl font-bold text-black">
-                      {item.price}đ
-                    </span>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="bg-gray-100 border-2 border-orange-500 text-orange-500 hover:bg-orange-200 hover:text-orange-500 hover:border-orange-500 font-semibold rounded-full px-4 transition-colors"
-                    >
-                      Thêm vào giỏ
-                    </Button>
-                  </div>
-                </div>
-              </motion.div>
+                id={item.id}
+                title={item.title}
+                description={item.description}
+                price={item.price}
+                rating={item.rating}
+                image={item.image}
+                index={index}
+              />
             ))}
           </div>
         ) : null}

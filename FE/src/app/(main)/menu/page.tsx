@@ -1,6 +1,4 @@
 "use client";
-
-import image from "@/assets/images/Home - Banner.jpg";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import StyledHeading from "@/components/common/styled-heading";
 import { Button } from "@/components/ui/button";
@@ -25,11 +23,9 @@ import {
 import { useAuth } from "@/utils/hooks";
 import { useSampleProductTypes } from "@/utils/hooks/useSampleData";
 
-import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
-import BranchList from "./components/branch-list";
 import FeaturedProduct from "./components/featured-product";
 import ProductList from "./components/product-list";
 import ProductTypeList from "./components/product-type-list";
@@ -183,6 +179,21 @@ export default function MenuPage() {
     if (isLoadingBranches) return;
     if (!displayBranches.length) return;
 
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("selectedBranch");
+      if (stored) {
+        try {
+          const branch = JSON.parse(stored) as Branch;
+          if (displayBranches.some((b) => b.branchId === branch.branchId)) {
+            setSelectedBranch(branch);
+            return;
+          }
+        } catch (e) {
+          console.error("Error parsing stored branch:", e);
+        }
+      }
+    }
+
     setSelectedBranch((prev) => {
       if (
         prev &&
@@ -197,6 +208,27 @@ export default function MenuPage() {
       return firstBranch;
     });
   }, [displayBranches, isLoadingBranches]);
+
+  useEffect(() => {
+    const handleBranchChange = (event: CustomEvent) => {
+      const branch = event.detail as Branch;
+      setSelectedBranch(branch);
+      resetAndRefetch();
+    };
+
+    if (typeof window !== "undefined") {
+      window.addEventListener(
+        "branchChanged",
+        handleBranchChange as EventListener
+      );
+      return () => {
+        window.removeEventListener(
+          "branchChanged",
+          handleBranchChange as EventListener
+        );
+      };
+    }
+  }, [resetAndRefetch]);
 
   const scrollToTop = useCallback(() => {
     if (typeof window !== "undefined") {
@@ -282,22 +314,15 @@ export default function MenuPage() {
         <>
           <div
             id="hero-section"
-            className="relative h-64 md:h-80 overflow-hidden"
+            className="relative h-48 md:h-64 overflow-hidden "
           >
-            <Image
-              src={image}
-              alt="Tấm Tắc Menu"
-              fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              className="object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-black/20 flex items-center justify-center">
+            <div className="absolute inset-0 bg-[#FFFCF7] flex items-center justify-center pt-20 pb-10">
               <div className="text-center">
-                <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+                <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-[#2D1E1A] mb-4">
                   <StyledHeading text="Thực đơn Tấm Tắc" />
                 </h1>
-                <p className="text-white/90 max-w-2xl mx-auto px-4">
-                  <span className="text-background font-medium">Tấm Tắc</span>{" "}
+                <p className="text-lg md:text-xl lg:text-2xl text-black/90 max-w-2xl mx-auto px-4">
+                  <span className="text-orange-500 font-medium">Tấm Tắc</span>{" "}
                   là chuỗi hệ thống cơm tấm với mong muốn mang đến cho sinh viên
                   những bữa cơm tấm chất lượng với giá cả hợp lý, đảm bảo vệ
                   sinh an toàn thực phẩm
@@ -306,115 +331,100 @@ export default function MenuPage() {
             </div>
           </div>
 
-
-          <div className="container mx-auto px-10 md:px-10 pt-8 py-20">
-            <div className="flex flex-col lg:flex-row gap-8">
-              <div className="lg:w-1/4">
-                <div className="bg-white rounded-xl shadow-sm p-6 sticky top-24">
-                  <h2 className="text-xl font-bold mb-6">Danh mục</h2>
-                  <div className="space-y-6">
-                    <ProductTypeList
-                      productTypes={productTypes || []}
-                      productType={productType}
-                      setProductType={setProductType}
-                      resetAndRefetch={resetAndRefetch}
-                    />
-                    <div>
-                      <h3 className="text-sm uppercase text-gray-500 font-medium mb-3">
-                        Cửa hàng
-                      </h3>
-                      <BranchList
-                        branches={displayBranches}
-                        selectedBranch={selectedBranch}
-                        setSelectedBranch={setSelectedBranch}
-                        resetAndRefetch={resetAndRefetch}
-                      />
-                    </div>
-                  </div>
+          <div className="container mx-auto px-10 md:px-10 pt-8 py-10 bg-[#FFFCF7]">
+            <div className="w-full mb-6 flex justify-center">
+              <ProductTypeList
+                productTypes={productTypes || []}
+                productType={productType}
+                setProductType={setProductType}
+                resetAndRefetch={resetAndRefetch}
+              />
+            </div>
+            <div className="w-full" id="menu-content">
+              {featuredProduct && productType.id === 0 && page === 0 && (
+                <FeaturedProduct product={featuredProduct} />
+              )}
+              <div>
+                <div className="flex items-center justify-between mt-15 mb-10">
+                  <h2 className="text-4xl font-bold break-words">
+                    {selectedBranch?.branchName ? (
+                      <>
+                        <span className="break-words">
+                          {selectedBranch.branchName}
+                        </span>{" "}
+                        -{" "}
+                        <span className="font-bold text-4xl text-orange-500 break-words">
+                          {productType.name}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="break-words">{productType.name}</span>
+                    )}
+                  </h2>
                 </div>
-              </div>
-              <div className="lg:w-3/4" id="menu-content">
-                {featuredProduct && productType.id === 0 && page === 0 && (
-                  <FeaturedProduct product={featuredProduct} />
-                )}
-                <div>
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold">
-                      {selectedBranch?.branchName ? (
-                        <>
-                          {selectedBranch.branchName}{" "}
-                          <span className="font-normal text-base">
-                            - {productType.name}
-                          </span>
-                        </>
-                      ) : (
-                        productType.name
-                      )}
-                    </h2>
+                {isLoadingProducts ? (
+                  <div className="flex items-center justify-center">
+                    <LoadingSpinner className="my-10 h-8 w-8 animate-spin" />
                   </div>
-                  {isLoadingProducts ? (
-                    <div className="flex items-center justify-center">
-                      <LoadingSpinner className="my-10 h-8 w-8 animate-spin" />
+                ) : (
+                  <>
+                    <div
+                      className={`transition-all duration-500 ${pageAnimating ? "animate-slide-up" : ""}`}
+                    >
+                      <ProductList products={productList} />
                     </div>
-                  ) : (
-                    <>
-                      <div
-                        className={`transition-all duration-500 ${pageAnimating ? "animate-slide-up" : ""}`}
-                      >
-                        <ProductList products={productList} />
-                      </div>
 
-                      {totalPages > 1 && (
-                        <div className="mt-10 flex flex-col items-center gap-4">
-                          <div className="flex flex-wrap items-center justify-center gap-2">
-                            <Button
-                              className="rounded-xl font-semibold px-4 py-2 h-10 bg-[#EC6426]/30 text-[#D95714] hover:bg-[#EC6426]/50 transition-colors disabled:bg-[#F7D7BF] disabled:text-white disabled:cursor-not-allowed"
-                              disabled={page === 0}
-                              onClick={handlePrevPage}
-                            >
-                              Trước
-                            </Button>
-                            {paginationPages.map((item, idx) =>
-                              item === "ellipsis" ? (
-                                <span
-                                  key={`ellipsis-${idx}`}
-                                  className="px-2 text-primary font-semibold"
-                                >
-                                  ...
-                                </span>
-                              ) : (
-                                <Button
-                                  key={item}
-                                  className={`h-10 w-10 rounded-xl font-semibold transition-colors duration-200 ${item === page
-                                    ? "bg-[#EC6426] text-white shadow-lg"
-                                    : "bg-[#EC6426]/30 text-[#EC6426] hover:bg-[#EC6426]/50"
-                                    }`}
-                                  onClick={() => handlePageChange(item)}
-                                >
-                                  {item + 1}
-                                </Button>
-                              )
-                            )}
-                            <Button
-                              className="rounded-xl font-semibold px-4 py-2 h-10 bg-[#EC6426]/30 text-[#D95714] hover:bg-[#EC6426]/50 transition-colors disabled:bg-[#F7D7BF] disabled:text-white disabled:cursor-not-allowed"
-                              disabled={page >= totalPages - 1}
-                              onClick={handleNextPage}
-                            >
-                              Sau
-                            </Button>
-                          </div>
-                          <p className="text-sm text-gray-500">
-                            Trang{" "}
-                            <span className="font-semibold text-primary">
-                              {page + 1}
-                            </span>{" "}
-                            / {totalPages}
-                          </p>
+                    {totalPages > 1 && (
+                      <div className="mt-12 flex flex-col items-center gap-6">
+                        <div className="flex flex-wrap items-center justify-center gap-3">
+                          <Button
+                            className="rounded-full font-semibold px-5 py-2 h-11 bg-[#EC6426]/30 text-orange-500 hover:bg-[#EC6426]/50 hover:shadow-md transition-all duration-200 disabled:bg-[#F7D7BF] disabled:text-gray-400 disabled:cursor-not-allowed disabled:opacity-60"
+                            disabled={page === 0}
+                            onClick={handlePrevPage}
+                          >
+                            Trước
+                          </Button>
+                          {paginationPages.map((item, idx) =>
+                            item === "ellipsis" ? (
+                              <span
+                                key={`ellipsis-${idx}`}
+                                className="px-3 text-gray-400 font-semibold text-lg"
+                              >
+                                ...
+                              </span>
+                            ) : (
+                              <Button
+                                key={item}
+                                className={`h-11 w-11 rounded-full font-semibold transition-all duration-200 ${
+                                  item === page
+                                    ? "bg-[#EC6426] text-white shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/40 scale-105"
+                                    : "bg-[#EC6426]/30 text-[#EC6426] hover:bg-[#EC6426]/50 hover:shadow-md border-2 border-transparent hover:border-[#EC6426]/30"
+                                }`}
+                                onClick={() => handlePageChange(item)}
+                              >
+                                {item + 1}
+                              </Button>
+                            )
+                          )}
+                          <Button
+                            className="rounded-full font-semibold px-5 py-2 h-11 bg-[#EC6426]/30 text-[#D95714] hover:bg-[#EC6426]/50 hover:shadow-md transition-all duration-200 disabled:bg-[#F7D7BF] disabled:text-gray-400 disabled:cursor-not-allowed disabled:opacity-60"
+                            disabled={page >= totalPages - 1}
+                            onClick={handleNextPage}
+                          >
+                            Sau
+                          </Button>
                         </div>
-                      )}
-                    </>
-                  )}
-                </div>
+                        <p className="text-sm text-gray-500">
+                          Trang{" "}
+                          <span className="font-semibold text-[#EC6426] text-base">
+                            {page + 1}
+                          </span>{" "}
+                          / {totalPages}
+                        </p>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             </div>
           </div>

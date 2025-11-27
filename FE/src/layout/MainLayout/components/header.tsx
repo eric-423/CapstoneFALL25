@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import configs from "@/utils/configs";
 import { useAuth } from "@/utils/hooks";
 import { useOutsideClicked } from "@/utils/hooks/useOutsideClicked";
+import { BranchDropdown } from "./branch-dropdown";
 
 import { LogOut, Menu, User, X } from "lucide-react";
 import { useState, useRef } from "react";
@@ -47,6 +48,7 @@ export default function Header() {
           <nav className="hidden lg:flex items-center space-x-8">
             <NavLinks />
           </nav>
+          <BranchDropdown />
           <ActionButtons
             isAuthenticated={isAuthenticated}
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -72,6 +74,9 @@ export default function Header() {
           <nav className="flex flex-col space-y-3">
             <NavLinks mobile onClick={() => setIsMenuOpen(!isMenuOpen)} />
           </nav>
+          <div className="flex justify-center items-center w-full pt-4 border-t border-gray-100 px-4">
+            <BranchDropdown />
+          </div>
           <div className="flex justify-center items-center w-full pt-4 border-t border-gray-100 ml-4">
             <ActionButtons
               mobile
@@ -96,8 +101,6 @@ function NavLinks({
     { href: configs.routes.home, label: "Trang chủ" },
     { href: configs.routes.about, label: "Về Tấm Tắc" },
     { href: configs.routes.menu, label: "Đặt Hàng" },
-    { href: "/thuc-don-ai", label: "Thực đơn từ AI" },
-    { href: "/nhuong-quyen", label: "Nhượng Quyền" },
   ];
 
   return (
