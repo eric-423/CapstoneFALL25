@@ -2,6 +2,9 @@ package com.capstone.tamtech.capstone.repositories;
 
 import com.capstone.tamtech.capstone.entities.ProductRecipes;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -23,4 +26,8 @@ public interface ProductRecipesRepository extends JpaRepository<ProductRecipes, 
     boolean existsByProductIdAndOrderStep(int productId, Integer orderStep);
 
     List<ProductRecipes> findByProductIdAndOrderStep(int productId, Integer orderStep);
+
+    @Modifying
+    @Query("delete from ProductRecipes pr where pr.product.id = :productId")
+    void deleteByProductId(@Param("productId") int productId);
 }

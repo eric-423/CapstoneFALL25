@@ -20,7 +20,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.Key;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -110,7 +109,7 @@ public class ProductServiceImpl implements ProductService {
             materialRequiredMap.put(materialId, requiredQuantity);
         }
 
-        for(Map.Entry<Integer, Double> entry : materialRequiredMap.entrySet()) {
+        for (Map.Entry<Integer, Double> entry : materialRequiredMap.entrySet()) {
             int materialId = entry.getKey();
             double requiredQuantity = entry.getValue();
 
@@ -125,7 +124,6 @@ public class ProductServiceImpl implements ProductService {
                 return false;
             }
         }
-
 
         return true;
     }
@@ -202,17 +200,21 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
     public ProductDTO updateProduct(int id, ProductCreateRequest productCreateRequest) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + id));
 
-        List<ProductRecipes> productRecipesList = new ArrayList<>();
+        productRecipesRepository.deleteByProductId(product.getId());
+        productRecipesRepository.flush();
+        if (product.getProductRecipes() != null) {
+            product.getProductRecipes().clear();
+        }
 
         product.setName(productCreateRequest.getName());
         product.setDescription(productCreateRequest.getDescription());
         product.setPrice(productCreateRequest.getPrice());
         product.setImage(productCreateRequest.getImageUrl());
-        product.setCreatedDate(new Date());
         product.setUpdateDate(new Date());
         product.setActive(true);
         product.setProductType(productTypeRepository.findById(productCreateRequest.getTypeId())
@@ -240,11 +242,11 @@ public class ProductServiceImpl implements ProductService {
 
             productRecipesRepository.save(productRecipes);
 
-            product.getProductRecipes().add(productRecipes);
-            productRecipesList.add(productRecipes);
+            if (product.getProductRecipes() != null) {
+                product.getProductRecipes().add(productRecipes);
+            }
         }
 
-        product.setProductRecipes(productRecipesList);
         productRepository.save(product);
 
         reCalculateCaloriesForProduct(product.getId());
@@ -255,7 +257,7 @@ public class ProductServiceImpl implements ProductService {
     private ProductDTO toDTO(Product product) {
         ProductDTO productDTO = new ProductDTO();
 
-        if(product.getCaloriesCache() == null){
+        if (product.getCaloriesCache() == null) {
             product.setCaloriesCache(reCalculateCaloriesForProduct(product.getId()));
             productRepository.save(product);
         }
@@ -306,7 +308,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private ProductSearchDTO mapToProductSearchDTO(Product product, Map<Integer, Integer> quantityMap) {
-        if(product.getCaloriesCache() == null){
+        if (product.getCaloriesCache() == null) {
             product.setCaloriesCache(reCalculateCaloriesForProduct(product.getId()));
             productRepository.save(product);
         }
@@ -344,9 +346,9 @@ public class ProductServiceImpl implements ProductService {
                 for (MaterialNutrients mn : materialNutrients) {
                     double baseNutrient = (rawQuantity * mn.getAmountPer100Unit()) / 100.0;
                     Nutrients nutrients = mn.getNutrient();
-                    CookingMethod cookingMethod = recipe.getCookingMethod()!=null ? recipe.getCookingMethod() : null;
+                    CookingMethod cookingMethod = recipe.getCookingMethod() != null ? recipe.getCookingMethod() : null;
 
-                    if(cookingMethod!=null){
+                    if (cookingMethod != null) {
                         KeyCookingMethodNutrients keyCookingMethodNutrients = new KeyCookingMethodNutrients();
                         keyCookingMethodNutrients.setCookingMethodId(
                                 recipe.getCookingMethod() != null ? recipe.getCookingMethod().getId() : 0);

@@ -129,7 +129,7 @@ public class WarehouseServiceImpl implements WarehouseService {
                     .orElseThrow(
                             () -> new ResourceNotFoundException("Material not found with id: " + item.getMaterialId()));
 
-            KeyMaterialWarehouse key = new KeyMaterialWarehouse(warehouseId, item.getMaterialId());
+            KeyMaterialWarehouse key = new KeyMaterialWarehouse(item.getMaterialId(), warehouseId);
 
             MaterialWarehouse materialWarehouse = materialWarehouseRepository.findById(key).orElse(null);
 
