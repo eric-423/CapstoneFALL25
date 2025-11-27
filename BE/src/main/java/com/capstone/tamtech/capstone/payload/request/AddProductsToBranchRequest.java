@@ -17,6 +17,5 @@ public class AddProductsToBranchRequest {
     @AllArgsConstructor
     public static class ProductItem {
         private int productId;
-        private int quantity;
     }
 }

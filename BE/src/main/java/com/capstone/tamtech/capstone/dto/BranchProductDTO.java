@@ -14,5 +14,4 @@ public class BranchProductDTO {
     private String productName;
     private double productPrice;
     private String productImage;
-    private int quantity;
 }
