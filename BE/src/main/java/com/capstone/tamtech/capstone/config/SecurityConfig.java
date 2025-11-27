@@ -233,7 +233,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/shipper/orders/*/location").hasRole("SHIPPER")
 
                         .requestMatchers("/api/orders/branch/**")
-                        .hasAnyRole("MANAGER", "ADMIN", "WAITER", "CHEFF", "SHIPPER")
+                        .hasAnyRole("MANAGER", "ADMIN", "WAITER", "CHEFF", "SHIPPER","STAFF")
                         .requestMatchers("/api/orders/statuses").permitAll()
 
                         .requestMatchers("/api/orders/customer/pickup").hasAnyRole("CUSTOMER", "STAFF")
