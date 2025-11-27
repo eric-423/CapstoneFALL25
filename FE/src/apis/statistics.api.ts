@@ -285,7 +285,14 @@ export async function getTopSellingItems(
     return { items: [] };
   }
 
-  const mappedItems: SellingItem[] = result.data.topItems.map((item: any) => ({
+  const mappedItems: SellingItem[] = result.data.topItems.map((item: {
+    id: number;
+    name: string;
+    type: "PRODUCT" | "COMBO";
+    quantitySold: number;
+    revenue: number;
+    imageUrl?: string;
+  }) => ({
     itemId: item.id,
     itemName: item.name,
     itemType: item.type,

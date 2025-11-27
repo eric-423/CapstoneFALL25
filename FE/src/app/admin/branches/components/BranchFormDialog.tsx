@@ -77,7 +77,7 @@ export function BranchFormDialog({ open, onOpenChange, branch, onSuccess }: Bran
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
             <Card className="w-full max-w-2xl bg-white shadow-2xl rounded-2xl border-0 overflow-hidden py-0">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-[#EC6426] to-[#F8A91F] p-5 flex items-center justify-between">
+                <div className="bg-[#78A243] p-5 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
                             <Building className="h-5 w-5 text-white" />
@@ -108,7 +108,7 @@ export function BranchFormDialog({ open, onOpenChange, branch, onSuccess }: Bran
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             placeholder="Chi nhánh Quận 1"
-                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-sm focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition-all"
+                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-sm focus:border-[#78A243] focus:ring-2 focus:ring-[#78A243]/20 transition-all"
                         />
                     </div>
 
@@ -122,7 +122,7 @@ export function BranchFormDialog({ open, onOpenChange, branch, onSuccess }: Bran
                             onChange={(e) => setAddress(e.target.value)}
                             placeholder="123 Nguyễn Huệ, Phường Bến Thành, Quận 1, TP.HCM"
                             rows={3}
-                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-sm focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition-all resize-none"
+                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-sm focus:border-[#78A243] focus:ring-2 focus:ring-[#78A243]/20 transition-all resize-none"
                         />
                     </div>
 
@@ -136,7 +136,7 @@ export function BranchFormDialog({ open, onOpenChange, branch, onSuccess }: Bran
                             value={phoneNumber}
                             onChange={(e) => setPhoneNumber(e.target.value)}
                             placeholder="0900000000"
-                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-sm focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition-all"
+                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-sm focus:border-[#78A243] focus:ring-2 focus:ring-[#78A243]/20 transition-all"
                         />
                     </div>
                 </div>
@@ -154,7 +154,7 @@ export function BranchFormDialog({ open, onOpenChange, branch, onSuccess }: Bran
                     <Button
                         onClick={handleSubmit}
                         disabled={loading}
-                        className="px-5 py-2.5 bg-gradient-to-r from-[#EC6426] to-[#F8A91F] hover:from-[#EC6426]/90 hover:to-[#F8A91F]/90 text-white shadow-lg hover:shadow-xl transition-all font-semibold"
+                        className="px-5 py-2.5 bg-[#78A243] hover:bg-[#78A243]/90 text-white shadow-lg hover:shadow-xl transition-all font-semibold"
                     >
                         {loading ? (
                             <>

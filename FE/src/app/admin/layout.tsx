@@ -29,6 +29,9 @@ import {
   X,
   Warehouse,
   Calendar,
+  Leaf,
+  Flame,
+  UtensilsCrossed,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 
@@ -86,11 +89,10 @@ const MenuItem = memo(
                     flex items-center gap-3 py-2.5 sm:py-3 rounded-xl 
                     transition-all duration-150 relative group flex-1
                     ${isCollapsed ? "justify-center px-3" : "px-4 ml-10"}
-                    ${
-                      isActive
-                        ? "bg-white/20 text-white shadow-lg font-semibold backdrop-blur-sm"
-                        : "text-white/80 hover:bg-white/10 hover:text-white"
-                    }
+                    ${isActive
+                ? "bg-white/20 text-white shadow-lg font-semibold backdrop-blur-sm"
+                : "text-white/80 hover:bg-white/10 hover:text-white"
+              }
                 `}
           >
             {isActive && isCollapsed && (
@@ -127,34 +129,37 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-    const { logout } = useAuthContext();
-    const pathname = usePathname();
-    const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [isCollapsed, setIsCollapsed] = useState(false);
+  const { logout } = useAuthContext();
+  const pathname = usePathname();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
-    // Memoize menu items to prevent recreation on every render
-    const menuItems = useMemo(() => [
-        { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { href: '/admin/users', label: 'Người dùng', icon: Users },
-        { href: '/admin/branches', label: 'Chi nhánh', icon: Store },
-        { href: '/admin/materials', label: 'Nguyên liệu', icon: Package },
-        { href: '/admin/warehouses', label: 'Kho', icon: Warehouse },
-        { href: '/admin/recipes', label: 'Công thức', icon: BookOpen },
-        { href: '/admin/combos', label: 'Combo', icon: Gift },
-        { href: '/admin/training', label: 'Khóa đào tạo', icon: GraduationCap },
-        { href: '/admin/schedule', label: 'Lịch trình', icon: Calendar },
-        { href: '/admin/orders', label: 'Đơn hàng', icon: ShoppingBag },
-        { href: '/admin/finance', label: 'Tài chính', icon: DollarSign },
-        { href: '/admin/promotions', label: 'Khuyến mãi', icon: Gift },
-        { href: '/admin/feedback', label: 'Phản hồi', icon: MessageSquare },
-        { href: '/admin/settings', label: 'Cài đặt', icon: Settings },
-    ], []);
+  // Memoize menu items to prevent recreation on every render
+  const menuItems = useMemo(() => [
+    { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/admin/users', label: 'Người dùng', icon: Users },
+    { href: '/admin/branches', label: 'Chi nhánh', icon: Store },
+    { href: '/admin/products', label: 'Món ăn', icon: UtensilsCrossed },
+    { href: '/admin/materials', label: 'Nguyên liệu', icon: Package },
+    { href: '/admin/nutrients', label: 'Dinh dưỡng', icon: Leaf },
+    { href: '/admin/cooking-methods', label: 'Phương pháp nấu', icon: Flame },
+    { href: '/admin/warehouses', label: 'Kho', icon: Warehouse },
+    { href: '/admin/combos', label: 'Combo', icon: Gift },
+    { href: '/admin/training', label: 'Khóa đào tạo', icon: GraduationCap },
+    { href: '/admin/schedule', label: 'Lịch trình', icon: Calendar },
+    { href: '/admin/orders', label: 'Đơn hàng', icon: ShoppingBag },
+    { href: '/admin/finance', label: 'Tài chính', icon: DollarSign },
+    { href: '/admin/promotions', label: 'Khuyến mãi', icon: Gift },
+    { href: '/admin/feedback', label: 'Phản hồi', icon: MessageSquare },
+    { href: '/admin/settings', label: 'Cài đặt', icon: Settings },
+    { href: '/admin/branches/menu-manager', label: 'Quản lý Menu', icon: Store },
+  ], []);
 
-    // Calculate active menu index for animated circle
-    const activeIndex = useMemo(() => {
-        const index = menuItems.findIndex(item => pathname === item.href);
-        return index >= 0 ? index : 0;
-    }, [pathname, menuItems]);
+  // Calculate active menu index for animated circle
+  const activeIndex = useMemo(() => {
+    const index = menuItems.findIndex(item => pathname === item.href);
+    return index >= 0 ? index : 0;
+  }, [pathname, menuItems]);
 
   const handleLogout = useCallback(() => {
     logout();

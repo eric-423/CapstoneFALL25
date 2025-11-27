@@ -14,21 +14,21 @@ export interface SuccessResponse<T> {
 }
 
 export interface Product {
-  productId: number;
-  productName: string;
-  productDescription: string;
-  productImage: string;
-  productPrice: number;
-  rating?: number;
-  productType: string;
-  productTypeId?: number;
-  productQuantity?: number;
-  quantityInBranch?: number;
-  createdDate?: string;
-  updatedDate?: string;
-  active?: boolean;
-  calories?: number;
-  inStock?: boolean;
+    productId: number;
+    productName: string;
+    productDescription: string;
+    productImage: string;
+    productPrice: number;
+    rating?: number;
+    productType: string;
+    productTypeId?: number;
+    productQuantity?: number;
+    quantityInBranch?: number;
+    createdDate?: string;
+    updatedDate?: string;
+    active?: boolean;
+    calories?: number;
+    inStock?: boolean;
 }
 
 export interface ProductType {
@@ -128,14 +128,27 @@ export const getProductsByBranch = async (
     page: number = 0,
     size: number = 100,
 ) => {
-    const { data } = await http.get(`/products/branch/${branchId}`, {
-        params: {
-            page,
-            size,
-            typeId: productType,
+    const queryParams = new URLSearchParams({
+        page: page.toString(),
+        size: size.toString(),
+        productTypeId: productType.toString(),
+        branchId: branchId.toString(),
+    });
+
+    // Use fetch to call the Next.js API route (Proxy)
+    const response = await fetch(`/api/products/search?${queryParams.toString()}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
         },
     });
-    return data.data;
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch products by branch');
+    }
+
+    const data = await response.json();
+    return data?.data?.content || data?.content || [];
 };
 
 
@@ -188,9 +201,21 @@ export const getProduct = async (
         params.productTypeId = productTypeId;
     }
 
-    const { data } = await http.get('/products/search', {
-        params,
+    // Use fetch to call the Next.js API route (Proxy)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const queryString = new URLSearchParams(params as any).toString();
+    const response = await fetch(`/api/products/search?${queryString}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
     });
+
+    if (!response.ok) {
+        console.error('Failed to fetch products via proxy');
+    }
+
+    const data = await response.json();
 
 
 
@@ -285,3 +310,110 @@ export const getTopSellingProducts = async (branchId: number, limit: number = 1)
     return data;
 };
 
+
+export interface AllBranchProductSearchParams {
+    keyword?: string;
+    productTypeId?: number;
+    isActive?: boolean;
+    minPrice?: number;
+    maxPrice?: number;
+    page?: number;
+    size?: number;
+    sortBy?: string;
+    sortDirection?: 'ASC' | 'DESC';
+}
+
+export const getAllBranchProducts = async (params: AllBranchProductSearchParams = {}) => {
+    const {
+        keyword,
+        productTypeId,
+        isActive,
+        minPrice,
+        maxPrice,
+        page = 0,
+        size = 100,
+        sortBy,
+        sortDirection
+    } = params;
+
+    const queryParams: Record<string, string | number | boolean> = {
+        page,
+        size,
+    };
+
+    if (keyword) queryParams.keyword = keyword;
+    if (productTypeId) queryParams.productTypeId = productTypeId;
+    if (isActive !== undefined) queryParams.isActive = isActive;
+    if (minPrice !== undefined) queryParams.minPrice = minPrice;
+    if (maxPrice !== undefined) queryParams.maxPrice = maxPrice;
+    if (sortBy) queryParams.sortBy = sortBy;
+    if (sortDirection) queryParams.sortDirection = sortDirection;
+
+    // Use fetch to call the Next.js API route (Proxy)
+    // This ensures we hit the route handler which injects the token from cookies
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const queryString = new URLSearchParams(queryParams as any).toString();
+    const response = await fetch(`/api/products/all-branch/search?${queryString}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch products');
+    }
+
+    const data = await response.json();
+
+    return data?.data || data;
+};
+export interface RecipeRequest {
+    materialId: number;
+    quantity: number;
+    orderStep: number;
+    cookingMethodId: number;
+}
+
+export interface ProductCreateRequest {
+    name: string;
+    description: string;
+    price: number;
+    imageUrl: string;
+    typeId: number;
+    recipesRequests?: RecipeRequest[];
+}
+
+export const createProduct = async (data: ProductCreateRequest) => {
+    const response = await fetch('/api/products', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to create product');
+    }
+
+    const resData = await response.json();
+    return resData.data;
+};
+
+export const updateProduct = async (productId: number, data: ProductCreateRequest) => {
+    const response = await fetch(`/api/products/${productId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to update product');
+    }
+
+    const resData = await response.json();
+    return resData.data;
+};

@@ -16,12 +16,10 @@ export async function GET(
             );
         }
 
-        const branchIdFromCookie = cookieStore.get('branchId')?.value;
         const { warehouseId } = await params;
-        const warehouseIdToUse = branchIdFromCookie || warehouseId;
 
         const response = await fetch(
-            `${process.env.NEXT_PUBLIC_BASE_URL}/warehouses/${warehouseIdToUse}/materials`,
+            `${process.env.NEXT_PUBLIC_BASE_URL}/warehouses/${warehouseId}/materials`,
             {
                 method: 'GET',
                 headers: {
@@ -56,13 +54,11 @@ export async function POST(
             );
         }
 
-        const branchIdFromCookie = cookieStore.get('branchId')?.value;
         const { warehouseId } = await params;
-        const warehouseIdToUse = branchIdFromCookie || warehouseId;
         const body = await request.json();
 
         const response = await fetch(
-            `${process.env.NEXT_PUBLIC_BASE_URL}/warehouses/${warehouseIdToUse}/materials`,
+            `${process.env.NEXT_PUBLIC_BASE_URL}/warehouses/${warehouseId}/materials`,
             {
                 method: 'POST',
                 headers: {

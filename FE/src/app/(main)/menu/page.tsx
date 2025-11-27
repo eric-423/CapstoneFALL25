@@ -11,6 +11,9 @@ import {
   Product,
   ProductType,
   getTopSellingProducts,
+  getProductType,
+  GET_PRODUCT_TYPE_QUERY_KEY,
+  GET_PRODUCT_TYPE_STALE_TIME,
 } from "@/apis/product.api";
 import { getCustomerInformation } from "@/apis/user.api";
 import {
@@ -23,7 +26,6 @@ import {
   NearbyBranch,
 } from "@/apis/branch.api";
 import { useAuth } from "@/utils/hooks";
-import { useSampleProductTypes } from "@/utils/hooks/useSampleData";
 
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -53,8 +55,14 @@ export default function MenuPage() {
   const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
   const [pageAnimating, setPageAnimating] = useState(false);
 
-  const { productTypes, isLoading: isLoadingProductTypes } =
-    useSampleProductTypes();
+  const { data: productTypes = [], isLoading: isLoadingProductTypes } =
+    useQuery({
+      queryKey: [GET_PRODUCT_TYPE_QUERY_KEY],
+      queryFn: () => getProductType(),
+      staleTime: GET_PRODUCT_TYPE_STALE_TIME,
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+    });
   const { data: branchesData = [], isLoading: isLoadingBranchesData } =
     useQuery<ApiBranch[]>({
       queryKey: [GET_BRANCHES_QUERY_KEY],

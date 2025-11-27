@@ -164,7 +164,7 @@ export default function CombosManagementPage() {
                 actions={
                     <Button
                         onClick={handleCreateCombo}
-                        className="bg-[#78A243] hover:bg-[#78A243]/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold text-sm sm:text-base"
+                        className="bg-[#78A243] hover:bg-[#78A243]/90 text-white shadow-md hover:shadow-lg transition-all"
                     >
                         <Plus className="h-4 w-4 mr-2" />
                         Tạo combo mới
@@ -341,8 +341,8 @@ export default function CombosManagementPage() {
 
                                     <div className="space-y-2">
                                         <div className="flex items-center gap-2 text-sm">
-                                            <DollarSign className="h-4 w-4 text-[#DA7339]" />
-                                            <span className="font-bold text-[#DA7339]">{formatPrice(combo.price)}</span>
+                                            <DollarSign className="h-4 w-4 text-[#78A243]" />
+                                            <span className="font-bold text-[#78A243]">{formatPrice(combo.price)}</span>
                                         </div>
                                         <div className="flex items-center gap-2 text-xs text-gray-600">
                                             <Store className="h-3 w-3" />

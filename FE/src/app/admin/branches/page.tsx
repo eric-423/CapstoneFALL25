@@ -13,6 +13,7 @@ import {
     XCircle,
     Search,
     Crown,
+    X,
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
@@ -22,7 +23,7 @@ import { AdminPageLayout, AdminPageHeader } from '../components/AdminPageLayout'
 import { AdminCard } from '../components/AdminCard';
 import { getBranchStatistics, activateBranch, deactivateBranch, type BranchStatistics, type BranchDetail } from '@/apis/branch.api';
 import { BranchFormDialog } from './components/BranchFormDialog';
-import { BranchConfirmDialog } from './components/BranchConfirmDialog';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 
 export default function BranchesManagementPage() {
     const [statistics, setStatistics] = useState<BranchStatistics | null>(null);
@@ -108,6 +109,11 @@ export default function BranchesManagementPage() {
         fetchStatistics();
     };
 
+    const handleClearFilters = () => {
+        setSearchKeyword('');
+        setStatusFilter('');
+    };
+
     // Filter branches
     const filteredBranches = statistics?.branches.filter(branch => {
         const matchesKeyword = !searchKeyword ||
@@ -130,7 +136,7 @@ export default function BranchesManagementPage() {
                 actions={
                     <Button
                         onClick={handleCreateBranch}
-                        className="bg-[#EC6426] hover:bg-[#D95B21] text-white shadow-md hover:shadow-lg transition-all"
+                        className="bg-[#78A243] hover:bg-[#78A243]/90 text-white shadow-md hover:shadow-lg transition-all"
                     >
                         <Plus className="h-4 w-4 mr-2" />
                         Thêm chi nhánh
@@ -169,27 +175,38 @@ export default function BranchesManagementPage() {
             )}
 
             {/* Filters */}
-            <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-white/60 backdrop-blur-sm border-white/20 border shadow-sm rounded-xl">
+            <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-gradient-to-r from-[#EBD187]/20 to-[#78A243]/10 backdrop-blur-sm border-[#78A243]/20 border shadow-sm rounded-xl">
                 <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[200px]">
-                    <div className="relative flex-1 min-w-[200px]">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#2D1E1A]/60" />
                         <input
                             type="text"
                             placeholder="Tìm theo tên, địa chỉ, số điện thoại..."
                             value={searchKeyword}
                             onChange={(e) => setSearchKeyword(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 border bg-white/50 border-[#78A243]/30 rounded-lg text-sm focus:border-[#78A243] outline-none"
+                            className="w-full max-w-[300px] pl-10 pr-4 py-2 border bg-white/80 border-[#78A243]/30 rounded-lg text-sm focus:border-[#78A243] focus:ring-1 focus:ring-[#78A243]/20 outline-none"
                         />
                     </div>
                     <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
-                        className="px-3 py-2 border bg-white/50 border-[#78A243]/30 rounded-lg text-sm focus:border-[#78A243] outline-none"
+                        className="px-3 py-2 border bg-white/80 border-[#78A243]/30 rounded-lg text-sm text-[#2D1E1A] focus:border-[#78A243] outline-none"
                     >
                         <option value="">Tất cả trạng thái</option>
                         <option value="active">Đang hoạt động</option>
                         <option value="inactive">Ngừng hoạt động</option>
                     </select>
+
+                    {(searchKeyword || statusFilter) && (
+                        <Button
+                            onClick={handleClearFilters}
+                            variant="ghost"
+                            size="sm"
+                        >
+                            <X className="h-4 w-4 mr-1" />
+                            Xóa lọc
+                        </Button>
+                    )}
                 </div>
             </div>
 
@@ -232,8 +249,8 @@ export default function BranchesManagementPage() {
                                     <tr key={branch.id} className="hover:bg-[#EBD187]/10 transition-colors">
                                         <td className="px-4 py-3">
                                             <div className="flex items-center gap-2">
-                                                <div className="w-10 h-10 bg-gradient-to-br from-[#78A243] to-[#DA7339] rounded-lg flex items-center justify-center">
-                                                    <Building className="h-5 w-5 text-white" />
+                                                <div className="w-10 h-10 bg-[#78A243]/20 rounded-lg flex items-center justify-center">
+                                                    <Building className="h-5 w-5 text-[#78A243]" />
                                                 </div>
                                                 <div>
                                                     <div className="flex items-center gap-2">
@@ -329,12 +346,21 @@ export default function BranchesManagementPage() {
                 onSuccess={handleDialogSuccess}
             />
 
-            <BranchConfirmDialog
+            <ConfirmDialog
                 open={showConfirmDialog}
                 onOpenChange={setShowConfirmDialog}
                 onConfirm={handleConfirmAction}
-                type={confirmType}
-                branchName={selectedBranch?.name || ''}
+                title={confirmType === 'activate' ? 'Kích hoạt chi nhánh' : 'Vô hiệu hóa chi nhánh'}
+                content={
+                    <span>
+                        Bạn có chắc chắn muốn {confirmType === 'activate' ? 'kích hoạt' : 'vô hiệu hóa'} chi nhánh <span className="font-bold text-gray-900">{selectedBranch?.name}</span>?
+                    </span>
+                }
+                alertMessage={confirmType === 'activate'
+                    ? "Chi nhánh sẽ bắt đầu hoạt động và có thể nhận đơn hàng."
+                    : "Chi nhánh sẽ tạm ngừng hoạt động và không thể nhận đơn hàng mới."}
+                confirmText={confirmType === 'activate' ? 'Kích hoạt' : 'Vô hiệu hóa'}
+                variant={confirmType === 'activate' ? 'success' : 'destructive'}
                 loading={actionLoading}
             />
         </AdminPageLayout>

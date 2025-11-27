@@ -104,9 +104,10 @@ export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboF
         setComboItems(comboItems.filter((_, i) => i !== index));
     };
 
-    const handleItemChange = (index: number, field: keyof ComboItem, value: any) => {
+    const handleItemChange = (index: number, field: keyof ComboItem, value: string | number) => {
         const newItems = [...comboItems];
-        newItems[index] = { ...newItems[index], [field]: value };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        newItems[index] = { ...newItems[index], [field]: value } as any;
         setComboItems(newItems);
     };
 
@@ -201,7 +202,7 @@ export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboF
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
                                         placeholder="VD: Combo cơm tấm 2 người"
-                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-sm focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition-all"
+                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-sm focus:border-[#78A243] focus:ring-2 focus:ring-[#78A243]/20 transition-all"
                                     />
                                 </div>
 
@@ -236,7 +237,7 @@ export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboF
                                     onChange={(e) => setDescription(e.target.value)}
                                     placeholder="VD: 2 phần cơm tấm sườn + 2 chanh muối"
                                     rows={3}
-                                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-sm focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition-all resize-none"
+                                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-sm focus:border-[#78A243] focus:ring-2 focus:ring-[#78A243]/20 transition-all resize-none"
                                 />
                             </div>
 
@@ -250,7 +251,7 @@ export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboF
                                     <select
                                         value={branchId || ''}
                                         onChange={(e) => setBranchId(parseInt(e.target.value))}
-                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-sm focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition-all bg-white"
+                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-sm focus:border-[#78A243] focus:ring-2 focus:ring-[#78A243]/20 transition-all bg-white"
                                     >
                                         <option value="">Chọn chi nhánh</option>
                                         {branches.map(branch => (
@@ -271,7 +272,7 @@ export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboF
                                         type="date"
                                         value={startDate}
                                         onChange={(e) => setStartDate(e.target.value)}
-                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-sm focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition-all"
+                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-sm focus:border-[#78A243] focus:ring-2 focus:ring-[#78A243]/20 transition-all"
                                     />
                                 </div>
 
@@ -285,7 +286,7 @@ export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboF
                                         type="date"
                                         value={endDate}
                                         onChange={(e) => setEndDate(e.target.value)}
-                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-sm focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition-all"
+                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-sm focus:border-[#78A243] focus:ring-2 focus:ring-[#78A243]/20 transition-all"
                                     />
                                 </div>
                             </div>
@@ -307,8 +308,8 @@ export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboF
 
                         {/* Combo Items Section */}
                         <div className="space-y-4">
-                            <div className="flex items-center gap-2 pb-2 border-b-2 border-orange-100">
-                                <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center">
+                            <div className="flex items-center gap-2 pb-2 border-b-2 border-[#78A243]/20">
+                                <div className="w-8 h-8 bg-gradient-to-br from-[#78A243] to-[#78A243]/80 rounded-lg flex items-center justify-center">
                                     <span className="text-white font-bold text-sm">2</span>
                                 </div>
                                 <h3 className="text-lg font-bold text-gray-900">Sản phẩm trong combo</h3>
@@ -342,7 +343,7 @@ export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboF
 
                             {loadingProducts ? (
                                 <div className="flex flex-col items-center justify-center py-12 text-gray-500">
-                                    <div className="w-12 h-12 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin mb-4"></div>
+                                    <div className="w-12 h-12 border-4 border-[#78A243]/30 border-t-[#78A243] rounded-full animate-spin mb-4"></div>
                                     <p className="text-sm font-semibold">Đang tải danh sách sản phẩm...</p>
                                 </div>
                             ) : comboItems.length === 0 ? (
@@ -352,7 +353,7 @@ export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboF
                                     </div>
                                     <p className="text-sm font-bold text-gray-900 mb-1">Chưa có sản phẩm nào</p>
                                     <p className="text-xs text-gray-500 text-center max-w-md">
-                                        Nhấn "Thêm sản phẩm" bên trên để thêm sản phẩm vào combo
+                                        Nhấn &quot;Thêm sản phẩm&quot; bên trên để thêm sản phẩm vào combo
                                     </p>
                                 </div>
                             ) : (
@@ -360,9 +361,9 @@ export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboF
                                     {comboItems.map((item, index) => {
                                         const product = products.find(p => p.productId === item.productId);
                                         return (
-                                            <Card key={index} className="p-4 bg-gradient-to-r from-gray-50 to-slate-50 border-2 border-gray-200 hover:border-orange-300 transition-all shadow-sm hover:shadow-md">
+                                            <Card key={index} className="p-4 bg-gradient-to-r from-gray-50 to-slate-50 border-2 border-gray-200 hover:border-[#78A243] transition-all shadow-sm hover:shadow-md">
                                                 <div className="flex items-start gap-4">
-                                                    <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                    <div className="w-10 h-10 bg-gradient-to-br from-[#78A243] to-[#78A243]/80 rounded-lg flex items-center justify-center flex-shrink-0">
                                                         <span className="text-white font-bold">{index + 1}</span>
                                                     </div>
 
@@ -372,7 +373,7 @@ export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboF
                                                             <select
                                                                 value={item.productId}
                                                                 onChange={(e) => handleItemChange(index, 'productId', parseInt(e.target.value))}
-                                                                className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg text-sm focus:border-orange-400 focus:ring-2 focus:ring-orange-100 bg-white"
+                                                                className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg text-sm focus:border-[#78A243] focus:ring-2 focus:ring-[#78A243]/20 bg-white"
                                                             >
                                                                 {products.map(product => (
                                                                     <option key={product.productId} value={product.productId}>
@@ -389,7 +390,7 @@ export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboF
                                                                 value={item.quantity}
                                                                 onChange={(e) => handleItemChange(index, 'quantity', parseInt(e.target.value))}
                                                                 min="1"
-                                                                className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg text-sm font-semibold text-center focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                                                                className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg text-sm font-semibold text-center focus:border-[#78A243] focus:ring-2 focus:ring-[#78A243]/20"
                                                             />
                                                         </div>
 
@@ -400,7 +401,7 @@ export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboF
                                                                 value={item.note || ''}
                                                                 onChange={(e) => handleItemChange(index, 'note', e.target.value)}
                                                                 placeholder="VD: Không hành, nhiều rau..."
-                                                                className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg text-sm focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                                                                className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg text-sm focus:border-[#78A243] focus:ring-2 focus:ring-[#78A243]/20"
                                                             />
                                                         </div>
 
@@ -423,7 +424,7 @@ export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboF
                                                             Đơn giá: <span className="font-bold text-gray-900">{product.productPrice.toLocaleString('vi-VN')}đ</span>
                                                         </span>
                                                         <span className="text-gray-600">
-                                                            Thành tiền: <span className="font-bold text-orange-600">{(product.productPrice * item.quantity).toLocaleString('vi-VN')}đ</span>
+                                                            Thành tiền: <span className="font-bold text-[#78A243]">{(product.productPrice * item.quantity).toLocaleString('vi-VN')}đ</span>
                                                         </span>
                                                     </div>
                                                 )}
