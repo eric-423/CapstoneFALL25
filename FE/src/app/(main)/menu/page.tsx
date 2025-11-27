@@ -295,7 +295,7 @@ export default function MenuPage() {
   }, [page, scrollToTop]);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#FFFCF7]">
       {isLoadingBranches ? (
         <div className="flex items-center justify-center min-h-screen">
           <LoadingSpinner />
