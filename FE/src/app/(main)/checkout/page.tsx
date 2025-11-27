@@ -49,8 +49,6 @@ import {
   getNearbyBranches,
   NearbyBranch,
 } from "@/apis/branch.api";
-
-// auto complete
 import { AddressAutocomplete } from "@/components/common/address-autocomplete";
 
 type Branch = {
@@ -298,10 +296,11 @@ export default function CheckoutPage() {
 
         const paymentUrl = response?.data?.paymentUrl;
 
-        console.log(response.data.paymentUrl);
+        console.log("Payment URL:", paymentUrl);
+        console.log("Full response:", response);
 
-        if (paymentUrl && response?.data?.address) {
-          // toast.success('Đặt hàng thành công! Chuyển hướng đến thanh toán...');
+        if (paymentUrl) {
+          toast.success("Đặt hàng thành công! Chuyển hướng đến thanh toán...");
 
           setCookie("is_paying", "true");
           setTimeout(() => {
@@ -309,6 +308,8 @@ export default function CheckoutPage() {
           }, 100);
           return;
         }
+
+        toast.error("Không nhận được link thanh toán. Vui lòng thử lại.");
       },
 
       onError: () => {
@@ -834,7 +835,7 @@ export default function CheckoutPage() {
       )}
       <div
         className={cn(
-          "min-h-screen py-8 px-4 md:px-30",
+          "min-h-screen bg-[#FFFCF7] py-8 px-4 md:px-30",
           isOrderSubmitting && "opacity-50 pointer-events-none"
         )}
       >
@@ -847,10 +848,9 @@ export default function CheckoutPage() {
               onSubmit={form.handleSubmit(onSubmit)}
               className="grid grid-cols-1 lg:grid-cols-3 gap-8"
             >
-              {/* Left Column - Customer Information */}
               <div className="lg:col-span-2 space-y-6">
                 <Card>
-                  <CardContent className="space-y-6">
+                  <CardContent className="space-y-6 mt-6">
                     <CheckoutSection
                       title="Thông tin khách hàng"
                       className="mb-2"
@@ -1004,13 +1004,6 @@ export default function CheckoutPage() {
                                   />
                                 </div>
                               </div>
-                              {/* <div className='flex items-start text-sm text-medium ml-3 mt-2'>
-                                                                <MapPin className='h-4 w-4 mr-2 mt-0.5 flex-shrink-0' />
-                                                                <span className='font-medium'>
-                                                                    {branchName}
-                                                                    <p className='font-normal'>Cổng trước {branchAddress}</p>
-                                                                </span>
-                                                            </div> */}
                               {form.getFieldState("receiveTime").error && (
                                 <p className="text-red-500 text-sm ml-3 mt-2">
                                   {
@@ -1034,12 +1027,6 @@ export default function CheckoutPage() {
                           name="deliveryAddress"
                           render={({ field }) => (
                             <FormItem className="space-y-3">
-                              {/* <div className='flex flex-wrap items-center justify-between gap-2'>
-                                                                <FormLabel htmlFor='deliveryAddress' className='m-0 space-y-1'>
-                                                                    <span className='block text-xs text-muted-foreground ps-2'>{branchName} – {branchAddress}</span>
-                                                                </FormLabel>
-                                                            </div> */}
-
                               {isLoadingCustomerInfos ? (
                                 <p className="text-sm text-muted-foreground">
                                   Đang tải địa chỉ giao hàng của bạn...
@@ -1164,62 +1151,9 @@ export default function CheckoutPage() {
                       </CheckoutSection>
                     )}
 
-                    <Separator className="my-6 bg-foreground/20" />
-
-                    <CheckoutSection
-                      title="Phương thức thanh toán"
-                      className="mb-2"
-                      icon={<CreditCard className="h-5 w-5 text-primary" />}
-                    >
-                      <FormField
-                        control={form.control}
-                        name="paymentMethod"
-                        render={({ field }) => (
-                          <FormItem className="space-y-3">
-                            <FormControl>
-                              <RadioGroup
-                                value={field.value}
-                                onValueChange={field.onChange}
-                                className="space-y-2"
-                              >
-                                <div className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 bg-white">
-                                  <RadioGroupItem value="qr" id="qr" />
-                                  <Label
-                                    htmlFor="qr"
-                                    className="flex items-center cursor-pointer flex-1"
-                                  >
-                                    <div className="h-8 w-8 bg-[#1a1a1a] rounded-md flex items-center justify-center mr-3">
-                                      <QrCode className="h-5 w-5 text-white" />
-                                    </div>
-                                    <span>Quét mã QR</span>
-                                  </Label>
-                                </div>
-
-                                {/* <div className='flex items-center space-x-3 p-3 rounded-lg border border-gray-200 bg-white'>
-                                                                   
-                                                                   <RadioGroupItem value='cash' id='cash' />
-                                                                   
-                                                                    <Label htmlFor='cash' className='flex items-center cursor-pointer flex-1'>
-                                                                        <div className='h-8 w-8 bg-primary/10 rounded-md flex items-center justify-center mr-3 text-primary'>
-                                                                            <Wallet className='h-5 w-5' />
-                                                                        </div>
-                                                                        <span>Thanh toán tiền mặt</span>
-                                                                    </Label>
-
-                                                                </div> */}
-                              </RadioGroup>
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                    </CheckoutSection>
+                    <Separator className="mt-6 bg-foreground/20" />
                   </CardContent>
-                </Card>
-              </div>
-
-              <div className="space-y-3">
-                <Card>
-                  <CardContent className="p-4 space-y-4">
+                  <CardContent className="space-y-4">
                     <div className="flex items-center gap-2">
                       <Store className="h-5 w-5 text-primary" />
                       <CardTitle className="text-lg m-0">
@@ -1251,7 +1185,7 @@ export default function CheckoutPage() {
                           >
                             <SelectTrigger
                               id="branch-select"
-                              className="w-full items-start px-4 sm:px-5 sm:py-3 min-h-[68px] h-auto"
+                              className="w-[80%] items-start px-4 sm:px-5 sm:py-3 min-h-[68px] h-auto"
                             >
                               <div className="flex flex-col text-left w-full overflow-hidden gap-1">
                                 <div className="flex items-center gap-2 min-h-[20px]">
@@ -1275,7 +1209,7 @@ export default function CheckoutPage() {
                               </div>
                             </SelectTrigger>
 
-                            <SelectContent className="max-h-72 w-[min(420px,calc(100vw-2rem))] sm:min-w-[22rem] p-2">
+                            <SelectContent className="max-h-72 w-[max(750px,calc(100-3rem))] sm:min-w-[10rem] p-2">
                               {displayBranches.map((branch) => (
                                 <SelectItem
                                   key={branch.branchId}
@@ -1305,32 +1239,6 @@ export default function CheckoutPage() {
                             </SelectContent>
                           </Select>
                         </div>
-
-                        {/* <div className='rounded-lg border border-gray-200 bg-white/70 p-4 text-sm space-y-3'>
-                                                    <p className='text-sm font-semibold text-foreground'>Chi tiết chi nhánh</p>
-                                                    <div className='flex items-start gap-2 text-muted-foreground'>
-                                                        <MapPin className='h-4 w-4 mt-0.5 text-primary' />
-                                                        <div>
-                                                            <p className='font-medium text-foreground'>
-                                                                {selectedBranch?.branchName || STORE_INFO.name}
-                                                            </p>
-                                                            <p>
-                                                                {selectedBranch?.address || STORE_INFO.address || 'Địa chỉ đang cập nhật'}
-                                                            </p>
-                                                            {selectedBranch?.distanceText && (
-                                                                <p className='text-xs italic text-muted-foreground'>
-                                                                    Khoảng cách: {selectedBranch.distanceText}
-                                                                </p>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                    <div className='flex items-center gap-2 text-muted-foreground'>
-                                                        <Phone className='h-4 w-4 text-primary' />
-                                                        <span>
-                                                            {selectedBranch?.phone || STORE_INFO.phone || 'Hotline sẽ được cập nhật sớm.'}
-                                                        </span>
-                                                    </div>
-                                                </div> */}
                       </div>
                     ) : (
                       <p className="text-sm text-muted-foreground">
@@ -1340,6 +1248,9 @@ export default function CheckoutPage() {
                     )}
                   </CardContent>
                 </Card>
+              </div>
+
+              <div className="space-y-3">
                 {fulfillmentMethod === "pickup" ? (
                   <Card>
                     <CardContent className="p-4 space-y-4">
@@ -1358,10 +1269,6 @@ export default function CheckoutPage() {
                           <Phone className="h-4 w-4 text-primary" />
                           <span>{branchPhone}</span>
                         </div>
-                        {/* <p>
-                                                    Nhận món trực tiếp tại cửa hàng <span className='font-medium'>{branchName}</span>. Bạn đã chọn{' '}
-                                                    {paymentMethod === 'cash' ? 'thanh toán tiền mặt tại quầy.' : 'thanh toán qua QR ngay sau khi đặt hàng.'}
-                                                </p> */}
                       </div>
                     </CardContent>
                   </Card>
@@ -1383,16 +1290,10 @@ export default function CheckoutPage() {
                               : "Vui lòng nhập địa chỉ giao hàng trong biểu mẫu bên trái."}
                           </span>
                         </div>
-                        {/* <p>
-                                                    Nhân viên sẽ liên hệ qua số điện thoại để xác nhận đơn, phí giao hàng và hỗ trợ{' '}
-                                                    {paymentMethod === 'cash' ? 'thu tiền mặt khi giao món.' : 'thanh toán QR trước khi giao.'}
-                                                </p> */}
                       </div>
                     </CardContent>
                   </Card>
                 )}
-
-                {/* Order Items */}
                 <Card className="p-4 gap-2">
                   <CardTitle className="m-2 mb-0">Thông tin đơn hàng</CardTitle>
                   <CardContent className="p-0 space-y-2">
@@ -1474,17 +1375,14 @@ export default function CheckoutPage() {
                     />
                   </CardContent>
                 </Card>
-
-                {/* Order Summary */}
                 <Card>
                   <CardContent className="p-4 py-0 space-y-3">
-                    <div className="flex justify-between text-sm text-muted-foreground">
-                      <span>Tạm tính</span>
-                      <span>{orderSubtotal.toLocaleString()}đ</span>
-                    </div>
-
                     {isDelivery && (
-                      <div className="flex justify-between text-sm text-muted-foreground">
+                      <div className="flex justify-between text-sm text-muted-foreground mt-2">
+                        <div className="flex justify-between text-sm text-muted-foreground">
+                          <span>Tạm tính</span>
+                          <span>{orderSubtotal.toLocaleString()}đ</span>
+                        </div>
                         <span>Phí giao hàng</span>
                         <span
                           className={cn(
@@ -1501,7 +1399,7 @@ export default function CheckoutPage() {
                       <p className="text-xs text-red-500">{errorShippingFee}</p>
                     )}
 
-                    <div className="flex justify-between font-medium pt-1">
+                    <div className="flex justify-between font-medium pt-1 mt-2">
                       <span>TỔNG CỘNG</span>
                       <span className="text-xl text-primary font-bold">
                         {totalWithShipping.toLocaleString()}đ
@@ -1513,7 +1411,7 @@ export default function CheckoutPage() {
                       </p>
                     )}
                   </CardContent>
-                  <CardFooter className="px-4 py-0">
+                  <CardFooter className="px-4 py-0 mb-2">
                     <Button
                       type="submit"
                       className="w-full h-12 bg-[#4CAF50] hover:bg-[#43A047] text-white rounded-lg font-medium"
@@ -1526,8 +1424,6 @@ export default function CheckoutPage() {
                     </Button>
                   </CardFooter>
                 </Card>
-
-                {/* Security Note */}
                 <div className="flex items-center justify-center text-sm text-muted-foreground">
                   <ShieldCheck className="h-4 w-4 mr-2" />
                   <span>Thanh toán an toàn & bảo mật</span>

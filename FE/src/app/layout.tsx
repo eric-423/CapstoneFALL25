@@ -111,9 +111,7 @@ export default function RootLayout({
       >
         <Providers>
           {children}
-          {/* <CustomerGuard> */}
           <DifyChatbot />
-          {/* </CustomerGuard> */}
         </Providers>
       </body>
     </html>

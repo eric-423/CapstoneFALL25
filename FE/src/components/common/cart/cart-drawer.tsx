@@ -81,8 +81,6 @@ export function CartDrawer() {
               </ControlledButton>
             </div>
           </DrawerHeader>
-
-          {/* Cart Items */}
           {getTotalItems() > 0 ? (
             <>
               <ScrollArea
@@ -93,15 +91,12 @@ export function CartDrawer() {
                   {items.map((item, index) => (
                     <div key={item.productId} className="group">
                       <div className="flex gap-3">
-                        {/* Remove button (visible on hover) */}
                         <Button
                           className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 flex-shrink-0 rounded-full bg-foreground/5 hover:bg-foreground/15 transition-colors flex items-center justify-center"
                           onClick={() => removeItem(item)}
                         >
                           <X className="h-3 w-3 text-foreground/50" />
                         </Button>
-
-                        {/* Item content */}
                         <div className="flex-grow">
                           <div className="flex justify-between">
                             <h4 className="font-medium">{item.productName}</h4>
@@ -117,7 +112,6 @@ export function CartDrawer() {
                               {item.note}
                             </div>
                           )}
-                          {/* Item actions */}
                           <div className="flex items-center justify-between mt-2">
                             <QuantitySelector
                               value={item.quantity}
@@ -151,8 +145,6 @@ export function CartDrawer() {
                   ))}
                 </div>
               </ScrollArea>
-
-              {/* Subtotal and Checkout */}
               <DrawerFooter className="px-6 pt-4 pb-6 border-t border-foreground/10">
                 <div className="flex justify-between items-center mb-4">
                   <span className="font-medium text-lg">Tạm tính</span>
@@ -160,8 +152,6 @@ export function CartDrawer() {
                     {getTotalPrice().toLocaleString()}đ
                   </span>
                 </div>
-
-                {/* <Link to='/checkout'> */}
                 <Button
                   className="w-full h-12 bg-[#4CAF50] hover:bg-[#43A047] text-white rounded-lg font-medium"
                   onClick={handleCheckoutClicked}
@@ -180,7 +170,6 @@ export function CartDrawer() {
                     </>
                   )}
                 </Button>
-                {/* </Link> */}
                 <DrawerClose asChild>
                   <Button variant="outline" className="w-full">
                     Tiếp tục mua hàng

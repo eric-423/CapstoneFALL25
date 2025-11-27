@@ -54,17 +54,6 @@ export function ProductCard({
         <p className="text-gray-600 text-sm mb-4 leading-relaxed">
           {description}
         </p>
-
-        <div className="flex items-center justify-between">
-          <span className="text-xl font-bold text-black">{price}đ</span>
-          <Button
-            size="sm"
-            variant="outline"
-            className="bg-gray-100 border-2 border-orange-500 text-orange-500 hover:bg-orange-200 hover:text-orange-500 hover:border-orange-500 font-semibold rounded-full px-4 transition-colors"
-          >
-            Thêm vào giỏ
-          </Button>
-        </div>
       </div>
     </motion.div>
   );
