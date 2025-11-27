@@ -296,7 +296,6 @@
     opacity: 0.6;
   }
 
-  /* Dark mode input colors */
   .dark input,
   .dark textarea,
   .dark select {
@@ -314,8 +313,6 @@
     background-color: #fbdcc5 !important;
   }
 
-  /* Toastify customization */
-  /* Success Toast */
   .Toastify__toast--success {
     background: rgba(183, 232, 146) !important;
     padding: 10px 16px !important;
@@ -337,7 +334,6 @@
     line-height: 1.4 !important;
   }
 
-  /* Error Toast */
   .Toastify__toast--error {
     border: 1px solid #f8cbcb !important;
     background-color: #ff7373 !important;
@@ -357,7 +353,6 @@
     color: white !important;
   }
 
-  /* Warning Toast */
   .Toastify__toast--warning {
     border: 1px solid #fde68a !important;
     background-color: #fffbeb !important;
@@ -466,6 +461,4 @@
     right: 20px !important;
     z-index: 9999 !important;
   }
-
-
 }

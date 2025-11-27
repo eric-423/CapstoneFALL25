@@ -1,9 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Providers } from '@/components/providers';
+import { Providers } from "@/components/providers";
 import DifyChatbot from "@/components/common/DifyChatbot";
-import CustomerGuard from "@/guards/CustomerGuard";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,9 +19,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: {
     default: "Tấm Tắc - Cơm Tấm Ngon",
-    template: "%s | Tấm Tắc"
+    template: "%s | Tấm Tắc",
   },
-  description: "Thương hiệu Cơm Tấm hiện đại được tạo ra bởi sinh viên, dành cho sinh viên. Đặt món online, giao hàng nhanh, giá cả phải chăng.",
+  description:
+    "Thương hiệu Cơm Tấm hiện đại được tạo ra bởi sinh viên, dành cho sinh viên. Đặt món online, giao hàng nhanh, giá cả phải chăng.",
   keywords: [
     "cơm tấm",
     "đồ ăn sinh viên",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     "thức ăn nhanh",
     "Tấm Tắc",
     "cơm tấm ngon",
-    "đồ ăn giá rẻ"
+    "đồ ăn giá rẻ",
   ],
   authors: [{ name: "Tấm Tắc Team" }],
   creator: "Tấm Tắc",
@@ -41,31 +41,35 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
+  ),
   alternates: {
-    canonical: '/',
+    canonical: "/",
   },
   openGraph: {
-    type: 'website',
-    locale: 'vi_VN',
-    url: '/',
-    title: 'Tấm Tắc - Cơm Tấm Ngon',
-    description: 'Thương hiệu Cơm Tấm hiện đại được tạo ra bởi sinh viên, dành cho sinh viên',
-    siteName: 'Tấm Tắc',
+    type: "website",
+    locale: "vi_VN",
+    url: "/",
+    title: "Tấm Tắc - Cơm Tấm Ngon",
+    description:
+      "Thương hiệu Cơm Tấm hiện đại được tạo ra bởi sinh viên, dành cho sinh viên",
+    siteName: "Tấm Tắc",
     images: [
       {
-        url: '/images/og-image.jpg',
+        url: "/images/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: 'Tấm Tắc - Cơm Tấm Ngon',
+        alt: "Tấm Tắc - Cơm Tấm Ngon",
       },
     ],
   },
   twitter: {
-    card: 'summary_large_image',
-    title: 'Tấm Tắc - Cơm Tấm Ngon',
-    description: 'Thương hiệu Cơm Tấm hiện đại được tạo ra bởi sinh viên, dành cho sinh viên',
-    images: ['/images/og-image.jpg'],
+    card: "summary_large_image",
+    title: "Tấm Tắc - Cơm Tấm Ngon",
+    description:
+      "Thương hiệu Cơm Tấm hiện đại được tạo ra bởi sinh viên, dành cho sinh viên",
+    images: ["/images/og-image.jpg"],
   },
   robots: {
     index: true,
@@ -73,9 +77,9 @@ export const metadata: Metadata = {
     googleBot: {
       index: true,
       follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
     },
   },
   verification: {
@@ -84,13 +88,13 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  width: 'device-width',
+  width: "device-width",
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: 'white' },
-    { media: '(prefers-color-scheme: dark)', color: 'black' },
+    { media: "(prefers-color-scheme: light)", color: "white" },
+    { media: "(prefers-color-scheme: dark)", color: "black" },
   ],
 };
 

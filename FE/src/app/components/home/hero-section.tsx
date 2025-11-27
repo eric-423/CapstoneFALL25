@@ -15,9 +15,9 @@ const montserrat = Montserrat({
 const HeroSection = memo(() => {
   return (
     <section
-      className={`relative min-h-screen bg-[#FFFCF7] flex flex-col items-center justify-center ${montserrat.className}`}
+      className={`relative min-h-[85vh] bg-[#FFFCF7] flex flex-col items-center justify-center ${montserrat.className}`}
     >
-      <div className="relative z-10 container mx-auto px-4 pb-20 min-h-screen flex items-center">
+      <div className="relative z-10 container mx-auto px-4 pb-10 min-h-[85vh] flex items-center">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-12 w-full items-center">
           <div className="items-center justify-center text-center flex flex-col lg:col-span-7">
             <Image
