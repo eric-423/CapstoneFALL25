@@ -7,6 +7,8 @@ import { useIsMobile } from "@/utils/hooks/use-mobile";
 import useScrollTop from "@/utils/hooks/useScrollTop";
 import { fadeInUp, staggerContainer } from "@/utils/animation";
 import minhduy from "@/assets/images/minhduy.png";
+import vietthai from "@/assets/images/vietthai.png";
+import ngocan from "@/assets/images/ngocan.png";
 import futureValue from "@/assets/images/futureValue.png";
 import { motion } from "framer-motion";
 import { Eye } from "lucide-react";
@@ -151,7 +153,7 @@ export default function AboutPage() {
                       <CardContent className=" text-center">
                         <div className="w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden relative">
                           <Image
-                            src={minhduy}
+                            src={ngocan}
                             alt="Trịnh Đình Ngọc An"
                             className="w-full h-full object-cover"
                             width={128}
@@ -196,7 +198,7 @@ export default function AboutPage() {
                       <CardContent className="text-center">
                         <div className="w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden relative">
                           <Image
-                            src={minhduy}
+                            src={vietthai}
                             alt="Nguyễn Viết Thái"
                             className="w-full h-full object-cover"
                             width={128}

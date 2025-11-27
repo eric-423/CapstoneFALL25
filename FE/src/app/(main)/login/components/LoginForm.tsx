@@ -8,7 +8,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-
+import headerText from "@/assets/images/headerText.png";
 export default function LoginForm() {
   const router = useRouter();
   const [phone, setPhone] = useState("");
@@ -45,8 +45,6 @@ export default function LoginForm() {
     e.preventDefault();
     setGlobalMessage(null);
     setErrors({});
-
-    // Client-side validation để cải thiện UX
     if (!validatePhone(phone)) {
       setErrors((prev) => ({
         ...prev,
@@ -144,7 +142,7 @@ export default function LoginForm() {
 
   return (
     <GuestLayout>
-      <div className="min-h-screen bg-[#FFF5E6] flex">
+      <div className="min-h-screen bg-[#FFFCF7] flex">
         <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
           <Image
             src="/images/Home - Banner.jpg"
@@ -157,8 +155,14 @@ export default function LoginForm() {
           <div className="absolute inset-0 bg-black/30" />
           <div className="relative z-10 flex flex-col justify-between p-12 text-white">
             <div>
-              <h2 className="text-4xl font-bold">Tấm Tắc Food</h2>
-              <p className="mt-4 text-base leading-relaxed text-gray-100">
+              <Image
+                src={headerText}
+                alt="Tấm Tắc"
+                width={300}
+                height={80}
+                className="object-contain"
+              />
+              <p className="text-base leading-relaxed text-gray-100">
                 Tận hưởng bữa cơm sinh viên chuẩn vị nhà làm với tốc độ phục vụ
                 nhanh chóng.
               </p>

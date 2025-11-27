@@ -28,7 +28,6 @@ import { useAuth } from "@/utils/hooks";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
-import FeaturedProduct from "./components/featured-product";
 import ProductList from "./components/product-list";
 import ProductTypeList from "./components/product-type-list";
 
@@ -159,23 +158,6 @@ export default function MenuPage() {
     enabled: Boolean(selectedBranch?.branchId),
     refetchOnWindowFocus: false,
   });
-
-  const featuredProduct = useMemo<Product | null>(() => {
-    const topItem = topSellingData?.data?.topItems?.[0];
-    if (!topItem) return null;
-    const estimatedPrice =
-      topItem.quantitySold && topItem.quantitySold > 0
-        ? Math.round(topItem.revenue / topItem.quantitySold)
-        : topItem.revenue || 0;
-    return {
-      productId: topItem.id,
-      productName: topItem.name,
-      productDescription: `Đã bán ${topItem.quantitySold} phần trong tuần qua`,
-      productImage: topItem.imageUrl,
-      productPrice: estimatedPrice,
-      productType: "Best Seller",
-    } as Product;
-  }, [topSellingData]);
 
   const isLoadingBranches =
     isLoadingBranchesData ||
@@ -349,9 +331,6 @@ export default function MenuPage() {
               />
             </div>
             <div className="w-full" id="menu-content">
-              {featuredProduct && productType.id === 0 && page === 0 && (
-                <FeaturedProduct product={featuredProduct} />
-              )}
               <div>
                 <div className="flex items-center justify-between mt-15 mb-10">
                   <h2 className="text-4xl font-bold break-words">
