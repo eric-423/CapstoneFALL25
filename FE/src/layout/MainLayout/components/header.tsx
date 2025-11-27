@@ -139,36 +139,6 @@ function ActionButtons({
 
   return (
     <div className="flex items-center justify-center gap-x-3 sm:gap-x-4 flex-wrap">
-      <Button
-        variant="ghost"
-        size={mobile ? "default" : "icon"}
-        className="!bg-[#FFFCF7] !text-orange-500 hover:!text-orange-600 hover:!bg-[#FFFCF7] flex items-center gap-x-2"
-      >
-        <svg
-          width="36"
-          height="36"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M13.73 21a2 2 0 0 1-3.46 0"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-        {mobile && <span className="text-sm font-medium">Thông báo</span>}
-      </Button>
-
       {isAuthenticated ? (
         <>
           <Link href={configs.routes.profile}>
