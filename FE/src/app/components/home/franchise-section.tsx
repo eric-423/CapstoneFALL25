@@ -1,19 +1,7 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { motion } from "framer-motion";
-import { MapPin, Phone, Search } from "lucide-react";
-import Image from "next/image";
-import { useMemo } from "react";
+import { MapPin, Phone } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Branch,
@@ -21,7 +9,12 @@ import {
   GET_BRANCHES_STALE_TIME,
   getBranches,
 } from "@/apis/branch.api";
-
+import { Montserrat } from "next/font/google";
+const montserrat = Montserrat({
+  subsets: ["latin", "vietnamese"],
+  variable: "--font-montserrat",
+  display: "swap",
+});
 const FranchiseSection = () => {
   const { data: branches = [], isLoading } = useQuery<Branch[]>({
     queryKey: [GET_BRANCHES_QUERY_KEY, "home-franchise"],
@@ -31,23 +24,13 @@ const FranchiseSection = () => {
     refetchOnWindowFocus: false,
   });
 
-  const branchImages = useMemo(
-    () => [
-      "/images/content-1.jpg",
-      "/images/content-2.jpg",
-      "/images/content-3.jpg",
-    ],
-    []
-  );
-
   return (
     <section className="py-20 bg-[#FFFCF7]">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2
-            className="text-4xl md:text-5xl font-bold text-black"
+            className={`text-4xl md:text-5xl font-bold text-black ${montserrat.className}`}
             style={{
-              fontFamily: "Playfair Display",
               fontWeight: 700,
               fontSize: "40px",
               lineHeight: "53px",
@@ -103,9 +86,8 @@ const FranchiseSection = () => {
                           style={{ color: "#78A243" }}
                         />
                         <p
-                          className="text-sm"
+                          className={`text-sm ${montserrat.className}`}
                           style={{
-                            fontFamily: "Playfair Display",
                             fontSize: "15px",
                             lineHeight: "20px",
                             color: "#000000",

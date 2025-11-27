@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import configs from "@/utils/configs";
 import { useAuth } from "@/utils/hooks";
 import { useOutsideClicked } from "@/utils/hooks/useOutsideClicked";
+import { BranchDropdown } from "./branch-dropdown";
 
 import { LogOut, Menu, User, X } from "lucide-react";
 import { useState, useRef } from "react";
@@ -47,6 +48,7 @@ export default function Header() {
           <nav className="hidden lg:flex items-center space-x-8">
             <NavLinks />
           </nav>
+          <BranchDropdown />
           <ActionButtons
             isAuthenticated={isAuthenticated}
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -55,11 +57,11 @@ export default function Header() {
         <Button
           variant="ghost"
           size="icon"
-          className="lg:hidden text-primary hover:bg-orange-50"
+          className="lg:hidden !bg-[#FFFCF7] !text-orange-500 hover:!text-orange-600 hover:!bg-[#FFFCF7]"
           onClick={() => setIsMenuOpen(true)}
           disabled={isMenuOpen}
         >
-          {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
         </Button>
       </div>
 
@@ -72,6 +74,9 @@ export default function Header() {
           <nav className="flex flex-col space-y-3">
             <NavLinks mobile onClick={() => setIsMenuOpen(!isMenuOpen)} />
           </nav>
+          <div className="flex justify-center items-center w-full pt-4 border-t border-gray-100 px-4">
+            <BranchDropdown />
+          </div>
           <div className="flex justify-center items-center w-full pt-4 border-t border-gray-100 ml-4">
             <ActionButtons
               mobile
@@ -96,8 +101,6 @@ function NavLinks({
     { href: configs.routes.home, label: "Trang chủ" },
     { href: configs.routes.about, label: "Về Tấm Tắc" },
     { href: configs.routes.menu, label: "Đặt Hàng" },
-    { href: "/thuc-don-ai", label: "Thực đơn từ AI" },
-    { href: "/nhuong-quyen", label: "Nhượng Quyền" },
   ];
 
   return (
@@ -107,7 +110,7 @@ function NavLinks({
           key={link.href}
           href={link.href}
           onClick={onClick}
-          className={`font-medium text-primary hover:text-orange-600 transition-colors duration-300 ${mobile ? "text-lg py-4" : "text-base"}`}
+          className={`font-medium !text-orange-500 hover:!text-orange-600 transition-colors duration-300 ${mobile ? "text-lg py-4" : "text-base"}`}
         >
           {link.label}
         </Link>
@@ -139,11 +142,11 @@ function ActionButtons({
       <Button
         variant="ghost"
         size={mobile ? "default" : "icon"}
-        className="text-orange-500 hover:text-orange-600 hover:bg-orange-50 flex items-center gap-x-2"
+        className="!bg-[#FFFCF7] !text-orange-500 hover:!text-orange-600 hover:!bg-[#FFFCF7] flex items-center gap-x-2"
       >
         <svg
-          width="32"
-          height="32"
+          width="36"
+          height="36"
           viewBox="0 0 24 24"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -172,10 +175,10 @@ function ActionButtons({
             <Button
               variant="ghost"
               size={mobile ? "default" : "icon"}
-              className="text-orange-500 hover:text-orange-600 hover:bg-orange-50 flex items-center gap-x-2"
+              className="!bg-[#FFFCF7] !text-orange-500 hover:!text-orange-600 hover:!bg-[#FFFCF7] flex items-center gap-x-2"
               onClick={onClick}
             >
-              <User size={mobile ? 20 : 24} />
+              <User size={mobile ? 24 : 28} />
               {mobile && <span className="text-sm font-medium">Tài khoản</span>}
             </Button>
           </Link>
@@ -183,10 +186,10 @@ function ActionButtons({
           <Button
             variant="ghost"
             size={mobile ? "default" : "icon"}
-            className="text-orange-500 hover:text-orange-600 hover:bg-orange-50 flex items-center gap-x-2"
+            className="!bg-[#FFFCF7] !text-orange-500 hover:!text-orange-600 hover:!bg-[#FFFCF7] flex items-center gap-x-2"
             onClick={handleLogout}
           >
-            <LogOut size={mobile ? 20 : 24} />
+            <LogOut size={mobile ? 24 : 28} />
             {mobile && <span className="text-sm font-medium">Đăng xuất</span>}
           </Button>
         </>
@@ -196,9 +199,9 @@ function ActionButtons({
             <Button
               variant="ghost"
               size={mobile ? "default" : "icon"}
-              className="text-orange-500 hover:text-orange-600 hover:bg-orange-50 flex items-center gap-x-2"
+              className="!bg-[#FFFCF7] !text-orange-500 hover:!text-orange-600 hover:!bg-[#FFFCF7] flex items-center gap-x-2"
             >
-              <User size={mobile ? 20 : 24} />
+              <User size={mobile ? 24 : 28} />
               {mobile && <span className="text-sm font-medium">Đăng nhập</span>}
             </Button>
           </Link>
