@@ -174,9 +174,7 @@ public class BranchServiceImpl implements BranchService {
                 branchProduct.setKeyBranchProduct(key);
                 branchProduct.setBranch(branch);
                 branchProduct.setProduct(product);
-                branchProduct.setQuantity(item.getQuantity());
             } else {
-                branchProduct.setQuantity(branchProduct.getQuantity() + item.getQuantity());
             }
 
             branchProductRepository.save(branchProduct);
@@ -188,7 +186,6 @@ public class BranchServiceImpl implements BranchService {
             dto.setProductName(product.getName());
             dto.setProductPrice(product.getPrice() != null ? product.getPrice() : 0.0);
             dto.setProductImage(product.getImage());
-            dto.setQuantity(branchProduct.getQuantity());
 
             results.add(dto);
         }

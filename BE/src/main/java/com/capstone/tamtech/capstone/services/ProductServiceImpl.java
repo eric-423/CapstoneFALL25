@@ -75,13 +75,8 @@ public class ProductServiceImpl implements ProductService {
                 searchRequest.getMaxPrice(),
                 pageable);
 
-        List<BranchProduct> branchProducts = branchProductRepository
-                .findByKeyBranchProductBranchId(searchRequest.getBranchId());
 
         Map<Integer, Integer> productQuantityMap = new HashMap<>();
-        for (BranchProduct bp : branchProducts) {
-            productQuantityMap.put(bp.getProduct().getId(), bp.getQuantity());
-        }
 
         List<ProductSearchDTO> productDTOs = productPage.getContent().stream()
                 .map(product -> mapToProductSearchDTO(product, productQuantityMap))
