@@ -42,7 +42,7 @@ export default function WarehouseMaterialsPage({ params }: WarehouseMaterialsPag
                 getWarehouseMaterials(warehouseId),
                 getMaterials({ size: 10000 })
             ]);
-            setWarehouseMaterials(warehouseData);
+            setWarehouseMaterials(warehouseData || []);
             setAllMaterials(allMaterialsResponse.data.content);
         } catch (error) {
             console.error('Failed to fetch warehouse materials:', error);
@@ -71,9 +71,9 @@ export default function WarehouseMaterialsPage({ params }: WarehouseMaterialsPag
     };
 
     // Calculate statistics
-    const totalMaterials = warehouseMaterials.length;
-    const lowStockMaterials = warehouseMaterials.filter(m => m.quantity < m.threshold).length;
-    const totalQuantity = warehouseMaterials.reduce((sum, m) => sum + m.quantity, 0);
+    const totalMaterials = warehouseMaterials?.length || 0;
+    const lowStockMaterials = warehouseMaterials?.filter(m => m.quantity < m.threshold).length || 0;
+    const totalQuantity = warehouseMaterials?.reduce((sum, m) => sum + m.quantity, 0) || 0;
 
     const warehouseAddress = warehouseMaterials[0]?.warehouseAddress || 'Kho';
 

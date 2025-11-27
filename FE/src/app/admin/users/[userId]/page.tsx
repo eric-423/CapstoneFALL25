@@ -507,34 +507,30 @@ export default function UserDetailPage() {
                             </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
-              </div>
-            </div>
-          )}
-        </Card>
-      )}
+                    )}
+                </Card>
+            )}
 
-      {/* Edit Dialog */}
-      <UserFormDialog
-        open={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
-        user={user}
-        onSuccess={handleEditSuccess}
-      />
+            {/* Edit Dialog */}
+            <UserFormDialog
+                open={isEditDialogOpen}
+                onOpenChange={setIsEditDialogOpen}
+                user={user}
+                onSuccess={handleEditSuccess}
+            />
 
-      {/* Confirm Dialog */}
-      {confirmDialog.type && (
-        <ConfirmDialog
-          open={confirmDialog.open}
-          onOpenChange={(open) => setConfirmDialog({ open, type: null })}
-          onConfirm={handleConfirmAction}
-          type={confirmDialog.type}
-          userName={user.fullName}
-          loading={actionLoading}
-        />
-      )}
-    </AdminPageLayout>
-  );
+            {/* Confirm Dialog */}
+            {confirmDialog.type && (
+                <ConfirmDialog
+                    open={confirmDialog.open}
+                    onOpenChange={(open) => setConfirmDialog({ open, type: null })}
+                    onConfirm={handleConfirmAction}
+                    title={confirmDialog.type === 'ban' ? 'Khóa tài khoản' : 'Mở khóa tài khoản'}
+                    content={`Bạn có chắc chắn muốn ${confirmDialog.type === 'ban' ? 'khóa' : 'mở khóa'} tài khoản "${user.fullName}" không?`}
+                    variant={confirmDialog.type === 'ban' ? 'destructive' : 'success'}
+                    loading={actionLoading}
+                />
+            )}
+        </AdminPageLayout>
+    );
 }

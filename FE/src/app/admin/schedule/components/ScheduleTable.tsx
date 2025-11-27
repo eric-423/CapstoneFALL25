@@ -10,7 +10,7 @@ interface ScheduleTableProps {
   schedules: Schedule[];
   currentWeek: Date;
   onEdit?: (schedule: Schedule) => void;
-  onDelete?: (scheduleId: number) => void;
+  onDelete?: (schedule: Schedule) => void;
   onCellClick?: (date: Date) => void;
 }
 
@@ -52,19 +52,19 @@ export function ScheduleTable({
   // Nhóm schedules theo ngày
   const schedulesByDate = useMemo(() => {
     const grouped: Record<string, Schedule[]> = {};
-    
+
     schedules.forEach((schedule) => {
       if (!schedule.date) return;
-      
+
       const scheduleDate = new Date(schedule.date);
       const dateKey = scheduleDate.toISOString().split('T')[0];
-      
+
       if (!grouped[dateKey]) {
         grouped[dateKey] = [];
       }
       grouped[dateKey].push(schedule);
     });
-    
+
     return grouped;
   }, [schedules]);
 
@@ -90,7 +90,7 @@ export function ScheduleTable({
             const date = weekDays[index];
             const dateKey = formatDate(date);
             const daySchedules = schedulesByDate[dateKey] || [];
-            
+
             return (
               <div
                 key={day.dayOfWeek}

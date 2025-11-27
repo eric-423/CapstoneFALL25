@@ -9,6 +9,14 @@ import {
     Clock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { AdminPageLayout, AdminPageHeader } from '../components/AdminPageLayout';
 import { ScheduleTable } from './components/ScheduleTable';
 import { ScheduleFormDialog } from './components/ScheduleFormDialog';
@@ -36,7 +44,11 @@ export default function SchedulePage() {
     const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null);
     const [selectedDate, setSelectedDate] = useState<Date | undefined>();
     const [selectedUserId, setSelectedUserId] = useState<number | undefined>();
-
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [scheduleToDelete, setScheduleToDelete] = useState<Schedule | null>(null);
+    const [deleteLoading, setDeleteLoading] = useState(false);
+    const [flagShowCurrentWeekButton, setFlagShowCurrentWeekButton] = useState(false);
+    const [flagRightCurrentWeekButton, setFlagRightCurrentWeekButton] = useState(false);
     // Fetch schedules
     const fetchSchedules = useCallback(async () => {
         try {
@@ -83,16 +95,20 @@ export default function SchedulePage() {
         const newDate = new Date(currentWeek);
         newDate.setDate(newDate.getDate() - 7);
         setCurrentWeek(newDate);
+        setFlagRightCurrentWeekButton(true);
     };
 
     const goToNextWeek = () => {
         const newDate = new Date(currentWeek);
         newDate.setDate(newDate.getDate() + 7);
         setCurrentWeek(newDate);
+        setFlagShowCurrentWeekButton(true);
     };
 
     const goToCurrentWeek = () => {
         setCurrentWeek(new Date());
+        setFlagShowCurrentWeekButton(false);
+        setFlagRightCurrentWeekButton(false);
     };
 
     // Handle form submission
@@ -114,33 +130,54 @@ export default function SchedulePage() {
     };
 
     // Handle delete
-    const handleDelete = async (scheduleId: number) => {
-        if (!confirm('Bạn có chắc chắn muốn xóa lịch trình này?')) {
-            return;
-        }
+    const handleDeleteRequest = (schedule: Schedule) => {
+        setScheduleToDelete(schedule);
+        setDeleteDialogOpen(true);
+    };
 
+    const handleCloseDeleteDialog = () => {
+        if (deleteLoading) return;
+        setDeleteDialogOpen(false);
+        setScheduleToDelete(null);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!scheduleToDelete) return;
         try {
-            await deleteSchedule(scheduleId);
+            setDeleteLoading(true);
+            await deleteSchedule(scheduleToDelete.id);
             toast.success('Xóa lịch trình thành công!');
             await fetchSchedules();
+            setDeleteDialogOpen(false);
+            setScheduleToDelete(null);
         } catch (error) {
             console.error('Failed to delete schedule:', error);
             toast.error('Không thể xóa lịch trình');
+        } finally {
+            setDeleteLoading(false);
         }
     };
 
     // Handle edit
     const handleEdit = (schedule: Schedule) => {
+        const normalizedDate = schedule.date ? new Date(schedule.date) : undefined;
+        if (normalizedDate) {
+            normalizedDate.setHours(12, 0, 0, 0);
+        }
+
         setEditingSchedule(schedule);
-        setSelectedDate(undefined);
-        setSelectedUserId(undefined);
+        setSelectedDate(normalizedDate);
+        setSelectedUserId(schedule.userId);
         setShowFormDialog(true);
     };
 
     // Handle cell click (create new schedule for that date)
     const handleCellClick = (date: Date) => {
+        const normalizedDate = new Date(date);
+        normalizedDate.setHours(12, 0, 0, 0);
+        normalizedDate.setDate(normalizedDate.getDate());
         setEditingSchedule(null);
-        setSelectedDate(date);
+        setSelectedDate(normalizedDate);
         setSelectedUserId(undefined);
         setShowFormDialog(true);
     };
@@ -209,7 +246,6 @@ export default function SchedulePage() {
                 }
             />
 
-            {/* Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                 <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
                     <div className="flex items-center justify-between">
@@ -236,18 +272,38 @@ export default function SchedulePage() {
                 </div>
             </div>
 
-            {/* Week Navigation */}
             <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 mb-6">
                 <div className="flex items-center justify-between">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={goToPreviousWeek}
-                        className="flex items-center gap-2"
-                    >
-                        <ChevronLeft className="w-4 h-4" />
-                        Tuần trước
-                    </Button>
+
+
+
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={goToPreviousWeek}
+                            className="flex items-center gap-2"
+                        >
+                            <ChevronLeft className="w-4 h-4" />
+                            Tuần trước
+                        </Button>
+
+
+                        {
+                            flagRightCurrentWeekButton && (
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={goToCurrentWeek}
+                                    className="text-xs"
+                                >
+                                    Hôm nay
+                                </Button>
+                            )
+                        }
+                    </div>
+
+
 
                     <div className="flex items-center gap-4">
                         <div className="text-center">
@@ -256,25 +312,34 @@ export default function SchedulePage() {
                             </p>
                             <p className="text-xs text-gray-500">Tuần hiện tại</p>
                         </div>
+
+                    </div>
+
+                    <div className='flex items-center gap-2'>
+                        {
+                            flagShowCurrentWeekButton && (
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={goToCurrentWeek}
+                                    className="text-xs"
+                                >
+                                    Hôm nay
+                                </Button>
+                            )
+                        }
+
                         <Button
                             variant="outline"
                             size="sm"
-                            onClick={goToCurrentWeek}
-                            className="text-xs"
+                            onClick={goToNextWeek}
+                            className="flex items-center gap-2"
                         >
-                            Hôm nay
+                            Tuần sau
+                            <ChevronRight className="w-4 h-4" />
                         </Button>
                     </div>
 
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={goToNextWeek}
-                        className="flex items-center gap-2"
-                    >
-                        Tuần sau
-                        <ChevronRight className="w-4 h-4" />
-                    </Button>
                 </div>
             </div>
 
@@ -284,15 +349,22 @@ export default function SchedulePage() {
                     <p className="text-gray-500">Đang tải lịch trình...</p>
                 </div>
             ) : (
-                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                    <ScheduleTable
-                        schedules={schedules}
-                        currentWeek={currentWeek}
-                        onEdit={handleEdit}
-                        onDelete={handleDelete}
-                        onCellClick={handleCellClick}
-                    />
-                </div>
+
+                <>
+                    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                        <ScheduleTable
+                            schedules={schedules}
+                            currentWeek={currentWeek}
+                            onEdit={handleEdit}
+                            onDelete={handleDeleteRequest}
+                            onCellClick={handleCellClick}
+                        />
+
+                    </div>
+
+                </>
+
+
             )}
 
             {/* Form Dialog */}
@@ -312,6 +384,58 @@ export default function SchedulePage() {
                 users={users}
                 onSubmit={handleSubmit}
             />
+
+            <Dialog
+                open={deleteDialogOpen}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        handleCloseDeleteDialog();
+                    } else {
+                        setDeleteDialogOpen(true);
+                    }
+                }}
+            >
+                <DialogContent className="sm:max-w-[420px]">
+                    <DialogHeader>
+                        <DialogTitle>Xóa lịch trình?</DialogTitle>
+                        <DialogDescription>
+                            Hành động này không thể hoàn tác.<br /> Lịch trình sẽ bị xóa vĩnh viễn.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-2 text-sm text-gray-600">
+                        <p>
+                            Nhân viên:{' '}
+                            <span className="font-semibold text-gray-900">
+                                {scheduleToDelete?.userName || 'Không xác định'}
+                            </span>
+                        </p>
+                        {scheduleToDelete?.name && (
+                            <p>
+                                Tên lịch trình:{' '}
+                                <span className="font-semibold text-gray-900">
+                                    {scheduleToDelete.name}
+                                </span>
+                            </p>
+                        )}
+                        {scheduleToDelete?.date && (
+                            <p>
+                                Ngày:{' '}
+                                <span className="font-semibold text-gray-900">
+                                    {new Date(scheduleToDelete.date).toLocaleDateString('vi-VN')}
+                                </span>
+                            </p>
+                        )}
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={handleCloseDeleteDialog} disabled={deleteLoading}>
+                            Hủy
+                        </Button>
+                        <Button variant="destructive" onClick={handleConfirmDelete} disabled={deleteLoading}>
+                            {deleteLoading ? 'Đang xóa...' : 'Xóa'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </AdminPageLayout>
     );
 }

@@ -4,18 +4,23 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Package, Plus, Edit2, Trash2, Search, AlertTriangle, Tag, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { AdminPageLayout, AdminPageHeader, AdminStatsGrid } from '../components/AdminPageLayout';
+import { Badge } from '@/components/ui/badge';
+import { AdminPageLayout, AdminPageHeader } from '../components/AdminPageLayout';
 import { AdminCard } from '../components/AdminCard';
-import { getMaterials, deleteMaterial, type Material, type MaterialSearchRequest } from '@/apis/material.api';
 import { MaterialFormDialog } from './components/MaterialFormDialog';
-import { MaterialConfirmDialog } from './components/MaterialConfirmDialog';
 import { MaterialTypesManagerDialog } from './components/MaterialTypesManagerDialog';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
+import {
+    Material,
+    MaterialSearchRequest,
+    getMaterials,
+    deleteMaterial
+} from '@/apis/material.api';
 
 export default function MaterialsPage() {
-    const [materials, setMaterials] = useState<Material[]>([]);
     const [loading, setLoading] = useState(true);
+    const [materials, setMaterials] = useState<Material[]>([]);
     const [actionLoading, setActionLoading] = useState(false);
 
     // Pagination states
@@ -96,8 +101,9 @@ export default function MaterialsPage() {
             setShowConfirmDialog(false);
             setDeletingMaterial(null);
         } catch (error) {
-            console.error('Failed to delete material:', error);
-            toast.error('❌ Không thể xóa nguyên liệu!');
+            // console.error('Failed to delete material:', error);
+            const errorMessage = error instanceof Error ? error.message : '❌ Không thể xóa nguyên liệu!';
+            toast.error(errorMessage);
         } finally {
             setActionLoading(false);
         }
@@ -137,7 +143,7 @@ export default function MaterialsPage() {
         return (
             <AdminPageLayout>
                 <div className="flex items-center justify-center h-64">
-                    <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-8 h-8 border-4 border-[#78A243] border-t-transparent rounded-full animate-spin"></div>
                 </div>
             </AdminPageLayout>
         );
@@ -154,14 +160,14 @@ export default function MaterialsPage() {
                         <Button
                             onClick={() => setShowTypesManager(true)}
                             variant="outline"
-                            className="border-2 border-blue-300 text-blue-700 hover:bg-blue-50"
+                            className="border-[#78A243] bg-[#78A243]/10 text-[#78A243] hover:bg-[#78A243]/20 font-semibold"
                         >
                             <Tag className="h-4 w-4 mr-2" />
                             Quản lý loại nguyên liệu
                         </Button>
                         <Button
                             onClick={handleCreate}
-                            className="bg-[#EC6426] hover:bg-[#EC6426]/90 text-white"
+                            className="bg-[#78A243] hover:bg-[#78A243]/90 text-white shadow-md hover:shadow-lg transition-all"
                         >
                             <Plus className="h-4 w-4 mr-2" />
                             Thêm nguyên liệu
@@ -171,7 +177,7 @@ export default function MaterialsPage() {
             />
 
             {/* Stats */}
-            <AdminStatsGrid>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
                 <AdminCard
                     title="Tổng nguyên liệu"
                     value={totalMaterialsCount.toString()}
@@ -190,130 +196,137 @@ export default function MaterialsPage() {
                     icon={Package}
                     subtitle="Số loại nguyên liệu khác nhau"
                 />
-            </AdminStatsGrid>
+            </div>
 
-            {/* Filters */}
-            <div className="bg-white rounded-xl border-2 border-gray-200 p-4 mb-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Filters Toolbar */}
+            <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-gradient-to-r from-[#EBD187]/20 to-[#78A243]/10 backdrop-blur-sm border-[#78A243]/20 border shadow-sm rounded-xl mb-6">
+                <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[200px]">
                     {/* Search */}
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#2D1E1A]/60" />
                         <Input
                             placeholder="Tìm kiếm nguyên liệu..."
                             value={searchKeyword}
                             onChange={(e) => setSearchKeyword(e.target.value)}
-                            className="pl-10"
+                            className="w-full max-w-[250px] pl-10 pr-4 py-2 border bg-white/80 border-[#78A243]/30 rounded-lg text-sm focus:border-[#78A243] focus:ring-1 focus:ring-[#78A243]/20 outline-none"
                         />
                     </div>
 
                     {/* Type Filter */}
-                    <select
-                        value={typeFilter}
-                        onChange={(e) => setTypeFilter(e.target.value)}
-                        className="px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    >
-                        <option value="">Tất cả loại nguyên liệu</option>
-                        {uniqueTypes.map(type => (
-                            <option key={type} value={type}>{type}</option>
-                        ))}
-                    </select>
-
-                    {/* Page Size */}
-                    <div className="flex items-center gap-3">
-                        <label className="text-sm text-gray-700 font-medium whitespace-nowrap">Hiển thị:</label>
+                    <div className="relative">
                         <select
-                            value={pageSize}
-                            onChange={(e) => {
-                                setPageSize(parseInt(e.target.value));
-                                setCurrentPage(0);
-                            }}
-                            className="px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                            value={typeFilter}
+                            onChange={(e) => setTypeFilter(e.target.value)}
+                            className="px-3 py-2 border bg-white/80 border-[#78A243]/30 rounded-lg text-sm text-[#2D1E1A] focus:border-[#78A243] outline-none appearance-none pr-8"
                         >
-                            <option value="5">5</option>
-                            <option value="10">10</option>
-                            <option value="20">20</option>
-                            <option value="50">50</option>
+                            <option value="">Tất cả loại</option>
+                            {uniqueTypes.map((type) => (
+                                <option key={type} value={type}>
+                                    {type}
+                                </option>
+                            ))}
                         </select>
-                        <span className="text-sm text-gray-600 whitespace-nowrap">
-                            Tổng: <span className="font-bold">{totalElements}</span>
-                        </span>
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                            <ChevronRight className="h-4 w-4 text-[#2D1E1A]/60 rotate-90" />
+                        </div>
                     </div>
+                </div>
+
+                {/* Page Size */}
+                <div className="flex items-center gap-3">
+                    <label className="text-sm text-[#2D1E1A] font-medium whitespace-nowrap">Hiển thị:</label>
+                    <select
+                        value={pageSize}
+                        onChange={(e) => {
+                            setPageSize(parseInt(e.target.value));
+                            setCurrentPage(0);
+                        }}
+                        className="px-3 py-2 border bg-white/80 border-[#78A243]/30 rounded-lg text-sm text-[#2D1E1A] focus:border-[#78A243] outline-none"
+                    >
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                    </select>
+                    <span className="text-sm text-[#2D1E1A]/80 whitespace-nowrap">
+                        Tổng: <span className="font-bold text-[#78A243]">{totalElements}</span>
+                    </span>
                 </div>
             </div>
 
             {/* Materials Table */}
-            <div className="bg-white rounded-xl border-2 border-gray-200 overflow-hidden">
+            <div className="bg-white rounded-xl border border-[#78A243]/20 shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full">
-                        <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+                        <thead className="bg-gradient-to-r from-[#78A243]/10 to-[#EBD187]/20 border-b-2 border-[#78A243]/30">
                             <tr>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                <th className="px-6 py-4 text-left text-sm font-bold text-[#2D1E1A]">
                                     Nguyên liệu
                                 </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                <th className="px-6 py-4 text-left text-sm font-bold text-[#2D1E1A]">
                                     Loại
                                 </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                <th className="px-6 py-4 text-left text-sm font-bold text-[#2D1E1A]">
                                     Tổng tồn kho
                                 </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                <th className="px-6 py-4 text-left text-sm font-bold text-[#2D1E1A]">
                                     Ngưỡng
                                 </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                <th className="px-6 py-4 text-left text-sm font-bold text-[#2D1E1A]">
                                     Calo/Đơn vị
                                 </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                <th className="px-6 py-4 text-left text-sm font-bold text-[#2D1E1A]">
                                     Trạng thái
                                 </th>
-                                <th className="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                <th className="px-6 py-4 text-center text-sm font-bold text-[#2D1E1A]">
                                     Thao tác
                                 </th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="divide-y divide-[#78A243]/10">
                             {filteredMaterials.map((material) => {
                                 const isLowStock = material.quantity < material.threshold;
                                 return (
-                                    <tr key={material.id} className="hover:bg-gray-50 transition-colors">
+                                    <tr key={material.id} className="hover:bg-[#EBD187]/10 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 bg-[#EC6426] rounded-lg flex items-center justify-center">
-                                                    <Package className="h-5 w-5 text-white" strokeWidth={2} />
+                                                <div className="w-10 h-10 bg-[#78A243]/20 rounded-lg flex items-center justify-center">
+                                                    <Package className="h-5 w-5 text-[#78A243]" strokeWidth={2} />
                                                 </div>
                                                 <div>
-                                                    <p className="font-semibold text-gray-900">{material.name}</p>
-                                                    <p className="text-xs text-gray-500">ID: {material.id}</p>
+                                                    <p className="font-semibold text-[#2D1E1A]">{material.name}</p>
+                                                    <p className="text-xs text-[#2D1E1A]/60">ID: {material.id}</p>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <Badge className="bg-blue-100 text-blue-700 border-blue-300">
+                                            <Badge className="bg-[#EBD187]/50 text-[#DA7339] border-[#DA7339]/30">
                                                 {material.materialTypeName}
                                             </Badge>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <p className="text-sm font-semibold text-gray-900">
+                                            <p className="text-sm font-semibold text-[#2D1E1A]">
                                                 {material.quantity} {material.unit}
                                             </p>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <p className="text-sm text-gray-700">
+                                            <p className="text-sm text-[#2D1E1A]/80">
                                                 {material.threshold} {material.unit}
                                             </p>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <p className="text-sm text-gray-700">
+                                            <p className="text-sm text-[#2D1E1A]/80">
                                                 {material.caloriesPerUnit} cal
                                             </p>
                                         </td>
                                         <td className="px-6 py-4">
                                             {isLowStock ? (
-                                                <Badge className="bg-yellow-100 text-yellow-700 border-yellow-300">
+                                                <Badge className="bg-red-100 text-red-700 border-red-300">
                                                     <AlertTriangle className="h-3 w-3 mr-1" />
                                                     Sắp hết
                                                 </Badge>
                                             ) : (
-                                                <Badge className="bg-green-100 text-green-700 border-green-300">
+                                                <Badge className="bg-[#78A243]/20 text-[#78A243] border-[#78A243]/30">
                                                     Đủ hàng
                                                 </Badge>
                                             )}
@@ -324,7 +337,7 @@ export default function MaterialsPage() {
                                                     onClick={() => handleEdit(material)}
                                                     size="sm"
                                                     variant="outline"
-                                                    className="text-orange-600 border-orange-200 hover:bg-orange-50"
+                                                    className="text-[#78A243] border-[#78A243]/30 hover:bg-[#78A243]/10"
                                                     disabled={actionLoading}
                                                 >
                                                     <Edit2 className="h-3 w-3" />
@@ -349,16 +362,16 @@ export default function MaterialsPage() {
 
                 {filteredMaterials.length === 0 && (
                     <div className="text-center py-12">
-                        <Package className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                        <p className="text-gray-500">Không tìm thấy nguyên liệu nào</p>
+                        <Package className="h-12 w-12 text-[#78A243]/30 mx-auto mb-3" />
+                        <p className="text-[#2D1E1A]/70">Không tìm thấy nguyên liệu nào</p>
                     </div>
                 )}
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                    <div className="px-4 py-3 border-t border-gray-200 bg-gray-50">
+                    <div className="px-4 py-3 border-t border-[#78A243]/20 bg-gradient-to-r from-[#EBD187]/10 to-[#78A243]/5">
                         <div className="flex items-center justify-between">
-                            <div className="text-sm text-gray-700">
+                            <div className="text-sm text-[#2D1E1A]/80">
                                 Trang <span className="font-semibold">{currentPage + 1}</span> / {totalPages}
                                 {' '}(Hiển thị {filteredMaterials.length} / {totalElements} nguyên liệu)
                             </div>
@@ -368,6 +381,7 @@ export default function MaterialsPage() {
                                     disabled={currentPage === 0}
                                     variant="outline"
                                     size="sm"
+                                    className="border-[#78A243]/30 text-[#2D1E1A] hover:bg-[#78A243]/10"
                                 >
                                     <ChevronLeft className="h-4 w-4" />
                                     Trước
@@ -377,6 +391,7 @@ export default function MaterialsPage() {
                                     disabled={currentPage >= totalPages - 1}
                                     variant="outline"
                                     size="sm"
+                                    className="border-[#78A243]/30 text-[#2D1E1A] hover:bg-[#78A243]/10"
                                 >
                                     Sau
                                     <ChevronRight className="h-4 w-4" />
@@ -394,17 +409,19 @@ export default function MaterialsPage() {
                 onSuccess={handleFormSuccess}
             />
 
-            <MaterialConfirmDialog
-                open={showConfirmDialog}
-                onOpenChange={setShowConfirmDialog}
-                onConfirm={handleConfirmDelete}
-                materialName={deletingMaterial?.name || ''}
-                loading={actionLoading}
-            />
-
             <MaterialTypesManagerDialog
                 open={showTypesManager}
                 onOpenChange={setShowTypesManager}
+            />
+
+            <ConfirmDialog
+                open={showConfirmDialog}
+                onOpenChange={setShowConfirmDialog}
+                onConfirm={handleConfirmDelete}
+                title="Xóa nguyên liệu"
+                content={`Bạn có chắc chắn muốn xóa nguyên liệu "${deletingMaterial?.name}" không? Hành động này không thể hoàn tác.`}
+                variant="destructive"
+                loading={actionLoading}
             />
         </AdminPageLayout>
     );
