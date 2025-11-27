@@ -33,6 +33,16 @@ interface ScheduleFormDialogProps {
   onSubmit: (data: CreateScheduleData | UpdateScheduleData) => Promise<void>;
 }
 
+const formatTimeForInput = (time?: string | null) => {
+  if (!time) return '';
+  return time.length >= 5 ? time.slice(0, 5) : time;
+};
+
+const formatTimeForPayload = (time: string) => {
+  if (!time) return time;
+  return time.length === 5 ? `${time}:00` : time;
+};
+
 export function ScheduleFormDialog({
   open,
   onOpenChange,
@@ -51,8 +61,8 @@ export function ScheduleFormDialog({
       : schedule?.date
         ? schedule.date.split('T')[0]
         : '',
-    startTime: schedule?.startTime || '08:00',
-    endTime: schedule?.endTime || '17:00',
+    startTime: formatTimeForInput(schedule?.startTime) || '08:00',
+    endTime: formatTimeForInput(schedule?.endTime) || '17:00',
   });
 
   const [loading, setLoading] = useState(false);
@@ -68,8 +78,8 @@ export function ScheduleFormDialog({
           : schedule?.date
             ? schedule.date.split('T')[0]
             : '',
-        startTime: schedule?.startTime || '08:00',
-        endTime: schedule?.endTime || '17:00',
+        startTime: formatTimeForInput(schedule?.startTime) || '08:00',
+        endTime: formatTimeForInput(schedule?.endTime) || '17:00',
       });
     }
   }, [open, schedule, selectedDate, selectedUserId]);
@@ -102,9 +112,20 @@ export function ScheduleFormDialog({
       return;
     }
 
+    if (new Date(formData.date) < new Date()) {
+      toast.error('Ngày lịch trình không được trước ngày hôm nay');
+      return;
+    }
+
     try {
       setLoading(true);
-      await onSubmit(formData);
+      const payload = {
+        ...formData,
+        startTime: formatTimeForPayload(formData.startTime),
+        endTime: formatTimeForPayload(formData.endTime),
+      };
+
+      await onSubmit(payload);
       toast.success(
         schedule ? 'Cập nhật lịch trình thành công!' : 'Tạo lịch trình thành công!'
       );
@@ -141,7 +162,7 @@ export function ScheduleFormDialog({
               }
               disabled={!!schedule}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-[50%] ">
                 <SelectValue placeholder="Chọn nhân viên" />
               </SelectTrigger>
               <SelectContent>
