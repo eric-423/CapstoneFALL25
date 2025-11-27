@@ -109,6 +109,75 @@ export interface OrderResponse {
   deliveryAt?: string | null;
 }
 
+export interface CustomerOrderDetailItem {
+  productId: number;
+  productName: string;
+  orderId: number;
+  quantity: number;
+  price: number;
+  note?: string | null;
+  feedback?: string | null;
+  feedbackPoint?: number | null;
+  expiredFeedbackTime?: string | null;
+  productImg?: string | null;
+  comboDTO?: unknown;
+  isConfirmed?: boolean;
+  isDelivered?: boolean | null;
+  feedBackYet?: boolean;
+}
+
+export interface CustomerOrderDetailCustomerDTO {
+  id: number;
+  fullName: string;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  isActive?: boolean | null;
+  dateOfBirth?: string | null;
+  createdAt?: string | null;
+  memberPoint?: number | null;
+  memberRank?: string | null;
+}
+
+export interface CustomerOrderDetailData {
+  id: number;
+  subTotal: number;
+  promotionCode?: string | null;
+  discountValue?: number | null;
+  discountPercent?: number | null;
+  amount: number;
+  shippingFee?: number | null;
+  isPickUp?: boolean;
+  isTable?: boolean;
+  delivery_at?: string | null;
+  deliveryAt?: string | null;
+  orderStatus: string;
+  status?: string;
+  note?: string | null;
+  payment_code?: string | null;
+  address?: string | null;
+  branchName?: string | null;
+  branchAddress?: string | null;
+  phone?: string | null;
+  pointUsed?: number;
+  pointEarned?: number;
+  createdAt?: string | null;
+  orderItems: CustomerOrderDetailItem[];
+  customerDTO?: CustomerOrderDetailCustomerDTO | null;
+  pickupTime?: string | null;
+  customerName?: string | null;
+  paymentUrl?: string | null;
+  shipperName?: string | null;
+  waiterName?: string | null;
+  chefName?: string | null;
+}
+
+export interface CustomerOrderDetailApiResponse {
+  status: number;
+  desc: string | null;
+  data: CustomerOrderDetailData;
+}
+
 
 export interface OrderStatusesResponse {
   status: number;
@@ -240,6 +309,25 @@ export const getCustomerOrders = async (status?: string) => {
 
   return response.json();
 
+};
+
+export const getCustomerOrderDetail = async (orderId: number): Promise<CustomerOrderDetailApiResponse> => {
+  const response = await fetch(`/api/orders/${orderId}`, {
+    method: 'GET',
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw {
+      response: {
+        data: errorBody,
+        status: response.status,
+      },
+    };
+  }
+
+  return response.json();
 };
 
 export const cancelOrder = async (orderId: number, customerId: number) => {
@@ -484,23 +572,17 @@ export const assignShipperToOrder = async (orderId: number): Promise<AssignShipp
       credentials: 'include',
     });
 
-    if (!response.ok) {
-      const errorBody = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
-      const error = new Error(`Failed to assign shipper: ${response.status} ${response.statusText}`);
-      (error as Error & { response?: { data: unknown; status: number } }).response = {
-        data: errorBody,
-        status: response.status,
-      };
-      throw error;
-    }
-
     const data = await response.json();
     return {
       success: data === true || data === 'true' || data.success === true || response.ok,
       message: data.message || 'Đã assign shipper thành công'
     };
   } catch (error) {
-    throw error;
+    console.log(error)
+    return {
+      success: false,
+      message: 'Hiện Tại Tất Cả Shipper Đang Bận'
+    };
   }
 };
 

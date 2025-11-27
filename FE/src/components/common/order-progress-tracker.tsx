@@ -10,22 +10,6 @@ interface OrderProgressTrackerProps {
   className?: string;
 }
 
-const STATUS_DESCRIPTIONS: Record<string, string> = {
-  CREATED: 'Đơn hàng đã được tạo và chờ xác nhận.',
-  VERIFIED: 'Đơn hàng đã được xác nhận.',
-  UNPAID: 'Đơn hàng đã được tạo và chờ xác nhận.',
-  COOKING: 'Đầu bếp đang chuẩn bị món ăn của bạn.',
-  PROCESSING: 'Đơn hàng đang được xử lý.',
-  COOKED: 'Món ăn đã sẵn sàng, chờ đóng gói.',
-  IN_PROCESS: 'Đơn hàng đang được hoàn thiện để giao.',
-  SHIPPING: 'Shipper đang trên đường giao món.',
-  DELIVERING: 'Shipper đang trên đường giao món.',
-  IN_DELIVERY: 'Shipper đang trên đường giao món.',
-  DELIVERED: 'Đơn đã tới nơi, chờ xác nhận hoàn tất.',
-  COMPLETED: 'Đơn hàng đã hoàn thành.',
-  PAID: 'Thanh toán đã hoàn tất.',
-};
-
 const ORDER_STATUSES = [
   {
     key: 'CREATED',
@@ -144,7 +128,7 @@ export default function OrderProgressTracker({ currentStatus, className }: Order
       <div className={cn('w-full p-4 bg-red-50 rounded-lg border border-red-200', className)}>
         <div className='flex items-center justify-center space-x-2'>
           <CancelledIcon className='h-5 w-5 text-red-600' />
-          <span className='font-medium text-red-700'>{CANCELLED_STATUS.label}</span>
+          <span className='font-medium   text-red-700'>{CANCELLED_STATUS.label}</span>
         </div>
       </div>
     );
@@ -165,8 +149,7 @@ export default function OrderProgressTracker({ currentStatus, className }: Order
 
 
   return (
-    <div className={cn('w-full space-y-4 ', className)}>
-      {/* Progress Bar */}
+    <div className={cn('w-full space-y-4 mt-[4rem]', className)}>
       <div className='relative px-5'>
         <Progress value={progressValue} className='h-2' />
         <div className='absolute inset-0 flex justify-between items-center px-5'>
@@ -225,11 +208,11 @@ export default function OrderProgressTracker({ currentStatus, className }: Order
       </div>
 
       {/* Current Status Description */}
-      <div className='text-center p-3 pt-0'>
+      {/* <div className='text-center p-3 pt-0'>
         <p className='text-sm text-primary font-medium'>
           {STATUS_DESCRIPTIONS[normalizedStatus] || STATUS_DESCRIPTIONS[mappedStatus] || 'Đơn hàng đang được xử lý.'}
         </p>
-      </div>
+      </div> */}
     </div>
   );
 }
