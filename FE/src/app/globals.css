@@ -320,7 +320,7 @@
     height: auto !important;
     min-height: auto !important;
     width: fit-content !important;
-    font-size: 12px !important;
+    font-size: 13px !important;
     line-height: 1.4 !important;
     color: #0c1205 !important;
     border-radius: 9999px !important;
@@ -328,29 +328,26 @@
     border: 1px solid rgba(183, 232, 146, 0.8) !important;
   }
 
-  .Toastify__toast--success .Toastify__toast-body {
-    padding: 0 !important;
-    margin: 0 !important;
-    line-height: 1.4 !important;
-  }
-
+  .Toastify__toast--success .Toastify__toast-body,
   .Toastify__toast--error {
-    border: 1px solid #f8cbcb !important;
-    background-color: #ff7373 !important;
-    color: #b91c1c !important;
-    border-radius: 9999px !important;
-    box-shadow: 0 10px 25px rgba(185, 28, 28, 0.15) !important;
-    height: auto !important;
-    min-height: auto !important;
-    padding: 10px 16px !important;
-    line-height: 1.4 !important;
-  }
-
-  .Toastify__toast--error .Toastify__toast-body {
     padding: 0 !important;
     margin: 0 !important;
     line-height: 1.4 !important;
     color: white !important;
+  }
+
+  .Toastify__toast--error {
+    border: 1px solid #f8cbcb !important;
+    background-color: #fd3f3f !important;
+    padding: 10px 16px !important;
+    color: white !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    border-radius: 9999px !important;
+    box-shadow: 0 10px 25px rgba(185, 28, 28, 0.15) !important;
+    height: 30px !important;
+    min-height: 30px !important;
+    line-height: 1.4 !important;
   }
 
   .Toastify__toast--warning {
@@ -423,23 +420,23 @@
     0% {
       background-position: 0% 50%;
     }
+
     50% {
       background-position: 100% 50%;
     }
+
     100% {
       background-position: 0% 50%;
     }
   }
 
   .gradient-animation {
-    background: linear-gradient(
-      90deg,
-      rgba(255, 140, 66, 0.1) 0%,
-      rgba(255, 200, 87, 0.2) 25%,
-      rgba(255, 140, 66, 0.1) 50%,
-      rgba(255, 200, 87, 0.2) 75%,
-      rgba(255, 140, 66, 0.1) 100%
-    );
+    background: linear-gradient(90deg,
+        rgba(255, 140, 66, 0.1) 0%,
+        rgba(255, 200, 87, 0.2) 25%,
+        rgba(255, 140, 66, 0.1) 50%,
+        rgba(255, 200, 87, 0.2) 75%,
+        rgba(255, 140, 66, 0.1) 100%);
     background-size: 200% 100%;
     animation: gradientShift 3s ease infinite;
   }
