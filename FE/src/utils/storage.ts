@@ -1,48 +1,37 @@
-import { CartState } from '@/utils/contexts/cart/cart.type';
+import { CartState, CartItem } from '@/utils/contexts/cart/cart.type';
 
-// Helper function to generate unique IDs
 export function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
 }
 
-// Cart storage helpers
+function normalizeCartItem(item: CartItem): CartItem {
+  if (item.isCombo && item.comboId) {
+    return {
+      ...item,
+      productId: 0,
+    };
+  }
+  return item;
+}
+
 export function saveCartToLocalStorage(state: CartState): void {
   try {
-    localStorage.setItem('tamtac_cart', JSON.stringify(state.items));
+    const normalizedItems = state.items.map(normalizeCartItem);
+    localStorage.setItem('tamtac_cart', JSON.stringify(normalizedItems));
   } catch (error) {
     console.error('Failed to save cart to localStorage:', error);
   }
 }
 
-export function loadCartFromLocalStorage(): CartState | null {
+export function loadCartFromLocalStorage(): CartItem[] | null {
   try {
     const saved = localStorage.getItem('tamtac_cart');
     if (saved) {
-      return JSON.parse(saved);
+      const items = JSON.parse(saved) as CartItem[];
+      return items.map(normalizeCartItem);
     }
   } catch (error) {
     console.error('Failed to load cart from localStorage:', error);
   }
   return null;
 }
-
-// // Order storage helpers
-// export function saveOrdersToLocalStorage(state: OrderState): void {
-//   try {
-//     localStorage.setItem("tamtac_orders", JSON.stringify(state))
-//   } catch (error) {
-//     console.error("Failed to save orders to localStorage:", error)
-//   }
-// }
-
-// export function loadOrdersFromLocalStorage(): OrderState | null {
-//   try {
-//     const saved = localStorage.getItem("tamtac_orders")
-//     if (saved) {
-//       return JSON.parse(saved)
-//     }
-//   } catch (error) {
-//     console.error("Failed to load orders from localStorage:", error)
-//   }
-//   return null
-// }

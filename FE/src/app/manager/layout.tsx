@@ -210,26 +210,26 @@ export default function ManagerLayout({
     const status = (order.orderStatus || "").toUpperCase();
     const contextBase: BarcodeProcessContext = { status };
 
-    if (["IN_PROCESS", "PROCESSING"].includes(status)) {
-      const assignResult = await assignChefToOrder(orderId);
-      if (!assignResult.success) {
-        return {
-          success: false,
-          context: {
-            ...contextBase,
-            action: "assign-chef" as const,
-            message: "Không thể chuyển đơn cho bếp. Vui lòng thử lại.",
-          },
-        };
-      }
-      return {
-        success: true,
-        context: {
-          ...contextBase,
-          action: "assign-chef" as const,
-        },
-      };
-    }
+    // if (["IN_PROCESS", "PROCESSING"].includes(status)) {
+    //   const assignResult = await assignChefToOrder(orderId);
+    //   if (!assignResult.success) {
+    //     return {
+    //       success: false,
+    //       context: {
+    //         ...contextBase,
+    //         action: "assign-chef" as const,
+    //         message: "Không thể chuyển đơn cho bếp. Vui lòng thử lại.",
+    //       },
+    //     };
+    //   }
+    //   return {
+    //     success: true,
+    //     context: {
+    //       ...contextBase,
+    //       action: "assign-chef" as const,
+    //     },
+    //   };
+    // }
 
     if (status === "COOKED") {
       const assignResult = await assignShipperToOrder(orderId);

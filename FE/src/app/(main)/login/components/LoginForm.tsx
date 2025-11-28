@@ -197,11 +197,10 @@ export default function LoginForm() {
               </p>
               {globalMessage && (
                 <p
-                  className={`mt-3 sm:mt-4 text-xs sm:text-sm font-medium px-2 ${
-                    globalMessage.type === "error"
-                      ? "text-red-600"
-                      : "text-gray-700"
-                  }`}
+                  className={`mt-3 sm:mt-4 text-xs sm:text-sm font-medium px-2 ${globalMessage.type === "error"
+                    ? "text-red-600"
+                    : "text-gray-700"
+                    }`}
                 >
                   {globalMessage.text}
                 </p>
@@ -232,17 +231,17 @@ export default function LoginForm() {
                     <p className="mt-1 text-xs sm:text-sm text-red-600 break-words">{errors.phone}</p>
                     {errors.phone ===
                       "Số điện thoại chưa được xác thực. Vui lòng xác thực số điện thoại trước khi đăng nhập." && (
-                      <button
-                        type="button"
-                        className="mt-2 text-xs sm:text-sm text-[#FF6B35] underline disabled:opacity-50 block"
-                        onClick={handleResendOtp}
-                        disabled={resendOtpLoading}
-                      >
-                        {resendOtpLoading
-                          ? "Đang gửi..."
-                          : "Gửi lại mã xác thực"}
-                      </button>
-                    )}
+                        <button
+                          type="button"
+                          className="mt-2 text-xs sm:text-sm text-[#FF6B35] underline disabled:opacity-50 block"
+                          onClick={handleResendOtp}
+                          disabled={resendOtpLoading}
+                        >
+                          {resendOtpLoading
+                            ? "Đang gửi..."
+                            : "Gửi lại mã xác thực"}
+                        </button>
+                      )}
                   </>
                 )}
               </div>

@@ -2,14 +2,12 @@ import { CartAction } from '@/utils/enum';
 
 import type { CartActionPayload, CartItem, CartState } from './cart.type';
 
-// Initial state
 export const initialCartState: CartState = {
   items: [],
   isLoading: true,
   isInitialized: false,
 };
 
-// Reducer function with proper typing
 export function reducer(state: CartState, action: CartActionPayload): CartState {
   switch (action.type) {
     case CartAction.INITIALIZE:
@@ -23,7 +21,14 @@ export function reducer(state: CartState, action: CartActionPayload): CartState 
     case CartAction.ADD_ITEM: {
       const item = action.payload;
       const existingItemIndex = state.items.findIndex(
-        (existingItem: CartItem) => existingItem.productId === item.productId,
+        (existingItem: CartItem) => {
+          if (item.isCombo && existingItem.isCombo) {
+            return existingItem.comboId === item.comboId;
+          } else if (!item.isCombo && !existingItem.isCombo) {
+            return existingItem.productId === item.productId;
+          }
+          return false;
+        },
       );
 
       if (existingItemIndex > -1) {
@@ -32,20 +37,34 @@ export function reducer(state: CartState, action: CartActionPayload): CartState 
         if (item?.note && item.note.length > 0) {
           updatedItems[existingItemIndex].note = item.note;
         }
+        if (updatedItems[existingItemIndex].isCombo) {
+          updatedItems[existingItemIndex].productId = 0;
+        }
         return { ...state, items: updatedItems };
       }
 
+      const normalizedItem = item.isCombo ? { ...item, productId: 0 } : item;
+
       return {
         ...state,
-        items: [...state.items, { ...item }],
+        items: [...state.items, normalizedItem],
       };
     }
 
-    case CartAction.REMOVE_ITEM:
+    case CartAction.REMOVE_ITEM: {
+      const payload = action.payload;
       return {
         ...state,
-        items: state.items.filter((item: CartItem) => item.productId !== action.payload.productId),
+        items: state.items.filter((item: CartItem) => {
+          if (payload.isCombo && item.isCombo) {
+            return item.comboId !== payload.comboId;
+          } else if (!payload.isCombo && !item.isCombo) {
+            return item.productId !== payload.productId;
+          }
+          return true;
+        }),
       };
+    }
 
     case CartAction.UPDATE_QUANTITY: {
       const item = action.payload;
@@ -53,25 +72,47 @@ export function reducer(state: CartState, action: CartActionPayload): CartState 
       if (item.quantity <= 0) {
         return {
           ...state,
-          items: state.items.filter((item: CartItem) => item.productId !== action.payload.productId),
+          items: state.items.filter((cartItem: CartItem) => {
+            if (item.isCombo && cartItem.isCombo) {
+              return cartItem.comboId !== item.comboId;
+            } else if (!item.isCombo && !cartItem.isCombo) {
+              return cartItem.productId !== item.productId;
+            }
+            return true;
+          }),
         };
       }
 
       return {
         ...state,
-        items: state.items.map((product: CartItem) =>
-          product.productId === item.productId ? { ...product, quantity: item.quantity } : product,
-        ),
+        items: state.items.map((cartItem: CartItem) => {
+          if (item.isCombo && cartItem.isCombo) {
+            return cartItem.comboId === item.comboId 
+              ? { ...cartItem, quantity: item.quantity, productId: 0 } 
+              : cartItem;
+          } else if (!item.isCombo && !cartItem.isCombo) {
+            return cartItem.productId === item.productId ? { ...cartItem, quantity: item.quantity } : cartItem;
+          }
+          return cartItem;
+        }),
       };
     }
 
-    case CartAction.UPDATE_ITEM:
+    case CartAction.UPDATE_ITEM: {
+      const payload = action.payload;
+      const normalizedPayload = payload.isCombo ? { ...payload, productId: 0 } : payload;
       return {
         ...state,
-        items: state.items.map((item: CartItem) =>
-          item.productId === action.payload.productId ? action.payload : item,
-        ),
+        items: state.items.map((item: CartItem) => {
+          if (payload.isCombo && item.isCombo) {
+            return item.comboId === payload.comboId ? normalizedPayload : item;
+          } else if (!payload.isCombo && !item.isCombo) {
+            return item.productId === payload.productId ? normalizedPayload : item;
+          }
+          return item;
+        }),
       };
+    }
 
     case CartAction.CLEAR_CART:
       return {
@@ -90,7 +131,6 @@ export function reducer(state: CartState, action: CartActionPayload): CartState 
   }
 }
 
-// Action creators that return the correct CartActionPayload types
 export function initialize(payload: Partial<CartState>): CartActionPayload {
   return {
     type: CartAction.INITIALIZE,
