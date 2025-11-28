@@ -15,7 +15,7 @@ declare global {
     }
 }
 
-const DIFY_TOKEN = 'zVME6BI45RVXufZX';
+const DIFY_TOKEN = 'zuJKSoxQFk62iEMg';
 const SCRIPT_ID = DIFY_TOKEN;
 const SCRIPT_URL = 'https://udify.app/embed.min.js';
 const STORAGE_KEY_PATTERN = /https?:\/\/udify\.app|dify|udify/i;

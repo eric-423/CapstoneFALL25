@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Clock, ChefHat, Loader2, AlertCircle } from 'lucide-react';
+import { CheckCircle, Clock, Loader2, AlertCircle } from 'lucide-react';
 import { getChefOrders, BranchOrderResponse } from '@/apis/order.api';
 import { useAuthContext } from '@/utils/contexts/AuthContext';
 import CompleteLayout from '../components/CompleteLayout';
@@ -25,10 +25,10 @@ export default function CompletedPage() {
             try {
                 setLoading(true);
                 setError(null);
-                
+
                 const chefId = user.id;
                 const response = await getChefOrders(chefId, 'COOKED');
-                
+
                 if (response.status === 0 && response.data) {
                     setOrders(response.data);
                 } else {
@@ -38,11 +38,11 @@ export default function CompletedPage() {
             } catch (err) {
                 console.error('Error fetching completed orders:', err);
                 const error = err as Error & { response?: { data?: { error?: string; status?: number; details?: { error?: string } }; status?: number } };
-                
+
                 if (error.response?.data) {
                     const errorData = error.response.data;
                     const status = error.response.data.status || error.response.status;
-                    
+
                     if (status === 403) {
                         setError('Bạn không có quyền truy cập API này. Vui lòng liên hệ quản trị viên.');
                     } else if (status === 401) {
@@ -69,11 +69,11 @@ export default function CompletedPage() {
         const orderDateTime = new Date(orderDate);
         const completedDateTime = paymentTime ? new Date(paymentTime) : new Date();
         const diffMinutes = Math.ceil((completedDateTime.getTime() - orderDateTime.getTime()) / 60000);
-        
+
         if (diffMinutes <= 0) {
             return 0;
         }
-        
+
         return diffMinutes;
     };
 
@@ -102,7 +102,7 @@ export default function CompletedPage() {
     return (
         <CompleteLayout title='Đã hoàn thành' icon={CheckCircle} description='Các món ăn đã hoàn thành' >
             <div className='max-w-6xl mx-auto'>
-                <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-8'>
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-6 mb-8'>
                     <Card>
                         <CardContent className='p-6'>
                             <div className='flex items-center'>
@@ -120,14 +120,14 @@ export default function CompletedPage() {
                             <div className='flex items-center'>
                                 <Clock className='h-8 w-8 text-blue-500' />
                                 <div className='ml-4'>
-                                    <p className='text-sm font-medium text-gray-600'>Thời gian TB</p>
+                                    <p className='text-sm font-medium text-gray-600'>Thời gian trung bình</p>
                                     <p className='text-2xl font-bold text-gray-900'>{avgProcessingTime}p</p>
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card>
+                    {/* <Card>
                         <CardContent className='p-6'>
                             <div className='flex items-center'>
                                 <ChefHat className='h-8 w-8 text-orange-500' />
@@ -137,7 +137,7 @@ export default function CompletedPage() {
                                 </div>
                             </div>
                         </CardContent>
-                    </Card>
+                    </Card> */}
                 </div>
 
                 <div className='space-y-4'>

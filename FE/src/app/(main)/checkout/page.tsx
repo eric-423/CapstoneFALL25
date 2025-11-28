@@ -32,6 +32,7 @@ import {
 
 import { useCart } from "@/utils/contexts/cart/CartContext";
 import { useAuth } from "@/utils/hooks";
+import { QuantitySelector } from "@/components/common/quantity-selector";
 
 import useScrollTop from "@/utils/hooks/useScrollTop";
 import { cn } from "@/utils/lib/utils";
@@ -90,6 +91,9 @@ import {
   Store,
   Truck,
   User,
+  Pencil,
+  Check,
+  X,
 } from "lucide-react";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -105,7 +109,7 @@ export default function CheckoutPage() {
   useScrollTop();
 
   const queryClient = useQueryClient();
-  const { items, getTotalPrice } = useCart();
+  const { items, getTotalPrice, updateItem, updateQuantity } = useCart();
   const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const router = useRouter();
   const tokenFullName = user?.fullName?.trim();
@@ -129,6 +133,8 @@ export default function CheckoutPage() {
   const [addressLabel, setAddressLabel] = useState<"Nhà Riêng" | "Công Ty">(
     "Nhà Riêng"
   );
+  const [editingNoteIndex, setEditingNoteIndex] = useState<number | null>(null);
+  const [tempNote, setTempNote] = useState<string>("");
 
   useEffect(() => {
     const savedBranch = localStorage.getItem("selectedBranch");
@@ -176,12 +182,12 @@ export default function CheckoutPage() {
     () =>
       Array.isArray(customerInformationData)
         ? customerInformationData.map((info: CustomerInformationResponse) => ({
-            informationId: info.informationId,
-            fullName: info.fullName,
-            address: info.address,
-            phone: info.phone,
-            isDefault: info.isDefault,
-          }))
+          informationId: info.informationId,
+          fullName: info.fullName,
+          address: info.address,
+          phone: info.phone,
+          isDefault: info.isDefault,
+        }))
         : [],
     [customerInformationData]
   );
@@ -214,14 +220,14 @@ export default function CheckoutPage() {
     () =>
       Array.isArray(branchesData)
         ? branchesData.map(
-            (branch): Branch => ({
-              branchId: branch.id,
-              branchName: branch.name,
-              address: branch.address ?? "",
-              phone: branch.phone ?? "",
-              isActive: branch.active,
-            })
-          )
+          (branch): Branch => ({
+            branchId: branch.id,
+            branchName: branch.name,
+            address: branch.address ?? "",
+            phone: branch.phone ?? "",
+            isActive: branch.active,
+          })
+        )
         : [],
     [branchesData]
   );
@@ -230,15 +236,15 @@ export default function CheckoutPage() {
     () =>
       Array.isArray(nearbyBranchesData)
         ? nearbyBranchesData.map(
-            (branch): Branch => ({
-              branchId: branch.branchId,
-              branchName: branch.name,
-              address: branch.address ?? "",
-              phone: branch.phoneNumber ?? "",
-              isActive: true,
-              distanceText: branch.distanceText,
-            })
-          )
+          (branch): Branch => ({
+            branchId: branch.branchId,
+            branchName: branch.name,
+            address: branch.address ?? "",
+            phone: branch.phoneNumber ?? "",
+            isActive: true,
+            distanceText: branch.distanceText,
+          })
+        )
         : [],
     [nearbyBranchesData]
   );
@@ -744,12 +750,26 @@ export default function CheckoutPage() {
         shippingPhoneNumber: data.customerPhone,
         branchId: selectedBranch?.branchId || 1,
         mode: isPickup ? "PICKUP" : "SHIPPING",
-        orderItemList: items.map((item) => ({
-          productId: item.productId,
-          quantity: item.quantity,
-          price: item.productPrice,
-          note: item.note || "",
-        })),
+        orderItemList: items.map((item) => {
+          const baseItem = {
+            quantity: item.quantity,
+            price: item.productPrice,
+            note: item.note || "",
+          };
+
+          if (item.isCombo && item.comboId) {
+            return {
+              productId: 0,
+              comboId: item.comboId,
+              ...baseItem,
+            };
+          } else {
+            return {
+              productId: item.productId,
+              ...baseItem,
+            };
+          }
+        }),
       };
 
       createOrderMutate(payload);
@@ -1041,7 +1061,7 @@ export default function CheckoutPage() {
                                           type="button"
                                           variant={
                                             selectedInfoId ===
-                                            info.informationId
+                                              info.informationId
                                               ? "default"
                                               : "outline"
                                           }
@@ -1294,43 +1314,106 @@ export default function CheckoutPage() {
                     </CardContent>
                   </Card>
                 )}
+
+
                 <Card className="p-4 gap-2">
                   <CardTitle className="m-2 mb-0">Thông tin đơn hàng</CardTitle>
                   <CardContent className="p-0 space-y-2">
                     <div className="divide-y">
-                      {items.map((item) => (
-                        <div
-                          key={item.productId}
-                          className="p-2 border-foreground/20"
-                        >
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <h5 className="font-medium text-sm">
-                                {item.productName}
-                              </h5>
-                              <p className="text-sm text-muted-foreground">
-                                {item.note && item.note.length > 0 ? (
-                                  <>
-                                    <span className="font-medium">
-                                      Ghi chú:
-                                    </span>{" "}
-                                    {item.note}
-                                  </>
-                                ) : (
-                                  "Không có ghi chú"
-                                )}
-                              </p>
-                            </div>
+                      {items.map((item, index) => {
+                        const isEditing = editingNoteIndex === index;
+                        const itemKey = item.isCombo && item.comboId ? `combo-${item.comboId}-${index}` : `product-${item.productId}-${index}`;
 
-                            <div className="text-right text-sm">
-                              <div className="text-primary font-medium">
-                                {item.productPrice.toLocaleString()}đ
+                        return (
+                          <div
+                            key={itemKey}
+                            className="p-3 border-foreground/20"
+                          >
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h5 className="font-medium text-sm">
+                                    {item.productName}
+                                  </h5>
+
+                                  {!isEditing && (
+                                    <button
+                                      title="Ghi chú"
+                                      onClick={() => {
+                                        setEditingNoteIndex(index);
+                                        setTempNote(item.note || "");
+                                      }}
+                                      className="p-1 hover:bg-gray-100 rounded transition-colors"
+                                      type="button"
+                                    >
+                                      <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                                    </button>
+                                  )}
+                                </div>
+                                {isEditing ? (
+                                  <div className="mt-2 space-y-2">
+                                    <Textarea
+                                      title="Ghi chú"
+                                      value={tempNote}
+                                      onChange={(e) => setTempNote(e.target.value)}
+                                      placeholder="Nhập ghi chú cho món này..."
+                                      className="resize-none h-16 text-sm"
+                                      autoFocus
+                                    />
+                                    <div className="flex gap-2">
+
+                                      <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-7 text-xs"
+                                        onClick={() => {
+                                          setEditingNoteIndex(null);
+                                          setTempNote("");
+                                        }}
+                                      >
+                                        <Check className="h-3 w-3 mr-1" />
+                                        Lưu
+                                      </Button>
+
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <p className="text-sm text-muted-foreground">
+                                    {item.note && item.note.length > 0 ? (
+                                      <span className="italic">&quot;{item.note}&quot;</span>
+                                    ) : (
+                                      <span className="text-muted-foreground/60">Chưa có ghi chú</span>
+                                    )}
+                                  </p>
+                                )}
                               </div>
-                              x {item.quantity}
+
+                              <div className="text-right text-sm ml-4 flex flex-col items-end gap-2">
+                                <div className="text-primary font-medium">
+                                  {item.productPrice.toLocaleString()}đ
+                                </div>
+                                <QuantitySelector
+                                  value={item.quantity}
+                                  onIncrease={() =>
+                                    updateQuantity({
+                                      ...item,
+                                      quantity: item.quantity + 1,
+                                    })
+                                  }
+                                  onDecrease={() =>
+                                    updateQuantity({
+                                      ...item,
+                                      quantity: Math.max(1, item.quantity - 1),
+                                    })
+                                  }
+                                  small
+                                />
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
 
                     {isDelivery && (
@@ -1354,7 +1437,8 @@ export default function CheckoutPage() {
                     )}
                   </CardContent>
                 </Card>
-                <Card className="p-4 gap-2">
+
+                {/* <Card className="p-4 gap-2">
                   <CardTitle className="m-2 mb-0">
                     Ghi chú cho đơn hàng
                   </CardTitle>
@@ -1374,7 +1458,9 @@ export default function CheckoutPage() {
                       )}
                     />
                   </CardContent>
-                </Card>
+                </Card> */}
+
+
                 <Card>
                   <CardContent className="p-4 py-0 space-y-3">
                     {isDelivery && (

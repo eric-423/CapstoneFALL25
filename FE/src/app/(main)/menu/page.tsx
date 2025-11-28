@@ -4,6 +4,7 @@ import StyledHeading from "@/components/common/styled-heading";
 import { Button } from "@/components/ui/button";
 import useScrollTop from "@/utils/hooks/useScrollTop";
 import useGetProductSearch from "@/utils/hooks/useGetProductSearch";
+import useGetComboSearch from "@/utils/hooks/useGetComboSearch";
 import {
   GET_TOP_SELLING_QUERY_KEY,
   Product,
@@ -27,8 +28,10 @@ import { useAuth } from "@/utils/hooks";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useSearchParams } from "next/navigation";
 
 import ProductList from "./components/product-list";
+import ComboList from "./components/combo-list";
 import ProductTypeList from "./components/product-type-list";
 
 type Branch = {
@@ -43,6 +46,7 @@ type Branch = {
 export default function MenuPage() {
   useScrollTop();
   const { user } = useAuth();
+  const searchParams = useSearchParams();
   const [productType, setProductType] = useState<ProductType>({
     id: 0,
     name: "Tất cả",
@@ -58,6 +62,29 @@ export default function MenuPage() {
       refetchOnMount: false,
       refetchOnWindowFocus: false,
     });
+
+  // Thêm Combo vào danh sách productTypes
+  const allProductTypes = useMemo(() => {
+    const comboType: ProductType = {
+      id: -1,
+      name: "Combo",
+    };
+    return [comboType, ...productTypes];
+  }, [productTypes]);
+
+  // Đọc category từ query params và set productType
+  useEffect(() => {
+    if (productTypes.length > 0) {
+      const categoryParam = searchParams.get('category');
+      if (categoryParam) {
+        const categoryId = parseInt(categoryParam, 10);
+        const foundCategory = productTypes.find((type) => type.id === categoryId);
+        if (foundCategory) {
+          setProductType(foundCategory);
+        }
+      }
+    }
+  }, [searchParams, productTypes]);
   const { data: branchesData = [], isLoading: isLoadingBranchesData } =
     useQuery<ApiBranch[]>({
       queryKey: [GET_BRANCHES_QUERY_KEY],
@@ -137,20 +164,48 @@ export default function MenuPage() {
     return apiBranches;
   }, [apiBranches, nearbyBranches]);
 
+  const isComboMode = productType.id === -1;
+
   const {
     products: productList,
     isLoading: isLoadingProducts,
-    resetAndRefetch,
-    page,
-    goToPage,
-    totalPages,
+    resetAndRefetch: resetAndRefetchProducts,
+    page: productPage,
+    goToPage: goToProductPage,
+    totalPages: productTotalPages,
   } = useGetProductSearch({
     size: 12,
-    productTypeId: productType.id === 0 ? undefined : productType.id,
+    productTypeId: productType.id === 0 ? undefined : productType.id === -1 ? undefined : productType.id,
     branchId: selectedBranch?.branchId || 1,
     isActive: true,
     appendPages: false,
   });
+
+  const {
+    combos: comboList,
+    isLoading: isLoadingCombos,
+    resetAndRefetch: resetAndRefetchCombos,
+    page: comboPage,
+    goToPage: goToComboPage,
+    totalPages: comboTotalPages,
+  } = useGetComboSearch({
+    size: 12,
+    branchId: selectedBranch?.branchId || 1,
+    isActive: true,
+    appendPages: false,
+  });
+
+  const isLoading = isComboMode ? isLoadingCombos : isLoadingProducts;
+  const page = isComboMode ? comboPage : productPage;
+  const totalPages = isComboMode ? comboTotalPages : productTotalPages;
+  const goToPage = isComboMode ? goToComboPage : goToProductPage;
+  
+  const resetAndRefetch = useCallback(async () => {
+    await Promise.all([
+      resetAndRefetchProducts(),
+      resetAndRefetchCombos(),
+    ]);
+  }, [resetAndRefetchProducts, resetAndRefetchCombos]);
 
   const { data: topSellingData } = useQuery({
     queryKey: [GET_TOP_SELLING_QUERY_KEY, selectedBranch?.branchId],
@@ -168,6 +223,20 @@ export default function MenuPage() {
   useEffect(() => {
     if (isLoadingBranches) return;
     if (!displayBranches.length) return;
+
+    // Kiểm tra branch từ query params trước
+    const branchParam = searchParams.get('branch');
+    if (branchParam) {
+      const branchId = parseInt(branchParam, 10);
+      const foundBranch = displayBranches.find((b) => b.branchId === branchId);
+      if (foundBranch) {
+        setSelectedBranch(foundBranch);
+        if (typeof window !== "undefined") {
+          localStorage.setItem("selectedBranch", JSON.stringify(foundBranch));
+        }
+        return;
+      }
+    }
 
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("selectedBranch");
@@ -197,7 +266,7 @@ export default function MenuPage() {
       }
       return firstBranch;
     });
-  }, [displayBranches, isLoadingBranches]);
+  }, [displayBranches, isLoadingBranches, searchParams]);
 
   useEffect(() => {
     const handleBranchChange = (event: CustomEvent) => {
@@ -324,7 +393,7 @@ export default function MenuPage() {
           <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-10 pt-6 md:pt-8 py-6 md:py-10 bg-[#FFFCF7]">
             <div className="w-full mb-6 flex justify-center">
               <ProductTypeList
-                productTypes={productTypes || []}
+                productTypes={allProductTypes || []}
                 productType={productType}
                 setProductType={setProductType}
                 resetAndRefetch={resetAndRefetch}
@@ -349,7 +418,7 @@ export default function MenuPage() {
                     )}
                   </h2>
                 </div>
-                {isLoadingProducts ? (
+                {isLoading ? (
                   <div className="flex items-center justify-center">
                     <LoadingSpinner className="my-10 h-8 w-8 animate-spin" />
                   </div>
@@ -358,7 +427,11 @@ export default function MenuPage() {
                     <div
                       className={`transition-all duration-500 ${pageAnimating ? "animate-slide-up" : ""}`}
                     >
-                      <ProductList products={productList} />
+                      {isComboMode ? (
+                        <ComboList combos={comboList} />
+                      ) : (
+                        <ProductList products={productList} />
+                      )}
                     </div>
 
                     {totalPages > 1 && (

@@ -8,6 +8,8 @@ export interface CartItem {
   productPrice: number;
   quantity: number;
   note?: string;
+  comboId?: number;
+  isCombo?: boolean;
 }
 
 export interface CartState {

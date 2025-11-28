@@ -46,6 +46,7 @@ import {
     AdminStatsCard,
     AdminStatsGrid,
 } from "@/app/admin/components/AdminPageLayout";
+import { assignChefToOrder } from "@/apis/order.api";
 import { toast } from "react-toastify";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 
@@ -259,9 +260,17 @@ const printBlobInBrowser = async (blob: Blob) => {
 
         win.print();
 
-        // if (PRINT_CONFIG.isKioskMode) setTimeout(() => win.print(), 300);
+        // if (PRINT_CONFIG.isKioFskMode) setTimeout(() => win.print(), 300);
         setTimeout(focusBarcodeScanner, scannerRefocusDelay);
+
+
+
     };
+
+
+
+
+
 
     const onVisible = () => {
         if (document.visibilityState === "visible") {
@@ -295,10 +304,27 @@ const handlePrint = async (order: BranchOrderResponse) => {
     try {
         const blob = await downloadInvoiceBlob(order.id);
         await printBlobInBrowser(blob);
+
+        await fetchAssignToChef(order.id);
     } catch {
-        alert("Lỗi in hóa đơn. Vui lòng thử lại.");
+        toast.error("Lỗi in hóa đơn. Vui lòng thử lại.");
+        return;
     }
 };
+
+const fetchAssignToChef = async (orderId: number) => {
+    try {
+        const assignResult = await assignChefToOrder(orderId);
+
+        if (!assignResult.success) {
+            return false;
+        }
+        return true;
+    } catch {
+        toast.error("Lỗi khi chuyển cho bếp. Vui lòng thử lại.");
+        return;
+    }
+}
 
 
 export default function ManagerOrdersPage() {
