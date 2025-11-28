@@ -29,18 +29,20 @@ export default function ProfileInfoSection({
   addAddressRef,
 }: ProfileInfoSectionProps) {
   return (
-    <div className="space-y-6 ">
-      <div className="flex flex-col xl:flex-row gap-6 items-start">
-        <Card className="bg-transparent shadow-none border-0 flex-1">
+    <div className="space-y-6">
+      <div className="flex flex-col items-center gap-6">
+        <Card className="bg-transparent shadow-none border-0 w-full max-w-2xl">
           {isLoading ? (
             <div className="p-4 text-center">
               <LoadingSpinner />
             </div>
           ) : (
             <CardContent className="space-y-6 mt-2">
-              <div className="flex flex-col md:flex-row items-center md:items-center justify-center gap-6">
-                <div className="space-y-2 items-center justify-items-center text-center flex-shrink-0">
-                  <CircleUserRound className="h-20 w-20" />
+              <div className="flex flex-col items-center justify-center gap-6">
+                <div className="space-y-2 items-center justify-center text-center flex-shrink-0">
+                  <div className="flex justify-center">
+                    <CircleUserRound className="h-20 w-20" />
+                  </div>
                   <h3 className="text-xl font-semibold">
                     {user?.fullName || "Khách hàng"}
                   </h3>
@@ -49,26 +51,26 @@ export default function ProfileInfoSection({
                     {user?.phoneNumber}
                   </div>
                 </div>
-                <div className="flex flex-col gap-4 w-full max-w-sm">
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row gap-4 w-full max-w-sm justify-center">
+                  <div className="bg-blue-50 p-4 rounded-lg w-full sm:flex-1">
+                    <div className="flex items-center gap-2 justify-center">
                       <ShoppingBag className="h-5 w-5 text-blue-600" />
                       <span className="text-sm font-medium text-blue-600">
                         Tổng đơn hàng
                       </span>
                     </div>
-                    <p className="text-2xl font-bold text-blue-900 mt-1">
+                    <p className="text-2xl font-bold text-blue-900 mt-1 text-center">
                       {totalOrders || 0}
                     </p>
                   </div>
-                  <div className="bg-orange-50 p-4 rounded-lg">
-                    <div className="flex items-center gap-2">
+                  <div className="bg-orange-50 p-4 rounded-lg w-full sm:flex-1">
+                    <div className="flex items-center gap-2 justify-center">
                       <LucideUser className="h-5 w-5 text-[#C04A00]" />
                       <span className="text-sm font-medium text-[#C04A00]">
                         Điểm đã kiếm
                       </span>
                     </div>
-                    <p className="text-2xl font-bold text-[#EC6426] mt-1">
+                    <p className="text-2xl font-bold text-[#EC6426] mt-1 text-center">
                       {totalEarnedPoints.toLocaleString()} điểm
                     </p>
                   </div>
@@ -79,14 +81,14 @@ export default function ProfileInfoSection({
         </Card>
 
         {user?.id && (
-          <div className="w-full xl:max-w-[480px]">
+          <div className="w-full max-w-2xl">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 justify-center">
                 <MapPin className="h-5 w-5" />
                 Địa chỉ của bạn
               </CardTitle>
             </CardHeader>
-            <div className="max-h-[420px] overflow-y-auto pr-2 space-y-4">
+            <div className="max-h-[420px] overflow-y-auto space-y-4">
               <AddressManagementSection
                 userId={user.id}
                 onAddClickRef={addAddressRef}

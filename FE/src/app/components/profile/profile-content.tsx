@@ -69,8 +69,8 @@ export default function ProfileContent() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#FFFCF7] text-base">
-      <div className="flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-[#FFFCF7] text-base px-4 sm:px-6 lg:px-8 py-6">
+      <div className="flex flex-col lg:flex-row gap-6">
         <div className="lg:hidden p-4 border-b bg-[#FFFCF7]">
           <Select value={activeTab} onValueChange={setActiveTab}>
             <SelectTrigger className="w-full border-foreground">
@@ -131,10 +131,12 @@ export default function ProfileContent() {
           </div>
         </div>
         <div className="flex-1 bg-[#FFFCF7]">
-          <div className="p-6 lg:p-8">
-            <div className="mb-6 flex items-start justify-between">
+          <div className="p-0 lg:p-2">
+            <div className="mb-6 flex flex-col gap-4 items-center text-center">
               <div>
-                <h1 className="text-4xl font-bold">Thông tin cá nhân</h1>
+                <h1 className="text-3xl sm:text-4xl font-bold">
+                  Thông tin cá nhân
+                </h1>
                 <p className="mt-2 text-gray-600 text-base">
                   Quản lý thông tin tài khoản và lịch sử đơn hàng của bạn
                 </p>
@@ -146,7 +148,7 @@ export default function ProfileContent() {
                       addAddressRef.current();
                     }
                   }}
-                  className="bg-[#EC6426] hover:bg-[#C04A00] text-white text-base"
+                  className="bg-[#EC6426] hover:bg-[#C04A00] text-white text-base w-full sm:w-auto justify-center"
                 >
                   <Plus className="h-5 w-5 mr-2" />
                   Thêm địa chỉ mới

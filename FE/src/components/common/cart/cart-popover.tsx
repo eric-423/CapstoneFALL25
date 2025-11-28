@@ -52,11 +52,11 @@ export function CartPopover() {
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[500px] p-0 rounded-xl border-none shadow-lg"
+        className="w-[calc(100vw-2rem)] sm:w-[500px] p-0 rounded-xl border-none shadow-lg"
         align="end"
         sideOffset={8}
       >
-        <div className="!bg-[#FFFCF7] !text-orange-500 rounded-xl p-7 overflow-hidden">
+        <div className="!bg-[#FFFCF7] !text-orange-500 rounded-xl p-4 sm:p-7 overflow-hidden">
           <div className="pb-4 border-b border-foreground/30">
             <div className="flex items-start justify-between">
               <div>
