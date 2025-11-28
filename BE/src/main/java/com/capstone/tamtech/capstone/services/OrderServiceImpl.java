@@ -520,7 +520,8 @@ public class OrderServiceImpl implements OrderService {
 
         double newSubTotal = confirmedSubTotal + subTotal;
         order.setSubTotal(newSubTotal);
-
+        order.setStatus(orderStatusRepository.findByName("COOKING")
+                .orElseThrow(() -> new RuntimeException("OrderStatus CONFIRMED not found")));
         inventoryService.consumeMaterialsForOrderItems(order.getOrderItems(), branchId);
         orderRepository.save(order);
         return true;
