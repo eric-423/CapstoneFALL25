@@ -245,7 +245,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/promotions/customer/**").hasRole("CUSTOMER")
 
                         .requestMatchers(HttpMethod.GET, "/api/orders/*/bill/download")
-                        .hasAnyRole("ADMIN", "MANAGER", "WAITER", "CUSTOMER")
+                        .hasAnyRole("ADMIN", "MANAGER", "WAITER", "CUSTOMER","STAFF")
                         .requestMatchers(HttpMethod.POST, "/api/orders/*/bill/regenerate")
                         .hasAnyRole("ADMIN", "MANAGER")
 
