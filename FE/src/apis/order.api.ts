@@ -48,6 +48,25 @@ export interface UpdateDiningTableOrderRequest {
   orderItems: OrderItemRequest[];
 }
 
+export interface ComboItemDTO {
+  productId: number;
+  comboId: number;
+  quantity: number;
+  note: string;
+}
+
+export interface ComboDTO {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  startDate: string;
+  endDate: string;
+  branchId: number;
+  comboItems: ComboItemDTO[];
+  active: boolean;
+}
+
 export interface OrderProductResponse {
   productId: number;
   productName: string;
@@ -55,6 +74,8 @@ export interface OrderProductResponse {
   note: string;
   price: number;
   feedback?: string;
+  comboDTO?: ComboDTO | null;
+  isCombo?: boolean;
 }
 
 export type OrderMode = 'PICKUP' | 'DELIVERY';
@@ -76,6 +97,7 @@ export interface CreateOrderPayload {
   orderItemList: CreateOrderItem[];
   mode: OrderMode | string;
   branchId: number;
+  paymentMethodId?: number;
 }
 
 export interface OrderResponse {
@@ -111,7 +133,7 @@ export interface OrderResponse {
 
 export interface CustomerOrderDetailItem {
   productId: number;
-  productName: string;
+  productName: string | null;
   orderId: number;
   quantity: number;
   price: number;
@@ -120,7 +142,7 @@ export interface CustomerOrderDetailItem {
   feedbackPoint?: number | null;
   expiredFeedbackTime?: string | null;
   productImg?: string | null;
-  comboDTO?: unknown;
+  comboDTO?: ComboDTO | null;
   isConfirmed?: boolean;
   isDelivered?: boolean | null;
   feedBackYet?: boolean;
@@ -207,8 +229,8 @@ export interface BranchOrderResponse {
   waiterName: string | null;
   chefName: string | null;
   itemCount: number;
-  table: boolean;
-  pickUp: boolean;
+  isPickUp: boolean;
+  isTable: boolean;
 }
 
 export interface BranchOrdersApiResponse {

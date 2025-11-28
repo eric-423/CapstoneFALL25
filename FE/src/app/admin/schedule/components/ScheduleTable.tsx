@@ -81,75 +81,117 @@ export function ScheduleTable({
     );
   };
 
+  const isPastDate = (date: Date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const compareDate = new Date(date);
+    compareDate.setHours(0, 0, 0, 0);
+    return compareDate < today;
+  };
+
   return (
-    <div className="w-full overflow-x-auto">
-      <div className="min-w-[800px]">
-        {/* Header */}
-        <div className="grid grid-cols-7 gap-2 mb-2">
+    <div className="w-full overflow-x-auto -mx-2 sm:mx-0">
+      <div className="min-w-[600px] sm:min-w-[800px] px-2 sm:px-0">
+        {/* Header - Cải thiện visual và responsive */}
+        <div className="grid grid-cols-7 gap-1.5 sm:gap-3 mb-3 sm:mb-4">
           {DAYS_OF_WEEK.map((day, index) => {
             const date = weekDays[index];
             const dateKey = formatDate(date);
             const daySchedules = schedulesByDate[dateKey] || [];
+            const isTodayDate = isToday(date);
+            const isPast = isPastDate(date);
 
             return (
               <div
                 key={day.dayOfWeek}
                 className={cn(
-                  'text-center p-2 rounded-lg border-2',
-                  isToday(date)
-                    ? 'bg-orange-100 border-orange-400'
-                    : 'bg-gray-50 border-gray-200'
+                  'text-center p-1.5 sm:p-3 rounded-lg sm:rounded-xl border-2 transition-all',
+                  isPast
+                    ? 'bg-gray-100 border-gray-300 opacity-60'
+                    : isTodayDate
+                    ? 'bg-gradient-to-br from-orange-100 to-orange-50 border-orange-400 shadow-md'
+                    : 'bg-gray-50 border-gray-200 hover:border-gray-300'
                 )}
               >
-                <div className="text-xs font-semibold text-gray-600 mb-1">
-                  {day.label}
+                <div className={cn(
+                  'text-[10px] sm:text-xs font-semibold mb-0.5 sm:mb-1.5',
+                  isPast 
+                    ? 'text-gray-400' 
+                    : isTodayDate 
+                    ? 'text-orange-700' 
+                    : 'text-gray-600'
+                )}>
+                  <span className="hidden sm:inline">{day.label}</span>
+                  <span className="sm:hidden">{day.shortLabel}</span>
                 </div>
                 <div
                   className={cn(
-                    'text-sm font-bold mb-1',
-                    isToday(date) ? 'text-orange-600' : 'text-gray-800'
+                    'text-lg sm:text-2xl font-bold mb-0.5 sm:mb-1',
+                    isPast
+                      ? 'text-gray-400'
+                      : isTodayDate 
+                      ? 'text-orange-600' 
+                      : 'text-gray-800'
                   )}
                 >
                   {date.getDate()}
                 </div>
-                <div className="text-xs text-gray-500">
+                <div className={cn(
+                  'text-[10px] sm:text-xs mb-1 sm:mb-2 hidden sm:block',
+                  isPast
+                    ? 'text-gray-400'
+                    : isTodayDate 
+                    ? 'text-orange-600 font-medium' 
+                    : 'text-gray-500'
+                )}>
                   {date.toLocaleDateString('vi-VN', { month: 'short' })}
                 </div>
-                {daySchedules.length > 0 && (
-                  <div className="mt-1 text-xs font-semibold text-orange-600">
-                    {daySchedules.length} ca
-                  </div>
-                )}
               </div>
             );
           })}
         </div>
 
-        {/* Schedule Grid */}
-        <div className="grid grid-cols-7 gap-2">
+        {/* Schedule Grid - Cải thiện với visual feedback và responsive */}
+        <div className="grid grid-cols-7 gap-1.5 sm:gap-3">
           {DAYS_OF_WEEK.map((day, index) => {
             const date = weekDays[index];
             const dateKey = formatDate(date);
             const daySchedules = schedulesByDate[dateKey] || [];
+            const isTodayDate = isToday(date);
+            const isPast = isPastDate(date);
 
             return (
               <Card
                 key={day.dayOfWeek}
                 className={cn(
-                  'min-h-[200px] p-2 border-2 transition-all duration-200',
-                  isToday(date)
-                    ? 'bg-orange-50/50 border-orange-200'
-                    : 'bg-white border-gray-200 hover:border-orange-300',
-                  'cursor-pointer'
+                  'min-h-[150px] sm:min-h-[250px] p-1.5 sm:p-3 border-2 transition-all duration-200 relative group',
+                  isPast
+                    ? 'bg-gray-100 border-gray-300 opacity-60 cursor-not-allowed'
+                    : isTodayDate
+                    ? 'bg-orange-50/30 border-orange-200 cursor-pointer'
+                    : 'bg-white border-gray-200 hover:border-orange-300 hover:shadow-md cursor-pointer'
                 )}
-                onClick={() => onCellClick?.(date)}
+                onClick={() => {
+                  // Cho phép click để tạo mới nếu không phải ngày quá khứ
+                  if (!isPast) {
+                    onCellClick?.(date);
+                  }
+                }}
               >
                 {daySchedules.length === 0 ? (
-                  <div className="flex items-center justify-center h-full min-h-[180px] text-gray-400 text-xs">
-                    Trống
-                  </div>
+                  isPast ? (
+                    <div className="flex flex-col items-center justify-center h-full min-h-[130px] sm:min-h-[220px]">
+                      {/* Không hiển thị gì cho ngày quá khứ trống */}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full min-h-[130px] sm:min-h-[220px] text-gray-400">
+                      <div className="text-2xl sm:text-4xl mb-1 sm:mb-2 opacity-30">+</div>
+                      <div className="text-[10px] sm:text-xs font-medium text-center px-1">Click để thêm</div>
+                      <div className="text-[9px] sm:text-xs text-gray-300 mt-0.5 sm:mt-1 hidden sm:block">Hoặc kéo thả vào đây</div>
+                    </div>
+                  )
                 ) : (
-                  <div className="space-y-1">
+                  <div className="space-y-1 sm:space-y-2">
                     {daySchedules.map((schedule) => (
                       <ScheduleCard
                         key={schedule.id}
@@ -158,6 +200,20 @@ export function ScheduleTable({
                         onDelete={onDelete}
                       />
                     ))}
+                    {/* Hint để thêm thêm lịch trình - chỉ hiển thị nếu không phải ngày quá khứ */}
+                    {!isPast && (
+                      <div 
+                        className="mt-1 sm:mt-2 pt-1 sm:pt-2 border-t border-dashed border-gray-200 cursor-pointer hover:bg-orange-50/50 rounded transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onCellClick?.(date);
+                        }}
+                      >
+                        <div className="text-[10px] sm:text-xs text-center text-gray-400 group-hover:text-orange-500 transition-colors">
+                          + Thêm ca
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </Card>

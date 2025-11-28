@@ -339,7 +339,7 @@ export default function CheckoutPage() {
       receiveTime: getDefaultReceiveTime(),
       deliveryAddress: "",
       paymentMethod: "qr",
-      note: "",
+      paymentMethodId: 2,
     },
   });
 
@@ -750,6 +750,7 @@ export default function CheckoutPage() {
         shippingPhoneNumber: data.customerPhone,
         branchId: selectedBranch?.branchId || 1,
         mode: isPickup ? "PICKUP" : "SHIPPING",
+        paymentMethodId: data.paymentMethodId || 2,
         orderItemList: items.map((item) => {
           const baseItem = {
             quantity: item.quantity,

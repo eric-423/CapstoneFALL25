@@ -232,14 +232,24 @@ const mapCustomerOrderDetail = (
     undefined;
 
   const detailItems =
-    detail.orderItems?.map((item) => ({
-      productId: item.productId,
-      productName: item.productName,
-      quantity: item.quantity,
-      note: item.note ?? "",
-      price: item.price,
-      feedback: item.feedback ?? undefined,
-    })) ?? fallback?.items ?? [];
+    detail.orderItems?.map((item) => {
+      const isCombo = item.comboDTO !== null && item.comboDTO !== undefined;
+      
+      return {
+        productId: item.productId,
+        productName: isCombo && item.comboDTO 
+          ? item.comboDTO.name 
+          : (item.productName ?? 'Sản phẩm'),
+        quantity: item.quantity,
+        note: item.note ?? "",
+        price: isCombo && item.comboDTO 
+          ? item.comboDTO.price 
+          : item.price,
+        feedback: item.feedback ?? undefined,
+        comboDTO: item.comboDTO ?? null,
+        isCombo: isCombo,
+      };
+    }) ?? fallback?.items ?? [];
 
   const computedTotalItems = detailItems.reduce(
     (sum, item) => sum + (item.quantity ?? 0),

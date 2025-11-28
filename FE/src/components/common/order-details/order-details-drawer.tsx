@@ -294,22 +294,48 @@ export function OrderDetailsDrawer({ order, open, onClose, isLoading = false }: 
                   </CardHeader>
                   <CardContent className='px-1'>
                     <div className='divide-y max-h-60 overflow-y-auto'>
-                      {order.items.map((item) => (
-                        <div key={item.productId} className='py-4 px-5 border-foreground/20 '>
-                          <div className='flex justify-between items-start'>
-                            <div className='flex-1'>
-                              <h4 className='font-medium text-sm'>{item.productName}</h4>
-                              {item.note && (
-                                <p className='text-xs text-muted-foreground mt-1 whitespace-pre-line'>{item.note}</p>
-                              )}
-                            </div>
-                            <div className='text-right'>
-                              <div className='text-primary font-medium text-sm'>{item.price.toLocaleString()}đ</div>
-                              <div className='text-xs text-muted-foreground mt-1'>x {item.quantity}</div>
+                      {order.items.map((item, index) => {
+                        const isCombo = item.comboDTO !== null && item.comboDTO !== undefined;
+                        const displayName = isCombo && item.comboDTO ? item.comboDTO.name : item.productName;
+                        const displayDescription = isCombo && item.comboDTO ? item.comboDTO.description : null;
+                        const displayPrice = isCombo && item.comboDTO ? item.comboDTO.price : item.price;
+
+                        return (
+                          <div 
+                            key={`${isCombo ? 'combo' : 'product'}-${item.productId}-${index}`} 
+                            className='py-4 px-5 border-b border-gray-200'
+                          >
+                            <div className='flex justify-between items-start'>
+                              <div className='flex-1'>
+                                <div className='flex items-center gap-2'>
+                                  <h4 className='font-medium text-sm text-gray-900'>
+                                    {displayName}
+                                  </h4>
+                                  {isCombo && (
+                                    <span className='text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full font-medium'>
+                                      COMBO
+                                    </span>
+                                  )}
+                                </div>
+                                {displayDescription && (
+                                  <p className='text-xs text-gray-600 mt-1'>{displayDescription}</p>
+                                )}
+                                {item.note && (
+                                  <p className='text-xs text-muted-foreground mt-1 whitespace-pre-line bg-gray-50 rounded-md p-2'>
+                                    {item.note}
+                                  </p>
+                                )}
+                              </div>
+                              <div className='text-right'>
+                                <div className='font-medium text-sm text-primary'>
+                                  {displayPrice.toLocaleString()}đ
+                                </div>
+                                <div className='text-xs text-muted-foreground mt-1'>x {item.quantity}</div>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </CardContent>
                 </Card>

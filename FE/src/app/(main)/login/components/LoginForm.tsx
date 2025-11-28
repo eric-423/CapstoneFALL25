@@ -289,7 +289,7 @@ export default function LoginForm() {
                   <span className="whitespace-nowrap">Ghi nhớ đăng nhập</span>
                 </label>
                 <Link
-                  href="mailto:cs@tam-tac.com"
+                  href={phone ? `/forgot-password?phone=${encodeURIComponent(phone)}` : '/forgot-password'}
                   className="text-[#FF6B35] font-medium hover:underline whitespace-nowrap"
                 >
                   Quên mật khẩu?
