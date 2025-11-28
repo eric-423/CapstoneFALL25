@@ -214,7 +214,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/recipes/**").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/recipes/**").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/recipes/**").hasAnyRole("MANAGER", "ADMIN")
-                        .requestMatchers("/api/orders/manager/**").hasAnyRole("MANAGER", "ADMIN")
+                        .requestMatchers("/api/orders/staff/**").hasAnyRole("MANAGER", "ADMIN", "STAFF")
                         .requestMatchers("/api/statistics/**").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers("/api/promotions/create").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers("/api/promotions/assign").hasAnyRole("MANAGER", "ADMIN")
