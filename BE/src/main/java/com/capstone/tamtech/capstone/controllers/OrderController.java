@@ -107,7 +107,7 @@ public class OrderController {
         }
     }
 
-    @PutMapping("/manager/assign/cheff/{orderId}")
+    @PutMapping("/staff/assign/cheff/{orderId}")
     public ResponseEntity<?> assignOrderToCheff(@PathVariable int orderId) {
         boolean result = orderService.assignOrderToCheff(orderId);
         return new ResponseEntity<>(result, HttpStatus.OK);
@@ -127,7 +127,7 @@ public class OrderController {
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
-    @PutMapping("/manager/assign/shipper/{orderId}")
+    @PutMapping("/staff/assign/shipper/{orderId}")
     public ResponseEntity<?> assignToShipper(@PathVariable int orderId) {
         boolean result = orderService.assignToShipper(orderId);
         return new ResponseEntity<>(result, HttpStatus.OK);
