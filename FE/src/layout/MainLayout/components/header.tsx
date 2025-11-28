@@ -33,8 +33,11 @@ export default function Header() {
     <header
       className={`sticky top-0 z-50 w-full bg-[#FFFCF7] shadow-sm border-b border-gray-100 ${montserrat.className}`}
     >
-      <div className="container mx-auto px-4 md:px-6 lg:px-8 py-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center space-x-2">
+      <div className="w-full py-4 flex items-center justify-between">
+        <Link
+          href="/"
+          className="flex items-center justify-start pl-0 flex-shrink-0"
+        >
           <div className="relative w-44 md:w-56 h-10 overflow-visible">
             <Image
               src="/full-logo.svg"
@@ -46,33 +49,35 @@ export default function Header() {
             />
           </div>
         </Link>
-        <div className="hidden lg:flex items-center space-x-3">
-          <nav className="hidden lg:flex items-center space-x-8">
-            <NavLinks />
-          </nav>
-          {!isCheckoutPage && <BranchDropdown />}
-          <ActionButtons
-            isAuthenticated={isAuthenticated}
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          />
+        <div className="flex-1 flex items-center justify-end pr-4 sm:pr-6 lg:pr-8">
+          <div className="hidden lg:flex items-center space-x-3">
+            <nav className="hidden lg:flex items-center space-x-8">
+              <NavLinks />
+            </nav>
+            {!isCheckoutPage && <BranchDropdown />}
+            <ActionButtons
+              isAuthenticated={isAuthenticated}
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            />
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden !bg-[#FFFCF7] !text-orange-500 hover:!text-orange-600 hover:!bg-[#FFFCF7]"
+            onClick={() => setIsMenuOpen(true)}
+            disabled={isMenuOpen}
+          >
+            {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
+          </Button>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="lg:hidden !bg-[#FFFCF7] !text-orange-500 hover:!text-orange-600 hover:!bg-[#FFFCF7]"
-          onClick={() => setIsMenuOpen(true)}
-          disabled={isMenuOpen}
-        >
-          {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
-        </Button>
       </div>
 
       <div
         ref={mobileMenuRef}
-        className={`lg:hidden bg-background border-t border-gray-100 py-4 transition-transform duration-300 ease-in-out ${isMenuOpen ? "visible" : "hidden"}`}
+        className={`lg:hidden bg-[#FFFCF7] border-t border-gray-100 py-4 transition-transform duration-300 ease-in-out ${isMenuOpen ? "visible" : "hidden"}`}
         id="mobile-menu"
       >
-        <div className="container mx-auto px-4 flex flex-col space-y-4">
+        <div className="w-full px-4 flex flex-col space-y-4">
           <nav className="flex flex-col space-y-3">
             <NavLinks mobile onClick={() => setIsMenuOpen(!isMenuOpen)} />
           </nav>
@@ -81,7 +86,7 @@ export default function Header() {
               <BranchDropdown />
             </div>
           )}
-          <div className="flex justify-center items-center w-full pt-4 border-t border-gray-100 ml-4">
+          <div className="flex justify-center items-center w-full pt-4 border-t border-gray-100">
             <ActionButtons
               mobile
               isAuthenticated={isAuthenticated}

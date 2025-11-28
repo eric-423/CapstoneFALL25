@@ -33,16 +33,16 @@ const ProductTypeList = ({
     <div
       className={`w-full overflow-x-auto scrollbar-hide ${montserrat.className}`}
     >
-      <div className="flex gap-3 pb-2 justify-center">
+      <div className="flex gap-2 sm:gap-3 pb-2 justify-center px-2">
         {productTypes?.map((category, index) => (
           <Button
             key={index}
             variant={"ghost"}
             onClick={() => handleCategoryClick(category)}
-            className={`whitespace-nowrap rounded-full px-6 py-3 text-base h-12 min-h-[48px] transition-all duration-200 ${
+            className={`whitespace-nowrap rounded-full px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base h-10 sm:h-12 min-h-[40px] sm:min-h-[48px] transition-all duration-200 flex-shrink-0 ${
               productType.id == category.id
                 ? "bg-orange-500 text-white font-medium shadow-sm border-2 border-orange-500"
-                : "bg-white border border-gray-200 text-gray-700  border-2 border-orange-500"
+                : "bg-white border border-gray-200 text-gray-700 border-2 border-orange-500"
             }`}
           >
             <span>{category.name}</span>

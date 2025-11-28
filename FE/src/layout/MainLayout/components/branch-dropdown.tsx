@@ -136,18 +136,18 @@ export function BranchDropdown() {
       <PopoverTrigger asChild>
         <Button
           variant="ghost"
-          className="!bg-[#FFFCF7] !text-orange-500 hover:!text-orange-600 hover:!bg-[#FFFCF7] flex items-center gap-x-2"
+          className="!bg-[#FFFCF7] !text-orange-500 hover:!text-orange-600 hover:!bg-[#FFFCF7] flex items-center gap-x-2 w-full sm:w-auto justify-center sm:justify-start"
         >
-          <MapPin className="h-4 w-4" />
-          <span className="hidden md:inline font-medium text-sm max-w-[150px] truncate">
+          <MapPin className="h-4 w-4 flex-shrink-0" />
+          <span className="font-medium text-sm max-w-[150px] truncate">
             {selectedBranch?.branchName || "Chọn chi nhánh"}
           </span>
-          <ChevronDown className="h-4 w-4" />
+          <ChevronDown className="h-4 w-4 flex-shrink-0" />
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[350px] p-0 !bg-[#FFFCF7] !z-[9999] max-h-[400px] flex flex-col"
-        align="start"
+        className="w-[calc(100vw-2rem)] sm:w-[400px] p-0 !bg-[#FFFCF7] !z-[9999] max-h-[400px] flex flex-col"
+        align="center"
         sideOffset={8}
       >
         <div className="p-3 pb-2 flex-shrink-0 border-b border-gray-200">
@@ -156,34 +156,46 @@ export function BranchDropdown() {
           </h3>
         </div>
         <div className="flex-1 overflow-hidden">
-          <ScrollArea className="h-[350px] w-[340px]">
-            <div className="px-3 py-2 space-y-1 w-[340px]">
+          <ScrollArea className="h-[350px] w-full">
+            <div className="px-3 py-2 space-y-1 w-full">
               {branches.map((branch) => (
-                <Button
+                <div
                   key={branch.branchId}
-                  variant="ghost"
                   onClick={() => handleBranchClick(branch)}
-                  className={`w-full justify-start p-3 h-auto text-left ${
+                  className={`w-full p-3 rounded-md cursor-pointer transition-colors ${
                     selectedBranch?.branchId === branch.branchId
-                      ? "bg-orange-100 !text-orange-600 font-medium"
+                      ? "bg-orange-100 !text-orange-600"
                       : "hover:bg-orange-50 !text-orange-500"
                   }`}
                 >
-                  <div className="text-left w-[280px]">
-                    <div className="font-medium text-sm ">
+                  <div className="w-full min-w-0">
+                    <div
+                      className={`text-sm ${selectedBranch?.branchId === branch.branchId ? "font-semibold" : "font-medium"} break-words`}
+                    >
                       {branch.branchName}
                     </div>
-                    <div className="text-xs text-gray-600 mt-1 line-clamp-2">
+                    <div
+                      className="text-xs text-gray-600 mt-1 leading-relaxed line-clamp-2"
+                      style={{
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                        wordBreak: "break-word",
+                      }}
+                    >
                       {branch.address}
                     </div>
-                    <div className="text-xs text-gray-600">{branch.phone}</div>
+                    <div className="text-xs text-gray-600 mt-0.5">
+                      {branch.phone}
+                    </div>
                     {branch.distanceText && (
                       <div className="text-xs text-gray-500 italic mt-1">
                         Khoảng cách: {branch.distanceText}
                       </div>
                     )}
                   </div>
-                </Button>
+                </div>
               ))}
             </div>
           </ScrollArea>

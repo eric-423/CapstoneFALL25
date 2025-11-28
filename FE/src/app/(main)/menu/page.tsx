@@ -304,14 +304,14 @@ export default function MenuPage() {
         <>
           <div
             id="hero-section"
-            className="relative h-48 md:h-64 overflow-hidden "
+            className="relative min-h-[200px] md:h-64 overflow-hidden"
           >
-            <div className="absolute inset-0 bg-[#FFFCF7] flex items-center justify-center pt-20 pb-10">
-              <div className="text-center">
-                <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-[#2D1E1A] mb-4">
+            <div className="absolute inset-0 bg-[#FFFCF7] flex items-center justify-center pt-16 md:pt-20 pb-8 md:pb-10 px-4">
+              <div className="text-center w-full max-w-4xl">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-[#2D1E1A] mb-3 md:mb-4 px-2 leading-tight">
                   <StyledHeading text="Thực đơn Tấm Tắc" />
                 </h1>
-                <p className="text-lg md:text-xl lg:text-2xl text-black/90 max-w-2xl mx-auto px-4">
+                <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-black/90 max-w-2xl mx-auto px-2">
                   <span className="text-orange-500 font-medium">Tấm Tắc</span>{" "}
                   là chuỗi hệ thống cơm tấm với mong muốn mang đến cho sinh viên
                   những bữa cơm tấm chất lượng với giá cả hợp lý, đảm bảo vệ
@@ -321,7 +321,7 @@ export default function MenuPage() {
             </div>
           </div>
 
-          <div className="container mx-auto px-10 md:px-10 pt-8 py-10 bg-[#FFFCF7]">
+          <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-10 pt-6 md:pt-8 py-6 md:py-10 bg-[#FFFCF7]">
             <div className="w-full mb-6 flex justify-center">
               <ProductTypeList
                 productTypes={productTypes || []}
@@ -332,15 +332,15 @@ export default function MenuPage() {
             </div>
             <div className="w-full" id="menu-content">
               <div>
-                <div className="flex items-center justify-between mt-15 mb-10">
-                  <h2 className="text-4xl font-bold break-words">
+                <div className="flex items-center justify-between mt-8 md:mt-15 mb-6 md:mb-10">
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold break-words">
                     {selectedBranch?.branchName ? (
                       <>
                         <span className="break-words">
                           {selectedBranch.branchName}
                         </span>{" "}
                         -{" "}
-                        <span className="font-bold text-4xl text-orange-500 break-words">
+                        <span className="font-bold text-2xl sm:text-3xl md:text-4xl text-orange-500 break-words">
                           {productType.name}
                         </span>
                       </>
