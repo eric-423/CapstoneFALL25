@@ -59,6 +59,15 @@ public class OrderItem {
     @Column(name = "is_delivered")
     private Boolean isDelivered;
 
+    @Column(name = "delivered_at")
+    private Date deliveredAt;
+
+    @Column(name = "is_cooked")
+    private Boolean isCooked;
+
+    @Column(name = "cooked_at")
+    private Date cookedAt;
+
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;

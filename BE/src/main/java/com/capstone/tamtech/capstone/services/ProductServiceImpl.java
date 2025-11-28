@@ -91,7 +91,7 @@ public class ProductServiceImpl implements ProductService {
         return createPagedResponse(productPage, result);
     }
 
-    private Boolean isInStock(Product product, Branch branch) {
+    public Boolean isInStock(Product product, Branch branch) {
 
         List<ProductRecipes> recipes = product.getProductRecipes();
         Map<Integer, Double> materialRequiredMap = new HashMap<>();

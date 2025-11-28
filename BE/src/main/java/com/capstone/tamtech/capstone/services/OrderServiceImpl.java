@@ -520,7 +520,8 @@ public class OrderServiceImpl implements OrderService {
 
         double newSubTotal = confirmedSubTotal + subTotal;
         order.setSubTotal(newSubTotal);
-
+        order.setStatus(orderStatusRepository.findByName("COOKING")
+                .orElseThrow(() -> new RuntimeException("OrderStatus CONFIRMED not found")));
         inventoryService.consumeMaterialsForOrderItems(order.getOrderItems(), branchId);
         orderRepository.save(order);
         return true;
@@ -560,6 +561,7 @@ public class OrderServiceImpl implements OrderService {
 
                     if (match) {
                         existing.setIsDelivered(true);
+                        existing.setDeliveredAt(new Date());
                         orderItemRepository.save(existing);
                         break;
                     }
@@ -669,20 +671,42 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public boolean markAsCooked(int orderId) {
+    public boolean markAsCooked(int orderId, List<Long> cookedOrderItemIds) {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
         Users chef = usersRepository.findById(order.getWorker().getId())
                 .orElseThrow(() -> new RuntimeException("Chef not found"));
 
         chef.setIsBusy(false);
         usersRepository.save(chef);
-        order.setStatus(orderStatusRepository.findByName("COOKED")
-                .orElseThrow(() -> new RuntimeException("OrderStatus COOKING not found")));
+
+        for(Long itemId : cookedOrderItemIds) {
+            OrderItem item = orderItemRepository.findById(itemId)
+                    .orElseThrow(() -> new RuntimeException("OrderItem not found with id=" + itemId));
+            item.setIsCooked(true);
+            item.setCookedAt(new Date());
+            orderItemRepository.save(item);
+        }
+
+        if (checkAllItemsCooked(order)) {
+            order.setStatus(orderStatusRepository.findByName("COOKED")
+                    .orElseThrow(() -> new RuntimeException("OrderStatus COOKING not found")));
+        }
+
 
         orderRepository.save(order);
 
         return true;
 
+    }
+
+    private boolean checkAllItemsCooked(Order order) {
+        List<OrderItem> orderItems = order.getOrderItems();
+        for (OrderItem item : orderItems) {
+            if (item.getIsCooked() == null || !item.getIsCooked()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
@@ -875,7 +899,11 @@ public class OrderServiceImpl implements OrderService {
         }
 
         orderIemDTO.setIsConfirmed(orderItem.getIsConfirmed());
+        orderIemDTO.setConfirmAt(orderItem.getConfirmAt());
+        orderIemDTO.setCookedAt(orderItem.getCookedAt());
         orderIemDTO.setIsDelivered(orderItem.getIsDelivered());
+        orderIemDTO.setDeliveredAt(orderItem.getDeliveredAt());
+        orderIemDTO.setIsCooked(orderItem.getIsCooked());
 
         return orderIemDTO;
     }
@@ -1139,9 +1167,24 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderListDTO> getOrdersByChefId(int chefId, String status) {
+    public List<OrderCheffViewDTO> getOrdersByChefId(int chefId, String status) {
         List<Order> orders = orderRepository.findByWorker_IdAndStatus_NameOrderByCreatedAtDesc(chefId, status);
-        return convertToOrderListDTO(orders);
+        return orders.stream().map(this::convertToOrderCheffViewDTO).toList();
+    }
+
+    private OrderCheffViewDTO convertToOrderCheffViewDTO(Order order) {
+        OrderCheffViewDTO dto = new OrderCheffViewDTO();
+        dto.setOrderId(order.getId());
+
+        List<OrderIemDTO> orderItemDTOs = new ArrayList<>();
+        if (order.getOrderItems() != null) {
+            for (OrderItem item : order.getOrderItems()) {
+                OrderIemDTO itemDTO = toOrderItemDTO(item);
+                orderItemDTOs.add(itemDTO);
+            }
+        }
+        dto.setOrderItems(orderItemDTOs);
+        return dto;
     }
 
     private List<OrderListDTO> convertToOrderListDTO(List<Order> orders) {
