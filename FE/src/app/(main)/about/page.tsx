@@ -146,7 +146,6 @@ export default function AboutPage() {
                 <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
                   <StyledHeading text="Chúng tôi là ai" />
                 </h1>
-                <div className="w-24 h-1 bg-primary mx-auto mb-8"></div>
 
                 <div className="grid lg:grid-cols-2 gap-8 items-start">
                   <motion.div variants={fadeInUp}>

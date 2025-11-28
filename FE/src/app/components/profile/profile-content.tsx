@@ -10,12 +10,10 @@ import { useAuth } from "@/utils/hooks";
 import { useCustomerOrders } from "@/utils/hooks/useCustomerOrders";
 import useDocumentTitle from "@/utils/hooks/useDocumentTitle";
 import useScrollTop from "@/utils/hooks/useScrollTop";
-
 import { Lock, ShoppingBag, User, Plus } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useSearchParams } from "next/navigation";
-
 import OrderHistorySection from "./sections/order-history-section";
 import PasswordChangeSection from "./sections/password-change-section";
 import ProfileInfoSection from "./sections/profile-info-section";
