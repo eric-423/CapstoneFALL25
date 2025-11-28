@@ -123,8 +123,8 @@ public class OrderController {
 
 
     @PutMapping("/cheff/cooked/{orderId}")
-    public ResponseEntity<?> markAsCooked(@PathVariable int orderId) {
-        boolean result = orderService.markAsCooked(orderId);
+    public ResponseEntity<?> markAsCooked(@PathVariable int orderId, @RequestBody List<Long> orderItemIds) {
+        boolean result = orderService.markAsCooked(orderId, orderItemIds);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 

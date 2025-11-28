@@ -42,6 +42,9 @@ public class ComboSearchDTO implements Serializable {
 
     @Schema(description = "Tên chi nhánh")
     private String branchName;
+
+    @Schema(description = "Có đủ nguyên liệu để nấu không", example = "true")
+    private boolean isInStock;
 }
 
 

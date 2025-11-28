@@ -1,5 +1,6 @@
 package com.capstone.tamtech.capstone.services.impl;
 
+import com.capstone.tamtech.capstone.dto.OrderCheffViewDTO;
 import com.capstone.tamtech.capstone.dto.OrderDTO;
 import com.capstone.tamtech.capstone.dto.OrderListDTO;
 import com.capstone.tamtech.capstone.payload.request.DiningTablePaymentRequest;
@@ -22,7 +23,7 @@ public interface OrderService {
 
     boolean assignOrderToCheff(int orderId);
 
-    boolean markAsCooked(int orderId);
+    boolean markAsCooked(int orderId, List<Long> cookedOrderItemIds);
 
     boolean assignToShipper(int orderId);
 
@@ -50,5 +51,5 @@ public interface OrderService {
 
     OrderDTO getOrderById(int orderId);
 
-    List<OrderListDTO> getOrdersByChefId(int chefId, String status);
+    List<OrderCheffViewDTO> getOrdersByChefId(int chefId, String status);
 }
