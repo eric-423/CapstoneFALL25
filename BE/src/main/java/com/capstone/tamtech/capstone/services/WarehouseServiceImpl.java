@@ -149,23 +149,55 @@ public class WarehouseServiceImpl implements WarehouseService {
 
             materialWarehouseRepository.save(materialWarehouse);
 
-            MaterialWarehouseDTO dto = new MaterialWarehouseDTO();
-            dto.setWarehouseId(warehouse.getId());
-            dto.setWarehouseAddress(warehouse.getAddress());
-            dto.setMaterialId(material.getId());
-            dto.setMaterialName(material.getName());
-            dto.setUnit(material.getUnits().getName());
-            dto.setThreshold(materialWarehouse.getThreshold());
-            if (material.getMaterialType() != null) {
-                dto.setMaterialTypeName(material.getMaterialType().getName());
-            }
-            dto.setQuantity(materialWarehouse.getQuantity());
-
-            results.add(dto);
+            results.add(toMaterialWarehouseDTO(materialWarehouse));
         }
 
         return results;
     }
+
+    private MaterialWarehouseDTO toMaterialWarehouseDTO(MaterialWarehouse materialWarehouse) {
+        MaterialWarehouseDTO dto = new MaterialWarehouseDTO();
+        Warehouse warehouse = materialWarehouse.getWarehouse();
+        Material material = materialWarehouse.getMaterial();
+
+        dto.setWarehouseId(warehouse.getId());
+        dto.setWarehouseAddress(warehouse.getAddress());
+        dto.setMaterialId(material.getId());
+        dto.setMaterialName(material.getName());
+        dto.setUnit(material.getUnits().getName());
+        dto.setThreshold(materialWarehouse.getThreshold());
+        if (material.getMaterialType() != null) {
+            dto.setMaterialTypeName(material.getMaterialType().getName());
+        }
+        dto.setQuantity(materialWarehouse.getQuantity());
+
+        return dto;
+    }
+
+    @Override
+    @Transactional
+    public List<MaterialWarehouseDTO> updateMaterialWarehouse(int warehouseId, AddMaterialToWarehouseRequest request) {
+
+        List<MaterialWarehouseDTO> results = new ArrayList<>();
+        for(AddMaterialToWarehouseRequest.MaterialItem item : request.getMaterials()){
+
+            KeyMaterialWarehouse key = new KeyMaterialWarehouse(item.getMaterialId(), warehouseId);
+
+            MaterialWarehouse materialWarehouse = materialWarehouseRepository.findById(key)
+                    .orElseThrow(() -> new ResourceNotFoundException("MaterialWarehouse not found"));
+
+            materialWarehouse.setQuantity(item.getQuantity());
+            if (item.getThreshold() != null) {
+                materialWarehouse.setThreshold(item.getThreshold());
+            }
+
+            materialWarehouseRepository.save(materialWarehouse);
+            results.add(toMaterialWarehouseDTO(materialWarehouse));
+        }
+
+        return results;
+    }
+
 
     private WarehouseDTO toDTO(Warehouse warehouse) {
         WarehouseDTO dto = new WarehouseDTO();
