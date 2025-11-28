@@ -29,4 +29,5 @@ public class OrderRequest {
 
     private int branchId;
 
+    private int paymentMethodId;
 }

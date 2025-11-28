@@ -200,6 +200,7 @@ public class OrderServiceImpl implements OrderService {
         Integer branchId = saved.getBranch() != null ? saved.getBranch().getId() : null;
         inventoryService.consumeMaterialsForOrderItems(saved.getOrderItems(), branchId);
         saved.setPaymentUrl(paymentService.createPaymentLink(saved.getId()));
+        saved.setPaymentMethod(paymentMethodRepository.findById(orderRequest.getPaymentMethodId()).orElse(null));
         orderRepository.save(saved);
         OrderDTO result = toDTO(saved);
         result.setPaymentUrl(saved.getPaymentUrl());
@@ -222,6 +223,7 @@ public class OrderServiceImpl implements OrderService {
         order.setDiscountValue(orderRequest.getDiscountValue());
         order.setPickUp(true);
         order.setShippingFee(0.0);
+        order.setPaymentMethod(paymentMethodRepository.findById(orderRequest.getPaymentMethodId()).orElse(null));
         order.setCreatedAt(new Date());
 
         if (orderRequest.getCustomerId() > 0) {
@@ -387,6 +389,7 @@ public class OrderServiceImpl implements OrderService {
         }
         order.setSubTotal(subTotal);
         order.setAmount(subTotal);
+        order.setPaymentMethod(paymentMethodRepository.findById(orderRequest.getPaymentMethodId()).orElse(null));
 
         Order saved = orderRepository.save(order);
 
@@ -450,9 +453,9 @@ public class OrderServiceImpl implements OrderService {
             for (OrderItem oi : orderItems) {
                 if (oi.getIsConfirmed() == null || !oi.getIsConfirmed()) {
                     itemsToDelete.add(oi);
-                } else if(oi.getIsDelivered()!=null){
+                } else if (oi.getIsDelivered() != null) {
                     continue;
-                }else {
+                } else {
                     confirmedItems.add(oi);
                     if (oi.getProduct() != null) {
                         confirmedSubTotal += oi.getPrice() * oi.getQuantity();
@@ -835,7 +838,6 @@ public class OrderServiceImpl implements OrderService {
         }
 
 
-
         orderDTO.setStatus(order.getStatus().getName());
 
         return orderDTO;
@@ -1154,7 +1156,9 @@ public class OrderServiceImpl implements OrderService {
             dto.setOrderDate(order.getCreatedAt());
             dto.setPaymentTime(order.getPaymentTime());
             dto.setDeliveryAt(order.getDeliveryAtt());
-            dto.setPaymentMethod(order.getPaymentMethod().getName());
+            if (order.getPaymentMethod() != null) {
+                dto.setPaymentMethod(order.getPaymentMethod().getName());
+            }
 
             if (order.getCustomer() != null) {
                 dto.setCustomerName(order.getCustomer().getFullName());
