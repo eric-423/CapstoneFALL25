@@ -822,6 +822,8 @@ public class OrderServiceImpl implements OrderService {
         }
 
         orderDTO.setOrderItems(orderItemsDTO);
+        orderDTO.setBillPdfUrl(order.getBillPdfUrl());
+        orderDTO.setPaymentUrl(order.getPaymentUrl());
 
         Users customer = order.getCustomer();
         if (customer != null) {
@@ -831,6 +833,8 @@ public class OrderServiceImpl implements OrderService {
             orderDTO.setCustomerDTO(customerDTO);
             orderDTO.setCustomerName(customer.getFullName());
         }
+
+
 
         orderDTO.setStatus(order.getStatus().getName());
 
