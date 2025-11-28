@@ -38,7 +38,7 @@ import {
   type RoleHistory,
 } from "@/apis/admin-user.api";
 import { UserFormDialog } from "../components/UserFormDialog";
-import { ConfirmDialog } from "../components/ConfirmDialog";
+import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import Link from "next/link";
 
 export default function UserDetailPage() {
@@ -202,22 +202,20 @@ export default function UserDetailPage() {
       <div className="flex gap-2 border-b-2 border-gray-200">
         <button
           onClick={() => setActiveTab("info")}
-          className={`px-6 py-3 font-semibold text-sm transition-all ${
-            activeTab === "info"
-              ? "text-[#78A243] border-b-2 border-[#78A243] -mb-0.5"
-              : "text-gray-600 hover:text-[#2D1E1A]"
-          }`}
+          className={`px-6 py-3 font-semibold text-sm transition-all ${activeTab === "info"
+            ? "text-[#78A243] border-b-2 border-[#78A243] -mb-0.5"
+            : "text-gray-600 hover:text-[#2D1E1A]"
+            }`}
         >
           <UserIcon className="h-4 w-4 inline-block mr-2" />
           Thông tin cá nhân
         </button>
         <button
           onClick={() => setActiveTab("history")}
-          className={`px-6 py-3 font-semibold text-sm transition-all ${
-            activeTab === "history"
-              ? "text-[#78A243] border-b-2 border-[#78A243] -mb-0.5"
-              : "text-gray-600 hover:text-[#2D1E1A]"
-          }`}
+          className={`px-6 py-3 font-semibold text-sm transition-all ${activeTab === "history"
+            ? "text-[#78A243] border-b-2 border-[#78A243] -mb-0.5"
+            : "text-gray-600 hover:text-[#2D1E1A]"
+            }`}
         >
           <History className="h-4 w-4 inline-block mr-2" />
           Lịch sử vai trò
@@ -428,11 +426,10 @@ export default function UserDetailPage() {
                           {/* Timeline Node */}
                           <div className="relative flex-shrink-0">
                             <div
-                              className={`w-8 h-8 rounded-full flex items-center justify-center z-10 relative ${
-                                history.isActive
-                                  ? "bg-gradient-to-br from-green-400 to-green-600 ring-4 ring-green-100"
-                                  : "bg-gradient-to-br from-gray-300 to-gray-400 ring-4 ring-gray-100"
-                              }`}
+                              className={`w-8 h-8 rounded-full flex items-center justify-center z-10 relative ${history.isActive
+                                ? "bg-gradient-to-br from-green-400 to-green-600 ring-4 ring-green-100"
+                                : "bg-gradient-to-br from-gray-300 to-gray-400 ring-4 ring-gray-100"
+                                }`}
                             >
                               {history.isActive ? (
                                 <CheckCircle className="h-4 w-4 text-white" />
@@ -444,20 +441,18 @@ export default function UserDetailPage() {
 
                           {/* Content Card */}
                           <div
-                            className={`flex-1 rounded-xl p-4 border-2 transition-all ${
-                              history.isActive
-                                ? "bg-gradient-to-r from-green-50 to-emerald-50 border-green-300 shadow-md"
-                                : "bg-white border-gray-200 hover:border-gray-300 shadow-sm"
-                            }`}
+                            className={`flex-1 rounded-xl p-4 border-2 transition-all ${history.isActive
+                              ? "bg-gradient-to-r from-green-50 to-emerald-50 border-green-300 shadow-md"
+                              : "bg-white border-gray-200 hover:border-gray-300 shadow-sm"
+                              }`}
                           >
                             <div className="flex items-start justify-between mb-3">
                               <div className="flex items-center gap-2 flex-wrap">
                                 <Badge
-                                  className={`${
-                                    history.isActive
-                                      ? "bg-green-600 text-white border-green-700"
-                                      : "bg-[#78A243]/10 text-[#78A243] border-[#78A243]/30"
-                                  } font-semibold`}
+                                  className={`${history.isActive
+                                    ? "bg-green-600 text-white border-green-700"
+                                    : "bg-[#78A243]/10 text-[#78A243] border-[#78A243]/30"
+                                    } font-semibold`}
                                 >
                                   <Shield className="h-3 w-3 mr-1" />
                                   {history.roleName}
@@ -507,30 +502,35 @@ export default function UserDetailPage() {
                             </div>
                           </div>
                         </div>
-                    )}
-                </Card>
-            )}
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          )}
+        </Card>
+      )}
 
-            {/* Edit Dialog */}
-            <UserFormDialog
-                open={isEditDialogOpen}
-                onOpenChange={setIsEditDialogOpen}
-                user={user}
-                onSuccess={handleEditSuccess}
-            />
+      {/* Edit Dialog */}
+      <UserFormDialog
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        user={user}
+        onSuccess={handleEditSuccess}
+      />
 
-            {/* Confirm Dialog */}
-            {confirmDialog.type && (
-                <ConfirmDialog
-                    open={confirmDialog.open}
-                    onOpenChange={(open) => setConfirmDialog({ open, type: null })}
-                    onConfirm={handleConfirmAction}
-                    title={confirmDialog.type === 'ban' ? 'Khóa tài khoản' : 'Mở khóa tài khoản'}
-                    content={`Bạn có chắc chắn muốn ${confirmDialog.type === 'ban' ? 'khóa' : 'mở khóa'} tài khoản "${user.fullName}" không?`}
-                    variant={confirmDialog.type === 'ban' ? 'destructive' : 'success'}
-                    loading={actionLoading}
-                />
-            )}
-        </AdminPageLayout>
-    );
+      {/* Confirm Dialog */}
+      {confirmDialog.type && (
+        <ConfirmDialog
+          open={confirmDialog.open}
+          onOpenChange={(open) => setConfirmDialog({ open, type: null })}
+          onConfirm={handleConfirmAction}
+          title={confirmDialog.type === 'ban' ? 'Khóa tài khoản' : 'Mở khóa tài khoản'}
+          content={`Bạn có chắc chắn muốn ${confirmDialog.type === 'ban' ? 'khóa' : 'mở khóa'} tài khoản "${user.fullName}" không?`}
+          variant={confirmDialog.type === 'ban' ? 'destructive' : 'success'}
+          loading={actionLoading}
+        />
+      )}
+    </AdminPageLayout>
+  );
 }

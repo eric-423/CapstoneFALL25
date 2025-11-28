@@ -333,7 +333,13 @@ export function UserFormDialog({ open, onOpenChange, user, onSuccess }: UserForm
                                     <input
                                         type="tel"
                                         value={phoneNumber}
-                                        onChange={(e) => setPhoneNumber(e.target.value)}
+                                        onChange={(e) => {
+                                            const value = e.target.value.replace(/\D/g, '');
+                                            if (value.length <= 10) {
+                                                setPhoneNumber(value);
+                                            }
+                                        }}
+                                        maxLength={10}
                                         placeholder="0900000000"
                                         className="w-full px-3 py-2 border border-[#78A243]/30 rounded-lg text-sm focus:border-[#78A243] focus:ring-1 focus:ring-[#78A243]/20 transition-all"
                                     />

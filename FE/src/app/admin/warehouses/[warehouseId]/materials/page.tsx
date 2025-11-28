@@ -42,7 +42,7 @@ export default function WarehouseMaterialsPage({ params }: WarehouseMaterialsPag
                 getWarehouseMaterials(warehouseId),
                 getMaterials({ size: 10000 })
             ]);
-            setWarehouseMaterials(warehouseData || []);
+            setWarehouseMaterials(warehouseData);
             setAllMaterials(allMaterialsResponse.data.content);
         } catch (error) {
             console.error('Failed to fetch warehouse materials:', error);
@@ -71,9 +71,9 @@ export default function WarehouseMaterialsPage({ params }: WarehouseMaterialsPag
     };
 
     // Calculate statistics
-    const totalMaterials = warehouseMaterials?.length || 0;
-    const lowStockMaterials = warehouseMaterials?.filter(m => m.quantity < m.threshold).length || 0;
-    const totalQuantity = warehouseMaterials?.reduce((sum, m) => sum + m.quantity, 0) || 0;
+    const totalMaterials = warehouseMaterials.length;
+    const lowStockMaterials = warehouseMaterials.filter(m => m.quantity < m.threshold).length;
+    const totalQuantity = warehouseMaterials.reduce((sum, m) => sum + m.quantity, 0);
 
     const warehouseAddress = warehouseMaterials[0]?.warehouseAddress || 'Kho';
 
@@ -91,6 +91,7 @@ export default function WarehouseMaterialsPage({ params }: WarehouseMaterialsPag
         <AdminPageLayout>
             <AdminPageHeader
                 title={warehouseAddress}
+                description="Quản lý nguyên liệu trong kho"
                 icon={WarehouseIcon}
                 actions={
                     <div className="flex gap-3">
@@ -151,9 +152,6 @@ export default function WarehouseMaterialsPage({ params }: WarehouseMaterialsPag
                                     Ngưỡng
                                 </th>
                                 <th className="px-4 py-3 text-left text-sm font-bold text-[#2D1E1A] uppercase tracking-wider">
-                                    Calo/Đơn vị
-                                </th>
-                                <th className="px-4 py-3 text-left text-sm font-bold text-[#2D1E1A] uppercase tracking-wider">
                                     Trạng thái
                                 </th>
                             </tr>
@@ -203,11 +201,6 @@ export default function WarehouseMaterialsPage({ params }: WarehouseMaterialsPag
                                             </p>
                                         </td>
                                         <td className="px-4 py-3">
-                                            <p className="text-sm text-[#2D1E1A]">
-                                                {material.caloriesPerUnit} cal
-                                            </p>
-                                        </td>
-                                        <td className="px-4 py-3">
                                             {isLowStock ? (
                                                 <Badge className="bg-[#EBD187]/30 text-[#DA7339] border-[#DA7339]/30">
                                                     <AlertTriangle className="h-3 w-3 mr-1" />
@@ -247,6 +240,7 @@ export default function WarehouseMaterialsPage({ params }: WarehouseMaterialsPag
                 onOpenChange={setShowAddDialog}
                 warehouseId={warehouseId || 0}
                 availableMaterials={allMaterials}
+                existingMaterialIds={warehouseMaterials.map(m => m.materialId)}
                 onSuccess={handleAddSuccess}
             />
         </AdminPageLayout>

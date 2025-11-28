@@ -20,7 +20,7 @@ import { toast } from 'react-toastify';
 import { AdminPageLayout, AdminPageHeader } from '@/app/admin/components/AdminPageLayout';
 import { Button } from '@/components/ui/button';
 import { Save, Plus, X, Store, Search, GripVertical } from 'lucide-react';
-import { getProducts, getProductsByBranch, getAllBranchProducts, getProduct, getProductType, type Product, type ProductType } from '@/apis/product.api';
+import { getProducts, getProductsByBranch, getAllBranchProducts, getProduct, getProductType, addProductToBranch, removeProductFromBranch, type Product, type ProductType } from '@/apis/product.api';
 import { getBranches, type Branch } from '@/apis/branch.api';
 
 // Placeholder components - will be implemented in separate files
@@ -33,13 +33,11 @@ export default function BranchMenuManagerPage() {
     const [globalProducts, setGlobalProducts] = useState<Product[]>([]);
     const [productTypes, setProductTypes] = useState<ProductType[]>([]);
     const [selectedProductType, setSelectedProductType] = useState<number>(0);
-    const [activeBranchTabs, setActiveBranchTabs] = useState<number[]>([]);
-    const [activeTabId, setActiveTabId] = useState<number | null>(null);
-    const [branchMenus, setBranchMenus] = useState<Record<number, Product[]>>({});
+    const [selectedBranchId, setSelectedBranchId] = useState<number | null>(null);
+    const [branchProducts, setBranchProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [loadingProducts, setLoadingProducts] = useState(false);
     const [activeDragItem, setActiveDragItem] = useState<Product | null>(null);
-    const [isDirty, setIsDirty] = useState(false);
 
     // Sensors for Drag and Drop
     const sensors = useSensors(
@@ -74,14 +72,48 @@ export default function BranchMenuManagerPage() {
         initData();
     }, []);
 
-    // Fetch global products when filter changes
+    // Fetch branch menu when a branch is selected
+    useEffect(() => {
+        if (selectedBranchId) {
+            fetchBranchMenu(selectedBranchId);
+        } else {
+            setBranchProducts([]);
+        }
+    }, [selectedBranchId]);
+
+    const fetchBranchMenu = async (branchId: number) => {
+        try {
+            const response = await getProduct(
+                branchId,
+                '', // keyword
+                true, // isActive
+                0, // minPrice
+                999999999, // maxPrice
+                0, // page
+                1000, // size - fetch all
+                'name', // sortBy
+                'ASC', // sortDirection
+                undefined // productTypeId
+            );
+            setBranchProducts(response.data.content);
+        } catch (error) {
+            console.error(`Failed to load menu for branch ${branchId}:`, error);
+            toast.error('Failed to load branch menu');
+        }
+    };
+
+    // Filter global products: remove products already in the selected branch
+    const filteredGlobalProducts = globalProducts.filter(gp =>
+        !branchProducts.some(bp => bp.productId === gp.productId)
+    );
+
+    // Fetch global products when filter changes (if needed, but we have all products)
+    // We can keep the existing logic if we want to support server-side filtering for global products
+    // But for now, let's assume we have all products and filter client-side against the branch menu
     useEffect(() => {
         const fetchFilteredProducts = async () => {
             try {
                 setLoadingProducts(true);
-                // If 0 (All), we might want to fetch all or just filter client side?
-                // The user request implies fetching like order-table page.
-                // order-table page fetches when type changes.
                 const productsResponse = await getAllBranchProducts({
                     page: 0,
                     size: 1000,
@@ -96,58 +128,11 @@ export default function BranchMenuManagerPage() {
             }
         };
 
-        // Skip initial fetch as it's handled by initData, but initData doesn't depend on state.
-        // Actually, let's just let this run. But initData runs once. 
-        // To avoid double fetch on mount, we can check if it's not the initial load.
-        // However, simplest is to just let it run or rely on this effect for products and initData for branches/types.
-        // Let's keep initData for initial load to ensure everything is ready, and this for updates.
         if (!loading) {
             fetchFilteredProducts();
         }
     }, [selectedProductType]);
 
-    // Fetch branch menu when a tab is opened
-    const handleOpenBranchTab = async (branchId: number) => {
-        if (activeBranchTabs.includes(branchId)) {
-            setActiveTabId(branchId);
-            return;
-        }
-
-        try {
-            if (!branchMenus[branchId]) {
-                const response = await getProduct(
-                    branchId,
-                    '', // keyword
-                    true, // isActive
-                    0, // minPrice
-                    999999999, // maxPrice
-                    0, // page
-                    100, // size
-                    'name', // sortBy
-                    'ASC', // sortDirection
-                    undefined // productTypeId
-                );
-                setBranchMenus(prev => ({
-                    ...prev,
-                    [branchId]: response.data.content
-                }));
-            }
-
-            setActiveBranchTabs(prev => [...prev, branchId]);
-            setActiveTabId(branchId);
-        } catch (error) {
-            console.error(`Failed to load menu for branch ${branchId}:`, error);
-            toast.error('Failed to load branch menu');
-        }
-    };
-
-    const handleCloseTab = (e: React.MouseEvent, branchId: number) => {
-        e.stopPropagation();
-        setActiveBranchTabs(prev => prev.filter(id => id !== branchId));
-        if (activeTabId === branchId) {
-            setActiveTabId(null);
-        }
-    };
 
     // Drag and Drop Handlers
     const handleDragStart = (event: DragStartEvent) => {
@@ -160,49 +145,66 @@ export default function BranchMenuManagerPage() {
 
     const handleDragOver = (event: DragOverEvent) => {
         // Logic to handle dragging over different containers
-        // This is mainly for visual feedback and sorting within lists
     };
 
-    const handleDragEnd = (event: DragEndEvent) => {
+    const handleDragEnd = async (event: DragEndEvent) => {
         const { active, over } = event;
         setActiveDragItem(null);
 
-        if (!over) return;
+        if (!over || !selectedBranchId) return;
 
         const activeData = active.data.current as { product: Product, source: 'global' | 'branch', branchId?: number };
-        const overData = over.data.current as { type: 'branch-container', branchId: number } | { type: 'item', product: Product, branchId: number };
+        const overData = over.data.current as { type: 'branch-container', branchId: number } | { type: 'global-container' };
 
-        // Case 1: Drag from Global to Branch Tab
-        if (activeData.source === 'global' && overData) {
-            const targetBranchId = overData.branchId;
-
-            // Check if product already exists in target branch
-            const currentMenu = branchMenus[targetBranchId] || [];
-            if (currentMenu.find(p => p.productId === activeData.product.productId)) {
-                toast.warning('Product already exists in this branch');
-                return;
+        // Case 1: Drag from Global to Branch
+        if (activeData.source === 'global' && overData && 'branchId' in overData && overData.branchId === selectedBranchId) {
+            try {
+                await addProductToBranch(selectedBranchId, [activeData.product.productId]);
+                toast.success('Đã thêm món vào menu chi nhánh');
+                fetchBranchMenu(selectedBranchId); // Refresh menu
+            } catch (error) {
+                console.error('Failed to add product:', error);
+                toast.error('Không thể thêm món vào menu');
             }
-
-            setBranchMenus(prev => ({
-                ...prev,
-                [targetBranchId]: [...currentMenu, activeData.product]
-            }));
-            setIsDirty(true);
-            toast.success('Added to branch menu');
         }
 
-        // Case 2: Reordering within Branch (Sortable) - To be implemented if needed
-
-        // Case 3: Drag from Branch to "Remove Area" or outside - To be implemented
+        // Case 2: Drag from Branch to Global (Remove)
+        if (activeData.source === 'branch' && overData && 'type' in overData && overData.type === 'global-container') {
+            try {
+                await removeProductFromBranch(selectedBranchId, activeData.product.productId);
+                toast.success('Đã xóa món khỏi menu chi nhánh');
+                fetchBranchMenu(selectedBranchId); // Refresh menu
+            } catch (error) {
+                console.error('Failed to remove product:', error);
+                toast.error('Không thể xóa món khỏi menu');
+            }
+        }
     };
 
-    const handleSave = async () => {
-        // Mock Save
-        toast.info('Saving changes... (Mock)');
-        setTimeout(() => {
-            setIsDirty(false);
-            toast.success('Changes saved successfully!');
-        }, 1000);
+    const handleRemoveProduct = async (productId: number) => {
+        if (!selectedBranchId) return;
+        try {
+            await removeProductFromBranch(selectedBranchId, productId);
+            toast.success('Đã xóa món khỏi menu chi nhánh');
+            fetchBranchMenu(selectedBranchId);
+        } catch (error) {
+            console.error('Failed to remove product:', error);
+            toast.error('Không thể xóa món khỏi menu');
+        }
+    };
+
+    const handleAddAll = async () => {
+        if (!selectedBranchId || filteredGlobalProducts.length === 0) return;
+
+        const productIds = filteredGlobalProducts.map(p => p.productId);
+        try {
+            await addProductToBranch(selectedBranchId, productIds);
+            toast.success(`Đã thêm ${productIds.length} món vào menu chi nhánh`);
+            fetchBranchMenu(selectedBranchId);
+        } catch (error) {
+            console.error('Failed to add all products:', error);
+            toast.error('Không thể thêm các món vào menu');
+        }
     };
 
     const dropAnimation: DropAnimation = {
@@ -221,17 +223,24 @@ export default function BranchMenuManagerPage() {
                 title="Quản lý Menu Chi nhánh"
                 description="Kéo thả món ăn để thiết lập menu cho từng chi nhánh"
                 icon={Store}
-                actions={
-                    <Button
-                        onClick={handleSave}
-                        disabled={!isDirty}
-                        className="bg-[#EC6426] hover:bg-[#EC6426]/90 text-white"
-                    >
-                        <Save className="mr-2 h-4 w-4" />
-                        Lưu thay đổi
-                    </Button>
-                }
             />
+
+            <div className="mb-4 flex items-center gap-4 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                <div className="flex items-center gap-2">
+                    <Store className="h-5 w-5 text-[#EC6426]" />
+                    <span className="font-semibold text-gray-700">Chọn chi nhánh:</span>
+                </div>
+                <select
+                    className="flex-1 max-w-md px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#EC6426]/20 focus:border-[#EC6426]"
+                    value={selectedBranchId || ''}
+                    onChange={(e) => setSelectedBranchId(Number(e.target.value) || null)}
+                >
+                    <option value="">-- Chọn chi nhánh --</option>
+                    {branches.map(branch => (
+                        <option key={branch.id} value={branch.id}>{branch.name}</option>
+                    ))}
+                </select>
+            </div>
 
             <DndContext
                 sensors={sensors}
@@ -240,10 +249,10 @@ export default function BranchMenuManagerPage() {
                 onDragOver={handleDragOver}
                 onDragEnd={handleDragEnd}
             >
-                <div className="flex h-[calc(100vh-200px)] gap-6">
+                <div className="flex h-[calc(100vh-280px)] gap-6">
                     {/* Left Panel: Global Source */}
                     <div className="w-1/3 bg-white rounded-xl border-2 border-gray-200 flex flex-col overflow-hidden">
-                        <div className="p-4 border-b border-gray-100 bg-gray-50">
+                        <div className="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
                             <h3 className="font-bold text-gray-700 flex items-center gap-2">
                                 <Search className="h-4 w-4" />
                                 Danh sách món ăn
@@ -251,80 +260,30 @@ export default function BranchMenuManagerPage() {
                         </div>
                         <div className="flex-1 overflow-y-auto p-4">
                             <GlobalProductSource
-                                products={globalProducts}
+                                products={filteredGlobalProducts}
                                 productTypes={productTypes}
                                 selectedProductType={selectedProductType}
                                 onSelectProductType={setSelectedProductType}
                                 isLoading={loadingProducts}
+                                onAddAll={selectedBranchId ? handleAddAll : undefined}
                             />
                         </div>
                     </div>
 
                     {/* Right Panel: Branch Workspace */}
                     <div className="flex-1 bg-white rounded-xl border-2 border-gray-200 flex flex-col overflow-hidden">
-                        {/* Tabs Header */}
-                        <div className="flex items-center border-b border-gray-200 bg-gray-50 px-2 pt-2">
-                            {activeBranchTabs.map(branchId => {
-                                const branch = branches.find(b => b.id === branchId);
-                                return (
-                                    <div
-                                        key={branchId}
-                                        onClick={() => setActiveTabId(branchId)}
-                                        className={`
-                                            group flex items-center gap-2 px-4 py-2 rounded-t-lg cursor-pointer border-t border-x mr-1
-                                            ${activeTabId === branchId
-                                                ? 'bg-white border-gray-200 border-b-white font-semibold text-[#EC6426]'
-                                                : 'bg-gray-100 border-transparent text-gray-500 hover:bg-gray-200'
-                                            }
-                                        `}
-                                    >
-                                        <span>{branch?.name}</span>
-                                        <button
-                                            onClick={(e) => handleCloseTab(e, branchId)}
-                                            className="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-red-100 hover:text-red-500 rounded-full transition-all"
-                                        >
-                                            <X className="h-3 w-3" />
-                                        </button>
-                                    </div>
-                                );
-                            })}
-
-                            {/* Add Tab Dropdown */}
-                            <div className="ml-2 mb-1">
-                                <select
-                                    className="bg-transparent text-sm font-medium text-gray-600 focus:outline-none cursor-pointer hover:text-[#EC6426]"
-                                    onChange={(e) => {
-                                        if (e.target.value) {
-                                            handleOpenBranchTab(parseInt(e.target.value));
-                                            e.target.value = '';
-                                        }
-                                    }}
-                                    value=""
-                                >
-                                    <option value="" disabled>+ Mở chi nhánh</option>
-                                    {branches
-                                        .filter(b => !activeBranchTabs.includes(b.id))
-                                        .map(b => (
-                                            <option key={b.id} value={b.id}>{b.name}</option>
-                                        ))
-                                    }
-                                </select>
-                            </div>
+                        <div className="p-4 border-b border-gray-100 bg-gray-50">
+                            <h3 className="font-bold text-gray-700">
+                                Menu Chi nhánh: {branches.find(b => b.id === selectedBranchId)?.name || 'Chưa chọn'}
+                            </h3>
                         </div>
 
-                        {/* Tab Content */}
                         <div className="flex-1 bg-white p-4 overflow-y-auto">
-                            {activeTabId ? (
+                            {selectedBranchId ? (
                                 <BranchTabContent
-                                    branchId={activeTabId}
-                                    products={branchMenus[activeTabId] || []}
-                                    onRemove={(productId: number) => {
-                                        setBranchMenus(prev => ({
-                                            ...prev,
-                                            [activeTabId]: prev[activeTabId].filter(p => p.productId !== productId)
-                                        }));
-                                        setIsDirty(true);
-                                    }}
+                                    branchId={selectedBranchId}
+                                    products={branchProducts}
+                                    onRemove={handleRemoveProduct}
                                 />
                             ) : (
                                 <div className="h-full flex flex-col items-center justify-center text-gray-400">

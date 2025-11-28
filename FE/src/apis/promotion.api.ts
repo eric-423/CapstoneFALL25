@@ -31,6 +31,17 @@ export interface CreatePromotionData {
     promotionTypeId: number;
 }
 
+export interface UpdatePromotionData {
+    name: string;
+    description: string;
+    value: number;
+    minimumOrderValue: number;
+    startDate: string;
+    endDate: string;
+    status: boolean;
+    promotionTypeId: number;
+}
+
 export interface UserAssignment {
     userId: number;
     usageCount: number;
@@ -108,6 +119,56 @@ export async function assignPromotion(data: AssignPromotionData) {
         },
         credentials: 'include',
         body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+        const errorBody = await response.json().catch(() => ({}));
+        throw {
+            response: {
+                data: errorBody,
+                status: response.status,
+            },
+        };
+    }
+
+    const result = await response.json();
+    return result;
+}
+
+/**
+ * Cập nhật promotion
+ */
+export async function updatePromotion(promotionCode: string, data: UpdatePromotionData) {
+    const response = await fetch(`/api/promotions/${promotionCode}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+        const errorBody = await response.json().catch(() => ({}));
+        throw {
+            response: {
+                data: errorBody,
+                status: response.status,
+            },
+        };
+    }
+
+    const result = await response.json();
+    return result;
+}
+
+/**
+ * Thay đổi trạng thái promotion
+ */
+export async function togglePromotionStatus(promotionCode: string, status: boolean) {
+    const response = await fetch(`/api/promotions/${promotionCode}/status?status=${status}`, {
+        method: 'PUT',
+        credentials: 'include',
     });
 
     if (!response.ok) {

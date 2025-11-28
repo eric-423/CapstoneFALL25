@@ -19,6 +19,7 @@ import { createMaterial, updateMaterial, type Material } from '@/apis/material.a
 import { getMaterialTypes, type MaterialType } from '@/apis/material.api';
 import { getNutrients, type Nutrient } from '@/apis/nutrient.api';
 import { getMaterialNutrients, updateManyMaterialNutrients, type MaterialNutrientRequest } from '@/apis/material-nutrient.api';
+import { getUnits, type Unit } from '@/apis/unit.api';
 
 interface MaterialFormDialogProps {
     open: boolean;
@@ -36,14 +37,13 @@ export function MaterialFormDialog({ open, onOpenChange, material, onSuccess }: 
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState('info');
     const [materialTypes, setMaterialTypes] = useState<MaterialType[]>([]);
+    const [units, setUnits] = useState<Unit[]>([]);
     const [availableNutrients, setAvailableNutrients] = useState<Nutrient[]>([]);
 
     // Form Data
     const [formData, setFormData] = useState({
         name: '',
-        caloriesPerUnit: '',
-        unit: '',
-        threshold: '',
+        unitId: '',
         materialTypeId: '',
     });
 
@@ -61,18 +61,14 @@ export function MaterialFormDialog({ open, onOpenChange, material, onSuccess }: 
         if (material && open) {
             setFormData({
                 name: material.name,
-                caloriesPerUnit: material.caloriesPerUnit.toString(),
-                unit: material.unit,
-                threshold: material.threshold.toString(),
+                unitId: material.unitId.toString(),
                 materialTypeId: material.materialTypeId.toString(),
             });
             loadMaterialNutrients(material.id);
         } else if (!material && open) {
             setFormData({
                 name: '',
-                caloriesPerUnit: '',
-                unit: '',
-                threshold: '',
+                unitId: '',
                 materialTypeId: '',
             });
             setNutrientRows([]);
@@ -81,11 +77,13 @@ export function MaterialFormDialog({ open, onOpenChange, material, onSuccess }: 
 
     const loadInitialData = async () => {
         try {
-            const [typesData, nutrientsData] = await Promise.all([
+            const [typesData, unitsData, nutrientsData] = await Promise.all([
                 getMaterialTypes(false),
+                getUnits(),
                 getNutrients({ size: 100 }) // Fetch all nutrients (limit 100 for now)
             ]);
             setMaterialTypes(typesData);
+            setUnits(unitsData);
             setAvailableNutrients(nutrientsData.content);
         } catch (error) {
             console.error('Failed to load initial data:', error);
@@ -126,23 +124,8 @@ export function MaterialFormDialog({ open, onOpenChange, material, onSuccess }: 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!formData.name.trim() || !formData.unit.trim() || !formData.materialTypeId) {
+        if (!formData.name.trim() || !formData.unitId || !formData.materialTypeId) {
             toast.error('❌ Vui lòng điền đầy đủ thông tin chung!');
-            setActiveTab('info');
-            return;
-        }
-
-        const caloriesPerUnit = parseFloat(formData.caloriesPerUnit);
-        const threshold = parseFloat(formData.threshold);
-
-        if (isNaN(caloriesPerUnit) || caloriesPerUnit < 0) {
-            toast.error('❌ Calo không hợp lệ!');
-            setActiveTab('info');
-            return;
-        }
-
-        if (isNaN(threshold) || threshold < 0) {
-            toast.error('❌ Ngưỡng tồn kho không hợp lệ!');
             setActiveTab('info');
             return;
         }
@@ -169,9 +152,7 @@ export function MaterialFormDialog({ open, onOpenChange, material, onSuccess }: 
 
             const requestData = {
                 name: formData.name.trim(),
-                caloriesPerUnit,
-                unit: formData.unit.trim(),
-                threshold,
+                unitId: parseInt(formData.unitId),
                 materialTypeId: parseInt(formData.materialTypeId),
             };
 
@@ -201,6 +182,13 @@ export function MaterialFormDialog({ open, onOpenChange, material, onSuccess }: 
         } finally {
             setLoading(false);
         }
+    };
+
+    // Helper to get unit name for display
+    const getUnitName = (unitIdStr: string) => {
+        if (!unitIdStr) return 'đơn vị';
+        const unit = units.find(u => u.id.toString() === unitIdStr);
+        return unit ? `${unit.name} (${unit.symbols})` : 'đơn vị';
     };
 
     if (!open) return null;
@@ -291,53 +279,25 @@ export function MaterialFormDialog({ open, onOpenChange, material, onSuccess }: 
 
                                     {/* Đơn vị */}
                                     <div className="space-y-1.5">
-                                        <Label htmlFor="unit" className="text-xs font-semibold text-[#2D1E1A] flex items-center gap-1">
+                                        <Label htmlFor="unitId" className="text-xs font-semibold text-[#2D1E1A] flex items-center gap-1">
                                             Đơn vị <span className="text-red-500">*</span>
                                         </Label>
-                                        <Input
-                                            id="unit"
-                                            value={formData.unit}
-                                            onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                                            placeholder="VD: gram, kg..."
-                                            className="w-full px-3 py-2 border border-[#78A243]/30 rounded-lg text-sm text-[#2D1E1A] focus:border-[#78A243] focus:ring-1 focus:ring-[#78A243]/20 transition-all outline-none"
+                                        <Select
+                                            value={formData.unitId}
+                                            onValueChange={(value) => setFormData({ ...formData, unitId: value })}
                                             disabled={loading}
-                                        />
-                                    </div>
-
-                                    {/* Calo */}
-                                    <div className="space-y-1.5">
-                                        <Label htmlFor="caloriesPerUnit" className="text-xs font-semibold text-[#2D1E1A] flex items-center gap-1">
-                                            Calo / Đơn vị <span className="text-red-500">*</span>
-                                        </Label>
-                                        <Input
-                                            id="caloriesPerUnit"
-                                            type="number"
-                                            step="0.1"
-                                            min="0"
-                                            value={formData.caloriesPerUnit}
-                                            onChange={(e) => setFormData({ ...formData, caloriesPerUnit: e.target.value })}
-                                            placeholder="VD: 250"
-                                            className="w-full px-3 py-2 border border-[#78A243]/30 rounded-lg text-sm text-[#2D1E1A] focus:border-[#78A243] focus:ring-1 focus:ring-[#78A243]/20 transition-all outline-none"
-                                            disabled={loading}
-                                        />
-                                    </div>
-
-                                    {/* Ngưỡng tồn kho */}
-                                    <div className="space-y-1.5">
-                                        <Label htmlFor="threshold" className="text-xs font-semibold text-[#2D1E1A] flex items-center gap-1">
-                                            Ngưỡng tồn kho <span className="text-red-500">*</span>
-                                        </Label>
-                                        <Input
-                                            id="threshold"
-                                            type="number"
-                                            step="0.1"
-                                            min="0"
-                                            value={formData.threshold}
-                                            onChange={(e) => setFormData({ ...formData, threshold: e.target.value })}
-                                            placeholder="VD: 2000"
-                                            className="w-full px-3 py-2 border border-[#78A243]/30 rounded-lg text-sm text-[#2D1E1A] focus:border-[#78A243] focus:ring-1 focus:ring-[#78A243]/20 transition-all outline-none"
-                                            disabled={loading}
-                                        />
+                                        >
+                                            <SelectTrigger className="w-full px-3 py-2 border border-[#78A243]/30 rounded-lg text-sm text-[#2D1E1A] focus:border-[#78A243] focus:ring-1 focus:ring-[#78A243]/20 transition-all outline-none bg-white">
+                                                <SelectValue placeholder="Chọn đơn vị" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {units.map((unit) => (
+                                                    <SelectItem key={unit.id} value={unit.id.toString()}>
+                                                        {unit.name} ({unit.symbols})
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
                                     </div>
                                 </div>
                             </TabsContent>
@@ -345,7 +305,7 @@ export function MaterialFormDialog({ open, onOpenChange, material, onSuccess }: 
                             <TabsContent value="nutrients" className="mt-0 space-y-4">
                                 <div className="flex justify-between items-center mb-2">
                                     <Label className="text-sm font-semibold text-[#2D1E1A]">
-                                        Danh sách dinh dưỡng (trên 100 {formData.unit || 'đơn vị'})
+                                        Danh sách dinh dưỡng (trên 100 {getUnitName(formData.unitId)})
                                     </Label>
                                     <Button
                                         type="button"

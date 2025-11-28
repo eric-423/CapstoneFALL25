@@ -139,11 +139,12 @@ export default function AdminLayout({
     { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/admin/users', label: 'Người dùng', icon: Users },
     { href: '/admin/branches', label: 'Chi nhánh', icon: Store },
+    { href: '/admin/warehouses', label: 'Kho', icon: Warehouse },
+    { href: '/admin/branches/menu-manager', label: 'Quản lý Menu', icon: Store },
     { href: '/admin/products', label: 'Món ăn', icon: UtensilsCrossed },
     { href: '/admin/materials', label: 'Nguyên liệu', icon: Package },
     { href: '/admin/nutrients', label: 'Dinh dưỡng', icon: Leaf },
     { href: '/admin/cooking-methods', label: 'Phương pháp nấu', icon: Flame },
-    { href: '/admin/warehouses', label: 'Kho', icon: Warehouse },
     { href: '/admin/combos', label: 'Combo', icon: Gift },
     { href: '/admin/training', label: 'Khóa đào tạo', icon: GraduationCap },
     { href: '/admin/schedule', label: 'Lịch trình', icon: Calendar },
@@ -152,7 +153,6 @@ export default function AdminLayout({
     { href: '/admin/promotions', label: 'Khuyến mãi', icon: Gift },
     { href: '/admin/feedback', label: 'Phản hồi', icon: MessageSquare },
     { href: '/admin/settings', label: 'Cài đặt', icon: Settings },
-    { href: '/admin/branches/menu-manager', label: 'Quản lý Menu', icon: Store },
   ], []);
 
   // Calculate active menu index for animated circle

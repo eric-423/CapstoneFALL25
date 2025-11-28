@@ -3,11 +3,12 @@
 import { AdminGuard } from '@/components/guards';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Gift, Edit, Trash2, CheckCircle, XCircle, Percent, Tag, Calendar, Users as UsersIcon } from 'lucide-react';
+import { Gift, Edit, Power, CheckCircle, XCircle, Percent, Tag, Calendar, Users as UsersIcon } from 'lucide-react';
 import { AddPromotionDialog } from './components/AddPromotionDialog';
 import { AssignPromotionDialog } from './components/AssignPromotionDialog';
 import { useEffect, useState } from 'react';
-import { getAllPromotions, type Promotion } from '@/apis/promotion.api';
+import { toast } from 'react-toastify';
+import { getAllPromotions, togglePromotionStatus, type Promotion } from '@/apis/promotion.api';
 import { AdminPageLayout, AdminPageHeader } from '../components/AdminPageLayout';
 import { AdminCard } from '../components/AdminCard';
 
@@ -30,6 +31,17 @@ export default function PromotionsPage() {
     useEffect(() => {
         fetchPromotions();
     }, []);
+
+    const handleToggleStatus = async (promotionCode: string, currentStatus: boolean) => {
+        try {
+            await togglePromotionStatus(promotionCode, !currentStatus);
+            toast.success(`✅ ${!currentStatus ? 'Kích hoạt' : 'Tắt'} khuyến mãi thành công!`);
+            fetchPromotions();
+        } catch (error) {
+            console.error('Error toggling promotion status:', error);
+            toast.error('❌ Có lỗi xảy ra!');
+        }
+    };
 
     const activePromotions = promotions.filter(p => p.status);
     const totalUsage = promotions.reduce((sum, p) => sum + p.usageCount, 0);
@@ -191,18 +203,14 @@ export default function PromotionsPage() {
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            className="flex-1 border border-[#78A243]/30 text-[#78A243] hover:bg-[#78A243] hover:text-white font-semibold rounded-lg transition-all duration-300 py-2 text-xs"
+                                            onClick={() => handleToggleStatus(promo.id, promo.status)}
+                                            className={`flex-1 border font-semibold rounded-lg transition-all duration-300 py-2 text-xs ${promo.status
+                                                    ? 'border-red-500 text-red-500 hover:bg-red-500 hover:text-white'
+                                                    : 'border-[#78A243] text-[#78A243] hover:bg-[#78A243] hover:text-white'
+                                                }`}
                                         >
-                                            <Edit size={12} className="mr-1" strokeWidth={2.5} />
-                                            Sửa
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="flex-1 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-semibold rounded-lg transition-all duration-300 py-2 text-xs"
-                                        >
-                                            <Trash2 size={12} className="mr-1" strokeWidth={2.5} />
-                                            Xóa
+                                            <Power size={12} className="mr-1" strokeWidth={2.5} />
+                                            {promo.status ? 'Tắt' : 'Bật'}
                                         </Button>
                                     </div>
                                 </Card>

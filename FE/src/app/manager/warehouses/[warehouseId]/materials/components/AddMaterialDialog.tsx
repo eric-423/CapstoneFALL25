@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
@@ -15,18 +15,21 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { addMaterialsToWarehouse, type Material } from '@/apis/material.api';
+import { getUnits, type Unit } from '@/apis/unit.api';
 
 interface AddMaterialDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     warehouseId: number;
     availableMaterials: Material[];
+    existingMaterialIds?: number[];
     onSuccess: () => void;
 }
 
 interface MaterialInput {
     materialId: string;
     quantity: string;
+    threshold: string;
 }
 
 export function AddMaterialDialog({
@@ -34,15 +37,32 @@ export function AddMaterialDialog({
     onOpenChange,
     warehouseId,
     availableMaterials,
+    existingMaterialIds = [],
     onSuccess
 }: AddMaterialDialogProps) {
     const [loading, setLoading] = useState(false);
     const [materials, setMaterials] = useState<MaterialInput[]>([
-        { materialId: '', quantity: '' }
+        { materialId: '', quantity: '', threshold: '' }
     ]);
+    const [units, setUnits] = useState<Unit[]>([]);
+
+    // Filter out materials already in warehouse
+    const selectableMaterials = availableMaterials.filter(m => !existingMaterialIds.includes(m.id));
+
+    useEffect(() => {
+        const fetchUnits = async () => {
+            try {
+                const data = await getUnits();
+                setUnits(data);
+            } catch (error) {
+                console.error('Failed to fetch units:', error);
+            }
+        };
+        fetchUnits();
+    }, []);
 
     const handleAddRow = () => {
-        setMaterials([...materials, { materialId: '', quantity: '' }]);
+        setMaterials([...materials, { materialId: '', quantity: '', threshold: '' }]);
     };
 
     const handleRemoveRow = (index: number) => {
@@ -64,7 +84,7 @@ export function AddMaterialDialog({
 
         // Validate
         for (const material of materials) {
-            if (!material.materialId || !material.quantity) {
+            if (!material.materialId || !material.quantity || !material.threshold) {
                 toast.error('❌ Vui lòng điền đầy đủ thông tin!');
                 return;
             }
@@ -72,6 +92,12 @@ export function AddMaterialDialog({
             const quantity = parseFloat(material.quantity);
             if (isNaN(quantity) || quantity <= 0) {
                 toast.error('❌ Số lượng phải lớn hơn 0!');
+                return;
+            }
+
+            const threshold = parseFloat(material.threshold);
+            if (isNaN(threshold) || threshold <= 0) {
+                toast.error('❌ Ngưỡng cảnh báo phải lớn hơn 0!');
                 return;
             }
         }
@@ -90,13 +116,14 @@ export function AddMaterialDialog({
                 materials: materials.map(m => ({
                     materialId: parseInt(m.materialId),
                     quantity: parseFloat(m.quantity),
+                    threshold: parseFloat(m.threshold),
                 }))
             });
 
             toast.success('✅ Thêm nguyên liệu vào kho thành công!');
             onSuccess();
             onOpenChange(false);
-            setMaterials([{ materialId: '', quantity: '' }]);
+            setMaterials([{ materialId: '', quantity: '', threshold: '' }]);
         } catch (error) {
             console.error('Failed to add materials:', error);
             toast.error('❌ Không thể thêm nguyên liệu vào kho!');
@@ -150,9 +177,9 @@ export function AddMaterialDialog({
                                         )}
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-3 gap-4">
                                         {/* Nguyên liệu */}
-                                        <div>
+                                        <div className="col-span-3">
                                             <Label className="text-sm font-semibold text-[#2D1E1A]">
                                                 Nguyên liệu <span className="text-red-500">*</span>
                                             </Label>
@@ -165,11 +192,17 @@ export function AddMaterialDialog({
                                                     <SelectValue placeholder="Chọn nguyên liệu" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {availableMaterials.map((m) => (
-                                                        <SelectItem key={m.id} value={m.id.toString()}>
-                                                            {m.name} ({m.materialTypeName})
-                                                        </SelectItem>
-                                                    ))}
+                                                    {selectableMaterials.length > 0 ? (
+                                                        selectableMaterials.map((m) => (
+                                                            <SelectItem key={m.id} value={m.id.toString()}>
+                                                                {m.name} ({m.materialTypeName})
+                                                            </SelectItem>
+                                                        ))
+                                                    ) : (
+                                                        <div className="p-2 text-sm text-gray-500 text-center">
+                                                            Tất cả nguyên liệu đã có trong kho
+                                                        </div>
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                         </div>
@@ -189,11 +222,35 @@ export function AddMaterialDialog({
                                                 className="mt-2"
                                                 disabled={loading}
                                             />
-                                            {material.materialId && (
-                                                <p className="text-xs text-gray-500 mt-1">
-                                                    Đơn vị: {availableMaterials.find(m => m.id.toString() === material.materialId)?.unit}
-                                                </p>
-                                            )}
+                                            {material.materialId && (() => {
+                                                const selectedMaterial = availableMaterials.find(m => m.id.toString() === material.materialId);
+                                                const unitName = selectedMaterial ? units.find(u => u.id === selectedMaterial.unitId)?.name : '';
+                                                return unitName ? (
+                                                    <p className="text-xs text-gray-500 mt-1">
+                                                        Đơn vị: {unitName}
+                                                    </p>
+                                                ) : null;
+                                            })()}
+                                        </div>
+
+                                        {/* Ngưỡng cảnh báo */}
+                                        <div className="col-span-2">
+                                            <Label className="text-sm font-semibold text-[#2D1E1A]">
+                                                Ngưỡng cảnh báo <span className="text-red-500">*</span>
+                                            </Label>
+                                            <Input
+                                                type="number"
+                                                step="0.1"
+                                                min="0"
+                                                value={material.threshold}
+                                                onChange={(e) => handleMaterialChange(index, 'threshold', e.target.value)}
+                                                placeholder="VD: 10"
+                                                className="mt-2"
+                                                disabled={loading}
+                                            />
+                                            <p className="text-xs text-gray-500 mt-1">
+                                                Cảnh báo khi số lượng thấp hơn ngưỡng này
+                                            </p>
                                         </div>
                                     </div>
                                 </div>

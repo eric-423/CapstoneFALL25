@@ -1,49 +1,68 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Warehouse as WarehouseIcon, Plus, Edit2, MapPin, Building, CheckCircle, XCircle } from 'lucide-react';
+import { Warehouse as WarehouseIcon, Plus, Edit2, MapPin, Building, CheckCircle, XCircle, Utensils } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AdminPageLayout, AdminPageHeader } from '../components/AdminPageLayout';
 import { AdminCard } from '../components/AdminCard';
 import { getWarehouses, type Warehouse } from '@/apis/material.api';
+import { getBranches, type Branch } from '@/apis/branch.api';
 import { WarehouseFormDialog } from './components/WarehouseFormDialog';
 import { useRouter } from 'next/navigation';
 
 export default function WarehousesPage() {
     const router = useRouter();
     const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+    const [branches, setBranches] = useState<Branch[]>([]);
     const [loading, setLoading] = useState(true);
 
     // Warehouse Dialog states
     const [showFormDialog, setShowFormDialog] = useState(false);
     const [editingWarehouse, setEditingWarehouse] = useState<Warehouse | null>(null);
+    const [initialBranchId, setInitialBranchId] = useState<number | undefined>(undefined);
+    const [initialAddress, setInitialAddress] = useState<string | undefined>(undefined);
 
-    const fetchWarehouses = useCallback(async () => {
+    const fetchData = useCallback(async () => {
         try {
             setLoading(true);
-            const data = await getWarehouses();
-            setWarehouses(data);
+            const [warehousesData, branchesData] = await Promise.all([
+                getWarehouses(),
+                getBranches()
+            ]);
+            setWarehouses(warehousesData);
+            setBranches(branchesData);
         } catch (error) {
-            console.error('Failed to fetch warehouses:', error);
-            toast.error('❌ Không thể tải danh sách kho!');
+            console.error('Failed to fetch data:', error);
+            toast.error('❌ Không thể tải dữ liệu!');
         } finally {
             setLoading(false);
         }
     }, []);
 
     useEffect(() => {
-        fetchWarehouses();
-    }, [fetchWarehouses]);
+        fetchData();
+    }, [fetchData]);
 
     const handleCreate = () => {
         setEditingWarehouse(null);
+        setInitialBranchId(undefined);
+        setInitialAddress(undefined);
+        setShowFormDialog(true);
+    };
+
+    const handleQuickCreate = (branch: Branch) => {
+        setEditingWarehouse(null);
+        setInitialBranchId(branch.id);
+        setInitialAddress(branch.address);
         setShowFormDialog(true);
     };
 
     const handleEdit = (warehouse: Warehouse) => {
         setEditingWarehouse(warehouse);
+        setInitialBranchId(undefined);
+        setInitialAddress(undefined);
         setShowFormDialog(true);
     };
 
@@ -51,14 +70,21 @@ export default function WarehousesPage() {
         router.push(`/admin/warehouses/${warehouseId}/materials`);
     };
 
+    const handleViewUtensils = (warehouseId: number) => {
+        router.push(`/admin/warehouses/${warehouseId}/utensils`);
+    };
+
     const handleFormSuccess = () => {
-        fetchWarehouses();
+        fetchData();
     };
 
     // Calculate statistics
     const totalWarehouses = warehouses.length;
     const activeWarehouses = warehouses.filter(w => w.isActive === true).length;
     const inactiveWarehouses = warehouses.filter(w => w.isActive === false).length;
+
+    // Branches without warehouse
+    const branchesWithoutWarehouse = branches.filter(b => !warehouses.some(w => w.branchId === b.id));
 
     return (
         <AdminPageLayout>
@@ -96,6 +122,34 @@ export default function WarehousesPage() {
                     icon={XCircle}
                 />
             </div>
+
+            {/* Quick Create for Branches without Warehouse */}
+            {branchesWithoutWarehouse.length > 0 && !loading && (
+                <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-6">
+                    <h3 className="text-lg font-semibold text-orange-800 mb-3 flex items-center gap-2">
+                        <Building className="h-5 w-5" />
+                        Chi nhánh chưa có kho ({branchesWithoutWarehouse.length})
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {branchesWithoutWarehouse.map(branch => (
+                            <div key={branch.id} className="bg-white p-3 rounded-lg border border-orange-100 shadow-sm flex justify-between items-center">
+                                <div>
+                                    <p className="font-medium text-gray-800">{branch.name}</p>
+                                    <p className="text-xs text-gray-500 truncate max-w-[200px]">{branch.address}</p>
+                                </div>
+                                <Button
+                                    size="sm"
+                                    onClick={() => handleQuickCreate(branch)}
+                                    className="bg-orange-500 hover:bg-orange-600 text-white text-xs h-8"
+                                >
+                                    <Plus className="h-3 w-3 mr-1" />
+                                    Tạo kho ngay
+                                </Button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* Warehouses Table */}
             <div className="bg-white rounded-xl border-2 border-[#78A243]/20 overflow-hidden">
@@ -178,6 +232,15 @@ export default function WarehousesPage() {
                                                     Xem nguyên liệu
                                                 </Button>
                                                 <Button
+                                                    onClick={() => handleViewUtensils(warehouse.id)}
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="text-[#DA7339] border-[#DA7339]/30 hover:bg-[#DA7339]/10"
+                                                >
+                                                    <Utensils className="h-3 w-3 mr-1" />
+                                                    Dụng cụ
+                                                </Button>
+                                                <Button
                                                     onClick={() => handleEdit(warehouse)}
                                                     size="sm"
                                                     variant="outline"
@@ -206,6 +269,10 @@ export default function WarehousesPage() {
                 onOpenChange={setShowFormDialog}
                 warehouse={editingWarehouse}
                 onSuccess={handleFormSuccess}
+                initialBranchId={initialBranchId}
+                initialAddress={initialAddress}
+                existingBranchIds={warehouses.map(w => w.branchId)}
+                branches={branches}
             />
         </AdminPageLayout>
     );

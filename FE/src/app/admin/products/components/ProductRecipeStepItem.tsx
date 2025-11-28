@@ -4,7 +4,7 @@ import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Trash2 } from 'lucide-react';
-import { UseFormRegister, UseFormSetValue, FieldErrors, Control, Controller } from 'react-hook-form';
+import { UseFormRegister, UseFormSetValue, FieldErrors, Control, Controller, useWatch } from 'react-hook-form';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/select';
 import { Material } from '@/apis/material.api';
 import { CookingMethod } from '@/apis/cooking-method.api';
+import { Unit } from '@/apis/unit.api';
 
 // Define the shape of the form data we're working with
 // This should match ProductFormData in ProductForm.tsx
@@ -45,6 +46,7 @@ interface ProductRecipeStepItemProps {
     remove: (index: number) => void;
     materials: Material[];
     cookingMethods: CookingMethod[];
+    units: Unit[];
     errors: FieldErrors<ProductFormData>;
 }
 
@@ -56,6 +58,7 @@ export function ProductRecipeStepItem({
     remove,
     materials,
     cookingMethods,
+    units,
     errors,
 }: ProductRecipeStepItemProps) {
     const {
@@ -74,12 +77,21 @@ export function ProductRecipeStepItem({
         opacity: isDragging ? 0.5 : 1,
     };
 
-    // Helper to get selected material unit
-    // We can't easily access the current value without watching, but we can try to find it if passed or just show generic
-    // For simplicity, we'll rely on the Select to show the unit in the option, 
-    // or we could pass the current value if we wanted to show it outside.
-    // Let's just show it in the placeholder or rely on the user knowing.
-    // Actually, RecipeStepItem showed it. We can use Controller to get the value.
+    // Watch current materialId to get its unit
+    const currentMaterialId = useWatch({
+        control,
+        name: `recipesRequests.${index}.materialId`,
+    });
+
+    // Helper to get unit name
+    const getUnitName = (unitId: number) => {
+        const unit = units.find(u => u.id === unitId);
+        return unit ? unit.symbols : '';
+    };
+
+    // Get current material to display unit
+    const currentMaterial = materials.find(m => m.id === currentMaterialId);
+    const currentUnit = currentMaterial ? getUnitName(currentMaterial.unitId) : '';
 
     return (
         <div
@@ -118,7 +130,7 @@ export function ProductRecipeStepItem({
                                 <SelectContent>
                                     {materials.map((m) => (
                                         <SelectItem key={m.id} value={m.id.toString()}>
-                                            {m.name} ({m.unit})
+                                            {m.name}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -130,7 +142,7 @@ export function ProductRecipeStepItem({
                     )}
                 </div>
 
-                {/* Quantity */}
+                {/* Quantity with Unit */}
                 <div className="relative">
                     <Input
                         type="number"
@@ -139,7 +151,11 @@ export function ProductRecipeStepItem({
                         {...register(`recipesRequests.${index}.quantity`)}
                         className="pr-12"
                     />
-                    {/* We could try to show unit here if we had access to selected material */}
+                    {currentUnit && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium">
+                            {currentUnit}
+                        </div>
+                    )}
                     {errors.recipesRequests?.[index]?.quantity && (
                         <p className="text-[10px] text-red-500 mt-1">{errors.recipesRequests[index]?.quantity?.message}</p>
                     )}
@@ -153,12 +169,13 @@ export function ProductRecipeStepItem({
                         render={({ field }) => (
                             <Select
                                 onValueChange={(val) => field.onChange(parseInt(val))}
-                                value={field.value ? field.value.toString() : undefined}
+                                value={field.value !== undefined ? field.value.toString() : undefined}
                             >
                                 <SelectTrigger className="w-full">
                                     <SelectValue placeholder="Phương pháp nấu" />
                                 </SelectTrigger>
                                 <SelectContent>
+                                    <SelectItem value="0">Không</SelectItem>
                                     {cookingMethods.map((cm) => (
                                         <SelectItem key={cm.id} value={cm.id.toString()}>
                                             {cm.name}
