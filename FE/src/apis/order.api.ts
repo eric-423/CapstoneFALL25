@@ -218,6 +218,27 @@ export interface BranchOrdersApiResponse {
 }
 
 
+
+export interface WaiterOrderItemRequest {
+  productId: number;
+  comboId: number;
+  quantity: number;
+  price: number;
+  note: string;
+}
+
+export interface WaiterConfirmRequest {
+  orderId: number;
+  waiterId: number;
+  orderItems: WaiterOrderItemRequest[];
+}
+
+export interface WaiterDeliveredRequest {
+  orderId: number;
+  waiterId: number;
+  orderItems: WaiterOrderItemRequest[];
+}
+
 export const GET_CUSTOMER_ORDER_QUERY_KEY = 'GET_CUSTOMER_ORDER_QUERY_KEY';
 
 
@@ -433,6 +454,80 @@ export const assignChefToOrder = async (orderId: number): Promise<AssignChefResp
   }
 };
 
+
+export const staffAssignChefToOrder = async (orderId: number): Promise<AssignChefResponse> => {
+  try {
+    const url = `/api/orders/staff/assign/cheff/${orderId}`;
+
+    const response = await fetch(url, {
+      method: 'PUT',
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
+      const error = new Error(`Failed to assign chef: ${response.status} ${response.statusText}`);
+      (error as Error & { response?: { data: unknown; status: number } }).response = {
+        data: errorBody,
+        status: response.status,
+      };
+      throw error;
+    }
+
+    const data = await response.json();
+    const success = data === true || data === 'true' || data.success === true;
+    return { success };
+  } catch (error) {
+    throw error;
+  }
+};
+
+
+export const assignShipperToOrder = async (orderId: number): Promise<AssignShipperResponse> => {
+  try {
+    const response = await fetch(`/api/orders/manager/assign/shipper/${orderId}`, {
+      method: 'PUT',
+      credentials: 'include',
+    });
+
+    const data = await response.json();
+    return {
+      success: data === true || data === 'true' || data.success === true || response.ok,
+      message: data.message || 'Đã assign shipper thành công'
+    };
+  } catch (error) {
+    console.log(error)
+    return {
+      success: false,
+      message: 'Hiện Tại Tất Cả Shipper Đang Bận'
+    };
+  }
+};
+
+
+
+export const staffAssignShipperToOrder = async (orderId: number): Promise<AssignShipperResponse> => {
+  try {
+    const response = await fetch(`/api/orders/staff/assign/shipper/${orderId}`, {
+      method: 'PUT',
+      credentials: 'include',
+    });
+
+    const data = await response.json();
+    return {
+      success: data === true || data === 'true' || data.success === true || response.ok,
+      message: data.message || 'Đã assign shipper thành công'
+    };
+  } catch (error) {
+    console.log(error)
+    return {
+      success: false,
+      message: 'Hiện Tại Tất Cả Shipper Đang Bận'
+    };
+  }
+};
+
+
 export const getChefOrders = async (chefId: number, status?: string): Promise<BranchOrdersApiResponse> => {
   try {
     const params = status ? `?status=${status}` : '';
@@ -490,25 +585,6 @@ export const markOrderAsCooked = async (orderId: number): Promise<MarkOrderAsCoo
   }
 };
 
-export interface WaiterOrderItemRequest {
-  productId: number;
-  comboId: number;
-  quantity: number;
-  price: number;
-  note: string;
-}
-
-export interface WaiterConfirmRequest {
-  orderId: number;
-  waiterId: number;
-  orderItems: WaiterOrderItemRequest[];
-}
-
-export interface WaiterDeliveredRequest {
-  orderId: number;
-  waiterId: number;
-  orderItems: WaiterOrderItemRequest[];
-}
 
 export const waiterConfirmOrder = async (request: WaiterConfirmRequest): Promise<void> => {
   try {
@@ -565,24 +641,5 @@ export interface AssignShipperResponse {
   message?: string;
 }
 
-export const assignShipperToOrder = async (orderId: number): Promise<AssignShipperResponse> => {
-  try {
-    const response = await fetch(`/api/orders/manager/assign/shipper/${orderId}`, {
-      method: 'PUT',
-      credentials: 'include',
-    });
 
-    const data = await response.json();
-    return {
-      success: data === true || data === 'true' || data.success === true || response.ok,
-      message: data.message || 'Đã assign shipper thành công'
-    };
-  } catch (error) {
-    console.log(error)
-    return {
-      success: false,
-      message: 'Hiện Tại Tất Cả Shipper Đang Bận'
-    };
-  }
-};
 
