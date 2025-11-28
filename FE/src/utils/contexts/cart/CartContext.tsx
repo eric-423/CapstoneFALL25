@@ -1,10 +1,21 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-'use client';
+"use client";
 
-import { loadCartFromLocalStorage, saveCartToLocalStorage } from '@/utils/storage';
+import {
+  loadCartFromLocalStorage,
+  saveCartToLocalStorage,
+} from "@/utils/storage";
 
-import { useContext } from 'react';
-import { createContext, type FC, type PropsWithChildren, useCallback, useEffect, useMemo, useReducer } from 'react';
+import { useContext } from "react";
+import {
+  createContext,
+  type FC,
+  type PropsWithChildren,
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+} from "react";
 
 import {
   addItem as addItemAction,
@@ -15,18 +26,18 @@ import {
   removeItem as removeItemAction,
   updateItem as updateItemAction,
   updateQuantity as updateQuantityAction,
-} from './cart.reducer';
-import type { CartContextType, CartItem } from './cart.type';
-import { CartState } from './cart.type';
+} from "./cart.reducer";
+import type { CartContextType, CartItem } from "./cart.type";
+import { CartState } from "./cart.type";
 
 const CartContext = createContext<CartContextType>({
   ...initialCartState,
   dispatch: () => null,
-  addItem: () => { },
-  removeItem: () => { },
-  updateQuantity: () => { },
-  updateItem: () => { },
-  clearCart: () => { },
+  addItem: () => {},
+  removeItem: () => {},
+  updateQuantity: () => {},
+  updateItem: () => {},
+  clearCart: () => {},
   getTotalItems: () => 0,
   getTotalPrice: () => 0,
 });
@@ -44,16 +55,16 @@ const CartProvider: FC<PropsWithChildren> = ({ children }) => {
             items: savedCart || [],
             isLoading: false,
             isInitialized: true,
-          } as CartState),
+          } as CartState)
         );
       } catch (error) {
-        console.error('Error loading cart from storage:', error);
+        console.error("Error loading cart from storage:", error);
         dispatch(
           initialize({
             items: [],
             isLoading: false,
             isInitialized: true,
-          }),
+          })
         );
       }
     };
@@ -67,7 +78,7 @@ const CartProvider: FC<PropsWithChildren> = ({ children }) => {
       try {
         saveCartToLocalStorage(state);
       } catch (error) {
-        console.error('Error saving cart to storage:', error);
+        console.error("Error saving cart to storage:", error);
       }
     }
   }, [state.items, state.isInitialized, state.isLoading]);
@@ -117,19 +128,29 @@ const CartProvider: FC<PropsWithChildren> = ({ children }) => {
       getTotalItems,
       getTotalPrice,
     }),
-    [state, addItem, removeItem, updateQuantity, updateItem, clearCart, getTotalItems, getTotalPrice],
+    [
+      state,
+      addItem,
+      removeItem,
+      updateQuantity,
+      updateItem,
+      clearCart,
+      getTotalItems,
+      getTotalPrice,
+    ]
   );
 
-  // Show loading spinner until cart is initialized
   if (!state.isInitialized) {
     return (
-      <div className='flex h-screen w-screen items-center justify-center'>
-        <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary'></div>
+      <div className="flex h-screen w-screen items-center justify-center bg-[#FFFCF7]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
 
-  return <CartContext.Provider value={contextValue}>{children}</CartContext.Provider>;
+  return (
+    <CartContext.Provider value={contextValue}>{children}</CartContext.Provider>
+  );
 };
 
 export { CartContext, CartProvider };
@@ -138,7 +159,7 @@ export { CartContext, CartProvider };
 export const useCart = () => {
   const context = useContext(CartContext);
   if (!context) {
-    throw new Error('useCart must be used within a CartProvider');
+    throw new Error("useCart must be used within a CartProvider");
   }
   return context;
 };

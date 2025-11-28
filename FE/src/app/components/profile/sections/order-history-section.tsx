@@ -107,9 +107,9 @@ export default function OrderHistorySection({
         ) : (
           <>
             <CardHeader>
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between ">
-                <div>
-                  <CardTitle className="flex items-center gap-2 mb-2">
+              <div className="flex flex-col gap-4 items-center text-center lg:flex-row lg:text-left lg:items-center lg:justify-between ">
+                <div className="w-full">
+                  <CardTitle className="flex items-center gap-2">
                     <ShoppingBag className="h-5 w-5" />
                     Lịch sử đơn hàng
                   </CardTitle>
@@ -123,7 +123,7 @@ export default function OrderHistorySection({
                   )}
                 </div>
 
-                <div className="flex flex-col gap-3 w-full lg:w-auto">
+                <div className="flex flex-col gap-3 w-full lg:w-auto items-center lg:items-end">
                   <div className="flex w-full sm:w-60">
                     <Select
                       value={statusFilter}
@@ -154,9 +154,6 @@ export default function OrderHistorySection({
               </div>
             </CardHeader>
             <CardContent>
-              {/* Mobile Filter - Select Dropdown */}
-
-              {/* Orders Display */}
               <div className="space-y-4">
                 {isFetchingOrders && !isLoadingOrders && (
                   <div className="flex items-center justify-center py-4">

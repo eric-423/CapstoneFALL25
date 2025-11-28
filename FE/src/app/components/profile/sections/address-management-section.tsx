@@ -303,12 +303,12 @@ export default function AddressManagementSection({
                     <CardContent className="p-6">
                       <div className="flex items-center gap-4">
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h4 className="font-semibold text-lg">
+                          <div className="flex items-center gap-2 mb-2 flex-wrap max-lg:justify-start lg:justify-start">
+                            <h4 className="font-semibold text-lg whitespace-nowrap">
                               {address.fullName}
                             </h4>
                             {address.isDefault && (
-                              <span className="inline-flex items-center gap-1 px-2 py-1 bg-[#EC6426] text-white text-xs font-semibold rounded-full">
+                              <span className="inline-flex items-center gap-1 px-2 py-1 bg-[#EC6426] text-white text-xs font-semibold rounded-full flex-shrink-0">
                                 <Star className="h-3 w-3 fill-white" />
                                 Mặc định
                               </span>
