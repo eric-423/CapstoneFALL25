@@ -45,14 +45,22 @@ const CartContext = createContext<CartContextType>({
 const CartProvider: FC<PropsWithChildren> = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialCartState);
 
-  // Load cart from localStorage on mount
   useEffect(() => {
     const loadCart = () => {
       try {
         const savedCart = loadCartFromLocalStorage();
+        const normalizedItems = (savedCart || []).map((item: CartItem) => {
+          if (item.isCombo && item.comboId) {
+            return {
+              ...item,
+              productId: 0,
+            };
+          }
+          return item;
+        });
         dispatch(
           initialize({
-            items: savedCart || [],
+            items: normalizedItems,
             isLoading: false,
             isInitialized: true,
           } as CartState)
@@ -72,7 +80,6 @@ const CartProvider: FC<PropsWithChildren> = ({ children }) => {
     loadCart();
   }, []);
 
-  // Save cart to localStorage whenever items change
   useEffect(() => {
     if (state.isInitialized && !state.isLoading) {
       try {
@@ -83,7 +90,6 @@ const CartProvider: FC<PropsWithChildren> = ({ children }) => {
     }
   }, [state.items, state.isInitialized, state.isLoading]);
 
-  // Cart methods
   const addItem = useCallback((item: CartItem) => {
     dispatch(addItemAction(item));
   }, []);
@@ -115,7 +121,6 @@ const CartProvider: FC<PropsWithChildren> = ({ children }) => {
     }, 0);
   }, [state.items]);
 
-  // Context value
   const contextValue = useMemo(
     () => ({
       ...state,
@@ -155,7 +160,6 @@ const CartProvider: FC<PropsWithChildren> = ({ children }) => {
 
 export { CartContext, CartProvider };
 
-// Custom hook
 export const useCart = () => {
   const context = useContext(CartContext);
   if (!context) {

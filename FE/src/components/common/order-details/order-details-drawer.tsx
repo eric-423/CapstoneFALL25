@@ -25,9 +25,10 @@ interface OrderDetailsDrawerProps {
   order: OrderResponse;
   open: boolean;
   onClose: () => void;
+  isLoading?: boolean;
 }
 
-export function OrderDetailsDrawer({ order, open, onClose }: OrderDetailsDrawerProps) {
+export function OrderDetailsDrawer({ order, open, onClose, isLoading = false }: OrderDetailsDrawerProps) {
   const { isCancelingOrder } = useCustomerOrders();
   const [closable, setClosable] = useState(open);
   const withdrawable = ['UNPAID', 'CREATED', 'VERIFIED'];
@@ -116,7 +117,13 @@ export function OrderDetailsDrawer({ order, open, onClose }: OrderDetailsDrawerP
           <>
             <DrawerContent
               data-vaul-custom-container='true'
-              className='max-w-4xl p-4 max-h-[90vh] overflow-y-auto [*[data-vaul-stack-indicator]]:hidden [*[data-vaul-stack-indicator]]:before:hidden'>
+              className='max-w-4xl p-4 max-h-[90vh] overflow-y-auto relative [*[data-vaul-stack-indicator]]:hidden [*[data-vaul-stack-indicator]]:before:hidden'>
+
+              {isLoading && (
+                <div className='absolute inset-0 z-20 flex items-center justify-center bg-white/80'>
+                  <LoadingSpinner />
+                </div>
+              )}
 
               <DrawerHeader>
                 <div className='flex items-center justify-between'>

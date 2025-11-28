@@ -44,7 +44,24 @@ public class ComboServiceImpl implements ComboService {
     private ComboItemRepository comboItemRepository;
 
     @Autowired
+    private ProductServiceImpl productServiceImpl;
+
+    @Autowired
     private OrderItemRepository orderItemRepository;
+
+
+    private Boolean isInStock(int comboId){
+        List<ComboItem> comboItems = comboItemRepository.findByComboId(comboId);
+        for (ComboItem item : comboItems) {
+            Product product = item.getProduct();
+            Branch branch = comboRepository.findById(comboId).get().getBranch();
+
+            if (!productServiceImpl.isInStock(product, branch)) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -66,6 +83,8 @@ public class ComboServiceImpl implements ComboService {
 
         return createPagedResponse(page, content);
     }
+
+
 
     private Pageable createPageable(ComboSearchRequest searchRequest) {
         int page = searchRequest.getPage() != null && searchRequest.getPage() >= 0 ? searchRequest.getPage() : 0;
@@ -104,6 +123,7 @@ public class ComboServiceImpl implements ComboService {
                 .endDate(combo.getEndDate())
                 .branchId(combo.getBranch() != null ? combo.getBranch().getId() : null)
                 .branchName(combo.getBranch() != null ? combo.getBranch().getName() : null)
+                .isInStock(isInStock(combo.getId()))
                 .build();
     }
 

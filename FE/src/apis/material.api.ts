@@ -14,13 +14,12 @@ export interface UpdateMaterialTypeRequest {
 }
 
 // Material interfaces
+// Material interfaces
 export interface Material {
     id: number;
     name: string;
     quantity: number;
-    caloriesPerUnit: number;
-    unit: string;
-    threshold: number;
+    unitId: number;
     materialTypeId: number;
     materialTypeName: string;
     isDeleted: boolean;
@@ -28,17 +27,13 @@ export interface Material {
 
 export interface CreateMaterialRequest {
     name: string;
-    caloriesPerUnit: number;
-    unit: string;
-    threshold: number;
+    unitId: number;
     materialTypeId: number;
 }
 
 export interface UpdateMaterialRequest {
     name: string;
-    caloriesPerUnit: number;
-    unit: string;
-    threshold: number;
+    unitId: number;
     materialTypeId: number;
 }
 
@@ -93,7 +88,6 @@ export interface WarehouseMaterial {
     materialName: string;
     materialTypeName: string;
     quantity: number;
-    caloriesPerUnit: number;
     unit: string;
     threshold: number;
     warehouseId: number;
@@ -104,6 +98,7 @@ export interface AddMaterialsToWarehouseRequest {
     materials: {
         materialId: number;
         quantity: number;
+        threshold: number;
     }[];
 }
 

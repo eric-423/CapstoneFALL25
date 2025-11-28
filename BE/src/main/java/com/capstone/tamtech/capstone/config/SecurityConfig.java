@@ -66,6 +66,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/branches/statistics")
                         .hasAnyRole("ADMIN", "MANAGER")
 
+
+
                         .requestMatchers(HttpMethod.GET, "/api/warehouses")
                         .hasAnyRole("MANAGER", "ADMIN", "CHEFF", "WAITER")
                         .requestMatchers(HttpMethod.GET, "/api/warehouses/{id}")
@@ -214,7 +216,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/recipes/**").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/recipes/**").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/recipes/**").hasAnyRole("MANAGER", "ADMIN")
-                        .requestMatchers("/api/orders/manager/**").hasAnyRole("MANAGER", "ADMIN")
+                        .requestMatchers("/api/orders/staff/**").hasAnyRole("MANAGER", "ADMIN", "STAFF")
                         .requestMatchers("/api/statistics/**").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers("/api/promotions/create").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers("/api/promotions/assign").hasAnyRole("MANAGER", "ADMIN")
@@ -233,7 +235,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/shipper/orders/*/location").hasRole("SHIPPER")
 
                         .requestMatchers("/api/orders/branch/**")
-                        .hasAnyRole("MANAGER", "ADMIN", "WAITER", "CHEFF", "SHIPPER")
+                        .hasAnyRole("MANAGER", "ADMIN", "WAITER", "CHEFF", "SHIPPER","STAFF")
                         .requestMatchers("/api/orders/statuses").permitAll()
 
                         .requestMatchers("/api/orders/customer/pickup").hasAnyRole("CUSTOMER", "STAFF")
@@ -245,7 +247,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/promotions/customer/**").hasRole("CUSTOMER")
 
                         .requestMatchers(HttpMethod.GET, "/api/orders/*/bill/download")
-                        .hasAnyRole("ADMIN", "MANAGER", "WAITER", "CUSTOMER")
+                        .hasAnyRole("ADMIN", "MANAGER", "WAITER", "CUSTOMER","STAFF")
                         .requestMatchers(HttpMethod.POST, "/api/orders/*/bill/regenerate")
                         .hasAnyRole("ADMIN", "MANAGER")
 

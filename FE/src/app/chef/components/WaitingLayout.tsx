@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import logo from '@/assets/full-logo-white.svg';
+import RealTimeClock from './RealTimeClock';
 
 export default function WaitingLayout({
     children,
@@ -68,7 +69,7 @@ export default function WaitingLayout({
                             <p className='text-white font-medium text-sm'>
                                 {user?.phoneNumber || 'Chef'}
                             </p>
-                            <p className='text-white/70 text-xs'>Bếp trưởng</p>
+                            <p className='text-white/70 text-xs'>Đầu Bếp</p>
                         </div>
                     </div>
                     <Button
@@ -90,9 +91,7 @@ export default function WaitingLayout({
                             <ChefHat className='w-6 h-6 text-[#D97B41] mr-2' />
                             <h1 className='text-xl font-bold text-gray-800'>Khu vực Bếp</h1>
                         </div>
-                        <div className='text-sm text-gray-500'>
-                            {new Date().toLocaleString('vi-VN')}
-                        </div>
+                        <RealTimeClock />
                     </div>
                 </header>
 

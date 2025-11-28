@@ -23,7 +23,5 @@ public class BranchProduct {
     @JoinColumn(name = "product_id", insertable = false, updatable = false)
     private Product product;
 
-    @Column(name = "quantity")
-    private int quantity;
 
 }

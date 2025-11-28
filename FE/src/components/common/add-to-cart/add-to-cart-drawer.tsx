@@ -25,23 +25,19 @@ export function AddToCartDrawer({ open, onOpenChange, product }: AddToCartDrawer
   const [notes, setNotes] = useState('');
 
   const handleQuantityChange = (value: number) => {
-    // if (item === 'main') {
     setMainQuantity(Math.max(1, mainQuantity + value));
-    // } else {
-    //   setExtras({
-    //     ...extras,
-    //     [item]: Math.max(0, extras[item as keyof typeof extras] + value),
-    //   });
-    // }
   };
 
   const handleAddToCart = () => {
+    const isCombo = 'isCombo' in product && product.isCombo;
     const cartItem = {
-      productId: product.productId,
+      productId: isCombo ? 0 : product.productId,
       productName: product.productName,
       productPrice: product.productPrice,
       quantity: mainQuantity,
       note: notes,
+      ...(isCombo && 'comboId' in product && product.comboId ? { comboId: product.comboId } : {}),
+      ...(isCombo ? { isCombo: true } : {}),
     };
     addItem(cartItem);
     onOpenChange(false);
@@ -62,7 +58,6 @@ export function AddToCartDrawer({ open, onOpenChange, product }: AddToCartDrawer
         </div>
 
         <div className='px-6 max-h-[80vh] overflow-y-auto custom-scrollbar'>
-          {/* Main Dish */}
           <div className='flex gap-4 mb-6'>
             <div className='relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0'>
               <Image
@@ -79,8 +74,6 @@ export function AddToCartDrawer({ open, onOpenChange, product }: AddToCartDrawer
               <div className='flex items-center justify-between'>
                 <div className='flex items-center gap-2'>
                   <span className='font-bold text-primary'>{product.productPrice.toLocaleString()}đ</span>
-                  {/* <span className='text-gray-500 text-sm line-through'>{product.productPrice.toLocaleString()}đ</span> */}
-                  {/* <Badge className='bg-primary/10 text-primary hover:bg-primary/20 ml-1'>-30%</Badge> */}
                 </div>
                 <QuantitySelector
                   value={mainQuantity}
@@ -91,7 +84,6 @@ export function AddToCartDrawer({ open, onOpenChange, product }: AddToCartDrawer
             </div>
           </div>
 
-          {/* Extra Items */}
           <div>
             <h3 className='font-medium text-lg mb-3'>Ghi chú</h3>
             <Textarea
@@ -103,7 +95,6 @@ export function AddToCartDrawer({ open, onOpenChange, product }: AddToCartDrawer
           </div>
         </div>
 
-        {/* Footer with Add to Cart Button */}
         <div className='sticky bottom-0 bg-background border-t border-gray-200 p-4 m-2 mt-0'>
           <Button
             className='w-full bg-[#4CAF50] hover:bg-[#43A047] text-white h-12 rounded-lg'

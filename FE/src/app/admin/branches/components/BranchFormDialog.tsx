@@ -5,6 +5,7 @@ import { X, Building, MapPin, Phone, CheckCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { AddressAutocomplete } from '@/components/common/address-autocomplete';
 import { createBranch, updateBranch, type BranchDetail, type CreateBranchRequest, type UpdateBranchRequest } from '@/apis/branch.api';
 
 interface BranchFormDialogProps {
@@ -37,6 +38,13 @@ export function BranchFormDialog({ open, onOpenChange, branch, onSuccess }: Bran
     const handleSubmit = async () => {
         if (!name.trim() || !address.trim() || !phoneNumber.trim()) {
             toast.warning('Vui lòng điền đầy đủ thông tin!');
+            return;
+        }
+
+        // Validate phone number (must be exactly 10 digits)
+        const phoneRegex = /^[0-9]{10}$/;
+        if (!phoneRegex.test(phoneNumber.trim())) {
+            toast.error('Số điện thoại phải có đúng 10 chữ số!');
             return;
         }
 
@@ -117,12 +125,12 @@ export function BranchFormDialog({ open, onOpenChange, branch, onSuccess }: Bran
                             <MapPin className="h-4 w-4" />
                             Địa chỉ <span className="text-red-500">*</span>
                         </label>
-                        <textarea
+                        <AddressAutocomplete
                             value={address}
-                            onChange={(e) => setAddress(e.target.value)}
+                            onChange={setAddress}
                             placeholder="123 Nguyễn Huệ, Phường Bến Thành, Quận 1, TP.HCM"
                             rows={3}
-                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-sm focus:border-[#78A243] focus:ring-2 focus:ring-[#78A243]/20 transition-all resize-none"
+                            disabled={loading}
                         />
                     </div>
 
@@ -134,10 +142,18 @@ export function BranchFormDialog({ open, onOpenChange, branch, onSuccess }: Bran
                         <input
                             type="tel"
                             value={phoneNumber}
-                            onChange={(e) => setPhoneNumber(e.target.value)}
+                            onChange={(e) => {
+                                // Only allow digits
+                                const value = e.target.value.replace(/\D/g, '');
+                                setPhoneNumber(value);
+                            }}
                             placeholder="0900000000"
+                            maxLength={10}
                             className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-sm focus:border-[#78A243] focus:ring-2 focus:ring-[#78A243]/20 transition-all"
                         />
+                        {phoneNumber && phoneNumber.length !== 10 && (
+                            <p className="text-xs text-red-500">Số điện thoại phải có đúng 10 chữ số</p>
+                        )}
                     </div>
                 </div>
 

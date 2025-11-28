@@ -5,9 +5,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import {
   Package,
   Plus,
-  AlertTriangle,
   Warehouse as WarehouseIcon,
-  Tag,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
@@ -170,9 +169,6 @@ export default function WarehousesPage() {
                       Ngưỡng
                     </th>
                     <th className="px-4 py-3 text-left text-sm font-bold text-[#2D1E1A] uppercase tracking-wider">
-                      Calo/Đơn vị
-                    </th>
-                    <th className="px-4 py-3 text-left text-sm font-bold text-[#2D1E1A] uppercase tracking-wider">
                       Trạng thái
                     </th>
                   </tr>
@@ -212,13 +208,12 @@ export default function WarehousesPage() {
                             </p>
                             <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
                               <div
-                                className={`h-2 rounded-full ${
-                                  stockPercentage >= 100
+                                className={`h-2 rounded-full ${stockPercentage >= 100
                                     ? "bg-[#78A243]"
                                     : stockPercentage >= 50
                                       ? "bg-[#EBD187]"
                                       : "bg-[#DA7339]"
-                                }`}
+                                  }`}
                                 style={{
                                   width: `${Math.min(stockPercentage, 100)}%`,
                                 }}
@@ -229,11 +224,6 @@ export default function WarehousesPage() {
                         <td className="px-4 py-3">
                           <p className="text-sm text-[#2D1E1A]">
                             {material.threshold} {material.unit}
-                          </p>
-                        </td>
-                        <td className="px-4 py-3">
-                          <p className="text-sm text-[#2D1E1A]">
-                            {material.caloriesPerUnit} cal
                           </p>
                         </td>
                         <td className="px-4 py-3">

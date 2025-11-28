@@ -2,11 +2,10 @@ export interface Ingredient {
     id: number;
     name: string;
     quantity: number;
-    unit: 'kg' | 'g' | 'ml' | 'l' | 'piece' | 'pack';
+    unitId: number;
     supplier: string;
-    caloriePerUnit: number; // calories per 100g or 100ml
+    caloriePerUnit: number; // calories per unit
     cost: number; // cost per unit
-    threshold: number; // minimum stock level
     lastUpdated: string; // ISO date string
     category: 'vegetable' | 'meat' | 'seafood' | 'spice' | 'grain' | 'dairy' | 'other';
     image?: string;
@@ -15,11 +14,10 @@ export interface Ingredient {
 export interface IngredientFormData {
     name: string;
     quantity: number;
-    unit: Ingredient['unit'];
+    unitId: number;
     supplier: string;
     caloriePerUnit: number;
     cost: number;
-    threshold: number;
     category: Ingredient['category'];
     image?: string;
 }

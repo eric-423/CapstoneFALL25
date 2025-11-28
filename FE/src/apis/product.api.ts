@@ -417,3 +417,38 @@ export const updateProduct = async (productId: number, data: ProductCreateReques
     const resData = await response.json();
     return resData.data;
 };
+
+export const addProductToBranch = async (branchId: number, productIds: number[]) => {
+    const response = await fetch(`/api/branches/${branchId}/products`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            products: productIds.map(id => ({ productId: id }))
+        }),
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to add products to branch');
+    }
+
+    const resData = await response.json();
+    return resData.data;
+};
+
+export const removeProductFromBranch = async (branchId: number, productId: number) => {
+    const response = await fetch(`/api/branches/${branchId}/products/${productId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to remove product from branch');
+    }
+
+    const resData = await response.json();
+    return resData.data;
+};

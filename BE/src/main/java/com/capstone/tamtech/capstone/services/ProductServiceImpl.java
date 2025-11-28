@@ -20,7 +20,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.Key;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -76,13 +75,7 @@ public class ProductServiceImpl implements ProductService {
                 searchRequest.getMaxPrice(),
                 pageable);
 
-        List<BranchProduct> branchProducts = branchProductRepository
-                .findByKeyBranchProductBranchId(searchRequest.getBranchId());
-
         Map<Integer, Integer> productQuantityMap = new HashMap<>();
-        for (BranchProduct bp : branchProducts) {
-            productQuantityMap.put(bp.getProduct().getId(), bp.getQuantity());
-        }
 
         List<ProductSearchDTO> productDTOs = productPage.getContent().stream()
                 .map(product -> mapToProductSearchDTO(product, productQuantityMap))
@@ -98,7 +91,7 @@ public class ProductServiceImpl implements ProductService {
         return createPagedResponse(productPage, result);
     }
 
-    private Boolean isInStock(Product product, Branch branch) {
+    public Boolean isInStock(Product product, Branch branch) {
 
         List<ProductRecipes> recipes = product.getProductRecipes();
         Map<Integer, Double> materialRequiredMap = new HashMap<>();
@@ -110,7 +103,7 @@ public class ProductServiceImpl implements ProductService {
             materialRequiredMap.put(materialId, requiredQuantity);
         }
 
-        for(Map.Entry<Integer, Double> entry : materialRequiredMap.entrySet()) {
+        for (Map.Entry<Integer, Double> entry : materialRequiredMap.entrySet()) {
             int materialId = entry.getKey();
             double requiredQuantity = entry.getValue();
 
@@ -119,13 +112,14 @@ public class ProductServiceImpl implements ProductService {
             keyMaterialWarehouse.setWarehouseId(branch.getWarehouses().getBranch().getId());
 
             Double availableQuantity = materialWarehouseRepository
-                    .findById(keyMaterialWarehouse).get().getQuantity();
+                    .findById(keyMaterialWarehouse)
+                    .map(materialWarehouse -> materialWarehouse.getQuantity())
+                    .orElse(0.0);
 
             if (availableQuantity == null || availableQuantity < requiredQuantity) {
                 return false;
             }
         }
-
 
         return true;
     }
@@ -202,17 +196,21 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
     public ProductDTO updateProduct(int id, ProductCreateRequest productCreateRequest) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + id));
 
-        List<ProductRecipes> productRecipesList = new ArrayList<>();
+        productRecipesRepository.deleteByProductId(product.getId());
+        productRecipesRepository.flush();
+        if (product.getProductRecipes() != null) {
+            product.getProductRecipes().clear();
+        }
 
         product.setName(productCreateRequest.getName());
         product.setDescription(productCreateRequest.getDescription());
         product.setPrice(productCreateRequest.getPrice());
         product.setImage(productCreateRequest.getImageUrl());
-        product.setCreatedDate(new Date());
         product.setUpdateDate(new Date());
         product.setActive(true);
         product.setProductType(productTypeRepository.findById(productCreateRequest.getTypeId())
@@ -240,11 +238,11 @@ public class ProductServiceImpl implements ProductService {
 
             productRecipesRepository.save(productRecipes);
 
-            product.getProductRecipes().add(productRecipes);
-            productRecipesList.add(productRecipes);
+            if (product.getProductRecipes() != null) {
+                product.getProductRecipes().add(productRecipes);
+            }
         }
 
-        product.setProductRecipes(productRecipesList);
         productRepository.save(product);
 
         reCalculateCaloriesForProduct(product.getId());
@@ -255,7 +253,7 @@ public class ProductServiceImpl implements ProductService {
     private ProductDTO toDTO(Product product) {
         ProductDTO productDTO = new ProductDTO();
 
-        if(product.getCaloriesCache() == null){
+        if (product.getCaloriesCache() == null) {
             product.setCaloriesCache(reCalculateCaloriesForProduct(product.getId()));
             productRepository.save(product);
         }
@@ -306,7 +304,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private ProductSearchDTO mapToProductSearchDTO(Product product, Map<Integer, Integer> quantityMap) {
-        if(product.getCaloriesCache() == null){
+        if (product.getCaloriesCache() == null) {
             product.setCaloriesCache(reCalculateCaloriesForProduct(product.getId()));
             productRepository.save(product);
         }
@@ -344,9 +342,9 @@ public class ProductServiceImpl implements ProductService {
                 for (MaterialNutrients mn : materialNutrients) {
                     double baseNutrient = (rawQuantity * mn.getAmountPer100Unit()) / 100.0;
                     Nutrients nutrients = mn.getNutrient();
-                    CookingMethod cookingMethod = recipe.getCookingMethod()!=null ? recipe.getCookingMethod() : null;
+                    CookingMethod cookingMethod = recipe.getCookingMethod() != null ? recipe.getCookingMethod() : null;
 
-                    if(cookingMethod!=null){
+                    if (cookingMethod != null) {
                         KeyCookingMethodNutrients keyCookingMethodNutrients = new KeyCookingMethodNutrients();
                         keyCookingMethodNutrients.setCookingMethodId(
                                 recipe.getCookingMethod() != null ? recipe.getCookingMethod().getId() : 0);

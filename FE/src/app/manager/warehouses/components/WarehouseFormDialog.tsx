@@ -55,6 +55,21 @@ export function WarehouseFormDialog({ open, onOpenChange, warehouse, onSuccess }
         }
     }, [warehouse, open]);
 
+    // If branches arrive after dialog opened, ensure the Select has an option
+    // that matches the warehouse's branch so the selected label is displayed.
+    useEffect(() => {
+        if (!open || !warehouse) return;
+
+        const branchExists = branches.some(b => b.id === warehouse.branchId);
+        if (branchExists && formData.branchId !== String(warehouse.branchId)) {
+            setFormData(prev => ({
+                ...prev,
+                branchId: String(warehouse.branchId),
+                address: prev.address || (branches.find(b => b.id === warehouse.branchId)?.address ?? ''),
+            }));
+        }
+    }, [open, warehouse, branches, formData.branchId]);
+
     const loadBranches = async () => {
         try {
             const data = await getBranches();

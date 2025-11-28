@@ -62,104 +62,67 @@ export const recentOrders = [
 
 // New: Ingredient Usage Data
 export const ingredientUsageData = [
-    { name: 'Gạo tấm', usage: 150, unit: 'kg' },
-    { name: 'Sườn heo', usage: 85, unit: 'kg' },
-    { name: 'Trứng gà', usage: 720, unit: 'piece' },
-    { name: 'Nước mắm', usage: 25, unit: 'l' },
-    { name: 'Dưa leo', usage: 45, unit: 'kg' },
+    { name: 'Gạo tấm', usage: 150, unitId: 1, unitName: 'kg' },
+    { name: 'Sườn heo', usage: 85, unitId: 1, unitName: 'kg' },
+    { name: 'Trứng gà', usage: 720, unitId: 2, unitName: 'piece' },
+    { name: 'Nước mắm', usage: 25, unitId: 3, unitName: 'l' },
+    { name: 'Dưa leo', usage: 45, unitId: 1, unitName: 'kg' },
 ];
 
-// New: Supplier Distribution Data
-export const supplierDistributionData = [
-    { name: 'Nhà cung cấp A', value: 45, color: '#EC6426' },
-    { name: 'Nhà cung cấp B', value: 30, color: '#F8A91F' },
-    { name: 'Nhà cung cấp C', value: 25, color: '#3B82F6' },
-];
-
-// New: Recent Recipes
-export const recentRecipesData = [
-    {
-        id: 1,
-        name: 'Cơm Tấm Sườn Nướng',
-        calories: 580,
-        price: 45000,
-        image: '/images/recipes/com-tam-suon.jpg',
-        createdAt: '2 ngày trước',
-    },
-    {
-        id: 2,
-        name: 'Cơm Tấm Sườn Bì Chả',
-        calories: 650,
-        price: 50000,
-        image: '/images/recipes/com-tam-suon-bi-cha.jpg',
-        createdAt: '3 ngày trước',
-    },
-    {
-        id: 3,
-        name: 'Cơm Tấm Gà Nướng Sả',
-        calories: 550,
-        price: 45000,
-        image: '/images/recipes/com-tam-ga.jpg',
-        createdAt: '5 ngày trước',
-    },
-];
-
-// New: Training Stats
-export const trainingStatsData = {
-    totalCourses: 6,
-    activeCourses: 4,
-    enrolledStaff: 120,
-    completionRate: 75,
-    coursesByRole: [
-        { role: 'Chef', count: 35, color: '#F97316' },
-        { role: 'Manager', count: 25, color: '#3B82F6' },
-        { role: 'Staff', count: 60, color: '#10B981' },
-    ],
-};
-
-// New: Recent Activities
-export const recentActivitiesData = [
-    {
-        id: 1,
-        type: 'recipe' as const,
-        message: 'Admin đã thêm công thức mới: Cơm Tấm Sườn',
-        timestamp: '10 phút trước',
-        icon: 'BookOpen',
-    },
-    {
-        id: 2,
-        type: 'training' as const,
-        message: 'Khóa học "Nghệ thuật nướng" đã được xuất bản',
-        timestamp: '30 phút trước',
-        icon: 'GraduationCap',
-    },
-    {
-        id: 3,
-        type: 'ingredient' as const,
-        message: 'Nhà cung cấp A đã nhập: +20kg gạo tấm',
-        timestamp: '1 giờ trước',
-        icon: 'Package',
-    },
-    {
-        id: 4,
-        type: 'alert' as const,
-        message: 'Cảnh báo: Bì heo sắp hết hàng (10kg còn lại)',
-        timestamp: '2 giờ trước',
-        icon: 'AlertTriangle',
-    },
-    {
-        id: 5,
-        type: 'order' as const,
-        message: 'Chi nhánh Quận 1: 45 đơn hàng mới',
-        timestamp: '3 giờ trước',
-        icon: 'ShoppingBag',
-    },
-];
+// ... (rest of the file)
 
 // New: Low Stock Alerts
 export const lowStockAlertsData = [
-    { id: 1, name: 'Bì heo', quantity: 10, unit: 'kg', threshold: 8, severity: 'high' as const },
-    { id: 2, name: 'Cà chua', quantity: 8, unit: 'kg', threshold: 15, severity: 'medium' as const },
-    { id: 3, name: 'Ớt', quantity: 3, unit: 'kg', threshold: 5, severity: 'high' as const },
-    { id: 4, name: 'Hành lá', quantity: 5, unit: 'kg', threshold: 5, severity: 'low' as const },
+    { id: 1, name: 'Bì heo', quantity: 10, unitId: 1, unitName: 'kg', severity: 'high' as const },
+    { id: 2, name: 'Cà chua', quantity: 8, unitId: 1, unitName: 'kg', severity: 'medium' as const },
+    { id: 3, name: 'Ớt', quantity: 3, unitId: 1, unitName: 'kg', severity: 'high' as const },
+    { id: 4, name: 'Hành lá', quantity: 5, unitId: 1, unitName: 'kg', severity: 'low' as const },
 ];
+
+export const recentRecipesData = [
+    {
+        id: 1,
+        name: 'Phở bò tái nạm',
+        calories: 450,
+        price: 55000,
+        image: '/images/pho-bo.jpg',
+        createdAt: '2 giờ trước',
+    },
+    {
+        id: 2,
+        name: 'Bún chả Hà Nội',
+        calories: 520,
+        price: 60000,
+        image: '/images/bun-cha.jpg',
+        createdAt: '5 giờ trước',
+    },
+    {
+        id: 3,
+        name: 'Gỏi cuốn tôm thịt',
+        calories: 180,
+        price: 15000,
+        image: '/images/goi-cuon.jpg',
+        createdAt: '1 ngày trước',
+    },
+    {
+        id: 4,
+        name: 'Cơm tấm sườn bì',
+        calories: 650,
+        price: 45000,
+        image: '/images/com-tam.jpg',
+        createdAt: '2 ngày trước',
+    },
+];
+
+export const trainingStatsData = {
+    totalCourses: 12,
+    activeCourses: 8,
+    enrolledStaff: 45,
+    completionRate: 78,
+    coursesByRole: [
+        { role: 'Đầu bếp', count: 5, color: '#EC6426' },
+        { role: 'Phục vụ', count: 3, color: '#3B82F6' },
+        { role: 'Pha chế', count: 2, color: '#10B981' },
+        { role: 'Quản lý', count: 2, color: '#8B5CF6' },
+    ],
+};

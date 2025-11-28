@@ -34,23 +34,19 @@ export function AddToCartDialog({
   const [notes, setNotes] = useState("");
 
   const handleQuantityChange = (value: number) => {
-    // if (item === 'main') {
     setMainQuantity(Math.max(1, mainQuantity + value));
-    // } else {
-    //   setExtras({
-    //     ...extras,
-    //     [item]: Math.max(0, extras[item as keyof typeof extras] + value),
-    //   });
-    // }
   };
 
   const handleAddToCart = () => {
+    const isCombo = 'isCombo' in product && product.isCombo;
     const cartItem = {
-      productId: product.productId,
+      productId: isCombo ? 0 : product.productId,
       productName: product.productName,
       productPrice: product.productPrice,
       quantity: mainQuantity,
       note: notes,
+      ...(isCombo && 'comboId' in product && product.comboId ? { comboId: product.comboId } : {}),
+      ...(isCombo ? { isCombo: true } : {}),
     };
     addItem(cartItem);
     onOpenChange(false);

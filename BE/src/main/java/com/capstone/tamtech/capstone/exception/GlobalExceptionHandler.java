@@ -3,6 +3,8 @@ package com.capstone.tamtech.capstone.exception;
 import com.capstone.tamtech.capstone.payload.request.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.coyote.BadRequestException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -17,6 +19,8 @@ import java.util.stream.Collectors;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+        private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
         @ExceptionHandler(MethodArgumentNotValidException.class)
         public ResponseEntity<ErrorResponse> handleValidationException(
@@ -115,6 +119,8 @@ public class GlobalExceptionHandler {
         public ResponseEntity<ErrorResponse> handleRuntimeException(
                         RuntimeException ex,
                         HttpServletRequest request) {
+
+                log.error("Runtime error at {}: {}", request.getRequestURI(), ex.getMessage(), ex);
 
                 ErrorResponse errorResponse = ErrorResponse.builder()
                                 .timestamp(new Date())

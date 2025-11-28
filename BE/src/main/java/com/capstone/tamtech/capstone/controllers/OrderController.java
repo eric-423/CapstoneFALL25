@@ -13,6 +13,7 @@ import com.capstone.tamtech.capstone.services.impl.OrderService;
 import com.capstone.tamtech.capstone.services.impl.OrderStatusService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.Data;
 import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -62,7 +63,7 @@ public class OrderController {
         return new ResponseEntity<>(responseData, HttpStatus.CREATED);
     }
 
-    @GetMapping("{orderId}")
+    @GetMapping("/{orderId}")
     public ResponseEntity<?> getOrderById(@PathVariable int orderId) {
         ResponseData responseData = new ResponseData();
         responseData.setData(orderService.getOrderById(orderId));
@@ -107,7 +108,7 @@ public class OrderController {
         }
     }
 
-    @PutMapping("/manager/assign/cheff/{orderId}")
+    @PutMapping("/staff/assign/cheff/{orderId}")
     public ResponseEntity<?> assignOrderToCheff(@PathVariable int orderId) {
         boolean result = orderService.assignOrderToCheff(orderId);
         return new ResponseEntity<>(result, HttpStatus.OK);
@@ -122,12 +123,12 @@ public class OrderController {
 
 
     @PutMapping("/cheff/cooked/{orderId}")
-    public ResponseEntity<?> markAsCooked(@PathVariable int orderId) {
-        boolean result = orderService.markAsCooked(orderId);
+    public ResponseEntity<?> markAsCooked(@PathVariable int orderId, @RequestBody List<Long> orderItemIds) {
+        boolean result = orderService.markAsCooked(orderId, orderItemIds);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
-    @PutMapping("/manager/assign/shipper/{orderId}")
+    @PutMapping("/staff/assign/shipper/{orderId}")
     public ResponseEntity<?> assignToShipper(@PathVariable int orderId) {
         boolean result = orderService.assignToShipper(orderId);
         return new ResponseEntity<>(result, HttpStatus.OK);

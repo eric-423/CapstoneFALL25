@@ -59,9 +59,8 @@ const MenuItem = memo(
         title={isCollapsed ? item.label : undefined}
       >
         <div
-          className={`relative flex items-center ${
-            isCollapsed ? "justify-center" : ""
-          }`}
+          className={`relative flex items-center ${isCollapsed ? "justify-center" : ""
+            }`}
           style={{ minHeight: "48px" }}
         >
           {!isCollapsed && (
@@ -87,11 +86,10 @@ const MenuItem = memo(
                      flex items-center gap-3 py-2.5 sm:py-3 rounded-xl 
                      transition-all duration-200 relative group flex-1
                      ${isCollapsed ? "justify-center px-3" : "px-4 ml-10"}
-                     ${
-                       isActive
-                         ? "bg-white/20 text-white shadow-lg font-semibold backdrop-blur-sm"
-                         : "text-white/80 hover:bg-white/10 hover:text-white"
-                     }
+                     ${isActive
+                ? "bg-white/20 text-white shadow-lg font-semibold backdrop-blur-sm"
+                : "text-white/80 hover:bg-white/10 hover:text-white"
+              }
                  `}
           >
             {isActive && isCollapsed && (
@@ -99,19 +97,17 @@ const MenuItem = memo(
             )}
             <Icon
               size={20}
-              className={`flex-shrink-0 ${
-                isActive
-                  ? "text-white"
-                  : "text-white/80 group-hover:text-[#F8A91F]"
-              } transition-colors`}
+              className={`flex-shrink-0 ${isActive
+                ? "text-white"
+                : "text-white/80 group-hover:text-[#F8A91F]"
+                } transition-colors`}
               strokeWidth={isActive ? 2.5 : 2}
             />
             {!isCollapsed && (
               <>
                 <span
-                  className={`text-sm sm:text-base ${
-                    isActive ? "font-semibold" : "font-medium"
-                  } truncate`}
+                  className={`text-sm sm:text-base ${isActive ? "font-semibold" : "font-medium"
+                    } truncate`}
                 >
                   {item.label}
                 </span>
@@ -214,26 +210,26 @@ export default function ManagerLayout({
     const status = (order.orderStatus || "").toUpperCase();
     const contextBase: BarcodeProcessContext = { status };
 
-    if (["IN_PROCESS", "PROCESSING"].includes(status)) {
-      const assignResult = await assignChefToOrder(orderId);
-      if (!assignResult.success) {
-        return {
-          success: false,
-          context: {
-            ...contextBase,
-            action: "assign-chef" as const,
-            message: "Không thể chuyển đơn cho bếp. Vui lòng thử lại.",
-          },
-        };
-      }
-      return {
-        success: true,
-        context: {
-          ...contextBase,
-          action: "assign-chef" as const,
-        },
-      };
-    }
+    // if (["IN_PROCESS", "PROCESSING"].includes(status)) {
+    //   const assignResult = await assignChefToOrder(orderId);
+    //   if (!assignResult.success) {
+    //     return {
+    //       success: false,
+    //       context: {
+    //         ...contextBase,
+    //         action: "assign-chef" as const,
+    //         message: "Không thể chuyển đơn cho bếp. Vui lòng thử lại.",
+    //       },
+    //     };
+    //   }
+    //   return {
+    //     success: true,
+    //     context: {
+    //       ...contextBase,
+    //       action: "assign-chef" as const,
+    //     },
+    //   };
+    // }
 
     if (status === "COOKED") {
       const assignResult = await assignShipperToOrder(orderId);
@@ -303,7 +299,7 @@ export default function ManagerLayout({
       if (context?.action === "no-action") {
         toast.info(
           context?.message ||
-            `Đơn #${orderId} đang ở trạng thái ${context?.status || "không xác định"}`,
+          `Đơn #${orderId} đang ở trạng thái ${context?.status || "không xác định"}`,
           {
             position: "top-right",
             autoClose: 4000,
@@ -417,9 +413,8 @@ export default function ManagerLayout({
 
             <div className="p-3 sm:p-4 flex-shrink-0 border-t border-white/20 bg-[#EC6426]">
               <Button
-                className={`w-full ${
-                  isCollapsed ? "justify-center px-2" : "justify-start gap-3"
-                } hover:bg-[#EC6426]/90 text-white font-semibold transition-all duration-200 hover:shadow-xl py-2.5 sm:py-3 mb-2`}
+                className={`w-full ${isCollapsed ? "justify-center px-2" : "justify-start gap-3"
+                  } hover:bg-[#EC6426]/90 text-white font-semibold transition-all duration-200 hover:shadow-xl py-2.5 sm:py-3 mb-2`}
                 onClick={() => router.push("/manager/training-courses")}
                 title={isCollapsed ? "Khóa học của tôi" : undefined}
               >
@@ -431,9 +426,8 @@ export default function ManagerLayout({
                 )}
               </Button>
               <Button
-                className={`w-full ${
-                  isCollapsed ? "justify-center px-2" : "justify-start gap-3"
-                } hover:bg-[#EC6426]/90 text-white font-semibold transition-all duration-200 hover:shadow-xl py-2.5 sm:py-3`}
+                className={`w-full ${isCollapsed ? "justify-center px-2" : "justify-start gap-3"
+                  } hover:bg-[#EC6426]/90 text-white font-semibold transition-all duration-200 hover:shadow-xl py-2.5 sm:py-3`}
                 onClick={handleLogout}
                 title={isCollapsed ? "Đăng xuất" : undefined}
               >
@@ -454,9 +448,8 @@ export default function ManagerLayout({
           </aside>
 
           <main
-            className={`flex-1 w-full bg-[#EFE6DB] min-w-0 transition-[margin] duration-200 ease-out h-screen overflow-y-auto ${
-              isCollapsed ? "lg:ml-12" : "lg:ml-56 xl:ml-64"
-            }`}
+            className={`flex-1 w-full bg-[#EFE6DB] min-w-0 transition-[margin] duration-200 ease-out h-screen overflow-y-auto ${isCollapsed ? "lg:ml-12" : "lg:ml-56 xl:ml-64"
+              }`}
           >
             <div className="lg:hidden sticky top-0 z-30 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 shadow-sm">
               <button

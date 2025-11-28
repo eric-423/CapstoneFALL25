@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Product, ProductType } from '@/apis/product.api';
 import { DraggableProductItem } from './DraggableProductItem';
 import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
+import { Search, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 
@@ -12,6 +12,7 @@ interface GlobalProductSourceProps {
     selectedProductType?: number;
     onSelectProductType?: (id: number) => void;
     isLoading?: boolean;
+    onAddAll?: () => void;
 }
 
 export function GlobalProductSource({
@@ -19,7 +20,8 @@ export function GlobalProductSource({
     productTypes = [],
     selectedProductType = 0,
     onSelectProductType,
-    isLoading = false
+    isLoading = false,
+    onAddAll
 }: GlobalProductSourceProps) {
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -56,6 +58,19 @@ export function GlobalProductSource({
                             </Button>
                         ))}
                     </div>
+                )}
+
+                {/* Add All Button */}
+                {onAddAll && filteredProducts.length > 0 && (
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={onAddAll}
+                        className="w-full h-8 text-xs border-[#EC6426] text-[#EC6426] hover:bg-[#EC6426]/10"
+                    >
+                        <Plus className="h-3 w-3 mr-1" />
+                        Thêm tất cả ({filteredProducts.length})
+                    </Button>
                 )}
             </div>
 
