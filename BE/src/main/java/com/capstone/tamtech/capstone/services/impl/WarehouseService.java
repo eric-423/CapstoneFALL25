@@ -19,4 +19,6 @@ public interface WarehouseService {
     WarehouseDTO updateWarehouse(int warehouseId, WarehouseRequest request);
 
     List<MaterialWarehouseDTO> addMaterialsToWarehouse(int warehouseId, AddMaterialToWarehouseRequest request);
+
+    List<MaterialWarehouseDTO> updateMaterialWarehouse(int warehouseId,AddMaterialToWarehouseRequest request);
 }
