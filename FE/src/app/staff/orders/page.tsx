@@ -3,7 +3,7 @@
 import { Montserrat } from "next/font/google";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { flushSync } from "react-dom";
-import StaffGuard from "@/guards/StaffGuard";
+import { StaffGuard } from "@/components/guards";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -35,7 +35,7 @@ import {
 import {
     getOrderStatuses,
     getBranchOrders,
-    assignShipperToOrder,
+    staffAssignShipperToOrder,
     BranchOrderResponse,
     getCustomerOrderDetail,
     CustomerOrderDetailData,
@@ -56,88 +56,96 @@ const montserrat = Montserrat({
 });
 
 const getKioskMode = (): boolean => {
-    if (typeof window === 'undefined') return false;
+    if (typeof window === "undefined") return false;
 
-    const forceKiosk = process.env.NEXT_PUBLIC_FORCE_KIOSK_MODE === 'true';
+    const forceKiosk = process.env.NEXT_PUBLIC_FORCE_KIOSK_MODE === "true";
     if (forceKiosk) {
         return true;
     }
 
     const userAgent = window.navigator.userAgent;
-    const chrome = (window as Window & { chrome?: { runtime?: unknown; app?: unknown } }).chrome;
+    const chrome = (
+        window as Window & { chrome?: { runtime?: unknown; app?: unknown } }
+    ).chrome;
 
     const hasChromeRuntime = chrome?.runtime !== undefined;
     const hasChromeApp = chrome?.app !== undefined;
     const hasChrome = chrome !== undefined;
-    const urlHasKiosk = window.location.search.includes('kiosk=true');
-    const isKioskUserAgent = userAgent.includes('Kiosk') || userAgent.includes('kiosk');
+    const urlHasKiosk = window.location.search.includes("kiosk=true");
+    const isKioskUserAgent =
+        userAgent.includes("Kiosk") || userAgent.includes("kiosk");
 
-    const isKiosk = hasChromeRuntime || hasChromeApp || hasChrome || urlHasKiosk || isKioskUserAgent;
+    const isKiosk =
+        hasChromeRuntime ||
+        hasChromeApp ||
+        hasChrome ||
+        urlHasKiosk ||
+        isKioskUserAgent;
 
     return isKiosk;
 };
 
 const PRINT_CONFIG = {
     autoClose: true,
-    useServerPrint: process.env.NEXT_PUBLIC_USE_SERVER_PRINT === 'true',
+    useServerPrint: process.env.NEXT_PUBLIC_USE_SERVER_PRINT === "true",
     isKioskMode: getKioskMode(),
 };
 
 const getStatusLabel = (status: string): string => {
     const statusMap: Record<string, string> = {
-        'ALL': 'Tất cả',
-        'CREATED': 'Đã tạo',
-        'COOKING': 'Đang nấu',
-        'COOKED': 'Đã nấu xong',
-        'IN_PROCESS': 'Đang xử lý',
-        'PROCESSING': 'Đang xử lý',
-        'SHIPPING': 'Đang giao',
-        'DELIVERING': 'Đang giao hàng',
-        'DELIVERED': 'Đã giao',
-        'COMPLETED': 'Hoàn thành',
-        'CANCELLED': 'Đã hủy',
-        'CANCEL': 'Đã hủy',
-        'PAID': 'Đã thanh toán',
+        ALL: "Tất cả",
+        CREATED: "Đã tạo",
+        COOKING: "Đang nấu",
+        COOKED: "Đã nấu xong",
+        IN_PROCESS: "Đang xử lý",
+        PROCESSING: "Đang xử lý",
+        SHIPPING: "Đang giao",
+        DELIVERING: "Đang giao hàng",
+        DELIVERED: "Đã giao",
+        COMPLETED: "Hoàn thành",
+        CANCELLED: "Đã hủy",
+        CANCEL: "Đã hủy",
+        PAID: "Đã thanh toán",
     };
     return statusMap[status] || status;
 };
 
 const getStatusBadgeClass = (status: string): string => {
     const statusClasses: Record<string, string> = {
-        'CREATED': 'bg-blue-50 text-blue-700 border-blue-200',
-        'COOKING': 'bg-orange-50 text-orange-700 border-orange-200',
-        'COOKED': 'bg-amber-50 text-amber-700 border-amber-200',
-        'IN_PROCESS': 'bg-yellow-50 text-yellow-700 border-yellow-200',
-        'PROCESSING': 'bg-yellow-50 text-yellow-700 border-yellow-200',
-        'SHIPPING': 'bg-indigo-50 text-indigo-700 border-indigo-200',
-        'DELIVERING': 'bg-purple-50 text-purple-700 border-purple-200',
-        'DELIVERED': 'bg-purple-50 text-purple-700 border-purple-200',
-        'COMPLETED': 'bg-green-50 text-green-700 border-green-200',
-        'CANCELLED': 'bg-red-50 text-red-700 border-red-200',
-        'CANCEL': 'bg-red-50 text-red-700 border-red-200',
-        'PAID': 'bg-emerald-50 text-emerald-700 border-emerald-200',
+        CREATED: "bg-blue-50 text-blue-700 border-blue-200",
+        COOKING: "bg-orange-50 text-orange-700 border-orange-200",
+        COOKED: "bg-amber-50 text-amber-700 border-amber-200",
+        IN_PROCESS: "bg-yellow-50 text-yellow-700 border-yellow-200",
+        PROCESSING: "bg-yellow-50 text-yellow-700 border-yellow-200",
+        SHIPPING: "bg-indigo-50 text-indigo-700 border-indigo-200",
+        DELIVERING: "bg-purple-50 text-purple-700 border-purple-200",
+        DELIVERED: "bg-purple-50 text-purple-700 border-purple-200",
+        COMPLETED: "bg-green-50 text-green-700 border-green-200",
+        CANCELLED: "bg-red-50 text-red-700 border-red-200",
+        CANCEL: "bg-red-50 text-red-700 border-red-200",
+        PAID: "bg-emerald-50 text-emerald-700 border-emerald-200",
     };
-    return statusClasses[status] || 'bg-gray-50 text-gray-700 border-gray-200';
+    return statusClasses[status] || "bg-gray-50 text-gray-700 border-gray-200";
 };
 
 const getStatusIcon = (status: string) => {
     switch (status) {
-        case 'COMPLETED':
+        case "COMPLETED":
             return <CheckCircle size={14} strokeWidth={2.5} />;
-        case 'COOKING':
-        case 'COOKED':
+        case "COOKING":
+        case "COOKED":
             return <Clock size={14} strokeWidth={2.5} />;
-        case 'IN_PROCESS':
-        case 'PROCESSING':
+        case "IN_PROCESS":
+        case "PROCESSING":
             return <Clock size={14} strokeWidth={2.5} />;
-        case 'SHIPPING':
-        case 'DELIVERING':
-        case 'DELIVERED':
+        case "SHIPPING":
+        case "DELIVERING":
+        case "DELIVERED":
             return <Truck size={14} strokeWidth={2.5} />;
-        case 'CANCELLED':
-        case 'CANCEL':
+        case "CANCELLED":
+        case "CANCEL":
             return <XCircle size={14} strokeWidth={2.5} />;
-        case 'PAID':
+        case "PAID":
             return <DollarSign size={14} strokeWidth={2.5} />;
         default:
             return <Package size={14} strokeWidth={2.5} />;
@@ -145,25 +153,24 @@ const getStatusIcon = (status: string) => {
 };
 
 const formatDate = (dateString: string | null): string => {
-    if (!dateString) return 'Chưa có';
+    if (!dateString) return "Chưa có";
     try {
         const date = new Date(dateString);
-        return date.toLocaleString('vi-VN', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
+        return date.toLocaleString("vi-VN", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
         });
     } catch {
-        return 'Không hợp lệ';
+        return "Không hợp lệ";
     }
 };
 
 const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('vi-VN').format(amount) + 'đ';
+    return new Intl.NumberFormat("vi-VN").format(amount) + "đ";
 };
-
 
 const downloadInvoiceBlob = async (orderId: number) => {
     const response = await fetch(`/api/orders/${orderId}/bill/download`, {
@@ -293,15 +300,20 @@ const handlePrint = async (order: BranchOrderResponse) => {
     }
 };
 
-export default function StaffOrdersPage() {
+
+export default function ManagerOrdersPage() {
     const [orderStatuses, setOrderStatuses] = useState<string[]>([]);
-    const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
+    const [selectedStatus, setSelectedStatus] = useState<string>("ALL");
     const [orders, setOrders] = useState<BranchOrderResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const [loadingOrders, setLoadingOrders] = useState(false);
-    const [assigningShipper, setAssigningShipper] = useState<Set<number>>(new Set());
-    const [selectedOrder, setSelectedOrder] = useState<BranchOrderResponse | null>(null);
-    const [orderDetail, setOrderDetail] = useState<CustomerOrderDetailData | null>(null);
+    const [assigningShipper, setAssigningShipper] = useState<Set<number>>(
+        new Set()
+    );
+    const [selectedOrder, setSelectedOrder] =
+        useState<BranchOrderResponse | null>(null);
+    const [orderDetail, setOrderDetail] =
+        useState<CustomerOrderDetailData | null>(null);
     const [detailLoading, setDetailLoading] = useState(false);
 
     useEffect(() => {
@@ -315,28 +327,28 @@ export default function StaffOrdersPage() {
                     Array.isArray(response.data)
                 ) {
                     setOrderStatuses(
-                        response.data.filter((status) => status.toUpperCase() !== 'PAID')
+                        response.data.filter((status) => status.toUpperCase() !== "PAID")
                     );
                 } else {
-                    console.warn('Invalid response format for order statuses:', response);
+                    console.warn("Invalid response format for order statuses:", response);
                     setOrderStatuses([
-                        'ALL',
-                        'CREATED',
-                        'IN_PROCESS',
-                        'DELIVERING',
-                        'COMPLETED',
-                        'CANCELLED',
+                        "ALL",
+                        "CREATED",
+                        "IN_PROCESS",
+                        "DELIVERING",
+                        "COMPLETED",
+                        "CANCELLED",
                     ]);
                 }
             } catch (error) {
-                console.error('Error fetching order statuses:', error);
+                console.error("Error fetching order statuses:", error);
                 setOrderStatuses([
-                    'ALL',
-                    'CREATED',
-                    'IN_PROCESS',
-                    'DELIVERING',
-                    'COMPLETED',
-                    'CANCELLED',
+                    "ALL",
+                    "CREATED",
+                    "IN_PROCESS",
+                    "DELIVERING",
+                    "COMPLETED",
+                    "CANCELLED",
                 ]);
             }
         };
@@ -346,15 +358,20 @@ export default function StaffOrdersPage() {
     const fetchOrders = useCallback(async () => {
         setLoadingOrders(true);
         try {
-            const status = selectedStatus === 'ALL' ? undefined : selectedStatus;
+            const status = selectedStatus === "ALL" ? undefined : selectedStatus;
             const response = await getBranchOrders(status);
-            if (response && response.status === 0 && response.data && Array.isArray(response.data)) {
+            if (
+                response &&
+                response.status === 0 &&
+                response.data &&
+                Array.isArray(response.data)
+            ) {
                 setOrders(response.data);
             } else {
                 setOrders([]);
             }
         } catch (error: unknown) {
-            console.error('Error fetching branch orders:', error);
+            console.error("Error fetching branch orders:", error);
             setOrders([]);
         } finally {
             setLoadingOrders(false);
@@ -376,9 +393,9 @@ export default function StaffOrdersPage() {
             fetchOrders();
         };
 
-        window.addEventListener('refreshOrders', handleRefreshOrders);
+        window.addEventListener("refreshOrders", handleRefreshOrders);
         return () => {
-            window.removeEventListener('refreshOrders', handleRefreshOrders);
+            window.removeEventListener("refreshOrders", handleRefreshOrders);
         };
     }, [fetchOrders]);
 
@@ -387,25 +404,29 @@ export default function StaffOrdersPage() {
             return;
         }
 
-        setAssigningShipper(prev => new Set(prev).add(orderId));
+        setAssigningShipper((prev) => new Set(prev).add(orderId));
 
         try {
-            const result = await assignShipperToOrder(orderId);
+            const result = await staffAssignShipperToOrder(orderId);
 
             if (result.success) {
-                const status = selectedStatus === 'ALL' ? undefined : selectedStatus;
+                const status = selectedStatus === "ALL" ? undefined : selectedStatus;
                 const response = await getBranchOrders(status);
-                if (response && response.status === 0 && response.data && Array.isArray(response.data)) {
+                if (
+                    response &&
+                    response.status === 0 &&
+                    response.data &&
+                    Array.isArray(response.data)
+                ) {
                     setOrders(response.data);
                 }
             } else {
-                toast.error('Không thể assign shipper. Vui lòng thử lại.');
+                toast.error("Không thể assign shipper. Vui lòng thử lại.");
             }
-        } catch (error) {
-            console.error('Failed to assign shipper', error);
-            toast.error('Lỗi khi chuyển cho shipper. Vui lòng thử lại.');
+        } catch {
+            toast.error("Lỗi khi chuyển cho shipper. Vui lòng thử lại.");
         } finally {
-            setAssigningShipper(prev => {
+            setAssigningShipper((prev) => {
                 const newSet = new Set(prev);
                 newSet.delete(orderId);
                 return newSet;
@@ -423,8 +444,8 @@ export default function StaffOrdersPage() {
             const detail = await fetchOrderDetail(order.id);
             setOrderDetail(detail);
         } catch (error) {
-            console.error('Failed to fetch order detail', error);
-            toast.error('Không thể tải chi tiết đơn hàng. Vui lòng thử lại.');
+            console.error("Failed to fetch order detail", error);
+            toast.error("Không thể tải chi tiết đơn hàng. Vui lòng thử lại.");
         } finally {
             setDetailLoading(false);
         }
@@ -432,20 +453,24 @@ export default function StaffOrdersPage() {
 
     const stats = useMemo(() => {
         const total = orders.length;
-        const inProcess = orders.filter(o =>
-            ['IN_PROCESS', 'PROCESSING', 'COOKING', 'COOKED'].includes(o.orderStatus)
+        const inProcess = orders.filter((o) =>
+            ["IN_PROCESS", "PROCESSING", "COOKING", "COOKED"].includes(o.orderStatus)
         ).length;
-        const delivering = orders.filter(o =>
-            ['DELIVERING', 'SHIPPING', 'DELIVERED'].includes(o.orderStatus)
+        const delivering = orders.filter((o) =>
+            ["DELIVERING", "SHIPPING", "DELIVERED"].includes(o.orderStatus)
         ).length;
-        const completed = orders.filter(o => o.orderStatus === 'COMPLETED').length;
+        const completed = orders.filter(
+            (o) => o.orderStatus === "COMPLETED"
+        ).length;
         const totalRevenue = orders.reduce((sum, o) => sum + o.amount, 0);
         return { total, inProcess, delivering, completed, totalRevenue };
     }, [orders]);
 
     return (
         <StaffGuard>
-            <div className={`bg-white -mb-6 -mr-4 sm:-mr-4 ml-4 ${montserrat.className}`}>
+            <div
+                className={`bg-white -mb-6 -mr-4 sm:-mr-4 ml-4 ${montserrat.className}`}
+            >
                 <AdminPageLayout>
                     <AdminPageHeader
                         title="Quản Lý Đơn Hàng"
@@ -502,13 +527,19 @@ export default function StaffOrdersPage() {
                         {loading || loadingOrders ? (
                             <div className="text-center py-12">
                                 <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#EC6426]"></div>
-                                <p className="mt-4 text-gray-600 font-semibold">Đang tải dữ liệu...</p>
+                                <p className="mt-4 text-gray-600 font-semibold">
+                                    Đang tải dữ liệu...
+                                </p>
                             </div>
                         ) : orders.length === 0 ? (
                             <div className="text-center py-12">
                                 <Package className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-                                <p className="text-gray-600 font-semibold text-lg">Không có đơn hàng nào</p>
-                                <p className="text-gray-500 text-sm mt-2">Thử chọn trạng thái khác để xem thêm đơn hàng</p>
+                                <p className="text-gray-600 font-semibold text-lg">
+                                    Không có đơn hàng nào
+                                </p>
+                                <p className="text-gray-500 text-sm mt-2">
+                                    Thử chọn trạng thái khác để xem thêm đơn hàng
+                                </p>
                             </div>
                         ) : (
                             <div className="space-y-4">
@@ -749,7 +780,9 @@ export default function StaffOrdersPage() {
                                     <div>
                                         <DialogTitle className="text-2xl font-bold flex items-center gap-3">
                                             Chi tiết đơn #{selectedOrder.id}
-                                            <Badge className={`px-3 py-1 text-xs font-semibold rounded-lg border-2 ${getStatusBadgeClass(selectedOrder.orderStatus)}`}>
+                                            <Badge
+                                                className={`px-3 py-1 text-xs font-semibold rounded-lg border-2 ${getStatusBadgeClass(selectedOrder.orderStatus)}`}
+                                            >
                                                 {getStatusIcon(selectedOrder.orderStatus)}
                                                 {getStatusLabel(selectedOrder.orderStatus)}
                                             </Badge>
