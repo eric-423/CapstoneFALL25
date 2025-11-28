@@ -13,6 +13,7 @@ import com.capstone.tamtech.capstone.services.impl.OrderService;
 import com.capstone.tamtech.capstone.services.impl.OrderStatusService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.Data;
 import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
