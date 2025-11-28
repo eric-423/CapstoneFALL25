@@ -49,6 +49,7 @@ import {
 import { assignChefToOrder } from "@/apis/order.api";
 import { toast } from "react-toastify";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
+import OrderProgressTracker from "@/components/common/order-progress-tracker";
 
 const montserrat = Montserrat({
     subsets: ["latin", "vietnamese"],
@@ -93,6 +94,7 @@ const PRINT_CONFIG = {
 };
 
 const getStatusLabel = (status: string): string => {
+    const normalizedStatus = status?.toUpperCase() || "";
     const statusMap: Record<string, string> = {
         ALL: "Tất cả",
         CREATED: "Đã tạo",
@@ -108,10 +110,11 @@ const getStatusLabel = (status: string): string => {
         CANCEL: "Đã hủy",
         PAID: "Đã thanh toán",
     };
-    return statusMap[status] || status;
+    return statusMap[normalizedStatus] || status;
 };
 
 const getStatusBadgeClass = (status: string): string => {
+    const normalizedStatus = status?.toUpperCase() || "";
     const statusClasses: Record<string, string> = {
         CREATED: "bg-blue-50 text-blue-700 border-blue-200",
         COOKING: "bg-orange-50 text-orange-700 border-orange-200",
@@ -126,11 +129,12 @@ const getStatusBadgeClass = (status: string): string => {
         CANCEL: "bg-red-50 text-red-700 border-red-200",
         PAID: "bg-emerald-50 text-emerald-700 border-emerald-200",
     };
-    return statusClasses[status] || "bg-gray-50 text-gray-700 border-gray-200";
+    return statusClasses[normalizedStatus] || "bg-gray-50 text-gray-700 border-gray-200";
 };
 
 const getStatusIcon = (status: string) => {
-    switch (status) {
+    const normalizedStatus = status?.toUpperCase() || "";
+    switch (normalizedStatus) {
         case "COMPLETED":
             return <CheckCircle size={14} strokeWidth={2.5} />;
         case "COOKING":
@@ -582,28 +586,32 @@ export default function ManagerOrdersPage() {
                                                             #{order.id}
                                                         </span>
                                                         <Badge
-                                                            className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-lg border-2 ${getStatusBadgeClass(order.orderStatus)}`}
+                                                            className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-lg border-2 ${getStatusBadgeClass(order.orderStatus || "")}`}
                                                         >
-                                                            {getStatusIcon(order.orderStatus)}
-                                                            {getStatusLabel(order.orderStatus)}
+                                                            {getStatusIcon(order.orderStatus || "")}
+                                                            {getStatusLabel(order.orderStatus || "Chưa xác định")}
                                                         </Badge>
                                                     </div>
-                                                    {order.table && (
+
+                                                    {order.isTable === true && (
                                                         <Badge className="bg-blue-100 text-blue-700 border-blue-200 border-2 px-3 py-1 text-xs font-bold rounded-lg">
                                                             Tại bàn
                                                         </Badge>
                                                     )}
-                                                    {order.pickUp && (
+
+                                                    {order.isPickUp === true && (
                                                         <Badge className="bg-purple-100 text-purple-700 border-purple-200 border-2 px-3 py-1 text-xs font-bold rounded-lg">
                                                             Mang đi
                                                         </Badge>
                                                     )}
-                                                    {!order.table && !order.pickUp && (
+
+                                                    {order.isTable === false && order.isPickUp === false && (
                                                         <Badge className="bg-green-100 text-green-700 border-green-200 border-2 px-3 py-1 text-xs font-bold rounded-lg">
                                                             <Truck size={12} className="mr-1" />
                                                             Giao hàng
                                                         </Badge>
                                                     )}
+
                                                 </div>
 
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -807,10 +815,10 @@ export default function ManagerOrdersPage() {
                                         <DialogTitle className="text-2xl font-bold flex items-center gap-3">
                                             Chi tiết đơn #{selectedOrder.id}
                                             <Badge
-                                                className={`px-3 py-1 text-xs font-semibold rounded-lg border-2 ${getStatusBadgeClass(selectedOrder.orderStatus)}`}
+                                                className={`px-3 py-1 text-xs font-semibold rounded-lg border-2 ${getStatusBadgeClass(selectedOrder.orderStatus || "")}`}
                                             >
-                                                {getStatusIcon(selectedOrder.orderStatus)}
-                                                {getStatusLabel(selectedOrder.orderStatus)}
+                                                {getStatusIcon(selectedOrder.orderStatus || "")}
+                                                {getStatusLabel(selectedOrder.orderStatus || "Chưa xác định")}
                                             </Badge>
                                         </DialogTitle>
                                         <DialogDescription>
@@ -818,17 +826,19 @@ export default function ManagerOrdersPage() {
                                         </DialogDescription>
                                     </div>
                                     <div className="flex flex-wrap gap-2">
-                                        {selectedOrder.table && (
+                                        {selectedOrder.isTable === true && (
                                             <Badge className="bg-blue-50 text-blue-700 border-blue-200 border-2 px-3 py-1 text-xs font-semibold rounded-xl">
                                                 Tại bàn
                                             </Badge>
                                         )}
-                                        {selectedOrder.pickUp && (
+
+                                        {selectedOrder.isPickUp === true && (
                                             <Badge className="bg-purple-50 text-purple-700 border-purple-200 border-2 px-3 py-1 text-xs font-semibold rounded-xl">
                                                 Mang đi
                                             </Badge>
                                         )}
-                                        {!selectedOrder.table && !selectedOrder.pickUp && (
+
+                                        {selectedOrder.isTable === false && selectedOrder.isPickUp === false && (
                                             <Badge className="bg-green-50 text-green-700 border-green-200 border-2 px-3 py-1 text-xs font-semibold rounded-xl flex items-center gap-1">
                                                 <Truck size={12} />
                                                 Giao hàng
@@ -917,44 +927,77 @@ export default function ManagerOrdersPage() {
                                     </Card>
                                 </div>
 
-                                {(selectedOrder.waiterName ||
-                                    selectedOrder.chefName ||
-                                    selectedOrder.shipperName) && (
-                                        <Card className="p-4 border border-gray-100 rounded-xl">
-                                            <h3 className="font-semibold text-gray-800 mb-3">
-                                                Nhân sự liên quan
-                                            </h3>
-                                            <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                                                {selectedOrder.waiterName && (
-                                                    <div className="flex items-center gap-2">
-                                                        <User size={14} />
-                                                        <span>
-                                                            <span className="font-semibold">Nhân viên:</span>{" "}
-                                                            {selectedOrder.waiterName}
-                                                        </span>
+                                <OrderProgressTracker
+                                    currentStatus={orderDetail?.orderStatus ?? orderDetail?.status ?? selectedOrder.orderStatus}
+                                    className="mb-6"
+                                />
+
+
+
+
+                                <Card className="p-4 border border-gray-100 rounded-xl">
+                                    <h3 className="font-semibold text-gray-800 mb-3">
+                                        Danh sách món
+                                    </h3>
+                                    {orderDetail?.orderItems && orderDetail.orderItems.length > 0 ? (
+                                        <div className="space-y-3 max-h-72 overflow-y-auto pr-2">
+                                            {orderDetail.orderItems.map((item, index) => {
+                                                const isCombo = item.comboDTO !== null && item.comboDTO !== undefined;
+                                                const displayName = isCombo && item.comboDTO 
+                                                    ? item.comboDTO.name 
+                                                    : (item.productName || 'Sản phẩm');
+                                                const displayDescription = isCombo && item.comboDTO 
+                                                    ? item.comboDTO.description 
+                                                    : null;
+                                                const displayPrice = isCombo && item.comboDTO 
+                                                    ? item.comboDTO.price 
+                                                    : (item.price ?? 0);
+
+                                                return (
+                                                    <div
+                                                        key={`${isCombo ? 'combo' : 'product'}-${item.productId}-${index}`}
+                                                        className="flex items-start justify-between gap-3 border-b border-dashed border-gray-200 pb-3"
+                                                    >
+                                                        <div className="flex-1">
+                                                            <div className="flex items-center gap-2">
+                                                                <p className="font-semibold text-sm text-gray-900">
+                                                                    {displayName}
+                                                                </p>
+                                                                {isCombo && (
+                                                                    <span className="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full font-medium">
+                                                                        COMBO
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            {displayDescription && (
+                                                                <p className="text-xs text-gray-600 mt-1">
+                                                                    {displayDescription}
+                                                                </p>
+                                                            )}
+                                                            {item.note && (
+                                                                <p className="text-xs text-gray-500 mt-1 bg-gray-100 rounded-lg px-3 py-1 whitespace-pre-line">
+                                                                    {item.note}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                        <div className="text-right text-sm">
+                                                            <p className="font-semibold text-[#EC6426]">
+                                                                {formatCurrency(displayPrice)}
+                                                            </p>
+                                                            <p className="text-xs text-gray-500">x {item.quantity}</p>
+                                                        </div>
                                                     </div>
-                                                )}
-                                                {selectedOrder.chefName && (
-                                                    <div className="flex items-center gap-2">
-                                                        <ChefHat size={14} />
-                                                        <span>
-                                                            <span className="font-semibold">Đầu bếp:</span>{" "}
-                                                            {selectedOrder.chefName}
-                                                        </span>
-                                                    </div>
-                                                )}
-                                                {selectedOrder.shipperName && (
-                                                    <div className="flex items-center gap-2">
-                                                        <Truck size={14} />
-                                                        <span>
-                                                            <span className="font-semibold">Shipper:</span>{" "}
-                                                            {selectedOrder.shipperName}
-                                                        </span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </Card>
+                                                );
+                                            })}
+                                        </div>
+                                    ) : (
+                                        <p className="text-sm text-gray-500">
+                                            {detailLoading
+                                                ? "Đang tải thông tin món ăn..."
+                                                : "Không có dữ liệu món ăn cho đơn này."}
+                                        </p>
                                     )}
+                                </Card>
 
                                 <Card className="p-4 border border-gray-100 rounded-xl">
                                     <h3 className="font-semibold text-gray-800 mb-3">
@@ -1051,44 +1094,47 @@ export default function ManagerOrdersPage() {
                                     </div>
                                 </Card>
 
-                                <Card className="p-4 border border-gray-100 rounded-xl">
-                                    <h3 className="font-semibold text-gray-800 mb-3">
-                                        Danh sách món
-                                    </h3>
-                                    {orderDetail?.orderItems && orderDetail.orderItems.length > 0 ? (
-                                        <div className="space-y-3 max-h-72 overflow-y-auto pr-2">
-                                            {orderDetail.orderItems.map((item) => (
-                                                <div
-                                                    key={`${item.productId}-${item.note}-${item.price}`}
-                                                    className="flex items-start justify-between gap-3 border-b border-dashed border-gray-200 pb-3"
-                                                >
-                                                    <div className="flex-1">
-                                                        <p className="font-semibold text-sm text-gray-900">
-                                                            {item.productName}
-                                                        </p>
-                                                        {item.note && (
-                                                            <p className="text-xs text-gray-500 mt-1 bg-gray-100 rounded-lg px-3 py-1 whitespace-pre-line">
-                                                                {item.note}
-                                                            </p>
-                                                        )}
+
+                                {(selectedOrder.waiterName ||
+                                    selectedOrder.chefName ||
+                                    selectedOrder.shipperName) && (
+                                        <Card className="p-4 border border-gray-100 rounded-xl">
+                                            <h3 className="font-semibold text-gray-800 mb-3">
+                                                Nhân sự liên quan
+                                            </h3>
+                                            <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                                                {selectedOrder.waiterName && (
+                                                    <div className="flex items-center gap-2">
+                                                        <User size={14} />
+                                                        <span>
+                                                            <span className="font-semibold">Nhân viên:</span>{" "}
+                                                            {selectedOrder.waiterName}
+                                                        </span>
                                                     </div>
-                                                    <div className="text-right text-sm">
-                                                        <p className="font-semibold text-[#EC6426]">
-                                                            {formatCurrency(item.price ?? 0)}
-                                                        </p>
-                                                        <p className="text-xs text-gray-500">x {item.quantity}</p>
+                                                )}
+                                                {selectedOrder.chefName && (
+                                                    <div className="flex items-center gap-2">
+                                                        <ChefHat size={14} />
+                                                        <span>
+                                                            <span className="font-semibold">Đầu bếp:</span>{" "}
+                                                            {selectedOrder.chefName}
+                                                        </span>
                                                     </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <p className="text-sm text-gray-500">
-                                            {detailLoading
-                                                ? "Đang tải thông tin món ăn..."
-                                                : "Không có dữ liệu món ăn cho đơn này."}
-                                        </p>
+                                                )}
+                                                {selectedOrder.shipperName && (
+                                                    <div className="flex items-center gap-2">
+                                                        <Truck size={14} />
+                                                        <span>
+                                                            <span className="font-semibold">Shipper:</span>{" "}
+                                                            {selectedOrder.shipperName}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </Card>
                                     )}
-                                </Card>
+
+
                             </div>
                         </div>
                     )}

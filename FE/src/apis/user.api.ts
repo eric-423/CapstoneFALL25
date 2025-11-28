@@ -315,6 +315,91 @@ export const getTimeResendOtp = (
   identifier: string
 ) => http.get(`/auth/otp/ttl?channel=${channel}&identifier=${identifier}`);
 
+
+
+export const forgotPassword = async (phoneNumber: string) => {
+  const response = await fetch("/api/auth/customer/forgot-password", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify({ phoneNumber }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw {
+      response: {
+        data: errorData,
+        status: response.status,
+      },
+    };
+  }
+
+  return response.json();
+};
+
+export const verifyOtpForgotPassword = async (data: {
+  channel: "email" | "zalo";
+  identifier: string;
+  inputOtp: string;
+}) => {
+  const response = await fetch("/api/auth/otp/verify-otp-forgot-password", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw {
+      response: {
+        data: errorData,
+        status: response.status,
+      },
+    };
+  }
+
+  return {
+    status: response.status,
+    data: await response.json(),
+  };
+};
+
+export const resetPassword = async (data: {
+  otp: string;
+  phoneNumber: string;
+  newPassword: string;
+}) => {
+  const response = await fetch("/api/auth/customer/reset-password", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw {
+      response: {
+        data: errorData,
+        status: response.status,
+      },
+    };
+  }
+
+  return {
+    status: response.status,
+    data: await response.json(),
+  };
+};
+
 // lấy thông tin
 // get info
 

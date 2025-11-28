@@ -342,24 +342,48 @@ export function OrderDetailsDialog({ order, open, onClose, isLoading = false }: 
                                         {orderItems.length > 0 ? (
                                             <div className='max-h-64 overflow-y-auto'>
 
-                                                {orderItems.map((item) => (
-                                                    <div key={item.productId} className='py-4 px-5 '>
-                                                        <div className='flex justify-between items-start gap-4'>
-                                                            <div className='flex-1'>
-                                                                <h4 className='font-medium text-md text-gray-900'>{displayText(item.productName)}</h4>
-                                                                {item.note && (
-                                                                    <p className='text-xs text-muted-foreground mt-1 whitespace-pre-line bg-gray-50 rounded-md p-2'>
-                                                                        {item.note}
-                                                                    </p>
-                                                                )}
-                                                            </div>
-                                                            <div className='text-right'>
-                                                                <div className='text-primary font-semibold text-sm'>{formatCurrency(item.price)}</div>
-                                                                <div className='text-xs text-muted-foreground mt-1'>x {item.quantity}</div>
+                                                {orderItems.map((item, index) => {
+                                                    const isCombo = item.comboDTO !== null && item.comboDTO !== undefined;
+                                                    const displayName = isCombo && item.comboDTO ? item.comboDTO.name : displayText(item.productName);
+                                                    const displayDescription = isCombo && item.comboDTO ? item.comboDTO.description : null;
+                                                    const displayPrice = isCombo && item.comboDTO ? item.comboDTO.price : item.price;
+
+                                                    return (
+                                                        <div 
+                                                            key={`${isCombo ? 'combo' : 'product'}-${item.productId}-${index}`} 
+                                                            className='py-4 px-5 border-b border-gray-200'
+                                                        >
+                                                            <div className='flex justify-between items-start gap-4'>
+                                                                <div className='flex-1'>
+                                                                    <div className='flex items-center gap-2'>
+                                                                        <h4 className='font-medium text-md text-gray-900'>
+                                                                            {displayName}
+                                                                        </h4>
+                                                                        {isCombo && (
+                                                                            <span className='text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full font-medium'>
+                                                                                COMBO
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                    {displayDescription && (
+                                                                        <p className='text-xs text-gray-600 mt-1'>{displayDescription}</p>
+                                                                    )}
+                                                                    {item.note && (
+                                                                        <p className='text-xs text-muted-foreground mt-1 whitespace-pre-line bg-gray-50 rounded-md p-2'>
+                                                                            {item.note}
+                                                                        </p>
+                                                                    )}
+                                                                </div>
+                                                                <div className='text-right'>
+                                                                    <div className='font-semibold text-sm text-primary'>
+                                                                        {formatCurrency(displayPrice)}
+                                                                    </div>
+                                                                    <div className='text-xs text-muted-foreground mt-1'>x {item.quantity}</div>
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                ))}
+                                                    );
+                                                })}
 
                                             </div>
                                         ) : (

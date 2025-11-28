@@ -12,7 +12,7 @@ export interface Schedule {
 export interface ScheduleResponse {
   status: number;
   desc: string;
-  data: Schedule[];
+  data: Schedule[] | Schedule;
 }
 
 export interface CreateScheduleData {
@@ -25,6 +25,7 @@ export interface CreateScheduleData {
 }
 
 export interface UpdateScheduleData {
+  userId?: number;
   name?: string;
   description?: string;
   date?: string;
@@ -83,12 +84,35 @@ export const updateSchedule = async (
     body: JSON.stringify(data),
   });
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.desc || 'Failed to update schedule');
+  const responseText = await response.text();
+  let errorData: any = {};
+  
+  try {
+    errorData = JSON.parse(responseText);
+  } catch {
+    errorData = { message: responseText || 'Unknown error' };
   }
 
-  return response.json();
+  if (!response.ok) {
+    console.error('Update schedule error:', {
+      status: response.status,
+      statusText: response.statusText,
+      errorData,
+      payload: data
+    });
+    throw new Error(
+      errorData.desc || 
+      errorData.message || 
+      errorData.error || 
+      `Failed to update schedule: ${response.status} ${response.statusText}`
+    );
+  }
+
+  try {
+    return JSON.parse(responseText);
+  } catch {
+    return { status: 200, desc: 'Success', data: [] };
+  }
 };
 
 /**

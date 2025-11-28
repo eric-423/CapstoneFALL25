@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
-const API_URL = process.env.NEXT_PUBLIC_BASE_URL;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://tam-tac.com';
 
 export async function GET(request: NextRequest) {
     try {
@@ -15,8 +15,11 @@ export async function GET(request: NextRequest) {
             );
         }
 
+        const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
+        const url = `${baseUrl}/schedules`;
+
         const response = await fetch(
-            `${API_URL}/schedules`,
+            url,
             {
                 method: 'GET',
                 headers: {
@@ -60,9 +63,11 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
+        const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
+        const url = `${baseUrl}/schedules`;
 
         const response = await fetch(
-            `${API_URL}/schedules`,
+            url,
             {
                 method: 'POST',
                 headers: {
