@@ -38,6 +38,6 @@ public class OrderListDTO {
     private String shipperName;
     private String waiterName;
     private String chefName;
-
+    private String paymentMethod;
     private int itemCount;
 }

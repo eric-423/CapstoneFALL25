@@ -1154,6 +1154,7 @@ public class OrderServiceImpl implements OrderService {
             dto.setOrderDate(order.getCreatedAt());
             dto.setPaymentTime(order.getPaymentTime());
             dto.setDeliveryAt(order.getDeliveryAtt());
+            dto.setPaymentMethod(order.getPaymentMethod().getName());
 
             if (order.getCustomer() != null) {
                 dto.setCustomerName(order.getCustomer().getFullName());
