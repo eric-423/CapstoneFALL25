@@ -75,7 +75,6 @@ public class ProductServiceImpl implements ProductService {
                 searchRequest.getMaxPrice(),
                 pageable);
 
-
         Map<Integer, Integer> productQuantityMap = new HashMap<>();
 
         List<ProductSearchDTO> productDTOs = productPage.getContent().stream()
@@ -113,7 +112,9 @@ public class ProductServiceImpl implements ProductService {
             keyMaterialWarehouse.setWarehouseId(branch.getWarehouses().getBranch().getId());
 
             Double availableQuantity = materialWarehouseRepository
-                    .findById(keyMaterialWarehouse).get().getQuantity();
+                    .findById(keyMaterialWarehouse)
+                    .map(materialWarehouse -> materialWarehouse.getQuantity())
+                    .orElse(0.0);
 
             if (availableQuantity == null || availableQuantity < requiredQuantity) {
                 return false;
