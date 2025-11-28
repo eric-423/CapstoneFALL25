@@ -1,6 +1,8 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://tam-tac.com';
+
 export async function GET(request: NextRequest) {
     try {
         const cookieStore = await cookies();
@@ -16,8 +18,11 @@ export async function GET(request: NextRequest) {
         const searchParams = request.nextUrl.searchParams;
         const queryString = searchParams.toString();
 
+        const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
+        const url = `${baseUrl}/materials${queryString ? `?${queryString}` : ''}`;
+
         const response = await fetch(
-            `${process.env.NEXT_PUBLIC_BASE_URL}/materials${queryString ? `?${queryString}` : ''}`,
+            url,
             {
                 method: 'GET',
                 headers: {

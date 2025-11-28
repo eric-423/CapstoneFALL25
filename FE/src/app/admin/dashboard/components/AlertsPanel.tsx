@@ -8,8 +8,8 @@ interface Alert {
     id: number;
     name: string;
     quantity: number;
-    unit: string;
-    threshold: number;
+    unitId: number;
+    unitName: string;
     severity: 'high' | 'medium' | 'low';
 }
 
@@ -75,7 +75,7 @@ export function AlertsPanel({ alerts }: AlertsPanelProps) {
                                     {alert.name}
                                 </p>
                                 <p className="text-xs font-bold text-gray-600">
-                                    {alert.quantity}{alert.unit}
+                                    {alert.quantity} {alert.unitName}
                                 </p>
                             </div>
                         )

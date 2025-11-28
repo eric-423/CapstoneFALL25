@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -12,28 +12,14 @@ import {
 import { Input } from '@/components/ui/input';
 import { BookOpen, Clock, Users, Plus, X, DollarSign, Flame } from 'lucide-react';
 import { toast } from 'react-toastify';
-
-// Mock data - Nguyên liệu từ hệ thống
-const AVAILABLE_INGREDIENTS = [
-    { id: '1', name: 'Thịt gà', unit: 'g', caloriesPer100g: 165 },
-    { id: '2', name: 'Thịt bò', unit: 'g', caloriesPer100g: 250 },
-    { id: '3', name: 'Cá hồi', unit: 'g', caloriesPer100g: 206 },
-    { id: '4', name: 'Rau cải', unit: 'g', caloriesPer100g: 23 },
-    { id: '5', name: 'Cà chua', unit: 'g', caloriesPer100g: 18 },
-    { id: '6', name: 'Hành tây', unit: 'g', caloriesPer100g: 40 },
-    { id: '7', name: 'Tỏi', unit: 'g', caloriesPer100g: 149 },
-    { id: '8', name: 'Gạo', unit: 'g', caloriesPer100g: 130 },
-    { id: '9', name: 'Dầu ăn', unit: 'ml', caloriesPer100g: 884 },
-    { id: '10', name: 'Nước mắm', unit: 'ml', caloriesPer100g: 35 },
-];
+import { getMaterials, Material } from '@/apis/material.api';
+import { getUnits, Unit } from '@/apis/unit.api';
 
 interface Ingredient {
     ingredientId: string;
     ingredientName: string;
     quantity: string;
-    unit: string;
-    caloriesPer100g: number;
-    estimatedCalories: number;
+    unitId: number;
 }
 
 interface RecipeFormData {
@@ -58,6 +44,9 @@ const DIFFICULTY_OPTIONS = [
 export function AddRecipeDialog() {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [materials, setMaterials] = useState<Material[]>([]);
+    const [units, setUnits] = useState<Unit[]>([]);
+
     const [formData, setFormData] = useState<RecipeFormData>({
         name: '',
         description: '',
@@ -71,14 +60,32 @@ export function AddRecipeDialog() {
             ingredientId: '',
             ingredientName: '',
             quantity: '',
-            unit: 'g',
-            caloriesPer100g: 0,
-            estimatedCalories: 0,
+            unitId: 0,
         }],
         instructions: [''],
     });
 
     const [errors, setErrors] = useState<Record<string, string>>({});
+
+    useEffect(() => {
+        if (open) {
+            fetchData();
+        }
+    }, [open]);
+
+    const fetchData = async () => {
+        try {
+            const [materialsRes, unitsRes] = await Promise.all([
+                getMaterials({ page: 0, size: 1000 }), // Fetch all materials
+                getUnits()
+            ]);
+            setMaterials(materialsRes.data.content);
+            setUnits(unitsRes);
+        } catch (error) {
+            console.error('Failed to fetch data:', error);
+            toast.error('Không thể tải danh sách nguyên liệu');
+        }
+    };
 
     const validateForm = () => {
         const newErrors: Record<string, string> = {};
@@ -181,9 +188,7 @@ export function AddRecipeDialog() {
                 ingredientId: '',
                 ingredientName: '',
                 quantity: '',
-                unit: 'g',
-                caloriesPer100g: 0,
-                estimatedCalories: 0,
+                unitId: 0,
             }],
             instructions: [''],
         });
@@ -197,9 +202,7 @@ export function AddRecipeDialog() {
                 ingredientId: '',
                 ingredientName: '',
                 quantity: '',
-                unit: 'g',
-                caloriesPer100g: 0,
-                estimatedCalories: 0,
+                unitId: 0,
             }]
         }));
     };
@@ -222,18 +225,11 @@ export function AddRecipeDialog() {
 
                 // Nếu thay đổi ingredientId, cập nhật thông tin nguyên liệu
                 if (field === 'ingredientId') {
-                    const selectedIngredient = AVAILABLE_INGREDIENTS.find(item => item.id === value);
-                    if (selectedIngredient) {
-                        updated.ingredientName = selectedIngredient.name;
-                        updated.unit = selectedIngredient.unit;
-                        updated.caloriesPer100g = selectedIngredient.caloriesPer100g;
+                    const selectedMaterial = materials.find(m => m.id.toString() === value);
+                    if (selectedMaterial) {
+                        updated.ingredientName = selectedMaterial.name;
+                        updated.unitId = selectedMaterial.unitId;
                     }
-                }
-
-                // Tính toán calo ước tính khi thay đổi số lượng
-                if (field === 'quantity' || field === 'ingredientId') {
-                    const quantity = field === 'quantity' ? Number(value) : Number(updated.quantity);
-                    updated.estimatedCalories = Math.round((quantity * updated.caloriesPer100g) / 100);
                 }
 
                 return updated;
@@ -243,11 +239,11 @@ export function AddRecipeDialog() {
         });
     };
 
-    // Tính tổng calo của công thức (trước khi chế biến)
-    const totalCaloriesBeforeCooking = formData.ingredients.reduce(
-        (sum, ing) => sum + (ing.estimatedCalories || 0),
-        0
-    );
+    // Helper to get unit name
+    const getUnitName = (unitId: number) => {
+        const unit = units.find(u => u.id === unitId);
+        return unit ? `${unit.name} (${unit.symbols})` : '';
+    };
 
     const addInstruction = () => {
         setFormData(prev => ({
@@ -415,9 +411,9 @@ export function AddRecipeDialog() {
                                             className="flex-1 h-10 px-3 rounded-md border-2 border-gray-200 focus:border-orange-500 outline-none text-gray-900 font-medium"
                                         >
                                             <option value="">-- Chọn nguyên liệu --</option>
-                                            {AVAILABLE_INGREDIENTS.map((item) => (
+                                            {materials.map((item) => (
                                                 <option key={item.id} value={item.id} className="text-gray-900">
-                                                    {item.name} ({item.unit})
+                                                    {item.name} ({getUnitName(item.unitId)})
                                                 </option>
                                             ))}
                                         </select>
@@ -438,28 +434,14 @@ export function AddRecipeDialog() {
                                     </div>
                                     {ingredient.ingredientId && ingredient.quantity && (
                                         <div className="flex items-center gap-2 text-xs text-gray-600 bg-orange-50 px-3 py-2 rounded-md">
-                                            <Flame size={14} className="text-orange-500" />
                                             <span>
-                                                <strong>{ingredient.ingredientName}</strong>: {ingredient.quantity}{ingredient.unit} ≈ <strong className="text-orange-600">{ingredient.estimatedCalories} calo</strong>
+                                                <strong>{ingredient.ingredientName}</strong>: {ingredient.quantity} {getUnitName(ingredient.unitId)}
                                             </span>
                                         </div>
                                     )}
                                 </div>
                             ))}
                         </div>
-
-                        {/* Tổng calo trước khi chế biến */}
-                        {totalCaloriesBeforeCooking > 0 && (
-                            <div className="p-3 bg-gradient-to-r from-orange-50 to-orange-100 border-2 border-orange-200 rounded-lg">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <Flame size={18} className="text-orange-500" />
-                                        <span className="text-sm font-semibold text-gray-700">Tổng calo (trước chế biến):</span>
-                                    </div>
-                                    <span className="text-lg font-bold text-orange-600">{totalCaloriesBeforeCooking} calo</span>
-                                </div>
-                            </div>
-                        )}
                     </div>
 
                     {/* Instructions */}

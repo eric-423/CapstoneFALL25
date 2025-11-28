@@ -51,6 +51,7 @@ import {
 } from '@/apis/product.api';
 import { getMaterials, Material } from '@/apis/material.api';
 import { getCookingMethods, CookingMethod } from '@/apis/cooking-method.api';
+import { getUnits, Unit } from '@/apis/unit.api';
 import { uploadMediaToSupabase } from '@/components/common/upFileToSupabase';
 import { ProductRecipeStepItem } from './ProductRecipeStepItem';
 
@@ -66,7 +67,7 @@ const productSchema = z.object({
         materialId: z.number().min(1, 'Chọn nguyên liệu'),
         quantity: z.coerce.number().min(0.0001, 'Số lượng phải > 0'),
         orderStep: z.number().optional(),
-        cookingMethodId: z.number().min(1, 'Chọn phương pháp nấu'),
+        cookingMethodId: z.number().min(0, 'Chọn phương pháp nấu'),
     })).optional(),
 });
 
@@ -84,6 +85,7 @@ export function ProductForm({ open, onOpenChange, product, onSuccess }: ProductF
     const [productTypes, setProductTypes] = useState<ProductType[]>([]);
     const [materials, setMaterials] = useState<Material[]>([]);
     const [cookingMethods, setCookingMethods] = useState<CookingMethod[]>([]);
+    const [units, setUnits] = useState<Unit[]>([]);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -132,14 +134,16 @@ export function ProductForm({ open, onOpenChange, product, onSuccess }: ProductF
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [types, materialsData, cookingMethodsData] = await Promise.all([
+                const [types, materialsData, cookingMethodsData, unitsData] = await Promise.all([
                     getProductType(),
                     getMaterials({ size: 1000 }),
                     getCookingMethods({ size: 1000 }),
+                    getUnits(),
                 ]);
                 setProductTypes(types.filter(t => t.id !== 0));
                 setMaterials(materialsData.data.content);
                 setCookingMethods(cookingMethodsData.content);
+                setUnits(unitsData);
             } catch (error) {
                 console.error('Failed to fetch data:', error);
                 toast.error('Không thể tải dữ liệu');
@@ -438,6 +442,7 @@ export function ProductForm({ open, onOpenChange, product, onSuccess }: ProductF
                                                                 remove={remove}
                                                                 materials={materials}
                                                                 cookingMethods={cookingMethods}
+                                                                units={units}
                                                                 errors={errors}
                                                             />
                                                         ))}

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Package, Plus, Edit2, Trash2, Search, AlertTriangle, Tag, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Package, Plus, Edit2, Trash2, Search, AlertTriangle, Tag, ChevronLeft, ChevronRight, Ruler } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,7 @@ import { AdminPageLayout, AdminPageHeader } from '../components/AdminPageLayout'
 import { AdminCard } from '../components/AdminCard';
 import { MaterialFormDialog } from './components/MaterialFormDialog';
 import { MaterialTypesManagerDialog } from './components/MaterialTypesManagerDialog';
+import { UnitsManagerDialog } from './components/UnitsManagerDialog';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import {
     Material,
@@ -17,10 +18,12 @@ import {
     getMaterials,
     deleteMaterial
 } from '@/apis/material.api';
+import { getUnits, type Unit } from '@/apis/unit.api';
 
 export default function MaterialsPage() {
     const [loading, setLoading] = useState(true);
     const [materials, setMaterials] = useState<Material[]>([]);
+    const [units, setUnits] = useState<Unit[]>([]);
     const [actionLoading, setActionLoading] = useState(false);
 
     // Pagination states
@@ -46,6 +49,8 @@ export default function MaterialsPage() {
 
     // Material types manager dialog
     const [showTypesManager, setShowTypesManager] = useState(false);
+    // Units manager dialog
+    const [showUnitsManager, setShowUnitsManager] = useState(false);
 
     const fetchMaterials = useCallback(async () => {
         try {
@@ -59,13 +64,18 @@ export default function MaterialsPage() {
                 sortDirection,
             };
 
-            const response = await getMaterials(searchRequest);
-            setMaterials(response.data.content);
-            setTotalElements(response.data.totalElements);
-            setTotalPages(response.data.totalPages);
+            const [materialsResponse, unitsResponse] = await Promise.all([
+                getMaterials(searchRequest),
+                getUnits()
+            ]);
+
+            setMaterials(materialsResponse.data.content);
+            setTotalElements(materialsResponse.data.totalElements);
+            setTotalPages(materialsResponse.data.totalPages);
+            setUnits(unitsResponse);
         } catch (error) {
-            console.error('Failed to fetch materials:', error);
-            toast.error('❌ Không thể tải danh sách nguyên liệu!');
+            console.error('Failed to fetch data:', error);
+            toast.error('❌ Không thể tải dữ liệu!');
         } finally {
             setLoading(false);
         }
@@ -122,7 +132,6 @@ export default function MaterialsPage() {
 
     // Calculate statistics (from current page only as we don't have total stats from API)
     const totalMaterialsCount = totalElements;
-    const lowStockMaterials = materials.filter(m => m.quantity < m.threshold).length;
     const materialTypes = new Set(materials.map(m => m.materialTypeName)).size;
 
     // Filter materials (client-side filter for search and type)
@@ -138,6 +147,12 @@ export default function MaterialsPage() {
 
     // Get unique material types for filter
     const uniqueTypes = Array.from(new Set(materials.map(m => m.materialTypeName))).sort();
+
+    // Helper to get unit name
+    const getUnitName = (unitId: number) => {
+        const unit = units.find(u => u.id === unitId);
+        return unit ? `${unit.name} (${unit.symbols})` : `ID: ${unitId}`;
+    };
 
     if (loading) {
         return (
@@ -158,6 +173,14 @@ export default function MaterialsPage() {
                 actions={
                     <div className="flex gap-2">
                         <Button
+                            onClick={() => setShowUnitsManager(true)}
+                            variant="outline"
+                            className="border-[#78A243] bg-[#78A243]/10 text-[#78A243] hover:bg-[#78A243]/20 font-semibold"
+                        >
+                            <Ruler className="h-4 w-4 mr-2" />
+                            Quản lý đơn vị
+                        </Button>
+                        <Button
                             onClick={() => setShowTypesManager(true)}
                             variant="outline"
                             className="border-[#78A243] bg-[#78A243]/10 text-[#78A243] hover:bg-[#78A243]/20 font-semibold"
@@ -177,18 +200,12 @@ export default function MaterialsPage() {
             />
 
             {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
                 <AdminCard
                     title="Tổng nguyên liệu"
                     value={totalMaterialsCount.toString()}
                     icon={Package}
                     subtitle="Tổng số loại trong kho"
-                />
-                <AdminCard
-                    title="Sắp hết hàng"
-                    value={lowStockMaterials.toString()}
-                    icon={AlertTriangle}
-                    subtitle="Nguyên liệu dưới ngưỡng"
                 />
                 <AdminCard
                     title="Loại nguyên liệu"
@@ -269,15 +286,6 @@ export default function MaterialsPage() {
                                 <th className="px-6 py-4 text-left text-sm font-bold text-[#2D1E1A]">
                                     Tổng tồn kho
                                 </th>
-                                <th className="px-6 py-4 text-left text-sm font-bold text-[#2D1E1A]">
-                                    Ngưỡng
-                                </th>
-                                <th className="px-6 py-4 text-left text-sm font-bold text-[#2D1E1A]">
-                                    Calo/Đơn vị
-                                </th>
-                                <th className="px-6 py-4 text-left text-sm font-bold text-[#2D1E1A]">
-                                    Trạng thái
-                                </th>
                                 <th className="px-6 py-4 text-center text-sm font-bold text-[#2D1E1A]">
                                     Thao tác
                                 </th>
@@ -285,7 +293,6 @@ export default function MaterialsPage() {
                         </thead>
                         <tbody className="divide-y divide-[#78A243]/10">
                             {filteredMaterials.map((material) => {
-                                const isLowStock = material.quantity < material.threshold;
                                 return (
                                     <tr key={material.id} className="hover:bg-[#EBD187]/10 transition-colors">
                                         <td className="px-6 py-4">
@@ -306,30 +313,8 @@ export default function MaterialsPage() {
                                         </td>
                                         <td className="px-6 py-4">
                                             <p className="text-sm font-semibold text-[#2D1E1A]">
-                                                {material.quantity} {material.unit}
+                                                {material.quantity} {getUnitName(material.unitId)}
                                             </p>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <p className="text-sm text-[#2D1E1A]/80">
-                                                {material.threshold} {material.unit}
-                                            </p>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <p className="text-sm text-[#2D1E1A]/80">
-                                                {material.caloriesPerUnit} cal
-                                            </p>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            {isLowStock ? (
-                                                <Badge className="bg-red-100 text-red-700 border-red-300">
-                                                    <AlertTriangle className="h-3 w-3 mr-1" />
-                                                    Sắp hết
-                                                </Badge>
-                                            ) : (
-                                                <Badge className="bg-[#78A243]/20 text-[#78A243] border-[#78A243]/30">
-                                                    Đủ hàng
-                                                </Badge>
-                                            )}
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center justify-center gap-2">
@@ -412,6 +397,11 @@ export default function MaterialsPage() {
             <MaterialTypesManagerDialog
                 open={showTypesManager}
                 onOpenChange={setShowTypesManager}
+            />
+
+            <UnitsManagerDialog
+                open={showUnitsManager}
+                onOpenChange={setShowUnitsManager}
             />
 
             <ConfirmDialog
