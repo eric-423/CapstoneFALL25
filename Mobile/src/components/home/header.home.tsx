@@ -13,7 +13,6 @@ import { APP_COLOR } from "@/utils/constant";
 import { FONTS } from "@/theme/typography";
 import { useCurrentApp } from "@/context/app.context";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import Feather from "@expo/vector-icons/Feather";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
 import { router, useFocusEffect } from "expo-router";

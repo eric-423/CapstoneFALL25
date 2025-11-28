@@ -22,13 +22,11 @@ const ChangePasswordPage = () => {
   const { phoneNumber, inputOtp } = useLocalSearchParams();
   const handleUpdatePassword = async (newPassword: string) => {
     try {
-      console.log(inputOtp, phoneNumber, newPassword);
       const res = await ChangePassword(
         inputOtp as string,
         phoneNumber as string,
         newPassword
       );
-      console.log("Change password response:", res);
       if (res?.data || res?.status === 200) {
         Toast.show("Thay đổi mật khẩu thành công", {
           duration: Toast.durations.LONG,

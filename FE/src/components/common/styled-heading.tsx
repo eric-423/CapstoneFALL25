@@ -14,13 +14,13 @@ const StyledHeading = ({ text, className, lineColor }: StyledHeadingProps) => {
       <span className={cn("relative inline-block", className)}>
         {text}
         <svg
-          className="absolute -bottom-2 left-0 w-full h-3 pt-2 pointer-events-none"
-          viewBox="0 0 200 8"
+          className="absolute -bottom-3 left-0 w-full h-6 pt-0 pointer-events-none"
+          viewBox="0 -5 200 12"
           xmlns="http://www.w3.org/2000/svg"
           preserveAspectRatio="none"
         >
           <path
-            d="M1 5.5C32 1.5 62 1.5 101 5.5C138 9.5 170 9.5 199 5.5"
+            d="M0 7 Q100 -4 200 7"
             stroke={lineColor || "#F8A91F"}
             strokeWidth="2"
             fill="none"

@@ -62,6 +62,7 @@ interface ApiOrderResponse {
   itemCount: number;
   table: boolean;
   pickUp: boolean;
+  paymentMethod: string;
 }
 const mapOrderStatus = (status: string): string => {
   const statusMap: Record<string, string> = {
@@ -115,9 +116,7 @@ const OrderPage = () => {
           (order: ApiOrderResponse) => ({
             orderId: order.id,
             order_create_at: order.orderDate,
-            payment_method: order.paymentTime
-              ? "Thanh toán online"
-              : "Tiền mặt",
+            payment_method: order.paymentMethod || "Không có dữ liệu",
             status: mapOrderStatus(order.orderStatus),
             order_address: order.address,
             order_point_earn: order.pointEarned,

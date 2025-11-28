@@ -33,7 +33,7 @@ const ProductTypeList = ({
     <div
       className={`w-full overflow-x-auto scrollbar-hide ${montserrat.className}`}
     >
-      <div className="flex gap-2 sm:gap-3 pb-2 justify-center px-2">
+      <div className="flex gap-2 sm:gap-3 pb-2 px-4 sm:px-6 md:px-8 lg:justify-center">
         {productTypes?.map((category, index) => (
           <Button
             key={index}

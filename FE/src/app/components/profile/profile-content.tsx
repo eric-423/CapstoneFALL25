@@ -10,17 +10,24 @@ import { useAuth } from "@/utils/hooks";
 import { useCustomerOrders } from "@/utils/hooks/useCustomerOrders";
 import useDocumentTitle from "@/utils/hooks/useDocumentTitle";
 import useScrollTop from "@/utils/hooks/useScrollTop";
-
 import { Lock, ShoppingBag, User, Plus } from "lucide-react";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-
+import { useSearchParams } from "next/navigation";
 import OrderHistorySection from "./sections/order-history-section";
 import PasswordChangeSection from "./sections/password-change-section";
 import ProfileInfoSection from "./sections/profile-info-section";
 
 export default function ProfileContent() {
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState("profile");
+
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab && ["profile", "password", "orders"].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
   const { user, isLoading: isAuthLoading } = useAuth();
   const addAddressRef = useRef<(() => void) | null>(null);
   useDocumentTitle("Tấm Tắc | Thông tin cá nhân");
@@ -132,7 +139,7 @@ export default function ProfileContent() {
         </div>
         <div className="flex-1 bg-[#FFFCF7]">
           <div className="p-0 lg:p-2">
-            <div className="mb-6 flex flex-col gap-4 items-center text-center">
+            <div className="mb-6 flex flex-col gap-4 items-center text-center lg:flex-row lg:items-start lg:text-left lg:justify-between">
               <div>
                 <h1 className="text-3xl sm:text-4xl font-bold">
                   Thông tin cá nhân
@@ -148,7 +155,7 @@ export default function ProfileContent() {
                       addAddressRef.current();
                     }
                   }}
-                  className="bg-[#EC6426] hover:bg-[#C04A00] text-white text-base w-full sm:w-auto justify-center"
+                  className="bg-[#EC6426] hover:bg-[#C04A00] text-white text-base w-full sm:w-auto lg:w-auto justify-center mt-1"
                 >
                   <Plus className="h-5 w-5 mr-2" />
                   Thêm địa chỉ mới

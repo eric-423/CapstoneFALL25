@@ -18,7 +18,7 @@ import { Formik } from "formik";
 import ShareInput from "@/components/input/share.input";
 import { CustomerSignInSchema } from "@/utils/validate.schema";
 import { Link, router } from "expo-router";
-import { ForgotPassword, LoginCustomers } from "@/utils/api";
+import { ForgotPassword, LoginCustomers, SendOTP } from "@/utils/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Toast from "react-native-root-toast";
 
@@ -52,13 +52,42 @@ const WelcomePage = () => {
         }
       } catch (error: any) {
         setLoading(false);
-
         const errorMessage =
           error?.response?.data?.message ||
           error?.message ||
           "Đăng nhập thất bại. Vui lòng thử lại.";
-        setError(errorMessage);
-        setFogotPassword(true);
+        if (
+          errorMessage.includes("Số điện thoại chưa được xác thực") ||
+          errorMessage.includes("xác thực số điện thoại trước khi đăng nhập")
+        ) {
+          try {
+            await SendOTP("zalo", phoneNumber);
+            Toast.show("Đã gửi mã OTP xác thực", {
+              duration: Toast.durations.LONG,
+              textColor: "white",
+              backgroundColor: APP_COLOR.ORANGE,
+              opacity: 1,
+            });
+            router.replace({
+              pathname: "/(auth)/verify",
+              params: {
+                phoneNumber,
+                channel: "zalo",
+                password,
+              },
+            });
+          } catch (otpError: any) {
+            const otpErrorMessage =
+              otpError?.response?.data?.message ||
+              otpError?.message ||
+              "Không thể gửi mã OTP. Vui lòng thử lại.";
+            setError(otpErrorMessage);
+            setFogotPassword(true);
+          }
+        } else {
+          setError(errorMessage);
+          setFogotPassword(true);
+        }
       }
     },
     [setAppState]

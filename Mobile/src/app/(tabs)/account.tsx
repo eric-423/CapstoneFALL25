@@ -212,140 +212,186 @@ const AccountPage = () => {
             memberPoint={appState?.userInfo?.memberPoint || 0}
           />
         )}
-        <Pressable
-          onPress={() => router.navigate("/(user)/account/info")}
-          style={styles.btnStyle}
-        >
-          <View
-            style={{
-              flexDirection: "row",
-              gap: 10,
-              alignItems: "center",
-            }}
-          >
-            <Feather name="user-check" size={25} color={APP_COLOR.BROWN} />
-            <Text style={styles.btnText}>Cập nhật thông tin</Text>
-          </View>
-          <MaterialIcons
-            name="navigate-next"
-            size={24}
-            color={APP_COLOR.BROWN}
-          />
-        </Pressable>
+        {appState ? (
+          <View>
+            <Pressable
+              onPress={() => router.navigate("/(user)/account/info")}
+              style={styles.btnStyle}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  gap: 10,
+                  alignItems: "center",
+                }}
+              >
+                <Feather name="user-check" size={25} color={APP_COLOR.BROWN} />
+                <Text style={styles.btnText}>Cập nhật thông tin</Text>
+              </View>
+              <MaterialIcons
+                name="navigate-next"
+                size={24}
+                color={APP_COLOR.BROWN}
+              />
+            </Pressable>
 
-        <Pressable
-          onPress={() => router.navigate("/(user)/account/password")}
-          style={styles.btnStyle}
-        >
-          <View
-            style={{
-              flexDirection: "row",
-              gap: 10,
-              alignItems: "center",
-            }}
-          >
-            <MaterialIcons name="password" size={25} color={APP_COLOR.BROWN} />
-            <Text style={styles.btnText}>Thay đổi mật khẩu</Text>
-          </View>
-          <MaterialIcons
-            name="navigate-next"
-            size={24}
-            color={APP_COLOR.BROWN}
-          />
-        </Pressable>
-        <Pressable
-          onPress={() => router.navigate("/(auth)/voucher")}
-          style={styles.btnStyle}
-        >
-          <View
-            style={{
-              flexDirection: "row",
-              gap: 10,
-              alignItems: "center",
-            }}
-          >
-            <Feather name="gift" size={25} color={APP_COLOR.BROWN} />
-            <Text style={styles.btnText}>Ưu đãi của bạn</Text>
-          </View>
-          <MaterialIcons
-            name="navigate-next"
-            size={24}
-            color={APP_COLOR.BROWN}
-          />
-        </Pressable>
+            <Pressable
+              onPress={() => router.navigate("/(user)/account/password")}
+              style={styles.btnStyle}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  gap: 10,
+                  alignItems: "center",
+                }}
+              >
+                <MaterialIcons
+                  name="password"
+                  size={25}
+                  color={APP_COLOR.BROWN}
+                />
+                <Text style={styles.btnText}>Thay đổi mật khẩu</Text>
+              </View>
+              <MaterialIcons
+                name="navigate-next"
+                size={24}
+                color={APP_COLOR.BROWN}
+              />
+            </Pressable>
+            <Pressable
+              onPress={() => router.navigate("/(auth)/voucher")}
+              style={styles.btnStyle}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  gap: 10,
+                  alignItems: "center",
+                }}
+              >
+                <Feather name="gift" size={25} color={APP_COLOR.BROWN} />
+                <Text style={styles.btnText}>Ưu đãi của bạn</Text>
+              </View>
+              <MaterialIcons
+                name="navigate-next"
+                size={24}
+                color={APP_COLOR.BROWN}
+              />
+            </Pressable>
 
-        <Pressable
-          onPress={() => router.navigate("/(tabs)/order.history")}
-          style={styles.btnStyle}
-        >
-          <View
-            style={{
-              flexDirection: "row",
-              gap: 10,
-              alignItems: "center",
-            }}
-          >
-            <SimpleLineIcons name="handbag" size={24} color={APP_COLOR.BROWN} />
-            <Text style={styles.btnText}>Lịch sử đơn hàng</Text>
+            <Pressable
+              onPress={() => router.navigate("/(tabs)/order.history")}
+              style={styles.btnStyle}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  gap: 10,
+                  alignItems: "center",
+                }}
+              >
+                <SimpleLineIcons
+                  name="handbag"
+                  size={24}
+                  color={APP_COLOR.BROWN}
+                />
+                <Text style={styles.btnText}>Lịch sử đơn hàng</Text>
+              </View>
+              <MaterialIcons
+                name="navigate-next"
+                size={24}
+                color={APP_COLOR.BROWN}
+              />
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                if (appState) {
+                  handleLogout();
+                } else {
+                  Alert.alert("Lỗi", "Bạn chưa đăng nhập");
+                }
+              }}
+              style={[styles.btnStyle]}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  gap: 10,
+                  alignItems: "center",
+                }}
+              >
+                <MaterialIcons
+                  name="logout"
+                  size={25}
+                  color={APP_COLOR.BROWN}
+                />
+                <Text style={styles.btnText}>Đăng xuất</Text>
+              </View>
+              <MaterialIcons
+                name="navigate-next"
+                size={24}
+                color={APP_COLOR.BROWN}
+              />
+            </Pressable>
+            <Pressable
+              onPress={() =>
+                Alert.alert("App Tấm Tắc", "Ứng dụng Cơm Tấm Tắc ver 1.0.1")
+              }
+              style={[styles.btnStyle, , { marginBottom: 10 }]}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  gap: 10,
+                  alignItems: "center",
+                }}
+              >
+                <MaterialIcons
+                  name="info-outline"
+                  size={25}
+                  color={APP_COLOR.BROWN}
+                />
+                <Text style={styles.btnText}>Về ứng dụng</Text>
+              </View>
+              <MaterialIcons
+                name="navigate-next"
+                size={24}
+                color={APP_COLOR.BROWN}
+              />
+            </Pressable>
           </View>
-          <MaterialIcons
-            name="navigate-next"
-            size={24}
-            color={APP_COLOR.BROWN}
-          />
-        </Pressable>
-        <Pressable
-          onPress={() => {
-            if (appState) {
-              handleLogout();
-            } else {
-              Alert.alert("Lỗi", "Bạn chưa đăng nhập");
-            }
-          }}
-          style={[styles.btnStyle]}
-        >
-          <View
-            style={{
-              flexDirection: "row",
-              gap: 10,
-              alignItems: "center",
-            }}
-          >
-            <MaterialIcons name="logout" size={25} color={APP_COLOR.BROWN} />
-            <Text style={styles.btnText}>Đăng xuất</Text>
+        ) : (
+          <View>
+            <Pressable
+              onPress={() =>
+                Alert.alert("App Tấm Tắc", "Ứng dụng Cơm Tấm Tắc ver 1.0.1")
+              }
+              style={[styles.btnStyle, , { marginBottom: 10 }]}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  gap: 10,
+                  alignItems: "center",
+                }}
+              >
+                <MaterialIcons
+                  name="info-outline"
+                  size={25}
+                  color={APP_COLOR.BROWN}
+                />
+                <Text style={styles.btnText}>Về ứng dụng</Text>
+              </View>
+              <MaterialIcons
+                name="navigate-next"
+                size={24}
+                color={APP_COLOR.BROWN}
+              />
+            </Pressable>
+            <View style={{ height: 300 }}></View>
           </View>
-          <MaterialIcons
-            name="navigate-next"
-            size={24}
-            color={APP_COLOR.BROWN}
-          />
-        </Pressable>
-        <Pressable
-          onPress={() =>
-            Alert.alert("App Tấm Tắc", "Ứng dụng Cơm Tấm Tắc ver 1.0.6")
-          }
-          style={[styles.btnStyle, , { marginBottom: 10 }]}
-        >
-          <View
-            style={{
-              flexDirection: "row",
-              gap: 10,
-              alignItems: "center",
-            }}
-          >
-            <MaterialIcons
-              name="info-outline"
-              size={25}
-              color={APP_COLOR.BROWN}
-            />
-            <Text style={styles.btnText}>Về ứng dụng</Text>
-          </View>
-          <MaterialIcons
-            name="navigate-next"
-            size={24}
-            color={APP_COLOR.BROWN}
-          />
-        </Pressable>
+        )}
       </View>
       <View
         style={{
