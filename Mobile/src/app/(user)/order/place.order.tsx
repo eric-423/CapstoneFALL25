@@ -546,6 +546,8 @@ const PlaceOrderPage = () => {
                   mode: orderMode === "SHIPPING" ? "SHIPPING" : "PICKUP",
                   diningTableId: 0,
                   branchId: branchId,
+                  paymentMethodId: 2,
+                  paymentMethod: "Thanh toán online",
                 };
                 const res = await CreateOrder(payload);
                 if (res.data?.data?.paymentUrl) {

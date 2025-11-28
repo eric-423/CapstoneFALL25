@@ -67,6 +67,7 @@ interface IOrderDetails {
   soDienThoaiNguoiDatHo: string | null;
   certificationOfDelivered: string | null;
   order_delivery_at: string | null;
+  paymentUrl: string;
 }
 
 const mapApiOrderToState = (data: any): IOrderDetails => ({
@@ -104,17 +105,15 @@ const mapApiOrderToState = (data: any): IOrderDetails => ({
   soDienThoaiNguoiDatHo: data?.soDienThoaiNguoiDatHo ?? null,
   certificationOfDelivered: data?.certificationOfDelivered ?? null,
   order_delivery_at: data?.delivery_at ?? data?.deliveryAt ?? null,
+  paymentUrl: data?.paymentUrl ?? "",
 });
 
 const OrderDetailsPage = () => {
   const { id } = useLocalSearchParams();
-
   const [orderDetails, setOrderDetails] = useState<IOrderDetails>();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
   const orderIdParam = Array.isArray(id) ? id[0] : id;
-
   useEffect(() => {
     if (!orderIdParam) return;
     const fetchOrderDetails = async () => {
@@ -122,6 +121,7 @@ const OrderDetailsPage = () => {
         setIsLoading(true);
         setError(null);
         const response = await GetOrderById(Number(orderIdParam));
+        console.log(response.data.data);
         const data = response.data?.data || response.data;
         if (data) {
           setOrderDetails(mapApiOrderToState(data));
@@ -350,7 +350,9 @@ const OrderDetailsPage = () => {
                     styles.customerValue,
                     { color: APP_COLOR.ORANGE, fontFamily: FONTS.regular },
                   ]}
-                >{`(${orderDetails?.phone_number})`}</Text>
+                >
+                  {orderDetails?.phone_number}
+                </Text>
               </View>
               <View
                 style={{
@@ -470,6 +472,49 @@ const OrderDetailsPage = () => {
             </Text>
             <View style={{ flexDirection: "row" }}>
               <View style={styles.buttonContainer}>
+                {orderDetails?.status === "CREATED" && (
+                  <TouchableOpacity
+                    style={[
+                      styles.buttonFooter,
+                      { backgroundColor: APP_COLOR.ORANGE },
+                    ]}
+                    onPress={() => router.navigate("/(tabs)")}
+                  >
+                    <Text
+                      style={[styles.buttonText, { color: APP_COLOR.WHITE }]}
+                    >
+                      Thanh toán
+                    </Text>
+                  </TouchableOpacity>
+                )}
+                {orderDetails?.status === "SHIPPING" &&
+                  orderDetails?.orderId && (
+                    <TouchableOpacity
+                      style={[
+                        styles.buttonFooter,
+                        {
+                          backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
+                          borderWidth: 1,
+                          borderColor: APP_COLOR.BROWN,
+                        },
+                      ]}
+                      onPress={() =>
+                        router.navigate({
+                          pathname: "/(user)/order/track/[id]",
+                          params: { id: String(orderDetails.orderId) },
+                        })
+                      }
+                    >
+                      <Text
+                        style={[
+                          styles.buttonText,
+                          { color: APP_COLOR.BROWN, textAlign: "center" },
+                        ]}
+                      >
+                        Theo dõi đơn
+                      </Text>
+                    </TouchableOpacity>
+                  )}
                 <TouchableOpacity
                   style={[
                     styles.buttonFooter,

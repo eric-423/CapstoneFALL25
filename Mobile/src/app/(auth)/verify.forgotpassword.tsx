@@ -15,7 +15,7 @@ import Toast from "react-native-root-toast";
 import { FONTS } from "@/theme/typography";
 import logo from "@/assets/logo.png";
 import footerFrame from "@/assets/frame_footer.png";
-import { SendOTP, TTLOtp, VeryfyOTP } from "@/utils/api";
+import { SendOTP, TTLOtp, VerifyOTPForForgotPassword } from "@/utils/api";
 
 const styles = StyleSheet.create({
   container: {
@@ -106,7 +106,11 @@ const VerifyForgotPassword = () => {
     try {
       Keyboard.dismiss();
       setIsSubmit(true);
-      const verifyRes = await VeryfyOTP(channel, identifier, inputOtp);
+      const verifyRes = await VerifyOTPForForgotPassword(
+        channel,
+        identifier,
+        inputOtp
+      );
       setIsSubmit(false);
       if (verifyRes) {
         Toast.show("Xác thực mã OTP thành công", {

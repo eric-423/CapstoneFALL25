@@ -323,12 +323,6 @@ const TrackOrderPage = () => {
                 {routeError}
               </Text>
             )}
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Cập nhật</Text>
-              <Text style={styles.infoValue}>
-                {lastUpdated || "Chưa có tín hiệu"}
-              </Text>
-            </View>
           </>
         ) : (
           <View style={{ alignItems: "center" }}>

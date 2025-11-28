@@ -78,12 +78,12 @@ const VerifyPage = () => {
   const { setAppState } = useCurrentApp();
   useEffect(() => {
     if (typeof phoneNumber !== "string" || !phoneNumber) return;
-
     const channelStr = channel as string;
+
     const getCountdown = async () => {
       try {
         const res = await TTLOtp(channelStr, phoneNumber);
-        setCountdown(res?.data?.ttl ?? res?.data?.data ?? 0);
+        setCountdown(res?.data?.data ?? 0);
       } catch (err: any) {
         console.log(
           "TTL OTP error:",
@@ -98,6 +98,7 @@ const VerifyPage = () => {
     const intervalId = setInterval(() => {
       getCountdown();
     }, 1000);
+
     return () => {
       clearInterval(intervalId);
     };

@@ -74,6 +74,27 @@ export const VeryfyOTP = async (
   );
 };
 
+export const VerifyOTPForForgotPassword = async (
+  channel: string,
+  identifier: string,
+  inputOtp: string
+) => {
+  return axios.post(
+    `${BASE_URL}/auth/otp/verify-otp-forgot-password`,
+    {
+      channel,
+      identifier,
+      inputOtp,
+    },
+    {
+      headers: {
+        accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    }
+  );
+};
+
 export const LoginCustomers = async (phoneNumber: string, password: string) => {
   return axios.post(
     `${BASE_URL}/auth/customer/login`,
@@ -98,7 +119,7 @@ export const ForgotPassword = async (phoneNumber: string) => {
     },
     {
       headers: {
-        accept: "application/json",
+        accept: "*/*",
         "Content-Type": "application/json",
       },
     }
@@ -110,11 +131,20 @@ export const ChangePassword = async (
   phoneNumber: string,
   newPassword: string
 ) => {
-  return axios.post(`${BASE_URL}/auth/customer/reset-password`, {
-    otp,
-    phoneNumber,
-    newPassword,
-  });
+  return axios.post(
+    `${BASE_URL}/auth/customer/reset-password`,
+    {
+      otp,
+      phoneNumber,
+      newPassword,
+    },
+    {
+      headers: {
+        accept: "*/*",
+        "Content-Type": "application/json",
+      },
+    }
+  );
 };
 
 export const ReverseGeocodeGoogle = async (
@@ -347,6 +377,7 @@ export const CreateOrder = async (payload: {
   mode: string;
   diningTableId: number;
   branchId: number;
+  paymentMethodId: number;
 }) => {
   const token = await AsyncStorage.getItem("access_token");
   return axios.post(`${BASE_URL}/orders`, payload, {

@@ -80,14 +80,12 @@ const IconItem = ({ item }: any) => {
   };
   return (
     <TouchableOpacity style={styles.iconWrapper} onPress={handlePress}>
-      <TouchableOpacity style={styles.iconWrapper} onPress={handlePress}>
-        <View style={styles.iconCircle}>
-          <Image source={item.source} style={styles.iconImage} />
-        </View>
-        <Text style={styles.iconText} numberOfLines={1}>
-          {item.name}
-        </Text>
-      </TouchableOpacity>
+      <View style={styles.iconCircle}>
+        <Image source={item.source} style={styles.iconImage} />
+      </View>
+      <Text style={styles.iconText} numberOfLines={1}>
+        {item.name}
+      </Text>
     </TouchableOpacity>
   );
 };
@@ -133,7 +131,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   iconWrapper: {
-    marginHorizontal: 8,
+    paddingHorizontal: 5,
+    paddingVertical: 3,
+    marginHorizontal: 5,
     alignItems: "center",
     backgroundColor: APP_COLOR.WHITE,
     borderRadius: 50,

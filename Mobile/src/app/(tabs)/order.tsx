@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ScrollView, View, Text } from "react-native";
+import { ScrollView } from "react-native";
 import { APP_COLOR } from "@/utils/constant";
 import HeaderHome from "@/components/home/header.home";
 import TopListMenu from "@/components/menu/top.list.menu";
