@@ -38,6 +38,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
   },
   notificationWrapper: {
+    marginRight: 5,
     backgroundColor: APP_COLOR.BROWN,
     width: 50,
     height: 50,
@@ -235,7 +236,7 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
             <Entypo name="location-pin" size={50} color={APP_COLOR.BROWN} />
             {appState ? (
               <Pressable
-                style={{ width: "55%" }}
+                style={{ width: "70%" }}
                 onPress={() => router.navigate("/(user)/order/address.create")}
               >
                 <Text
@@ -257,7 +258,7 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
                 </Text>
               </Pressable>
             ) : (
-              <View style={{ width: "55%" }}>
+              <View style={{ width: "70%" }}>
                 <Text
                   style={{
                     fontFamily: FONTS.bold,
@@ -279,7 +280,11 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
             )}
 
             <View
-              style={{ alignItems: "flex-end", flexDirection: "row", gap: 10 }}
+              style={{
+                alignItems: "flex-start",
+                flexDirection: "row",
+                gap: 10,
+              }}
             >
               <Pressable
                 onPress={() => router.navigate("/(user)/order/cart")}
@@ -328,13 +333,6 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
                 >
                   {cart?.mock_restaurant_1?.quantity || 0}
                 </Text>
-              </View>
-              <View style={styles.notificationWrapper}>
-                <Ionicons
-                  name="notifications-outline"
-                  size={30}
-                  color={APP_COLOR.WHITE}
-                />
               </View>
             </View>
           </View>

@@ -28,6 +28,7 @@ interface IOrderHistoryCus {
   order_create_at: string;
   payment_method: string;
   status: string;
+  originalStatus: string;
   order_address: string;
   order_point_earn: number;
   order_amount: number;
@@ -92,6 +93,8 @@ const OrderPage = () => {
     CREATED: { text: "Chờ thanh toán", color: STATUS_COLORS.PENDING },
     PAID: { text: "Đã thanh toán", color: STATUS_COLORS.APPROVED },
     IN_PROCESS: { text: "Đã xác nhận", color: STATUS_COLORS.APPROVED },
+    APPROVED: { text: "Đã xác nhận", color: STATUS_COLORS.APPROVED },
+    PREPARING: { text: "Đang chuẩn bị", color: STATUS_COLORS.PREPARING },
     COOKING: { text: "Đang chuẩn bị", color: STATUS_COLORS.COOKING },
     COOKED: { text: "Đã nấu xong", color: STATUS_COLORS.COOKED },
     SHIPPING: { text: "Đang giao hàng", color: STATUS_COLORS.DELIVERING },
@@ -118,6 +121,7 @@ const OrderPage = () => {
             order_create_at: order.orderDate,
             payment_method: order.paymentMethod || "Không có dữ liệu",
             status: mapOrderStatus(order.orderStatus),
+            originalStatus: order.orderStatus,
             order_address: order.address,
             order_point_earn: order.pointEarned,
             order_amount: order.amount,
@@ -339,7 +343,7 @@ const OrderPage = () => {
                         </Text>
                       </View>
                       <View>
-                        <StatusBadge status={item.status} />
+                        <StatusBadge status={item.originalStatus} />
                         <View>
                           <View
                             style={{
@@ -485,7 +489,7 @@ const OrderPage = () => {
                         </Text>
                       </View>
                       <View>
-                        <StatusBadge status={item.status} />
+                        <StatusBadge status={item.originalStatus} />
                         <View>
                           <View
                             style={{
