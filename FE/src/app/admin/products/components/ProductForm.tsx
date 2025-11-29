@@ -54,6 +54,7 @@ import { getCookingMethods, CookingMethod } from '@/apis/cooking-method.api';
 import { getUnits, Unit } from '@/apis/unit.api';
 import { uploadMediaToSupabase } from '@/components/common/upFileToSupabase';
 import { ProductRecipeStepItem } from './ProductRecipeStepItem';
+import { useBodyScrollLock } from '../../components/useBodyScrollLock';
 
 const PRODUCT_BUCKET = process.env.NEXT_PUBLIC_SUPABASE_PRODUCT_BUCKET || 'images_t';
 
@@ -82,6 +83,7 @@ interface ProductFormProps {
 
 export function ProductForm({ open, onOpenChange, product, onSuccess }: ProductFormProps) {
     const [loading, setLoading] = useState(false);
+    useBodyScrollLock(open);
     const [productTypes, setProductTypes] = useState<ProductType[]>([]);
     const [materials, setMaterials] = useState<Material[]>([]);
     const [cookingMethods, setCookingMethods] = useState<CookingMethod[]>([]);

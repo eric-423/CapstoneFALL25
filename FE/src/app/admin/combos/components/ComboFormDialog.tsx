@@ -8,6 +8,8 @@ import { Card } from '@/components/ui/card';
 import { createCombo, updateCombo, type ComboDetail, type ComboItem, type CreateComboRequest, type UpdateComboRequest } from '@/apis/combo.api';
 import { searchProducts, type Product, type ProductSearchParams } from '@/apis/product.api';
 import { useAdminContext } from '@/utils/contexts/AdminContext';
+import { useBodyScrollLock } from '../../components/useBodyScrollLock';
+import { AdminSelect } from '../../components/AdminSelect';
 
 interface ComboFormDialogProps {
     open: boolean;
@@ -19,6 +21,7 @@ interface ComboFormDialogProps {
 export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboFormDialogProps) {
     const { branches } = useAdminContext();
     const [loading, setLoading] = useState(false);
+    useBodyScrollLock(open);
     const [products, setProducts] = useState<Product[]>([]);
     const [loadingProducts, setLoadingProducts] = useState(false);
 
@@ -248,18 +251,16 @@ export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboF
                                         Chi nhánh
                                         <span className="text-red-500">*</span>
                                     </label>
-                                    <select
-                                        value={branchId || ''}
-                                        onChange={(e) => setBranchId(parseInt(e.target.value))}
-                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-sm focus:border-[#78A243] focus:ring-2 focus:ring-[#78A243]/20 transition-all bg-white"
-                                    >
-                                        <option value="">Chọn chi nhánh</option>
-                                        {branches.map(branch => (
-                                            <option key={branch.id} value={branch.id}>
-                                                {branch.name}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <AdminSelect
+                                        value={branchId?.toString() || ''}
+                                        onValueChange={(value) => setBranchId(value ? parseInt(value) : null)}
+                                        placeholder="Chọn chi nhánh"
+                                        options={branches.map(branch => ({
+                                            value: branch.id.toString(),
+                                            label: branch.name,
+                                            subLabel: branch.address || undefined,
+                                        }))}
+                                    />
                                 </div>
 
                                 <div className="space-y-2">
@@ -370,17 +371,15 @@ export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboF
                                                     <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-3">
                                                         <div className="md:col-span-5 space-y-1">
                                                             <label className="text-xs font-bold text-gray-700">Sản phẩm</label>
-                                                            <select
-                                                                value={item.productId}
-                                                                onChange={(e) => handleItemChange(index, 'productId', parseInt(e.target.value))}
-                                                                className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg text-sm focus:border-[#78A243] focus:ring-2 focus:ring-[#78A243]/20 bg-white"
-                                                            >
-                                                                {products.map(product => (
-                                                                    <option key={product.productId} value={product.productId}>
-                                                                        {product.productName} - {product.productPrice.toLocaleString('vi-VN')}đ
-                                                                    </option>
-                                                                ))}
-                                                            </select>
+                                                            <AdminSelect
+                                                                value={item.productId.toString()}
+                                                                onValueChange={(value) => handleItemChange(index, 'productId', parseInt(value))}
+                                                                options={products.map(product => ({
+                                                                    value: product.productId.toString(),
+                                                                    label: product.productName,
+                                                                    subLabel: `${product.productPrice.toLocaleString('vi-VN')}đ`,
+                                                                }))}
+                                                            />
                                                         </div>
 
                                                         <div className="md:col-span-2 space-y-1">

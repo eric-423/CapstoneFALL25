@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { LessonDocument, CreateDocumentPayload } from "@/apis/trainning.api";
 import { useDocuments } from "./hook/useDocuments";
 import { toast } from "react-toastify";
+import { useBodyScrollLock } from "../../components/useBodyScrollLock";
 
 interface DocumentFormDialogProps {
   open: boolean;
@@ -36,6 +37,7 @@ export function DocumentFormDialog({
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  useBodyScrollLock(open);
 
   useEffect(() => {
     if (open && mode === "edit" && document) {

@@ -22,6 +22,7 @@ import { LessonListPanel } from "./LessonListPanel";
 import { LessonDetailPanel } from "./LessonDetailPanel";
 import { LessonFormDialog } from "./LessonFormDialog";
 import { useLessons, useLessonDetail } from "./hook/useLessons";
+import { useBodyScrollLock } from "../../components/useBodyScrollLock";
 
 interface TrainingDetailDialogProps {
     open: boolean;
@@ -51,6 +52,7 @@ export function TrainingDetailDialog({
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [trainingUsersCount, setTrainingUsersCount] = useState<number>(0);
+    useBodyScrollLock(open);
     const [lessonPanelView, setLessonPanelView] = useState<"list" | "detail">(
         "list"
     );

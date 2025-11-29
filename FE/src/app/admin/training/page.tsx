@@ -28,6 +28,7 @@ import {
   AssignUserDialog,
 } from "./components";
 import { useTrainingData } from "./components/hook/useTrainingData";
+import { useBodyScrollLock } from "../components/useBodyScrollLock";
 
 export default function TrainingPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -56,6 +57,7 @@ export default function TrainingPage() {
   const [selectedCourse, setSelectedCourse] = useState<TrainingCourse | null>(
     null
   );
+  useBodyScrollLock(detailDialogOpen || assignUserDialog.open || deleteDialog.open);
 
   const {
     filteredCourses: allFilteredCourses,

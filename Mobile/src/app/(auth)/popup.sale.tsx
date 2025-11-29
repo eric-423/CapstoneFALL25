@@ -35,7 +35,6 @@ export const PopupSale = ({ onClose }: { onClose: () => void }) => {
         >
           <View
             style={{
-              backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
               height: 26,
               width: 26,
               borderRadius: 26 / 2,

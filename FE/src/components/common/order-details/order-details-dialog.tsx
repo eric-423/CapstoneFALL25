@@ -56,7 +56,6 @@ export function OrderDetailsDialog({ order, open, onClose, isLoading = false }: 
         enabled: open && Boolean(order?.id),
     });
 
-    // Lock body scroll when dialog is open
     useEffect(() => {
         if (open) {
             document.body.style.overflow = 'hidden';

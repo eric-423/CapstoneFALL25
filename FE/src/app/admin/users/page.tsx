@@ -27,6 +27,7 @@ import { getRoles, type Role } from '@/apis/role.api';
 import { UserFormDialog } from './components/UserFormDialog';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { RolesManagementModal } from './components/RolesManagementModal';
+import { FilterDropdown } from '../components/FilterDropdown';
 import Link from 'next/link';
 import useAuth from '@/utils/hooks/useAuth';
 
@@ -258,33 +259,32 @@ export default function UsersManagementPage() {
                             className="w-full max-w-[200px] pl-10 pr-4 py-2 border bg-white/80 border-[#78A243]/30 rounded-lg text-sm focus:border-[#78A243] focus:ring-1 focus:ring-[#78A243]/20 outline-none"
                         />
                     </div>
-                    <select
+                    <FilterDropdown
+                        label="Chọn vai trò"
+                        title="Lọc theo vai trò"
                         value={roleFilter}
-                        onChange={(e) => {
-                            setRoleFilter(e.target.value);
+                        onChange={(value) => {
+                            setRoleFilter(value);
                             setCurrentPage(0);
                         }}
-                        className="px-3 py-2 border bg-white/80 border-[#78A243]/30 rounded-lg text-sm text-[#2D1E1A] focus:border-[#78A243] outline-none"
-                    >
-                        <option value="">Tất cả vai trò</option>
-                        {roles.map((role) => (
-                            <option key={role.id} value={role.name}>
-                                {role.name}
-                            </option>
-                        ))}
-                    </select>
-                    <select
+                        items={roles.map(role => ({
+                            value: role.name,
+                            label: role.name
+                        }))}
+                    />
+                    <FilterDropdown
+                        label="Chọn trạng thái"
+                        title="Lọc theo trạng thái"
                         value={statusFilter}
-                        onChange={(e) => {
-                            setStatusFilter(e.target.value);
+                        onChange={(value) => {
+                            setStatusFilter(value);
                             setCurrentPage(0);
                         }}
-                        className="px-3 py-2 border bg-white/80 border-[#78A243]/30 rounded-lg text-sm text-[#2D1E1A] focus:border-[#78A243] outline-none"
-                    >
-                        <option value="">Tất cả trạng thái</option>
-                        <option value="active">Hoạt động</option>
-                        <option value="inactive">Đã khóa</option>
-                    </select>
+                        items={[
+                            { value: 'active', label: 'Hoạt động' },
+                            { value: 'inactive', label: 'Đã khóa' }
+                        ]}
+                    />
 
                     {(searchKeyword || roleFilter || statusFilter) && (
                         <Button

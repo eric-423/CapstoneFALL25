@@ -24,6 +24,7 @@ import { AdminCard } from '../components/AdminCard';
 import { getBranchStatistics, activateBranch, deactivateBranch, type BranchStatistics, type BranchDetail } from '@/apis/branch.api';
 import { BranchFormDialog } from './components/BranchFormDialog';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
+import { FilterDropdown } from '../components/FilterDropdown';
 
 export default function BranchesManagementPage() {
     const [statistics, setStatistics] = useState<BranchStatistics | null>(null);
@@ -187,15 +188,17 @@ export default function BranchesManagementPage() {
                             className="w-full max-w-[300px] pl-10 pr-4 py-2 border bg-white/80 border-[#78A243]/30 rounded-lg text-sm focus:border-[#78A243] focus:ring-1 focus:ring-[#78A243]/20 outline-none"
                         />
                     </div>
-                    <select
+                    <FilterDropdown
+                        label="Tất cả trạng thái"
+                        title="Lọc theo trạng thái"
                         value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                        className="px-3 py-2 border bg-white/80 border-[#78A243]/30 rounded-lg text-sm text-[#2D1E1A] focus:border-[#78A243] outline-none"
-                    >
-                        <option value="">Tất cả trạng thái</option>
-                        <option value="active">Đang hoạt động</option>
-                        <option value="inactive">Ngừng hoạt động</option>
-                    </select>
+                        onChange={(value) => setStatusFilter(value)}
+                        items={[
+                            { value: "active", label: "Đang hoạt động" },
+                            { value: "inactive", label: "Ngừng hoạt động" }
+                        ]}
+                        className="w-[180px]"
+                    />
 
                     {(searchKeyword || statusFilter) && (
                         <Button

@@ -1,2 +1,1 @@
-export { OrderDetailsDialog } from './order-details-dialog';
-export { OrderDetailsDrawer } from './order-details-drawer';
+export { OrderDetailsContent } from "./order-details-content";

@@ -45,7 +45,6 @@ const AIScreen = () => {
   }, [loadUserData]);
   useEffect(() => {
     if (userId !== null && jwtToken !== null && !isReady) {
-      console.log("Dify - All data ready, setting isReady to true");
       setIsReady(true);
     }
   }, [userId, jwtToken, isReady]);
@@ -489,7 +488,9 @@ const AIScreen = () => {
         <View
           style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
         >
-          <Text style={{ color: APP_COLOR.BROWN }}>Đang tải...</Text>
+          <Text style={{ color: APP_COLOR.BROWN }}>
+            Vui lòng đăng nhập để sử dụng tính năng...
+          </Text>
         </View>
       </View>
     );

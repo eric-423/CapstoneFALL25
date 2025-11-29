@@ -24,6 +24,7 @@ import { AdminCard } from '../components/AdminCard';
 import { searchCombos, deleteCombo, getComboById, type Combo, type ComboSearchParams, type ComboDetail } from '@/apis/combo.api';
 import { useAdminContext } from '@/utils/contexts/AdminContext';
 import { ComboFormDialog } from './components/ComboFormDialog';
+import { FilterDropdown } from '../components/FilterDropdown';
 
 export default function CombosManagementPage() {
     const { branches } = useAdminContext();
@@ -143,6 +144,34 @@ export default function CombosManagementPage() {
         inactive: combos.filter(c => !c.active).length,
     };
 
+    const handleBranchChange = (value: string) => {
+        const branchId = value ? parseInt(value) : undefined;
+        setSelectedBranchId(branchId);
+        setApiParams({
+            ...apiParams,
+            page: 0,
+            branchId,
+            keyword: keyword || undefined,
+            isActive: activeFilter,
+            minPrice: minPrice ? parseFloat(minPrice) : undefined,
+            maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
+        });
+    };
+
+    const handleStatusChange = (value: string) => {
+        const nextStatus = value === '' ? undefined : value === 'true';
+        setActiveFilter(nextStatus);
+        setApiParams({
+            ...apiParams,
+            page: 0,
+            branchId: selectedBranchId,
+            keyword: keyword || undefined,
+            isActive: nextStatus,
+            minPrice: minPrice ? parseFloat(minPrice) : undefined,
+            maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
+        });
+    };
+
     const formatPrice = (price: number) => {
         return new Intl.NumberFormat('vi-VN', {
             style: 'currency',
@@ -225,54 +254,31 @@ export default function CombosManagementPage() {
 
                     {showFilters && (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 pt-3 border-t">
-                            <div>
-                                <label className="text-xs font-bold mb-1 block text-[#2D1E1A]">Chi nhánh</label>
-                                <select
-                                    value={selectedBranchId || ''}
-                                    onChange={(e) => {
-                                        const value = e.target.value ? parseInt(e.target.value) : undefined;
-                                        setSelectedBranchId(value);
-                                        setApiParams({
-                                            ...apiParams,
-                                            page: 0,
-                                            branchId: value,
-                                            keyword: keyword || undefined,
-                                            isActive: activeFilter,
-                                            minPrice: minPrice ? parseFloat(minPrice) : undefined,
-                                            maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
-                                        });
-                                    }}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                                >
-                                    <option value="">Tất cả</option>
-                                    {branches.map(branch => (
-                                        <option key={branch.id} value={branch.id}>{branch.name}</option>
-                                    ))}
-                                </select>
+                            <div className="flex flex-col gap-1">
+                                <label className="text-xs font-bold text-[#2D1E1A]">Chi nhánh</label>
+                                <FilterDropdown
+                                    label="Tất cả"
+                                    value={selectedBranchId?.toString() || ''}
+                                    onChange={handleBranchChange}
+                                    items={branches.map(branch => ({
+                                        value: branch.id.toString(),
+                                        label: branch.name
+                                    }))}
+                                    className="w-full"
+                                />
                             </div>
-                            <div>
-                                <label className="text-xs font-bold mb-1 block text-[#2D1E1A]">Trạng thái</label>
-                                <select
+                            <div className="flex flex-col gap-1">
+                                <label className="text-xs font-bold text-[#2D1E1A]">Trạng thái</label>
+                                <FilterDropdown
+                                    label="Tất cả"
                                     value={activeFilter === undefined ? '' : activeFilter.toString()}
-                                    onChange={(e) => {
-                                        const value = e.target.value === '' ? undefined : e.target.value === 'true';
-                                        setActiveFilter(value);
-                                        setApiParams({
-                                            ...apiParams,
-                                            page: 0,
-                                            branchId: selectedBranchId,
-                                            keyword: keyword || undefined,
-                                            isActive: value,
-                                            minPrice: minPrice ? parseFloat(minPrice) : undefined,
-                                            maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
-                                        });
-                                    }}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                                >
-                                    <option value="">Tất cả</option>
-                                    <option value="true">Hoạt động</option>
-                                    <option value="false">Ngừng hoạt động</option>
-                                </select>
+                                    onChange={handleStatusChange}
+                                    items={[
+                                        { value: 'true', label: 'Hoạt động' },
+                                        { value: 'false', label: 'Ngừng hoạt động' }
+                                    ]}
+                                    className="w-full"
+                                />
                             </div>
                             <div>
                                 <label className="text-xs font-bold mb-1 block text-[#2D1E1A]">Giá từ</label>
