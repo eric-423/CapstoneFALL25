@@ -273,6 +273,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/attendance/summary")
                         .hasAnyRole("ADMIN", "MANAGER")
 
+                        .requestMatchers("/api/cart-items/**").hasRole("CUSTOMER")
+
                         .anyRequest().authenticated());
 
         return http.build();

@@ -54,4 +54,8 @@ public class Combo {
     @OneToMany(mappedBy = "combo", fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE,
             CascadeType.REFRESH, CascadeType.DETACH })
     private List<OrderItem> orderItems;
+
+    @OneToMany(mappedBy = "combo", fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE,
+            CascadeType.REFRESH, CascadeType.DETACH })
+    private List<CartItem> cartItems;
 }
