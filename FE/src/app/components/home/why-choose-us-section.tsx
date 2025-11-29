@@ -36,7 +36,7 @@ const WhyChooseUsSection = () => {
     },
     {
       icon: Clock,
-      title: "Phục vụ từ 8:00 đến 20:00",
+      title: "Phục vụ 24/7",
       color: "bg-orange-200",
       iconColor: "text-orange-600",
     },

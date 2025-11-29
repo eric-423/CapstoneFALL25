@@ -2,13 +2,7 @@
 
 import { OrderCard } from "@/components/common/card";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
-import { OrderDetailsDialog } from "@/components/common/order-details";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -16,19 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  CustomerOrderDetailData,
-  OrderResponse,
-  getCustomerOrderDetail,
-} from "@/apis/order.api";
+import { OrderResponse } from "@/apis/order.api";
 import { CustomerOrderStatusUpdate } from "@/utils/hooks/useCustomerOrderSocket";
 import { CustomerOrderStatus } from "@/utils/hooks/useCustomerOrders";
 
-
 import { ShoppingBag } from "lucide-react";
-import { useEffect, useState } from "react";
-import { flushSync } from "react-dom";
-import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
 
 interface OrderHistorySectionProps {
   orders: OrderResponse[];
@@ -61,59 +48,14 @@ export default function OrderHistorySection({
   statusFilter,
   onStatusChange,
 }: OrderHistorySectionProps) {
-  const [selectedOrder, setSelectedOrder] = useState<OrderResponse | null>(
-    null
-  );
-  const [selectedOrderDetail, setSelectedOrderDetail] =
-    useState<OrderResponse | null>(null);
-  const [isDetailLoading, setIsDetailLoading] = useState(false);
+  const router = useRouter();
   const latestRealtimeTimestamp = lastRealtimeUpdate?.timestamp
     ? new Date(lastRealtimeUpdate.timestamp)
     : null;
 
-  const handleOrderClick = async (order: OrderResponse) => {
-    flushSync(() => {
-      setSelectedOrder(order);
-      setSelectedOrderDetail(null);
-      setIsDetailLoading(true);
-    });
-
-    try {
-      const response = await getCustomerOrderDetail(order.id);
-      if (response?.data) {
-        const detailOrder = mapCustomerOrderDetail(response.data, order);
-        setSelectedOrderDetail(detailOrder);
-      } else {
-        setSelectedOrderDetail(order);
-      }
-    } catch (error) {
-      console.error("Failed to fetch order detail", error);
-      toast.error("Không thể tải chi tiết đơn hàng. Vui lòng thử lại.");
-      setSelectedOrderDetail(order);
-    } finally {
-      setIsDetailLoading(false);
-    }
+  const handleOrderClick = (order: OrderResponse) => {
+    router.push(`/profile/orders/${order.id}`);
   };
-
-  const handleCloseDialog = () => {
-    setSelectedOrder(null);
-    setSelectedOrderDetail(null);
-    setIsDetailLoading(false);
-  };
-
-  useEffect(() => {
-    if (!selectedOrder) return;
-    const updatedOrder = orders.find((order) => order.id === selectedOrder.id);
-
-    if (!updatedOrder) {
-      setSelectedOrder(null);
-      return;
-    }
-
-    if (updatedOrder !== selectedOrder) {
-      setSelectedOrder(updatedOrder);
-    }
-  }, [orders, selectedOrder]);
 
   const getStatusLabel = (value: CustomerOrderStatus) => {
     const status = ORDER_STATUS_FILTERS.find((s) => s.value === value);
@@ -210,95 +152,6 @@ export default function OrderHistorySection({
           </>
         )}
       </Card>
-
-      {selectedOrder && (
-        <OrderDetailsDialog
-          order={selectedOrderDetail ?? selectedOrder}
-          open={true}
-          onClose={handleCloseDialog}
-          isLoading={isDetailLoading && !selectedOrderDetail}
-        />
-      )}
     </div>
   );
 }
-
-const mapCustomerOrderDetail = (
-  detail: CustomerOrderDetailData,
-  fallback?: OrderResponse
-): OrderResponse => {
-  const fallbackExtended =
-    (fallback as OrderResponse & { table?: boolean; pickUp?: boolean; itemCount?: number }) ||
-    undefined;
-
-  const detailItems =
-    detail.orderItems?.map((item) => ({
-      productId: item.productId,
-      productName: item.productName,
-      quantity: item.quantity,
-      note: item.note ?? "",
-      price: item.price,
-      feedback: item.feedback ?? undefined,
-    })) ?? fallback?.items ?? [];
-
-  const computedTotalItems = detailItems.reduce(
-    (sum, item) => sum + (item.quantity ?? 0),
-    0
-  );
-
-  const mergedBase: OrderResponse = {
-    id: detail.id ?? fallback?.id ?? 0,
-    date: detail.createdAt ? new Date(detail.createdAt) : fallback?.date ?? new Date(),
-    restaurant: fallback?.restaurant ?? "",
-    items: detailItems,
-    totalItems:
-      Number.isFinite(computedTotalItems) && computedTotalItems >= 0
-        ? computedTotalItems
-        : fallback?.totalItems ?? detailItems.length,
-    subTotal: detail.subTotal ?? fallback?.subTotal ?? 0,
-    orderStatus: detail.orderStatus ?? detail.status ?? fallback?.orderStatus ?? "",
-    paymentStatus: detail.status ?? fallback?.paymentStatus ?? "",
-    customerName:
-      detail.customerName ??
-      detail.customerDTO?.fullName ??
-      fallback?.customerName ??
-      "",
-    customerPhone: detail.phone ?? detail.customerDTO?.phone ?? fallback?.customerPhone ?? "",
-    address: detail.address ?? fallback?.address ?? null,
-    branchName: detail.branchName ?? fallback?.branchName,
-    branchAddress: detail.branchAddress ?? fallback?.branchAddress,
-    shippingFee:
-      typeof detail.shippingFee === "number" ? detail.shippingFee : fallback?.shippingFee,
-    discountValue:
-      detail.discountValue ??
-      (typeof detail.discountPercent === "number" ? detail.discountPercent : undefined) ??
-      fallback?.discountValue,
-    amount: typeof detail.amount === "number" ? detail.amount : fallback?.amount,
-    promotionCode: detail.promotionCode ?? fallback?.promotionCode ?? undefined,
-    pointUsed:
-      typeof detail.pointUsed === "number" ? detail.pointUsed : fallback?.pointUsed,
-    pointEarned:
-      typeof detail.pointEarned === "number" ? detail.pointEarned : fallback?.pointEarned,
-    shipperName: detail.shipperName ?? fallback?.shipperName,
-    waiterName: detail.waiterName ?? fallback?.waiterName,
-    chefName: detail.chefName ?? fallback?.chefName,
-    pickupTime: detail.pickupTime ?? fallback?.pickupTime ?? "",
-    payment_code: detail.payment_code ?? fallback?.payment_code,
-    orderDate: detail.createdAt ?? fallback?.orderDate,
-    paymentTime: fallback?.paymentTime ?? null,
-    deliveryAt: detail.delivery_at ?? detail.deliveryAt ?? fallback?.deliveryAt ?? null,
-  };
-
-  const extended = mergedBase as OrderResponse & {
-    table?: boolean;
-    pickUp?: boolean;
-    itemCount?: number;
-  };
-
-  extended.table = detail.isTable ?? fallbackExtended?.table;
-  extended.pickUp = detail.isPickUp ?? fallbackExtended?.pickUp;
-  extended.itemCount =
-    detail.orderItems?.length ?? fallbackExtended?.itemCount ?? extended.totalItems;
-
-  return extended;
-};

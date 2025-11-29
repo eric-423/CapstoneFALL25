@@ -1171,10 +1171,10 @@ export default function CheckoutPage() {
                   </CardContent>
                   <CardContent className="space-y-4">
                     <div className="flex items-center gap-2">
-                      <Store className="h-5 w-5 text-primary" />
-                      <CardTitle className="text-lg m-0">
-                        Chi nhánh phục vụ
-                      </CardTitle>
+                      <CheckoutSection
+                        title="Chi nhánh phục vụ"
+                        icon={<Store className="h-5 w-5 text-primary" />}
+                      ></CheckoutSection>
                     </div>
                     {isBranchesLoading ? (
                       <div className="flex items-center text-sm text-muted-foreground">
