@@ -9,6 +9,8 @@ export async function PUT(
 ) {
     try {
         const { orderId } = await params;
+        const body = await request.json().catch(() => null);
+
         const cookieStore = await cookies();
         const token = cookieStore.get('token')?.value;
 
@@ -22,6 +24,15 @@ export async function PUT(
         const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
         const url = `${baseUrl}/orders/cheff/cooked/${orderId}`;
 
+        let requestBody: number[] | null = null;
+        if (body) {
+            if (Array.isArray(body)) {
+                requestBody = body;
+            } else if (typeof body === 'object' && body !== null && 'orderItemIds' in body && Array.isArray(body.orderItemIds)) {
+                requestBody = body.orderItemIds;
+            }
+        }
+
         const response = await fetch(url, {
             method: 'PUT',
             headers: {
@@ -29,6 +40,7 @@ export async function PUT(
                 'Authorization': `Bearer ${token}`,
                 'accept': '*/*',
             },
+            body: requestBody ? JSON.stringify(requestBody) : undefined,
             cache: 'no-store',
         });
 
@@ -40,7 +52,7 @@ export async function PUT(
             } catch {
                 errorData = { error: errorText || 'Unknown error', status: response.status };
             }
-            
+
             return NextResponse.json(
                 {
                     error: errorData.error || errorData.message || 'Failed to mark order as cooked',
@@ -55,7 +67,7 @@ export async function PUT(
         let data;
         try {
             data = responseText ? JSON.parse(responseText) : { success: true };
-        } catch (parseError) {
+        } catch {
             data = { success: true };
         }
 
@@ -63,7 +75,7 @@ export async function PUT(
     } catch (error) {
         console.error('Mark Order as Cooked API Error:', error);
         return NextResponse.json(
-            { 
+            {
                 error: error instanceof Error ? error.message : 'Failed to mark order as cooked',
                 type: 'UnexpectedError'
             },

@@ -5,13 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Clock, CheckCircle, ChefHat, Loader2, AlertCircle } from 'lucide-react';
-import { getChefOrders, markOrderAsCooked, BranchOrderResponse } from '@/apis/order.api';
+import { getChefOrders, markOrderAsCooked, ChefOrderResponse } from '@/apis/order.api';
 import { useAuthContext } from '@/utils/contexts/AuthContext';
 import WaitingLayout from './components/WaitingLayout';
 
 export default function ChefPage() {
     const { user } = useAuthContext();
-    const [orders, setOrders] = useState<BranchOrderResponse[]>([]);
+    const [orders, setOrders] = useState<ChefOrderResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [completedItems, setCompletedItems] = useState<number[]>([]);
@@ -29,21 +29,15 @@ export default function ChefPage() {
                 setError(null);
 
                 const chefId = user.id;
-                console.log('🔄 [Chef Page] Fetching orders for chef:', chefId, 'with status: COOKING');
                 const response = await getChefOrders(chefId, 'COOKING');
-                console.log('📥 [Chef Page] Response received:', response);
 
                 if (response.status === 0 && response.data) {
-                    console.log('✅ [Chef Page] Orders fetched successfully:', response.data.length);
                     setOrders(response.data);
                 } else {
                     const errorMsg = response.desc || 'Không thể tải danh sách đơn hàng';
-                    console.error('❌ [Chef Page] API returned error:', response);
                     setError(errorMsg);
                 }
             } catch (err) {
-                console.error('💥 [Chef Page] Error fetching orders:', err);
-
                 const error = err as Error & { response?: { data?: { error?: string; details?: { error?: string; userRole?: string }; status?: number; userRole?: string }; status?: number } };
 
                 if (error.response?.data) {
@@ -74,7 +68,9 @@ export default function ChefPage() {
         return () => clearInterval(interval);
     }, [user?.id]);
 
-    const handleMarkAsCompleted = async (orderId: number) => {
+
+
+    const handleMarkAsCompleted = async (orderId: number, orderItemId: number[]) => {
         if (completedItems.includes(orderId)) {
             return;
         }
@@ -82,31 +78,26 @@ export default function ChefPage() {
         setCompletedItems(prev => [...prev, orderId]);
 
         try {
-            const result = await markOrderAsCooked(orderId);
+            const result = await markOrderAsCooked(orderId, orderItemId);
 
             if (result.success) {
                 setTimeout(() => {
-                    setOrders(prev => prev.filter(order => order.id !== orderId));
+                    setOrders(prev => prev.filter(order => order.orderId !== orderId));
                     setCompletedItems(prev => prev.filter(id => id !== orderId));
                 }, 1000);
             } else {
                 setCompletedItems(prev => prev.filter(id => id !== orderId));
-                alert('Không thể cập nhật trạng thái đơn hàng');
             }
         } catch (error) {
-            console.error('Error marking order as cooked:', error);
+            console.log('Error marking order as cooked:', error);
             setCompletedItems(prev => prev.filter(id => id !== orderId));
-
-            const errorObj = error as Error & { response?: { data?: { error?: string; status?: number } } };
-            const errorMessage = errorObj.response?.data?.error || 'Có lỗi xảy ra khi cập nhật trạng thái đơn hàng';
-            alert(errorMessage);
         }
     };
 
-    const getTimeRemaining = (orderDate: string) => {
-        const orderDateTime = new Date(orderDate);
+    const getTimeRemaining = (confirmAt: string) => {
+        const confirmDateTime = new Date(confirmAt);
         const now = new Date();
-        const diffMinutes = Math.ceil((now.getTime() - orderDateTime.getTime()) / 60000);
+        const diffMinutes = Math.ceil((now.getTime() - confirmDateTime.getTime()) / 60000);
 
         if (diffMinutes <= 0) {
             return 'Vừa đặt';
@@ -131,10 +122,16 @@ export default function ChefPage() {
         });
     };
 
-    const sortByDate = (orders: BranchOrderResponse[]) => {
+    const sortByDate = (orders: ChefOrderResponse[]) => {
         return [...orders].sort((a, b) => {
-            return new Date(a.orderDate).getTime() - new Date(b.orderDate).getTime();
+            const aDate = a.orderItems[0]?.confirmAt || '';
+            const bDate = b.orderItems[0]?.confirmAt || '';
+            return new Date(aDate).getTime() - new Date(bDate).getTime();
         });
+    };
+
+    const getTotalAmount = (order: ChefOrderResponse) => {
+        return order.orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     };
 
     return (
@@ -194,92 +191,143 @@ export default function ChefPage() {
                         </Card>
                     ) : (
                         <div className='grid gap-4'>
-                            {sortByDate(orders).map((order) => (
-                                <Card key={order.id} className={`transition-all duration-200 hover:shadow-md ${completedItems.includes(order.id) ? 'opacity-50' : ''
-                                    }`}>
-                                    <CardContent className='p-6'>
-                                        <div className='flex items-center justify-between'>
-                                            <div className='flex-1'>
-                                                <div className='flex items-center gap-3 mb-2'>
-                                                    <h3 className='text-lg font-semibold text-gray-800'>
-                                                        Đơn hàng #{order.id}
-                                                    </h3>
-                                                    <Badge className='bg-orange-50 text-orange-700 border-orange-200'>
-                                                        Đang nấu
-                                                    </Badge>
-                                                    <span className='text-sm text-gray-500'>
-                                                        {order.itemCount} món
-                                                    </span>
+                            {sortByDate(orders).map((order) => {
+                                const firstItem = order.orderItems[0];
+                                const totalAmount = getTotalAmount(order);
+                                const totalItems = order.orderItems.reduce((sum, item) => sum + item.quantity, 0);
+
+                                return (
+                                    <Card key={order.orderId} className={`transition-all duration-200 hover:shadow-md ${completedItems.includes(order.orderId) ? 'opacity-50' : ''
+                                        }`}>
+                                        <CardContent className='p-6'>
+                                            <div className='flex flex-col gap-3'>
+                                                <div className='flex items-start justify-between'>
+                                                    <div>
+                                                        <div className='flex items-center gap-3 mb-2'>
+                                                            <h3 className='text-lg font-semibold text-gray-800'>
+                                                                Đơn hàng #{order.orderId}
+                                                            </h3>
+                                                            <Badge className='bg-orange-50 text-orange-700 border-orange-200'>
+                                                                Đang nấu
+                                                            </Badge>
+                                                            <span className='text-sm text-gray-500'>
+                                                                {totalItems} món
+                                                            </span>
+                                                        </div>
+                                                        {firstItem && (
+                                                            <div className='mb-1'>
+                                                                <span className='font-medium text-sm text-gray-600'>Xác nhận lúc:</span>
+                                                                <span className='ml-2 text-sm text-gray-700'>
+                                                                    {formatDate(firstItem.confirmAt)}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    <Button
+                                                        onClick={() => handleMarkAsCompleted(order.orderId, order.orderItems.map(item => item.orderItemId))}
+                                                        disabled={completedItems.includes(order.orderId)}
+                                                        className={`px-4 py-2 ${completedItems.includes(order.orderId)
+                                                            ? 'bg-gray-400 cursor-not-allowed'
+                                                            : 'bg-green-600 hover:bg-green-700'
+                                                            } text-white font-medium whitespace-nowrap`}
+                                                    >
+                                                        {completedItems.includes(order.orderId) ? (
+                                                            <>
+                                                                <CheckCircle className='h-4 w-4 mr-2' />
+                                                                Đang xử lý...
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <CheckCircle className='h-4 w-4 mr-2' />
+                                                                Hoàn thành hết
+                                                            </>
+                                                        )}
+                                                    </Button>
                                                 </div>
 
-                                                <div className='grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600 mb-3'>
-                                                    <div>
-                                                        <span className='font-medium'>Khách hàng:</span> {order.customerName}
-                                                    </div>
-                                                    <div>
-                                                        <span className='font-medium'>SĐT:</span> {order.customerPhone}
-                                                    </div>
-                                                    <div>
-                                                        <span className='font-medium'>Đặt lúc:</span> {formatDate(order.orderDate)}
+                                                <div className='mb-4 space-y-2'>
+                                                    <p className='text-sm font-medium text-gray-700'>Danh sách món:</p>
+                                                    <div className='space-y-2'>
+                                                        {order.orderItems.map((item, index) => (
+                                                            <div key={index} className='flex items-start gap-3 p-3 bg-gray-50 rounded-lg'>
+                                                                {item.productImg && (
+                                                                    <img
+                                                                        src={item.productImg}
+                                                                        alt={item.productName}
+                                                                        className='w-16 h-16 object-cover rounded'
+                                                                    />
+                                                                )}
+                                                                <div className='flex-1'>
+                                                                    <div className='flex items-center justify-between gap-4'>
+                                                                        <p className='font-medium text-gray-800'>
+                                                                            {item.productName}
+                                                                        </p>
+                                                                        <div className='flex items-center gap-3'>
+                                                                            <p className='text-sm text-gray-600'>
+                                                                                {item.price.toLocaleString('vi-VN')} đ × {item.quantity}
+                                                                            </p>
+
+                                                                            {
+                                                                                item.isCooked ? (
+                                                                                    <Badge className='bg-gray-100 text-green-800 border-green-200'>Đã hoàn thành</Badge>
+                                                                                ) : (
+                                                                                    <Button
+                                                                                        size='sm'
+                                                                                        className='bg-green-600 hover:bg-green-700 text-white whitespace-nowrap'
+                                                                                        onClick={() => handleMarkAsCompleted(order.orderId, [item.orderItemId])}
+                                                                                    >
+                                                                                        Hoàn thành
+                                                                                    </Button>
+                                                                                )
+                                                                            }
+
+
+
+                                                                        </div>
+                                                                    </div>
+                                                                    {item.note && (
+                                                                        <p className='text-xs text-gray-500 mt-1'>
+                                                                            Ghi chú: {item.note}
+                                                                        </p>
+                                                                    )}
+                                                                    {item.comboDTO && (
+                                                                        <Badge className='mt-1 bg-blue-50 text-blue-700 border-blue-200 text-xs'>
+                                                                            Combo
+                                                                        </Badge>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        ))}
                                                     </div>
                                                 </div>
 
-                                                {order.address && (
-                                                    <div className='mb-2'>
-                                                        <span className='font-medium text-sm text-gray-600'>Địa chỉ:</span>
-                                                        <p className='text-sm text-gray-700 bg-gray-50 p-2 rounded mt-1'>
-                                                            {order.address}
-                                                        </p>
-                                                    </div>
-                                                )}
-
-                                                <div className='mt-3 flex items-center gap-4'>
-                                                    <div className='flex items-center text-sm'>
-                                                        <Clock className='h-4 w-4 text-orange-500 mr-1' />
-                                                        <span className='text-gray-600'>Thời gian đã qua:</span>
-                                                        <span className='ml-1 font-medium text-orange-600'>
-                                                            {getTimeRemaining(order.orderDate)}
-                                                        </span>
-                                                    </div>
+                                                <div className='mt-1 flex items-center gap-4'>
+                                                    {firstItem && (
+                                                        <div className='flex items-center text-sm'>
+                                                            <Clock className='h-4 w-4 text-orange-500 mr-1' />
+                                                            <span className='text-gray-600'>Thời gian đã qua:</span>
+                                                            <span className='ml-1 font-medium text-orange-600'>
+                                                                {getTimeRemaining(firstItem.confirmAt)}
+                                                            </span>
+                                                        </div>
+                                                    )}
                                                     <div className='flex items-center text-sm'>
                                                         <span className='text-gray-600'>Tổng tiền:</span>
                                                         <span className='ml-1 font-medium text-green-600'>
-                                                            {order.amount.toLocaleString('vi-VN')} đ
+                                                            {totalAmount.toLocaleString('vi-VN')} đ
                                                         </span>
                                                     </div>
                                                 </div>
                                             </div>
-
-                                            <div className='ml-6'>
-                                                <Button
-                                                    onClick={() => handleMarkAsCompleted(order.id)}
-                                                    disabled={completedItems.includes(order.id)}
-                                                    className={`px-6 py-2 ${completedItems.includes(order.id)
-                                                        ? 'bg-gray-400 cursor-not-allowed'
-                                                        : 'bg-green-600 hover:bg-green-700'
-                                                        } text-white font-medium`}
-                                                >
-                                                    {completedItems.includes(order.id) ? (
-                                                        <>
-                                                            <CheckCircle className='h-4 w-4 mr-2' />
-                                                            Đang xử lý...
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <CheckCircle className='h-4 w-4 mr-2' />
-                                                            Xác nhận hoàn thành
-                                                        </>
-                                                    )}
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ))}
+                                        </CardContent>
+                                    </Card>
+                                );
+                            })}
                         </div>
                     )}
                 </div>
             </div>
-        </WaitingLayout>
+        </WaitingLayout >
     );
 }
