@@ -279,7 +279,6 @@ export function OrderDetailsDrawer({ order, open, onClose, isLoading = false }: 
                 {['SHIPPING', 'DELIVERING', 'IN_DELIVERY'].includes(normalizedStatus) && (
                   <OrderLiveTrackingCard
                     orderId={order.id}
-                    initialStatus={order.orderStatus}
                     destinationAddress={order.address}
                   />
                 )}

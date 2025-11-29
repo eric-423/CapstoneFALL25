@@ -30,15 +30,30 @@ export function AddToCartDrawer({ open, onOpenChange, product }: AddToCartDrawer
 
   const handleAddToCart = () => {
     const isCombo = 'isCombo' in product && product.isCombo;
-    const cartItem = {
+    const cartItem: {
+      productId: number;
+      productName: string;
+      productPrice: number;
+      quantity: number;
+      note: string;
+      comboId?: number;
+      isCombo?: boolean;
+    } = {
       productId: isCombo ? 0 : product.productId,
       productName: product.productName,
       productPrice: product.productPrice,
       quantity: mainQuantity,
       note: notes,
-      ...(isCombo && 'comboId' in product && product.comboId ? { comboId: product.comboId } : {}),
-      ...(isCombo ? { isCombo: true } : {}),
     };
+    
+    if (isCombo && 'comboId' in product && product.comboId && typeof product.comboId === 'number') {
+      cartItem.comboId = product.comboId;
+    }
+    
+    if (isCombo) {
+      cartItem.isCombo = true;
+    }
+    
     addItem(cartItem);
     onOpenChange(false);
   };
