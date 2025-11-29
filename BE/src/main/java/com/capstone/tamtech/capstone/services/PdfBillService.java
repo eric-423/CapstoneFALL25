@@ -109,7 +109,6 @@ public class PdfBillService {
         }
 
         addInfoRow(infoTable, "Loại đơn:", order.isPickUp() ? "Tại quán" : "Giao hàng");
-        addInfoRow(infoTable, "Trạng thái:", order.getStatus().getName());
 
         document.add(infoTable);
 
@@ -186,8 +185,8 @@ public class PdfBillService {
         byte[] qrCodeBytes = qrCodeService.generateOrderQRCode(order.getId());
         Image qrCodeImage = new Image(ImageDataFactory.create(qrCodeBytes));
         qrCodeImage.setHorizontalAlignment(com.itextpdf.layout.properties.HorizontalAlignment.CENTER);
-        qrCodeImage.setWidth(150);
-        qrCodeImage.setHeight(150);
+        qrCodeImage.setWidth(100);
+        qrCodeImage.setHeight(100);
         document.add(qrCodeImage);
 
         document.add(new Paragraph("Cảm ơn quý khách đã sử dụng dịch vụ!")
