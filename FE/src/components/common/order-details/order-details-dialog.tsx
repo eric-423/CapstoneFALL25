@@ -35,10 +35,10 @@ import {
 
 import { useEffect } from 'react';
 
-import { CancelOrderDialog } from '../cancel-order';
 import { LoadingSpinner } from '../loading-spinner';
 import OrderProgressTracker from '../order-progress-tracker';
 import OrderLiveTrackingCard from '../order-live-tracking-card';
+import { toast } from 'react-toastify';
 
 interface OrderDetailsDialogProps {
     order: OrderResponse;
@@ -68,19 +68,18 @@ export function OrderDetailsDialog({ order, open, onClose, isLoading = false }: 
         };
     }, [open]);
 
-    const withdrawable = ['UNPAID', 'CREATED', 'VERIFIED'];
     const normalizedStatus = order?.orderStatus?.toUpperCase?.() || '';
     const extendedOrder = order as OrderResponse & {
-        table?: boolean;
-        pickUp?: boolean;
+        isTable?: boolean;
+        isPickUp?: boolean;
         itemCount?: number;
     };
     const orderItems = Array.isArray(order?.items) ? order.items : [];
     const totalItemQuantity = orderItems.reduce((sum, item) => sum + (item.quantity ?? 0), 0);
     const orderTypeBadges = [
-        extendedOrder.table ? { label: 'Dùng tại bàn', color: 'bg-blue-50 text-blue-700 border-blue-200' } : null,
-        extendedOrder.pickUp ? { label: 'Tự đến lấy', color: 'bg-purple-50 text-purple-700 border-purple-200' } : null,
-        !extendedOrder.table && !extendedOrder.pickUp ? { label: 'Giao tận nơi', color: 'bg-green-50 text-green-700 border-green-200' } : null,
+        extendedOrder.isTable ? { label: 'Dùng tại bàn', color: 'bg-blue-50 text-blue-700 border-blue-200' } : null,
+        extendedOrder.isPickUp ? { label: 'Giao tận nơi', color: 'bg-purple-50 text-purple-700 border-purple-200' } : null,
+        // !extendedOrder.isTable && !extendedOrder.isPickUp ? { label: 'Giao tận nơi', color: 'bg-green-50 text-green-700 border-green-200' } : null,
     ].filter(Boolean) as { label: string; color: string }[];
     const recordedItemsCount =
         extendedOrder.totalItems ??
@@ -113,13 +112,22 @@ export function OrderDetailsDialog({ order, open, onClose, isLoading = false }: 
 
 
     const redirectToPayment = () => {
-        window.location.href = `https://pay.payos.vn/web/${order.payment_code}`;
+        window.location.href = order.paymentUrl ?? '';
+        if (!order.paymentUrl) {
+            toast.error('Lỗi khi chuyển đến thanh toán');
+            return;
+        }
     };
 
 
-    const handleCancelledOrder = () => {
-        onClose();
+    const redirectToBill = () => {
+        window.location.href = order.billPdfUrl ?? '';
+        if (!order.billPdfUrl) {
+            toast.error('Lỗi khi chuyển đến hóa đơn điện tử');
+            return;
+        }
     };
+
 
     if (!order) return null;
 
@@ -177,11 +185,9 @@ export function OrderDetailsDialog({ order, open, onClose, isLoading = false }: 
                             </DialogHeader>
 
                             <div className='space-y-6'>
-                                {/* Order information */}
                                 <Card className='border-none shadow-none bg-transparent p-0'>
                                     <CardContent className='p-4 py-2'>
                                         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-                                            {/* Basic Info */}
                                             <div className='space-y-3'>
                                                 <div className='flex items-start'>
                                                     <Hash className='h-4 w-4 mr-2 text-primary mt-0.5' />
@@ -349,8 +355,8 @@ export function OrderDetailsDialog({ order, open, onClose, isLoading = false }: 
                                                     const displayPrice = isCombo && item.comboDTO ? item.comboDTO.price : item.price;
 
                                                     return (
-                                                        <div 
-                                                            key={`${isCombo ? 'combo' : 'product'}-${item.productId}-${index}`} 
+                                                        <div
+                                                            key={`${isCombo ? 'combo' : 'product'}-${item.productId}-${index}`}
                                                             className='py-4 px-5 border-b border-gray-200'
                                                         >
                                                             <div className='flex justify-between items-start gap-4'>
@@ -471,21 +477,22 @@ export function OrderDetailsDialog({ order, open, onClose, isLoading = false }: 
                             </div>
 
                             <DialogFooter className='flex flex-col sm:flex-row gap-3'>
-                                {withdrawable.includes(normalizedStatus) && (
-                                    <CancelOrderDialog
-                                        onCloseDialog={onClose}
-                                        onProceed={handleCancelledOrder}
-                                        orderId={order.id}
-                                    />
-                                )}
-                                {normalizedStatus === 'UNPAID' && (
+
+                                {normalizedStatus === 'CREATED' ? (
                                     <Button variant='default' className='w-full sm:w-auto' onClick={redirectToPayment}>
                                         Tiếp tục thanh toán
                                     </Button>
-                                )}
+                                ) :
+                                    (
+                                        <Button variant='default' className='w-full sm:w-auto' onClick={redirectToBill}>
+                                            Xem hóa đơn điện tử
+                                        </Button>
+                                    )
+                                }
                                 <Button className='w-full sm:w-auto bg-[#4CAF50] hover:bg-[#43A047] text-white' onClick={onClose}>
                                     Tiếp tục đặt hàng
                                 </Button>
+
                             </DialogFooter>
                         </DialogContent>
                     </>

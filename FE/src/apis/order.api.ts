@@ -129,6 +129,8 @@ export interface OrderResponse {
   orderDate?: string;
   paymentTime?: string | null;
   deliveryAt?: string | null;
+  paymentUrl?: string | null;
+  billPdfUrl?: string | null;
 }
 
 export interface CustomerOrderDetailItem {
@@ -189,6 +191,7 @@ export interface CustomerOrderDetailData {
   pickupTime?: string | null;
   customerName?: string | null;
   paymentUrl?: string | null;
+  billPdfUrl?: string | null;
   shipperName?: string | null;
   waiterName?: string | null;
   chefName?: string | null;
