@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { getUnits, createUnit, updateUnit, deleteUnit, type Unit } from '@/apis/unit.api';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
+import { useBodyScrollLock } from '../../components/useBodyScrollLock';
 
 interface UnitsManagerDialogProps {
     open: boolean;
@@ -17,6 +18,7 @@ export function UnitsManagerDialog({ open, onOpenChange }: UnitsManagerDialogPro
     const [units, setUnits] = useState<Unit[]>([]);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(false);
+    useBodyScrollLock(open);
 
     // Inline editing state
     const [editingId, setEditingId] = useState<number | null>(null);

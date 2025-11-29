@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/select';
 import { Schedule, CreateScheduleData, UpdateScheduleData } from '@/apis/schedule.api';
 import { toast } from 'react-toastify';
+import { useBodyScrollLock } from '../../components/useBodyScrollLock';
 
 interface ScheduleFormDialogProps {
   open: boolean;
@@ -66,6 +67,7 @@ export function ScheduleFormDialog({
   });
 
   const [loading, setLoading] = useState(false);
+  useBodyScrollLock(open);
 
   useEffect(() => {
     if (open) {

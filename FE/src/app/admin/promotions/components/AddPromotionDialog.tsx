@@ -12,6 +12,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Gift, Percent, Calendar, Tag, Plus } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { useBodyScrollLock } from '../../components/useBodyScrollLock';
 
 interface PromotionFormData {
     name: string;
@@ -35,6 +36,7 @@ const PROMOTION_TYPES = [
 export function AddPromotionDialog() {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    useBodyScrollLock(open);
     const [formData, setFormData] = useState<PromotionFormData>({
         name: '',
         code: '',

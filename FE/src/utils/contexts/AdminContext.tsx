@@ -10,9 +10,8 @@ export interface DateRange {
 }
 
 export interface Branch {
-    id: string;
+    id: number;
     name: string;
-    code: string;
     address?: string;
 }
 

@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { createCookingMethod, updateCookingMethod, type CookingMethod } from '@/apis/cooking-method.api';
+import { useBodyScrollLock } from '../../components/useBodyScrollLock';
 
 interface CookingMethodFormDialogProps {
     open: boolean;
@@ -19,6 +20,7 @@ interface CookingMethodFormDialogProps {
 
 export function CookingMethodFormDialog({ open, onOpenChange, cookingMethod, onSuccess }: CookingMethodFormDialogProps) {
     const [loading, setLoading] = useState(false);
+    useBodyScrollLock(open);
     const [formData, setFormData] = useState({
         name: '',
         description: '',

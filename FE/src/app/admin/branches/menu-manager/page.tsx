@@ -18,6 +18,7 @@ import {
 import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { toast } from 'react-toastify';
 import { AdminPageLayout, AdminPageHeader } from '@/app/admin/components/AdminPageLayout';
+import { FilterDropdown } from '@/app/admin/components/FilterDropdown';
 import { Button } from '@/components/ui/button';
 import { Save, Plus, X, Store, Search, GripVertical } from 'lucide-react';
 import { getProducts, getProductsByBranch, getAllBranchProducts, getProduct, getProductType, addProductToBranch, removeProductFromBranch, type Product, type ProductType } from '@/apis/product.api';
@@ -221,7 +222,6 @@ export default function BranchMenuManagerPage() {
         <AdminPageLayout>
             <AdminPageHeader
                 title="Quản lý Menu Chi nhánh"
-                description="Kéo thả món ăn để thiết lập menu cho từng chi nhánh"
                 icon={Store}
             />
 
@@ -230,16 +230,18 @@ export default function BranchMenuManagerPage() {
                     <Store className="h-5 w-5 text-[#EC6426]" />
                     <span className="font-semibold text-gray-700">Chọn chi nhánh:</span>
                 </div>
-                <select
-                    className="flex-1 max-w-md px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#EC6426]/20 focus:border-[#EC6426]"
-                    value={selectedBranchId || ''}
-                    onChange={(e) => setSelectedBranchId(Number(e.target.value) || null)}
-                >
-                    <option value="">-- Chọn chi nhánh --</option>
-                    {branches.map(branch => (
-                        <option key={branch.id} value={branch.id}>{branch.name}</option>
-                    ))}
-                </select>
+                <FilterDropdown
+                    label="-- Chọn chi nhánh --"
+                    title="Danh sách chi nhánh"
+                    value={selectedBranchId?.toString() || ""}
+                    onChange={(value) => setSelectedBranchId(Number(value) || null)}
+                    items={branches.map(branch => ({
+                        value: branch.id.toString(),
+                        label: branch.name
+                    }))}
+                    className="w-[200px]"
+                    showAllOption={false}
+                />
             </div>
 
             <DndContext

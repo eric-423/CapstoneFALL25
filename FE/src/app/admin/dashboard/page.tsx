@@ -39,11 +39,11 @@ export default function DashboardPage() {
   const lowStockCount = lowStockAlertsData.length;
 
   const branchId = useMemo(
-    () => (selectedBranch?.id ? parseInt(selectedBranch.id) : 1),
+    () => (selectedBranch?.id ? selectedBranch.id : 1),
     [selectedBranch?.id]
   );
   const branchIdOrUndefined = useMemo(
-    () => (selectedBranch?.id ? parseInt(selectedBranch.id) : undefined),
+    () => (selectedBranch?.id ? selectedBranch.id : undefined),
     [selectedBranch?.id]
   );
 
@@ -91,10 +91,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (selectedBranch?.id) {
-      const parsedId = parseInt(selectedBranch.id);
-      if (!Number.isNaN(parsedId)) {
-        setServiceBranchId(parsedId);
-      }
+      setServiceBranchId(selectedBranch.id);
     }
   }, [selectedBranch?.id]);
 
@@ -253,9 +250,9 @@ export default function DashboardPage() {
               trend={
                 newCustomerStats
                   ? {
-                      value: newCustomerStats.percentageChange,
-                      isPositive: newCustomerStats.percentageChange >= 0,
-                    }
+                    value: newCustomerStats.percentageChange,
+                    isPositive: newCustomerStats.percentageChange >= 0,
+                  }
                   : undefined
               }
               subtitle={
@@ -276,9 +273,9 @@ export default function DashboardPage() {
               trend={
                 serviceTimeStats
                   ? {
-                      value: serviceTimeStats.percentageChange,
-                      isPositive: serviceTimeStats.percentageChange <= 0,
-                    }
+                    value: serviceTimeStats.percentageChange,
+                    isPositive: serviceTimeStats.percentageChange <= 0,
+                  }
                   : undefined
               }
               subtitle={
@@ -316,9 +313,9 @@ export default function DashboardPage() {
                 data={
                   revenue7DaysData
                     ? revenue7DaysData.dailyRevenues.map((item) => ({
-                        date: item.date,
-                        revenue: item.revenue,
-                      }))
+                      date: item.date,
+                      revenue: item.revenue,
+                    }))
                     : revenueData
                 }
               />
