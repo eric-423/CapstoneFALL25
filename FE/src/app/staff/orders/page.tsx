@@ -562,17 +562,17 @@ export default function ManagerOrdersPage() {
                                                             {getStatusLabel(order.orderStatus)}
                                                         </Badge>
                                                     </div>
-                                                    {order.table && (
+                                                    {order.isTable && (
                                                         <Badge className="bg-blue-100 text-blue-700 border-blue-200 border-2 px-3 py-1 text-xs font-bold rounded-lg">
                                                             Tại bàn
                                                         </Badge>
                                                     )}
-                                                    {order.pickUp && (
+                                                    {order.isPickUp && (
                                                         <Badge className="bg-purple-100 text-purple-700 border-purple-200 border-2 px-3 py-1 text-xs font-bold rounded-lg">
                                                             Mang đi
                                                         </Badge>
                                                     )}
-                                                    {!order.table && !order.pickUp && (
+                                                    {!order.isTable && !order.isPickUp && (
                                                         <Badge className="bg-green-100 text-green-700 border-green-200 border-2 px-3 py-1 text-xs font-bold rounded-lg">
                                                             <Truck size={12} className="mr-1" />
                                                             Giao hàng
@@ -792,17 +792,17 @@ export default function ManagerOrdersPage() {
                                         </DialogDescription>
                                     </div>
                                     <div className="flex flex-wrap gap-2">
-                                        {selectedOrder.table && (
+                                        {selectedOrder.isTable && (
                                             <Badge className="bg-blue-50 text-blue-700 border-blue-200 border-2 px-3 py-1 text-xs font-semibold rounded-xl">
                                                 Tại bàn
                                             </Badge>
                                         )}
-                                        {selectedOrder.pickUp && (
+                                        {selectedOrder.isPickUp && (
                                             <Badge className="bg-purple-50 text-purple-700 border-purple-200 border-2 px-3 py-1 text-xs font-semibold rounded-xl">
                                                 Mang đi
                                             </Badge>
                                         )}
-                                        {!selectedOrder.table && !selectedOrder.pickUp && (
+                                        {!selectedOrder.isTable && !selectedOrder.isPickUp && (
                                             <Badge className="bg-green-50 text-green-700 border-green-200 border-2 px-3 py-1 text-xs font-semibold rounded-xl flex items-center gap-1">
                                                 <Truck size={12} />
                                                 Giao hàng

@@ -184,6 +184,7 @@ export default function CompletedPage() {
                                 const totalAmount = getTotalAmount(order);
                                 const totalItems = order.orderItems.reduce((sum, item) => sum + item.quantity, 0);
                                 const cookedItem = order.orderItems.find(item => item.cookedAt);
+                                const cookedAt = cookedItem?.cookedAt;
                                 
                                 return (
                                     <Card key={order.orderId} className='bg-green-50 border-green-200 transition-all duration-200 hover:shadow-md'>
@@ -252,20 +253,20 @@ export default function CompletedPage() {
                                                     </div>
 
                                                     <div className='mt-3 flex items-center gap-4'>
-                                                        {cookedItem && firstItem && (
+                                                        {cookedAt && firstItem && (
                                                             <>
                                                                 <div className='flex items-center text-sm'>
                                                                     <CheckCircle className='h-4 w-4 text-green-500 mr-1' />
                                                                     <span className='text-gray-600'>Hoàn thành:</span>
                                                                     <span className='ml-1 font-medium text-green-600'>
-                                                                        {formatDate(cookedItem.cookedAt)}
+                                                                        {formatDate(cookedAt)}
                                                                     </span>
                                                                 </div>
                                                                 <div className='flex items-center text-sm'>
                                                                     <Clock className='h-4 w-4 text-blue-500 mr-1' />
                                                                     <span className='text-gray-600'>Thời gian chế biến:</span>
                                                                     <span className='ml-1 font-medium text-blue-600'>
-                                                                        {getProcessingTime(firstItem.confirmAt, cookedItem.cookedAt)} phút
+                                                                        {getProcessingTime(firstItem.confirmAt, cookedAt)} phút
                                                                     </span>
                                                                 </div>
                                                             </>
