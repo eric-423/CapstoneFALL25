@@ -239,6 +239,40 @@ export interface BranchOrdersApiResponse {
   data: BranchOrderResponse[];
 }
 
+// Chef Order Interfaces - New structure from API
+export interface ChefOrderItem {
+  orderItemId: number;
+  productId: number;
+  productName: string;
+  orderId: number;
+  quantity: number;
+  price: number;
+  note: string;
+  feedback: string | null;
+  feedbackPoint: number;
+  expiredFeedbackTime: string | null;
+  productImg: string;
+  comboDTO: ComboDTO | null;
+  isConfirmed: boolean;
+  confirmAt: string;
+  isDelivered: boolean | null;
+  deliveredAt: string | null;
+  cookedAt: string | null;
+  isCooked: boolean | null;
+  feedBackYet: boolean;
+}
+
+export interface ChefOrderResponse {
+  orderId: number;
+  orderItems: ChefOrderItem[];
+}
+
+export interface ChefOrdersApiResponse {
+  status: number;
+  desc: string | null;
+  data: ChefOrderResponse[];
+}
+
 
 
 export interface WaiterOrderItemRequest {
@@ -550,7 +584,7 @@ export const staffAssignShipperToOrder = async (orderId: number): Promise<Assign
 };
 
 
-export const getChefOrders = async (chefId: number, status?: string): Promise<BranchOrdersApiResponse> => {
+export const getChefOrders = async (chefId: number, status?: string): Promise<ChefOrdersApiResponse> => {
   try {
     const params = status ? `?status=${status}` : '';
     const response = await fetch(`/api/orders/cheff/view/${chefId}${params}`, {
@@ -580,11 +614,19 @@ export interface MarkOrderAsCookedResponse {
   message?: string;
 }
 
-export const markOrderAsCooked = async (orderId: number): Promise<MarkOrderAsCookedResponse> => {
+
+export const markOrderAsCooked = async (
+  orderId: number,
+  orderItemIds: number[],
+): Promise<MarkOrderAsCookedResponse> => {
   try {
     const response = await fetch(`/api/orders/cheff/cooked/${orderId}`, {
       method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       credentials: 'include',
+      body: JSON.stringify({ orderItemIds }),
     });
 
     if (!response.ok) {
