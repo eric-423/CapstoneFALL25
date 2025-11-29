@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Package, Plus, Edit2, Trash2, Search, AlertTriangle, Tag, ChevronLeft, ChevronRight, Ruler } from 'lucide-react';
+import { Package, Plus, Edit2, Trash2, Search, Tag, ChevronLeft, ChevronRight, Ruler, Beaker } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,7 @@ import { MaterialFormDialog } from './components/MaterialFormDialog';
 import { MaterialTypesManagerDialog } from './components/MaterialTypesManagerDialog';
 import { UnitsManagerDialog } from './components/UnitsManagerDialog';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
+import { FilterDropdown } from '../components/FilterDropdown';
 import {
     Material,
     MaterialSearchRequest,
@@ -19,12 +20,15 @@ import {
     deleteMaterial
 } from '@/apis/material.api';
 import { getUnits, type Unit } from '@/apis/unit.api';
+import { MaterialNutrientForm } from './components/MaterialNutrientForm';
 
 export default function MaterialsPage() {
     const [loading, setLoading] = useState(true);
     const [materials, setMaterials] = useState<Material[]>([]);
     const [units, setUnits] = useState<Unit[]>([]);
     const [actionLoading, setActionLoading] = useState(false);
+    const [showNutrientDialog, setShowNutrientDialog] = useState(false);
+    const [nutrientMaterial, setNutrientMaterial] = useState<Material | null>(null);
 
     // Pagination states
     const [currentPage, setCurrentPage] = useState(0);
@@ -230,41 +234,39 @@ export default function MaterialsPage() {
                     </div>
 
                     {/* Type Filter */}
-                    <div className="relative">
-                        <select
-                            value={typeFilter}
-                            onChange={(e) => setTypeFilter(e.target.value)}
-                            className="px-3 py-2 border bg-white/80 border-[#78A243]/30 rounded-lg text-sm text-[#2D1E1A] focus:border-[#78A243] outline-none appearance-none pr-8"
-                        >
-                            <option value="">Tất cả loại</option>
-                            {uniqueTypes.map((type) => (
-                                <option key={type} value={type}>
-                                    {type}
-                                </option>
-                            ))}
-                        </select>
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                            <ChevronRight className="h-4 w-4 text-[#2D1E1A]/60 rotate-90" />
-                        </div>
-                    </div>
+                    <FilterDropdown
+                        label="Tất cả loại"
+                        title="Lọc theo loại"
+                        value={typeFilter}
+                        onChange={(value) => setTypeFilter(value)}
+                        items={uniqueTypes.map((type) => ({
+                            value: type,
+                            label: type
+                        }))}
+                        className="w-[120px]"
+                    />
                 </div>
 
                 {/* Page Size */}
                 <div className="flex items-center gap-3">
                     <label className="text-sm text-[#2D1E1A] font-medium whitespace-nowrap">Hiển thị:</label>
-                    <select
-                        value={pageSize}
-                        onChange={(e) => {
-                            setPageSize(parseInt(e.target.value));
+                    <FilterDropdown
+                        label="Hiển thị"
+                        title="Số lượng hiển thị"
+                        value={pageSize.toString()}
+                        onChange={(value) => {
+                            setPageSize(parseInt(value));
                             setCurrentPage(0);
                         }}
-                        className="px-3 py-2 border bg-white/80 border-[#78A243]/30 rounded-lg text-sm text-[#2D1E1A] focus:border-[#78A243] outline-none"
-                    >
-                        <option value="5">5</option>
-                        <option value="10">10</option>
-                        <option value="20">20</option>
-                        <option value="50">50</option>
-                    </select>
+                        items={[
+                            { value: "5", label: "5" },
+                            { value: "10", label: "10" },
+                            { value: "20", label: "20" },
+                            { value: "50", label: "50" }
+                        ]}
+                        showAllOption={false}
+                        className="w-[80px]"
+                    />
                     <span className="text-sm text-[#2D1E1A]/80 whitespace-nowrap">
                         Tổng: <span className="font-bold text-[#78A243]">{totalElements}</span>
                     </span>
@@ -317,22 +319,35 @@ export default function MaterialsPage() {
                                             </p>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="flex items-center justify-center gap-2">
-                                                <Button
-                                                    onClick={() => handleEdit(material)}
-                                                    size="sm"
-                                                    variant="outline"
-                                                    className="text-[#78A243] border-[#78A243]/30 hover:bg-[#78A243]/10"
-                                                    disabled={actionLoading}
-                                                >
-                                                    <Edit2 className="h-3 w-3" />
-                                                </Button>
-                                                <Button
-                                                    onClick={() => handleDeleteClick(material)}
-                                                    size="sm"
-                                                    variant="outline"
-                                                    className="text-red-600 border-red-200 hover:bg-red-50"
-                                                    disabled={actionLoading}
+                                        <div className="flex items-center justify-center gap-2">
+                                            <Button
+                                                onClick={() => handleEdit(material)}
+                                                size="sm"
+                                                variant="outline"
+                                                className="text-[#78A243] border-[#78A243]/30 hover:bg-[#78A243]/10"
+                                                disabled={actionLoading}
+                                            >
+                                                <Edit2 className="h-3 w-3" />
+                                            </Button>
+                                            <Button
+                                                onClick={() => {
+                                                    setNutrientMaterial(material);
+                                                    setShowNutrientDialog(true);
+                                                }}
+                                                size="sm"
+                                                variant="outline"
+                                                className="text-[#DA7339] border-[#DA7339]/30 hover:bg-[#DA7339]/10"
+                                                disabled={actionLoading}
+                                                title="Quản lý dinh dưỡng"
+                                            >
+                                                <Beaker className="h-3 w-3" />
+                                            </Button>
+                                            <Button
+                                                onClick={() => handleDeleteClick(material)}
+                                                size="sm"
+                                                variant="outline"
+                                                className="text-red-600 border-red-200 hover:bg-red-50"
+                                                disabled={actionLoading}
                                                 >
                                                     <Trash2 className="h-3 w-3" />
                                                 </Button>
@@ -392,6 +407,17 @@ export default function MaterialsPage() {
                 onOpenChange={setShowFormDialog}
                 material={editingMaterial}
                 onSuccess={handleFormSuccess}
+            />
+
+            <MaterialNutrientForm
+                open={showNutrientDialog}
+                onOpenChange={(open) => {
+                    setShowNutrientDialog(open);
+                    if (!open) setNutrientMaterial(null);
+                }}
+                materialId={nutrientMaterial?.id ?? null}
+                materialName={nutrientMaterial?.name ?? ''}
+                onSuccess={fetchMaterials}
             />
 
             <MaterialTypesManagerDialog

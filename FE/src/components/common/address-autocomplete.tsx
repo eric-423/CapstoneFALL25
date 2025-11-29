@@ -311,51 +311,51 @@ export function AddressAutocomplete({
             )}
 
             {(isAutocompleteReady && !disabled && (isFetching || predictions.length > 0)) && (
-                    <div
-                        ref={dropdownRef}
-                        className="absolute left-0 right-0 top-full z-[9999] mt-1 overflow-hidden rounded-lg border border-border bg-background shadow-xl max-h-[300px] overflow-y-auto"
-                        onMouseDown={(e) => {
-                            e.preventDefault();
-                        }}
-                        onMouseEnter={() => {
-                            if (blurTimeoutRef.current) {
-                                clearTimeout(blurTimeoutRef.current);
-                                blurTimeoutRef.current = null;
-                            }
-                            isSelectingRef.current = true;
-                        }}
-                        onMouseLeave={() => {
-                            isSelectingRef.current = false;
-                        }}
-                    >
-                        {isFetching && (
-                            <div className="px-3 py-2 text-sm text-muted-foreground">
-                                Đang tìm...
+                <div
+                    ref={dropdownRef}
+                    className="absolute left-0 right-0 top-full z-[9999] mt-1 overflow-hidden rounded-lg border border-border bg-background shadow-xl max-h-[300px] overflow-y-auto"
+                    onMouseDown={(e) => {
+                        e.preventDefault();
+                    }}
+                    onMouseEnter={() => {
+                        if (blurTimeoutRef.current) {
+                            clearTimeout(blurTimeoutRef.current);
+                            blurTimeoutRef.current = null;
+                        }
+                        isSelectingRef.current = true;
+                    }}
+                    onMouseLeave={() => {
+                        isSelectingRef.current = false;
+                    }}
+                >
+                    {isFetching && (
+                        <div className="px-3 py-2 text-sm text-muted-foreground">
+                            Đang tìm...
+                        </div>
+                    )}
+                    {predictions.length > 0 && predictions.map((p) => (
+                        <button
+                            key={p.place_id}
+                            type="button"
+                            className="w-full px-3 py-2 text-left text-sm hover:bg-accent transition-colors"
+                            onMouseDown={(e) => {
+                                e.preventDefault();
+                                isSelectingRef.current = true;
+                            }}
+                            onClick={() => handleSelect(p)}
+                        >
+                            <div className="font-medium">
+                                {p.structured_formatting?.main_text || p.description}
                             </div>
-                        )}
-                        {predictions.length > 0 && predictions.map((p) => (
-                            <button
-                                key={p.place_id}
-                                type="button"
-                                className="w-full px-3 py-2 text-left text-sm hover:bg-accent transition-colors"
-                                onMouseDown={(e) => {
-                                    e.preventDefault();
-                                    isSelectingRef.current = true;
-                                }}
-                                onClick={() => handleSelect(p)}
-                            >
-                                <div className="font-medium">
-                                    {p.structured_formatting?.main_text || p.description}
+                            {p.structured_formatting?.secondary_text && (
+                                <div className="text-xs text-muted-foreground">
+                                    {p.structured_formatting.secondary_text}
                                 </div>
-                                {p.structured_formatting?.secondary_text && (
-                                    <div className="text-xs text-muted-foreground">
-                                        {p.structured_formatting.secondary_text}
-                                    </div>
-                                )}
-                            </button>
-                        ))}
-                    </div>
-                )}
+                            )}
+                        </button>
+                    ))}
+                </div>
+            )}
         </div>
     );
 }

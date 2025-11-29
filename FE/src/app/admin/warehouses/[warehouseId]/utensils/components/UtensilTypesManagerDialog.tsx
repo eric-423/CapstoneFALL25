@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { getUtensilTypes, createUtensilType, updateUtensilType, deleteUtensilType, type UtensilType } from '@/apis/utensil.api';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
+import { useBodyScrollLock } from '../../../../components/useBodyScrollLock';
 
 interface UtensilTypesManagerDialogProps {
     open: boolean;
@@ -18,6 +19,7 @@ export function UtensilTypesManagerDialog({ open, onOpenChange, onSuccess }: Ute
     const [types, setTypes] = useState<UtensilType[]>([]);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(false);
+    useBodyScrollLock(open);
 
     // Inline editing state
     const [editingId, setEditingId] = useState<number | null>(null);

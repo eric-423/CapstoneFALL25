@@ -21,6 +21,7 @@ import { TrainingCourse } from "@/utils/types/training.type";
 import { uploadMediaToSupabase } from "@/components/common/upFileToSupabase";
 import { ExternalLink } from "lucide-react";
 import { toast } from "react-toastify";
+import { useBodyScrollLock } from "../../components/useBodyScrollLock";
 
 const TRAINING_MEDIA_BUCKET =
     process.env.NEXT_PUBLIC_SUPABASE_TRAINING_BUCKET;
@@ -56,6 +57,7 @@ export function LessonFormDialog({
     const [fileVideo, setFileVideo] = useState<File | null>(null);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(false);
+    useBodyScrollLock(open);
 
     useEffect(() => {
         if (open && mode === "edit" && lesson) {

@@ -6,7 +6,9 @@ import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { AddressAutocomplete } from '@/components/common/address-autocomplete';
-import { createBranch, updateBranch, type BranchDetail, type CreateBranchRequest, type UpdateBranchRequest } from '@/apis/branch.api';
+import { createBranch, updateBranch, getBranches, type BranchDetail, type CreateBranchRequest, type UpdateBranchRequest, type Branch } from '@/apis/branch.api';
+import { getWarehouses, type Warehouse } from '@/apis/material.api';
+import { useBodyScrollLock } from '../../components/useBodyScrollLock';
 
 interface BranchFormDialogProps {
     open: boolean;
@@ -17,9 +19,14 @@ interface BranchFormDialogProps {
 
 export function BranchFormDialog({ open, onOpenChange, branch, onSuccess }: BranchFormDialogProps) {
     const [loading, setLoading] = useState(false);
+    useBodyScrollLock(open);
     const [name, setName] = useState(branch?.name || '');
     const [address, setAddress] = useState(branch?.address || '');
     const [phoneNumber, setPhoneNumber] = useState(branch?.phoneNumber || '');
+
+    // Data for validation
+    const [existingBranches, setExistingBranches] = useState<Branch[]>([]);
+    const [existingWarehouses, setExistingWarehouses] = useState<Warehouse[]>([]);
 
     React.useEffect(() => {
         if (open) {
@@ -32,6 +39,21 @@ export function BranchFormDialog({ open, onOpenChange, branch, onSuccess }: Bran
                 setAddress('');
                 setPhoneNumber('');
             }
+
+            // Fetch data for validation
+            const fetchData = async () => {
+                try {
+                    const [branchesData, warehousesData] = await Promise.all([
+                        getBranches(),
+                        getWarehouses()
+                    ]);
+                    setExistingBranches(branchesData);
+                    setExistingWarehouses(warehousesData);
+                } catch (error) {
+                    console.error('Failed to fetch data for validation:', error);
+                }
+            };
+            fetchData();
         }
     }, [open, branch]);
 
@@ -45,6 +67,29 @@ export function BranchFormDialog({ open, onOpenChange, branch, onSuccess }: Bran
         const phoneRegex = /^[0-9]{10}$/;
         if (!phoneRegex.test(phoneNumber.trim())) {
             toast.error('Số điện thoại phải có đúng 10 chữ số!');
+            return;
+        }
+
+        const normalizedAddress = address.trim().toLowerCase();
+
+        // Check for duplicate address in other branches
+        const duplicateBranch = existingBranches.find(b =>
+            b.address.trim().toLowerCase() === normalizedAddress &&
+            (!branch || b.id !== branch.id)
+        );
+
+        if (duplicateBranch) {
+            toast.error(`❌ Địa chỉ này đã được sử dụng bởi chi nhánh khác (ID: ${duplicateBranch.id})!`);
+            return;
+        }
+
+        // Check for duplicate address in warehouses
+        const duplicateWarehouse = existingWarehouses.find(w =>
+            w.address.trim().toLowerCase() === normalizedAddress
+        );
+
+        if (duplicateWarehouse) {
+            toast.error(`❌ Địa chỉ này đã được sử dụng bởi kho (ID: ${duplicateWarehouse.id})!`);
             return;
         }
 

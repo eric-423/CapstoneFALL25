@@ -16,13 +16,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import {
     getAllCookingMethodNutrients,
     createCookingMethodNutrient,
     updateCookingMethodNutrient,
@@ -31,6 +24,8 @@ import {
 } from '@/apis/cooking-method-nutrient.api';
 import { getNutrients, type Nutrient } from '@/apis/nutrient.api';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
+import { useBodyScrollLock } from '../../components/useBodyScrollLock';
+import { AdminSelect } from '../../components/AdminSelect';
 
 interface CookingMethodNutrientFormProps {
     open: boolean;
@@ -56,6 +51,7 @@ export function CookingMethodNutrientForm({
     cookingMethodName,
 }: CookingMethodNutrientFormProps) {
     const [loading, setLoading] = useState(false);
+    useBodyScrollLock(open);
     const [nutrients, setNutrients] = useState<Nutrient[]>([]);
     const [methodNutrients, setMethodNutrients] = useState<CookingMethodNutrient[]>([]);
     const [editingId, setEditingId] = useState<number | null>(null);
@@ -229,22 +225,18 @@ export function CookingMethodNutrientForm({
                                     <label className="text-xs font-semibold text-[#2D1E1A] flex items-center gap-1">
                                         Chất dinh dưỡng <span className="text-red-500">*</span>
                                     </label>
-                                    <Select
+                                    <AdminSelect
                                         onValueChange={(val) => setValue('nutrientId', val, { shouldValidate: true })}
                                         value={watchedNutrientId}
                                         disabled={!!editingId}
-                                    >
-                                        <SelectTrigger className={`border-[#78A243]/30 focus:ring-[#78A243]/20 ${errors.nutrientId ? 'border-red-500' : ''}`}>
-                                            <SelectValue placeholder="Chọn chất dinh dưỡng" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {availableNutrients.map((n) => (
-                                                <SelectItem key={n.id} value={n.id.toString()}>
-                                                    {n.name} ({n.unit})
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                        placeholder="Chọn chất dinh dưỡng"
+                                        options={availableNutrients.map((n) => ({
+                                            value: n.id.toString(),
+                                            label: n.name,
+                                            subLabel: n.unit,
+                                        }))}
+                                        className={errors.nutrientId ? 'border-red-500' : undefined}
+                                    />
                                     {errors.nutrientId && (
                                         <p className="text-xs text-red-500 font-medium">{errors.nutrientId.message}</p>
                                     )}

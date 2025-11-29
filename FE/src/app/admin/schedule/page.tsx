@@ -32,6 +32,7 @@ import {
 import { getAllUsers, type UserSearchRequest } from '@/apis/user.api';
 import { toast } from 'react-toastify';
 import { User } from '@/apis/admin-user.api';
+import { useBodyScrollLock } from '../components/useBodyScrollLock';
 
 export default function SchedulePage() {
     const [schedules, setSchedules] = useState<Schedule[]>([]);
@@ -49,6 +50,7 @@ export default function SchedulePage() {
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [flagShowCurrentWeekButton, setFlagShowCurrentWeekButton] = useState(false);
     const [flagRightCurrentWeekButton, setFlagRightCurrentWeekButton] = useState(false);
+    useBodyScrollLock(showFormDialog || deleteDialogOpen);
     // Fetch schedules
     const fetchSchedules = useCallback(async () => {
         try {
