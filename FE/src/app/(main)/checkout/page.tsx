@@ -5,7 +5,6 @@ import {
   getCustomerInformation,
   saveCustomerInformation,
 } from "@/apis/user.api";
-import ControlledDateTimePicker from "@/components/common/controlled-date-time-picker";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardTitle } from "@/components/ui/card";
@@ -104,6 +103,7 @@ import { useRouter } from "next/navigation";
 
 import CheckoutSection from "./components/checkout-section";
 import { CheckoutFormData, checkoutSchema } from "./schema";
+import ControlledDateTimePicker from "@/components/common/date-time-picker";
 
 export default function CheckoutPage() {
   useScrollTop();
@@ -182,12 +182,12 @@ export default function CheckoutPage() {
     () =>
       Array.isArray(customerInformationData)
         ? customerInformationData.map((info: CustomerInformationResponse) => ({
-          informationId: info.informationId,
-          fullName: info.fullName,
-          address: info.address,
-          phone: info.phone,
-          isDefault: info.isDefault,
-        }))
+            informationId: info.informationId,
+            fullName: info.fullName,
+            address: info.address,
+            phone: info.phone,
+            isDefault: info.isDefault,
+          }))
         : [],
     [customerInformationData]
   );
@@ -220,14 +220,14 @@ export default function CheckoutPage() {
     () =>
       Array.isArray(branchesData)
         ? branchesData.map(
-          (branch): Branch => ({
-            branchId: branch.id,
-            branchName: branch.name,
-            address: branch.address ?? "",
-            phone: branch.phone ?? "",
-            isActive: branch.active,
-          })
-        )
+            (branch): Branch => ({
+              branchId: branch.id,
+              branchName: branch.name,
+              address: branch.address ?? "",
+              phone: branch.phone ?? "",
+              isActive: branch.active,
+            })
+          )
         : [],
     [branchesData]
   );
@@ -236,15 +236,15 @@ export default function CheckoutPage() {
     () =>
       Array.isArray(nearbyBranchesData)
         ? nearbyBranchesData.map(
-          (branch): Branch => ({
-            branchId: branch.branchId,
-            branchName: branch.name,
-            address: branch.address ?? "",
-            phone: branch.phoneNumber ?? "",
-            isActive: true,
-            distanceText: branch.distanceText,
-          })
-        )
+            (branch): Branch => ({
+              branchId: branch.branchId,
+              branchName: branch.name,
+              address: branch.address ?? "",
+              phone: branch.phoneNumber ?? "",
+              isActive: true,
+              distanceText: branch.distanceText,
+            })
+          )
         : [],
     [nearbyBranchesData]
   );
@@ -1012,20 +1012,16 @@ export default function CheckoutPage() {
                           control={form.control}
                           name="receiveTime"
                           render={({ field }) => (
-                            <FormItem className="flex flex-col">
-                              <div className="flex items-center px-4">
-                                <FormLabel htmlFor="scheduled" className="mr-2">
-                                  Hẹn lịch nhận lúc
-                                </FormLabel>
-                                <div className="flex">
-                                  <ControlledDateTimePicker
-                                    value={field.value}
-                                    onChange={(date) => field.onChange(date)}
-                                  />
-                                </div>
-                              </div>
+                            <FormItem className="space-y-2 px-4">
+                              <FormLabel htmlFor="scheduled">
+                                Hẹn lịch nhận lúc
+                              </FormLabel>
+                              <ControlledDateTimePicker
+                                value={field.value}
+                                onChange={(date) => field.onChange(date)}
+                              />
                               {form.getFieldState("receiveTime").error && (
-                                <p className="text-red-500 text-sm ml-3 mt-2">
+                                <p className="text-red-500 text-sm">
                                   {
                                     form.getFieldState("receiveTime").error
                                       ?.message
@@ -1061,7 +1057,7 @@ export default function CheckoutPage() {
                                           type="button"
                                           variant={
                                             selectedInfoId ===
-                                              info.informationId
+                                            info.informationId
                                               ? "default"
                                               : "outline"
                                           }
@@ -1315,14 +1311,16 @@ export default function CheckoutPage() {
                   </Card>
                 )}
 
-
                 <Card className="p-4 gap-2">
                   <CardTitle className="m-2 mb-0">Thông tin đơn hàng</CardTitle>
                   <CardContent className="p-0 space-y-2">
                     <div className="divide-y">
                       {items.map((item, index) => {
                         const isEditing = editingNoteIndex === index;
-                        const itemKey = item.isCombo && item.comboId ? `combo-${item.comboId}-${index}` : `product-${item.productId}-${index}`;
+                        const itemKey =
+                          item.isCombo && item.comboId
+                            ? `combo-${item.comboId}-${index}`
+                            : `product-${item.productId}-${index}`;
 
                         return (
                           <div
@@ -1355,13 +1353,14 @@ export default function CheckoutPage() {
                                     <Textarea
                                       title="Ghi chú"
                                       value={tempNote}
-                                      onChange={(e) => setTempNote(e.target.value)}
+                                      onChange={(e) =>
+                                        setTempNote(e.target.value)
+                                      }
                                       placeholder="Nhập ghi chú cho món này..."
                                       className="resize-none h-16 text-sm"
                                       autoFocus
                                     />
                                     <div className="flex gap-2">
-
                                       <Button
                                         type="button"
                                         size="sm"
@@ -1375,15 +1374,18 @@ export default function CheckoutPage() {
                                         <Check className="h-3 w-3 mr-1" />
                                         Lưu
                                       </Button>
-
                                     </div>
                                   </div>
                                 ) : (
                                   <p className="text-sm text-muted-foreground">
                                     {item.note && item.note.length > 0 ? (
-                                      <span className="italic">&quot;{item.note}&quot;</span>
+                                      <span className="italic">
+                                        &quot;{item.note}&quot;
+                                      </span>
                                     ) : (
-                                      <span className="text-muted-foreground/60">Chưa có ghi chú</span>
+                                      <span className="text-muted-foreground/60">
+                                        Chưa có ghi chú
+                                      </span>
                                     )}
                                   </p>
                                 )}
@@ -1459,7 +1461,6 @@ export default function CheckoutPage() {
                     />
                   </CardContent>
                 </Card> */}
-
 
                 <Card>
                   <CardContent className="p-4 py-0 space-y-3">

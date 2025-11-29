@@ -75,10 +75,12 @@ export default function MenuPage() {
   // Đọc category từ query params và set productType
   useEffect(() => {
     if (productTypes.length > 0) {
-      const categoryParam = searchParams.get('category');
+      const categoryParam = searchParams.get("category");
       if (categoryParam) {
         const categoryId = parseInt(categoryParam, 10);
-        const foundCategory = productTypes.find((type) => type.id === categoryId);
+        const foundCategory = productTypes.find(
+          (type) => type.id === categoryId
+        );
         if (foundCategory) {
           setProductType(foundCategory);
         }
@@ -175,7 +177,12 @@ export default function MenuPage() {
     totalPages: productTotalPages,
   } = useGetProductSearch({
     size: 12,
-    productTypeId: productType.id === 0 ? undefined : productType.id === -1 ? undefined : productType.id,
+    productTypeId:
+      productType.id === 0
+        ? undefined
+        : productType.id === -1
+          ? undefined
+          : productType.id,
     branchId: selectedBranch?.branchId || 1,
     isActive: true,
     appendPages: false,
@@ -199,12 +206,9 @@ export default function MenuPage() {
   const page = isComboMode ? comboPage : productPage;
   const totalPages = isComboMode ? comboTotalPages : productTotalPages;
   const goToPage = isComboMode ? goToComboPage : goToProductPage;
-  
+
   const resetAndRefetch = useCallback(async () => {
-    await Promise.all([
-      resetAndRefetchProducts(),
-      resetAndRefetchCombos(),
-    ]);
+    await Promise.all([resetAndRefetchProducts(), resetAndRefetchCombos()]);
   }, [resetAndRefetchProducts, resetAndRefetchCombos]);
 
   const { data: topSellingData } = useQuery({
@@ -225,7 +229,7 @@ export default function MenuPage() {
     if (!displayBranches.length) return;
 
     // Kiểm tra branch từ query params trước
-    const branchParam = searchParams.get('branch');
+    const branchParam = searchParams.get("branch");
     if (branchParam) {
       const branchId = parseInt(branchParam, 10);
       const foundBranch = displayBranches.find((b) => b.branchId === branchId);
@@ -380,7 +384,7 @@ export default function MenuPage() {
                 <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-[#2D1E1A] mb-3 md:mb-4 px-2 leading-tight">
                   <StyledHeading text="Thực đơn Tấm Tắc" />
                 </h1>
-                <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-black/90 max-w-2xl mx-auto px-2">
+                <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-1.5xl text-black/90 max-w-2xl mx-auto px-2">
                   <span className="text-orange-500 font-medium">Tấm Tắc</span>{" "}
                   là chuỗi hệ thống cơm tấm với mong muốn mang đến cho sinh viên
                   những bữa cơm tấm chất lượng với giá cả hợp lý, đảm bảo vệ

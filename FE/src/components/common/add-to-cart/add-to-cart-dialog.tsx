@@ -11,12 +11,12 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useCart } from "@/utils/contexts/cart/CartContext";
 import { Product } from "@/apis/product.api";
-
 import { ShoppingBag, X } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
-
+import { useState, useEffect } from "react";
 import { QuantitySelector } from "../quantity-selector";
+import logo from "@/assets/images/logo.png";
+import { CartItem } from "@/utils/contexts/cart/cart.type";
 
 interface AddToCartDialogProps {
   open: boolean;
@@ -32,23 +32,32 @@ export function AddToCartDialog({
   const { addItem } = useCart();
   const [mainQuantity, setMainQuantity] = useState(1);
   const [notes, setNotes] = useState("");
+  const [imageError, setImageError] = useState(false);
+
+  useEffect(() => {
+    setImageError(false);
+    setMainQuantity(1);
+    setNotes("");
+  }, [product]);
 
   const handleQuantityChange = (value: number) => {
     setMainQuantity(Math.max(1, mainQuantity + value));
   };
 
   const handleAddToCart = () => {
-    const isCombo = 'isCombo' in product && product.isCombo;
+    const isCombo = "isCombo" in product && product.isCombo;
     const cartItem = {
       productId: isCombo ? 0 : product.productId,
       productName: product.productName,
       productPrice: product.productPrice,
       quantity: mainQuantity,
       note: notes,
-      ...(isCombo && 'comboId' in product && product.comboId ? { comboId: product.comboId } : {}),
+      ...(isCombo && "comboId" in product && product.comboId
+        ? { comboId: product.comboId }
+        : {}),
       ...(isCombo ? { isCombo: true } : {}),
     };
-    addItem(cartItem);
+    addItem(cartItem as CartItem);
     onOpenChange(false);
   };
 
@@ -68,13 +77,19 @@ export function AddToCartDialog({
 
         <div className="px-6 max-h-[80vh] overflow-y-auto custom-scrollbar">
           <div className="flex gap-4 mb-6">
-            <div className="relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0">
+            <div className="relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100">
               <Image
-                src={product.productImage}
+                src={
+                  imageError || !product.productImage
+                    ? logo
+                    : product.productImage
+                }
                 alt={product.productName}
                 fill
                 className="object-cover"
                 sizes="96px"
+                unoptimized={product.productImage?.startsWith("http")}
+                onError={() => setImageError(true)}
               />
             </div>
             <div className="flex-grow">
