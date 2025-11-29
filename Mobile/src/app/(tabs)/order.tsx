@@ -25,6 +25,7 @@ const OrderScreen = () => {
   }, []);
   return (
     <ScrollView
+      showsVerticalScrollIndicator={false}
       style={{ flex: 1, backgroundColor: APP_COLOR.BACKGROUND_ORANGE }}
     >
       <HeaderHome pageName="orderPage" />

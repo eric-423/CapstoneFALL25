@@ -7,7 +7,8 @@ import { Star } from "lucide-react";
 import { useState } from "react";
 import { AddToCartDialog } from "../add-to-cart/add-to-cart-dialog";
 import { AddToCartDrawer } from "../add-to-cart/add-to-cart-drawer";
-
+import logo from "@/assets/images/logo.png";
+import Image from "next/image";
 type ComboCardProps = {
   item: Combo;
   descriptionOverflow?: number;
@@ -52,11 +53,15 @@ export const ComboCard = ({
             </div>
           </div>
         )}
-        <div className="relative h-48 overflow-hidden bg-gradient-to-br from-orange-100 to-orange-200">
+        <div className="relative h-48 overflow-hidden bg-white">
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-6xl font-bold text-orange-300 opacity-50">
-              COMBO
-            </span>
+            <Image
+              src={logo}
+              alt="logo"
+              fill
+              sizes="100px"
+              className="object-contain"
+            />
           </div>
         </div>
 
@@ -77,7 +82,7 @@ export const ComboCard = ({
             {contentOverflow(item.description, descriptionOverflow)}
           </p>
 
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <span className="text-xl font-bold text-black">
               {item.price.toLocaleString()}đ
             </span>
@@ -110,4 +115,3 @@ export const ComboCard = ({
     </>
   );
 };
-
