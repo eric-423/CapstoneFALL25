@@ -54,10 +54,17 @@ public class CartItemServiceImpl implements CartItemService {
     }
 
     private CartItemDTO createOneCartItem(int userId, CartItemRequest cartItemRequest) {
-        Product product = productRepository.findById(cartItemRequest.getProductId()).orElseThrow(() -> new ResourceNotFoundException("Product not found"));
-        Combo combo = comboRepository.findById(cartItemRequest.getComboId()).orElseThrow(() -> new ResourceNotFoundException("Combo not found"));
-        Users users = usersRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        Product product = null;
+        Combo combo = null;
+        if(cartItemRequest.getProductId() != null && cartItemRequest.getComboId() == null) {
+            product = productRepository.findById(cartItemRequest.getProductId()).orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+        } else if(cartItemRequest.getComboId() != null && cartItemRequest.getProductId() == null) {
+            combo = comboRepository.findById(cartItemRequest.getComboId()).orElseThrow(() -> new ResourceNotFoundException("Combo not found"));
+        } else {
+            throw new IllegalArgumentException("Either productId or comboId must be provided, but not both.");
+        }
 
+        Users users = usersRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         CartItem cartItem = new CartItem();
         cartItem.setProduct(product);
         cartItem.setCombo(combo);
