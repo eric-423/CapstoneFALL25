@@ -46,11 +46,11 @@ public class InformationServiceImpl implements InformationService {
     private int extractUserIdAndEnsureCustomer() {
         String token = extractBearerToken();
         Claims claims = jwtTokenHelper.getClaimsFromToken(token);
-        Object idClaim = claims.get("id");
+        Object idClaim = claims.get("i");
         if (idClaim == null) {
             throw new IllegalArgumentException("Token không chứa id người dùng");
         }
-        Object roleClaim = claims.get("role");
+        Object roleClaim = claims.get("r");
         if (roleClaim == null || !"CUSTOMER".equalsIgnoreCase(String.valueOf(roleClaim))) {
             throw new IllegalArgumentException("Chỉ khách hàng mới được sử dụng tính năng này");
         }
@@ -68,7 +68,8 @@ public class InformationServiceImpl implements InformationService {
         if (setDefault) {
             List<Information> infos = informationRepository.findByUserId(userId);
             for (Information info : infos) {
-                if (skipInformationId != null && info.getId() == skipInformationId) continue;
+                if (skipInformationId != null && info.getId() == skipInformationId)
+                    continue;
                 if (info.isDefault()) {
                     info.setDefault(false);
                     informationRepository.save(info);
@@ -105,10 +106,14 @@ public class InformationServiceImpl implements InformationService {
             throw new IllegalArgumentException("Thông tin không thuộc về khách hàng này");
         }
 
-        if (request.getName() != null) info.setName(request.getName());
-        if (request.getAddress() != null) info.setAddress(request.getAddress());
-        if (request.getPhoneNumber() != null) info.setPhoneNumber(request.getPhoneNumber());
-        if (request.getIsDefault() != null) info.setDefault(request.getIsDefault());
+        if (request.getName() != null)
+            info.setName(request.getName());
+        if (request.getAddress() != null)
+            info.setAddress(request.getAddress());
+        if (request.getPhoneNumber() != null)
+            info.setPhoneNumber(request.getPhoneNumber());
+        if (request.getIsDefault() != null)
+            info.setDefault(request.getIsDefault());
 
         applyDefaultRule(customerId, info.isDefault(), info.getId());
         return informationRepository.save(info);
@@ -145,7 +150,7 @@ public class InformationServiceImpl implements InformationService {
                 .toList();
     }
 
-    private InformationDTO toDTO(Information information){
+    private InformationDTO toDTO(Information information) {
         InformationDTO dto = new InformationDTO();
         dto.setInformationId(information.getId());
         dto.setFullName(information.getName());
@@ -155,5 +160,3 @@ public class InformationServiceImpl implements InformationService {
         return dto;
     }
 }
-
-
