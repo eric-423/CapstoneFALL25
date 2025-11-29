@@ -21,20 +21,32 @@ const mapCustomerOrderDetail = (
     (fallback as OrderResponse & {
       table?: boolean;
       pickUp?: boolean;
-      itemCount?: number;
-    }) || undefined;
+      isTable?: boolean;
+      isPickUp?: boolean;
+      itemCount?: number
+    }) ||
+    undefined;
 
   const detailItems =
-    detail.orderItems?.map((item) => ({
-      productId: item.productId,
-      productName: item.productName,
-      quantity: item.quantity,
-      note: item.note ?? "",
-      price: item.price,
-      feedback: item.feedback ?? undefined,
-    })) ??
-    fallback?.items ??
-    [];
+    detail.orderItems?.map((item) => {
+      const isCombo = item.comboDTO !== null && item.comboDTO !== undefined;
+
+      return {
+        productId: item.productId,
+        productName: isCombo && item.comboDTO
+          ? item.comboDTO.name
+          : (item.productName ?? 'Sản phẩm'),
+        quantity: item.quantity,
+        note: item.note ?? "",
+        price: isCombo && item.comboDTO
+          ? item.comboDTO.price
+          : item.price,
+        feedback: item.feedback ?? undefined,
+        comboDTO: item.comboDTO ?? null,
+        isCombo: isCombo,
+
+      };
+    }) ?? fallback?.items ?? [];
 
   const computedTotalItems = detailItems.reduce(
     (sum, item) => sum + (item.quantity ?? 0),
@@ -43,53 +55,37 @@ const mapCustomerOrderDetail = (
 
   const mergedBase: OrderResponse = {
     id: detail.id ?? fallback?.id ?? 0,
-    date: detail.createdAt
-      ? new Date(detail.createdAt)
-      : (fallback?.date ?? new Date()),
+    date: detail.createdAt ? new Date(detail.createdAt) : fallback?.date ?? new Date(),
     restaurant: fallback?.restaurant ?? "",
     items: detailItems,
     totalItems:
       Number.isFinite(computedTotalItems) && computedTotalItems >= 0
         ? computedTotalItems
-        : (fallback?.totalItems ?? detailItems.length),
+        : fallback?.totalItems ?? detailItems.length,
     subTotal: detail.subTotal ?? fallback?.subTotal ?? 0,
-    orderStatus:
-      detail.orderStatus ?? detail.status ?? fallback?.orderStatus ?? "",
+    orderStatus: detail.orderStatus ?? detail.status ?? fallback?.orderStatus ?? "",
     paymentStatus: detail.status ?? fallback?.paymentStatus ?? "",
     customerName:
       detail.customerName ??
       detail.customerDTO?.fullName ??
       fallback?.customerName ??
       "",
-    customerPhone:
-      detail.phone ??
-      detail.customerDTO?.phone ??
-      fallback?.customerPhone ??
-      "",
+    customerPhone: detail.phone ?? detail.customerDTO?.phone ?? fallback?.customerPhone ?? "",
     address: detail.address ?? fallback?.address ?? null,
     branchName: detail.branchName ?? fallback?.branchName,
     branchAddress: detail.branchAddress ?? fallback?.branchAddress,
     shippingFee:
-      typeof detail.shippingFee === "number"
-        ? detail.shippingFee
-        : fallback?.shippingFee,
+      typeof detail.shippingFee === "number" ? detail.shippingFee : fallback?.shippingFee,
     discountValue:
       detail.discountValue ??
-      (typeof detail.discountPercent === "number"
-        ? detail.discountPercent
-        : undefined) ??
+      (typeof detail.discountPercent === "number" ? detail.discountPercent : undefined) ??
       fallback?.discountValue,
-    amount:
-      typeof detail.amount === "number" ? detail.amount : fallback?.amount,
+    amount: typeof detail.amount === "number" ? detail.amount : fallback?.amount,
     promotionCode: detail.promotionCode ?? fallback?.promotionCode ?? undefined,
     pointUsed:
-      typeof detail.pointUsed === "number"
-        ? detail.pointUsed
-        : fallback?.pointUsed,
+      typeof detail.pointUsed === "number" ? detail.pointUsed : fallback?.pointUsed,
     pointEarned:
-      typeof detail.pointEarned === "number"
-        ? detail.pointEarned
-        : fallback?.pointEarned,
+      typeof detail.pointEarned === "number" ? detail.pointEarned : fallback?.pointEarned,
     shipperName: detail.shipperName ?? fallback?.shipperName,
     waiterName: detail.waiterName ?? fallback?.waiterName,
     chefName: detail.chefName ?? fallback?.chefName,
@@ -97,22 +93,25 @@ const mapCustomerOrderDetail = (
     payment_code: detail.payment_code ?? fallback?.payment_code,
     orderDate: detail.createdAt ?? fallback?.orderDate,
     paymentTime: fallback?.paymentTime ?? null,
-    deliveryAt:
-      detail.delivery_at ?? detail.deliveryAt ?? fallback?.deliveryAt ?? null,
+    deliveryAt: detail.delivery_at ?? detail.deliveryAt ?? fallback?.deliveryAt ?? null,
+    paymentUrl: detail.paymentUrl ?? fallback?.paymentUrl ?? null,
+    billPdfUrl: detail.billPdfUrl ?? fallback?.billPdfUrl ?? null,
   };
 
   const extended = mergedBase as OrderResponse & {
-    table?: boolean;
-    pickUp?: boolean;
+    isTable?: boolean;
+    isPickUp?: boolean;
     itemCount?: number;
   };
 
-  extended.table = detail.isTable ?? fallbackExtended?.table;
-  extended.pickUp = detail.isPickUp ?? fallbackExtended?.pickUp;
+  const isTableValue = detail.isTable ?? fallbackExtended?.isTable ?? fallbackExtended?.table;
+  const isPickUpValue = detail.isPickUp ?? fallbackExtended?.isPickUp ?? fallbackExtended?.pickUp;
+
+
+  extended.isTable = isTableValue;
+  extended.isPickUp = isPickUpValue;
   extended.itemCount =
-    detail.orderItems?.length ??
-    fallbackExtended?.itemCount ??
-    extended.totalItems;
+    detail.orderItems?.length ?? fallbackExtended?.itemCount ?? extended.totalItems;
 
   return extended;
 };

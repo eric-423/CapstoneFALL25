@@ -10,7 +10,6 @@ import {
   type BarcodeProcessContext,
 } from "@/utils/hooks/useBarcodeScanner";
 import {
-  assignChefToOrder,
   assignShipperToOrder,
   getBranchOrders,
 } from "@/apis/order.api";

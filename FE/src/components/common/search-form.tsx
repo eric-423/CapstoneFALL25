@@ -7,7 +7,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/utils/hooks';
-import { getBranches, GET_BRANCHES_QUERY_KEY, GET_BRANCHES_STALE_TIME, Branch, CustomerInformation } from '@/apis/branch.api';
+import { getBranches, GET_BRANCHES_QUERY_KEY, GET_BRANCHES_STALE_TIME, Branch, CustomerInformation, getNearbyBranches, NearbyBranch } from '@/apis/branch.api';
 import { getCustomerInformation } from '@/apis/user.api';
 import { getProductType, GET_PRODUCT_TYPE_QUERY_KEY, GET_PRODUCT_TYPE_STALE_TIME, ProductType } from '@/apis/product.api';
 
@@ -22,6 +22,8 @@ export function SearchForm({ className }: SearchFormProps) {
   const router = useRouter();
   const { user } = useAuth();
 
+
+
   const { data: branchesData = [], isLoading: isLoadingBranches } = useQuery<Branch[]>({
     queryKey: [GET_BRANCHES_QUERY_KEY],
     queryFn: () => getBranches(),
@@ -29,6 +31,19 @@ export function SearchForm({ className }: SearchFormProps) {
     refetchOnMount: false,
     refetchOnWindowFocus: false,
   });
+
+  // Call API nearby branches khi có địa chỉ
+  const { data: nearbyBranchesData = [], isLoading: isLoadingNearbyBranches } = useQuery<NearbyBranch[]>({
+    queryKey: ['nearby-branches', selectedLocation],
+    queryFn: () => getNearbyBranches(selectedLocation, 20),
+    enabled: Boolean(selectedLocation && selectedLocation.trim()),
+    staleTime: 1000 * 60 * 5, // 5 phút
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
+
+
+
 
   const { data: productTypes = [], isLoading: isLoadingProductTypes } = useQuery({
     queryKey: [GET_PRODUCT_TYPE_QUERY_KEY],
@@ -71,7 +86,7 @@ export function SearchForm({ className }: SearchFormProps) {
     }
   }, [primaryAddress, selectedLocation]);
 
-  // Hàm để lưu branch vào localStorage và dispatch event
+
   const saveBranchToStorage = useCallback((branchId: string) => {
     const branchIdNum = parseInt(branchId, 10);
     const branchData = branchesData.find((b) => b.id === branchIdNum);
@@ -112,6 +127,24 @@ export function SearchForm({ className }: SearchFormProps) {
     saveBranchToStorage(value);
   };
 
+  // Merge branches với distanceText từ nearby branches
+  const branchesWithDistance = useMemo(() => {
+    if (!selectedLocation || nearbyBranchesData.length === 0) {
+      return branchesData.map((branch) => ({
+        ...branch,
+        distanceText: undefined,
+      }));
+    }
+
+    return branchesData.map((branch) => {
+      const nearbyBranch = nearbyBranchesData.find((nb) => nb.branchId === branch.id);
+      return {
+        ...branch,
+        distanceText: nearbyBranch?.distanceText,
+      };
+    });
+  }, [branchesData, nearbyBranchesData, selectedLocation]);
+
   const handleSearch = () => {
     const params = new URLSearchParams();
     if (selectedBranch) params.set('branch', selectedBranch);
@@ -122,6 +155,12 @@ export function SearchForm({ className }: SearchFormProps) {
     router.push(`/menu?${params.toString()}`);
   };
 
+  // Lấy thông tin branch đã chọn để hiển thị distanceText
+  const selectedBranchData = useMemo(() => {
+    if (!selectedBranch) return null;
+    return branchesWithDistance.find((branch) => branch.id.toString() === selectedBranch);
+  }, [selectedBranch, branchesWithDistance]);
+
   return (
     <div className={`bg-card rounded-2xl shadow-2xl p-6 max-w-4xl mx-auto ${className}`}>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
@@ -130,12 +169,12 @@ export function SearchForm({ className }: SearchFormProps) {
             <MapPin className="w-4 h-4 text-orange-500" />
             Chọn chi nhánh
           </label>
-          <Select value={selectedBranch} onValueChange={handleBranchChange} disabled={isLoadingBranches}>
+          <Select value={selectedBranch} onValueChange={handleBranchChange} disabled={isLoadingBranches || isLoadingNearbyBranches}>
             <SelectTrigger className="w-full">
-              <SelectValue placeholder={isLoadingBranches ? 'Đang tải...' : 'Chọn chi nhánh...'} />
+              <SelectValue placeholder={isLoadingBranches || isLoadingNearbyBranches ? 'Đang tải...' : 'Chọn chi nhánh...'} />
             </SelectTrigger>
             <SelectContent>
-              {branchesData
+              {branchesWithDistance
                 .filter((branch) => branch.active)
                 .map((branch) => (
                   <SelectItem key={branch.id} value={branch.id.toString()}>
@@ -144,6 +183,14 @@ export function SearchForm({ className }: SearchFormProps) {
                 ))}
             </SelectContent>
           </Select>
+
+          {selectedBranchData?.distanceText ? (
+            <p className="text-xs text-gray-500 italic mt-1 text-left whitespace-nowrap overflow-hidden text-ellipsis">
+              Từ nhà hàng đến bạn: {selectedBranchData.distanceText}
+            </p>
+          ) : (
+            <div className="h-5 mt-1"></div>
+          )}
         </div>
 
         {/* Category Selection */}
@@ -164,6 +211,7 @@ export function SearchForm({ className }: SearchFormProps) {
               ))}
             </SelectContent>
           </Select>
+          <div className="h-5 mt-1"></div>
         </div>
 
         {/* Location Selection */}
@@ -200,17 +248,22 @@ export function SearchForm({ className }: SearchFormProps) {
               </SelectContent>
             )}
           </Select>
+          <div className="h-5 mt-1"></div>
         </div>
 
         {/* Search Button */}
-        <Button
-          size="lg"
-          className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3"
-          onClick={handleSearch}
-        >
-          <Search className="w-5 h-5 mr-2" />
-          Tìm kiếm
-        </Button>
+        <div className="space-y-2">
+          <div className="h-6"></div>
+          <Button
+            size="lg"
+            className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 w-full"
+            onClick={handleSearch}
+          >
+            <Search className="w-5 h-5 mr-2" />
+            Tìm kiếm
+          </Button>
+          <div className="h-5 mt-1"></div>
+        </div>
       </div>
     </div>
   );
