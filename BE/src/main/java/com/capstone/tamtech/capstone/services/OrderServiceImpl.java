@@ -869,6 +869,7 @@ public class OrderServiceImpl implements OrderService {
 
     public OrderIemDTO toOrderItemDTO(OrderItem orderItem) {
         OrderIemDTO orderIemDTO = new OrderIemDTO();
+        orderIemDTO.setOrderItemId(orderItem.getId());
 
         if (orderItem.getCombo() != null) {
 
