@@ -79,6 +79,17 @@ public class OrderServiceImpl implements OrderService {
 
         order.setStatus(orderStatusRepository.findByName("CREATED").get());
 
+        if(orderRequest.getPointUsed() > 0) {
+            Users user = usersRepository.findById(orderRequest.getCustomerId())
+                    .orElseThrow(() -> new BadRequestException("User not found"));
+            if(!checkUserPoint(user, orderRequest.getPointUsed())) {
+                throw new BadRequestException("Insufficient points");
+            } else {
+                user.setMemberPoint(user.getMemberPoint() - orderRequest.getPointUsed());
+                usersRepository.save(user);
+            }
+        }
+
         order.setAddress(orderRequest.getShippingAddress());
         order.setPhone(orderRequest.getShippingPhoneNumber());
         order.setPromotionCode(orderRequest.getPromotionCode());
@@ -233,6 +244,17 @@ public class OrderServiceImpl implements OrderService {
             usersRepository.findById(orderRequest.getCustomerId()).ifPresent(order::setCustomer);
         }
 
+        if(orderRequest.getPointUsed() > 0) {
+            Users user = usersRepository.findById(orderRequest.getCustomerId())
+                    .orElseThrow(() -> new BadRequestException("User not found"));
+            if(!checkUserPoint(user, orderRequest.getPointUsed())) {
+                throw new BadRequestException("Insufficient points");
+            } else {
+                user.setMemberPoint(user.getMemberPoint() - orderRequest.getPointUsed());
+                usersRepository.save(user);
+            }
+        }
+
         double subTotal = 0.0;
         if (orderRequest.getOrderItemList() != null) {
             for (OrderItemRequest itemReq : orderRequest.getOrderItemList()) {
@@ -343,6 +365,9 @@ public class OrderServiceImpl implements OrderService {
         return result;
     }
 
+    private Boolean checkUserPoint(Users user, int pointUsed) {
+        return user.getMemberPoint() >= pointUsed;
+    }
     @Override
     public OrderDTO createOrderForDining(OrderRequest orderRequest) {
         inventoryService.assertSufficientMaterialsForOrder(orderRequest.getOrderItemList());

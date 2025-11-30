@@ -25,6 +25,8 @@ public class OrderRequest {
 
     private String mode;
 
+    private int pointUsed;
+
     private int diningTableId;
 
     private int branchId;
