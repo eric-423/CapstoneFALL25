@@ -634,6 +634,7 @@ public class OrderServiceImpl implements OrderService {
                     .orElseThrow(() -> new RuntimeException("OrderStatus IN_PROCESS not found")));
         }
 
+        order.setPaymentCode("PAY-" + orderId + "-" + System.currentTimeMillis());
         orderRepository.save(order);
 
         try {
@@ -1030,6 +1031,7 @@ public class OrderServiceImpl implements OrderService {
                         order.getCustomer().getId(),
                         order.getPromotion().getId());
             }
+            order.setPaymentCode("PAY-" + order.getId() + "-" + System.currentTimeMillis());
 
             if (order.getCustomer() != null) {
                 Users customer = order.getCustomer();

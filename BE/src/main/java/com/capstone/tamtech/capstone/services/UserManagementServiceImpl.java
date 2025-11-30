@@ -151,10 +151,8 @@ public class UserManagementServiceImpl implements UserManagementService {
         }
 
         Users saved = usersRepository.save(user);
-        // Tự động cập nhật hạng thành viên dựa trên điểm (0 điểm -> hạng Đồng)
         if (request.getMemberAssociationId() == null) {
             memberAssociationService.updateMemberAssiociationForCustomer(saved.getId());
-            // Reload để lấy hạng mới nhất
             saved = usersRepository.findById(saved.getId()).orElse(saved);
         }
         return toDTO(saved);
@@ -229,10 +227,8 @@ public class UserManagementServiceImpl implements UserManagementService {
         }
 
         Users updated = usersRepository.save(user);
-        // Tự động cập nhật hạng thành viên dựa trên điểm nếu điểm đã thay đổi
         if (request.getMemberPoint() != null) {
             memberAssociationService.updateMemberAssiociationForCustomer(updated.getId());
-            // Reload để lấy hạng mới nhất
             updated = usersRepository.findById(updated.getId()).orElse(updated);
         }
         return toDTO(updated);
