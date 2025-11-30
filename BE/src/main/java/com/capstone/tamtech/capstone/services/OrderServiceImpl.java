@@ -3,10 +3,7 @@ package com.capstone.tamtech.capstone.services;
 import com.capstone.tamtech.capstone.dto.*;
 import com.capstone.tamtech.capstone.entities.*;
 import com.capstone.tamtech.capstone.exception.ResourceNotFoundException;
-import com.capstone.tamtech.capstone.payload.request.DiningTableProductRequest;
-import com.capstone.tamtech.capstone.payload.request.OrderItemRequest;
-import com.capstone.tamtech.capstone.payload.request.OrderRequest;
-import com.capstone.tamtech.capstone.payload.request.WaiterConfirmOrderRequest;
+import com.capstone.tamtech.capstone.payload.request.*;
 import com.capstone.tamtech.capstone.repositories.*;
 import com.capstone.tamtech.capstone.services.impl.OrderService;
 import com.capstone.tamtech.capstone.services.impl.PaymentService;
@@ -639,7 +636,7 @@ public class OrderServiceImpl implements OrderService {
 
             if (order.getCustomer() != null) {
                 Users customer = order.getCustomer();
-                int pointsEarned = (int) (order.getAmount() / 1000);
+                int pointsEarned = (int) (order.getAmount() / 10000);
                 customer.setMemberPoint(customer.getMemberPoint() + pointsEarned);
                 order.setPointEarned(pointsEarned);
                 usersRepository.save(customer);
@@ -958,7 +955,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderDTO payDiningTableOrder(
-            com.capstone.tamtech.capstone.payload.request.DiningTablePaymentRequest paymentRequest)
+            DiningTablePaymentRequest paymentRequest)
             throws BadRequestException {
         Order order = orderRepository.findById(paymentRequest.getOrderId())
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
@@ -1060,7 +1057,7 @@ public class OrderServiceImpl implements OrderService {
 
             if (order.getCustomer() != null) {
                 Users customer = order.getCustomer();
-                int pointsEarned = (int) (order.getAmount() / 1000);
+                int pointsEarned = (int) (order.getAmount() / 10000);
                 customer.setMemberPoint(customer.getMemberPoint() + pointsEarned);
                 order.setPointEarned(pointsEarned);
                 usersRepository.save(customer);
@@ -1104,7 +1101,7 @@ public class OrderServiceImpl implements OrderService {
 
         if (order.getCustomer() != null) {
             Users customer = order.getCustomer();
-            int pointsEarned = (int) (order.getAmount() / 1000);
+            int pointsEarned = (int) (order.getAmount() / 10000);
             customer.setMemberPoint(customer.getMemberPoint() + pointsEarned);
             order.setPointEarned(pointsEarned);
             usersRepository.save(customer);
