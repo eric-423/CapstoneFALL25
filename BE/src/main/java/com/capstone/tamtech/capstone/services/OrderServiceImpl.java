@@ -3,10 +3,7 @@ package com.capstone.tamtech.capstone.services;
 import com.capstone.tamtech.capstone.dto.*;
 import com.capstone.tamtech.capstone.entities.*;
 import com.capstone.tamtech.capstone.exception.ResourceNotFoundException;
-import com.capstone.tamtech.capstone.payload.request.DiningTableProductRequest;
-import com.capstone.tamtech.capstone.payload.request.OrderItemRequest;
-import com.capstone.tamtech.capstone.payload.request.OrderRequest;
-import com.capstone.tamtech.capstone.payload.request.WaiterConfirmOrderRequest;
+import com.capstone.tamtech.capstone.payload.request.*;
 import com.capstone.tamtech.capstone.repositories.*;
 import com.capstone.tamtech.capstone.services.impl.OrderService;
 import com.capstone.tamtech.capstone.services.impl.PaymentService;
@@ -78,6 +75,17 @@ public class OrderServiceImpl implements OrderService {
         Order order = new Order();
 
         order.setStatus(orderStatusRepository.findByName("CREATED").get());
+
+        if(orderRequest.getPointUsed() > 0) {
+            Users user = usersRepository.findById(orderRequest.getCustomerId())
+                    .orElseThrow(() -> new BadRequestException("User not found"));
+            if(!checkUserPoint(user, orderRequest.getPointUsed())) {
+                throw new BadRequestException("Insufficient points");
+            } else {
+                user.setMemberPoint(user.getMemberPoint() - orderRequest.getPointUsed());
+                usersRepository.save(user);
+            }
+        }
 
         order.setAddress(orderRequest.getShippingAddress());
         order.setPhone(orderRequest.getShippingPhoneNumber());
@@ -233,6 +241,17 @@ public class OrderServiceImpl implements OrderService {
             usersRepository.findById(orderRequest.getCustomerId()).ifPresent(order::setCustomer);
         }
 
+        if(orderRequest.getPointUsed() > 0) {
+            Users user = usersRepository.findById(orderRequest.getCustomerId())
+                    .orElseThrow(() -> new BadRequestException("User not found"));
+            if(!checkUserPoint(user, orderRequest.getPointUsed())) {
+                throw new BadRequestException("Insufficient points");
+            } else {
+                user.setMemberPoint(user.getMemberPoint() - orderRequest.getPointUsed());
+                usersRepository.save(user);
+            }
+        }
+
         double subTotal = 0.0;
         if (orderRequest.getOrderItemList() != null) {
             for (OrderItemRequest itemReq : orderRequest.getOrderItemList()) {
@@ -343,6 +362,9 @@ public class OrderServiceImpl implements OrderService {
         return result;
     }
 
+    private Boolean checkUserPoint(Users user, int pointUsed) {
+        return user.getMemberPoint() >= pointUsed;
+    }
     @Override
     public OrderDTO createOrderForDining(OrderRequest orderRequest) {
         inventoryService.assertSufficientMaterialsForOrder(orderRequest.getOrderItemList());
@@ -614,7 +636,7 @@ public class OrderServiceImpl implements OrderService {
 
             if (order.getCustomer() != null) {
                 Users customer = order.getCustomer();
-                int pointsEarned = (int) (order.getAmount() / 1000);
+                int pointsEarned = (int) (order.getAmount() / 10000);
                 customer.setMemberPoint(customer.getMemberPoint() + pointsEarned);
                 order.setPointEarned(pointsEarned);
                 usersRepository.save(customer);
@@ -933,7 +955,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderDTO payDiningTableOrder(
-            com.capstone.tamtech.capstone.payload.request.DiningTablePaymentRequest paymentRequest)
+            DiningTablePaymentRequest paymentRequest)
             throws BadRequestException {
         Order order = orderRepository.findById(paymentRequest.getOrderId())
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
@@ -1035,7 +1057,7 @@ public class OrderServiceImpl implements OrderService {
 
             if (order.getCustomer() != null) {
                 Users customer = order.getCustomer();
-                int pointsEarned = (int) (order.getAmount() / 1000);
+                int pointsEarned = (int) (order.getAmount() / 10000);
                 customer.setMemberPoint(customer.getMemberPoint() + pointsEarned);
                 order.setPointEarned(pointsEarned);
                 usersRepository.save(customer);
@@ -1079,7 +1101,7 @@ public class OrderServiceImpl implements OrderService {
 
         if (order.getCustomer() != null) {
             Users customer = order.getCustomer();
-            int pointsEarned = (int) (order.getAmount() / 1000);
+            int pointsEarned = (int) (order.getAmount() / 10000);
             customer.setMemberPoint(customer.getMemberPoint() + pointsEarned);
             order.setPointEarned(pointsEarned);
             usersRepository.save(customer);
