@@ -69,6 +69,9 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private OrderBillService orderBillService;
 
+    @Autowired
+    private com.capstone.tamtech.capstone.services.impl.MemberAssociationService memberAssociationService;
+
     @Override
     public OrderDTO createOrderForShipping(OrderRequest orderRequest) throws BadRequestException {
         inventoryService.assertSufficientMaterialsForOrder(orderRequest.getOrderItemList());
@@ -615,6 +618,7 @@ public class OrderServiceImpl implements OrderService {
                 customer.setMemberPoint(customer.getMemberPoint() + pointsEarned);
                 order.setPointEarned(pointsEarned);
                 usersRepository.save(customer);
+                memberAssociationService.updateMemberAssiociationForCustomer(customer.getId());
             }
 
             if (order.getDiningTable() != null) {
@@ -774,6 +778,7 @@ public class OrderServiceImpl implements OrderService {
         shipper.setIsBusy(false);
         usersRepository.save(shipper);
         usersRepository.save(customer);
+        memberAssociationService.updateMemberAssiociationForCustomer(customer.getId());
         order.setStatus(orderStatusRepository.findByName("COMPLETED")
                 .orElseThrow(() -> new RuntimeException("OrderStatus COMPLETED not found")));
         orderRepository.save(order);
@@ -1032,6 +1037,7 @@ public class OrderServiceImpl implements OrderService {
                 customer.setMemberPoint(customer.getMemberPoint() + pointsEarned);
                 order.setPointEarned(pointsEarned);
                 usersRepository.save(customer);
+                memberAssociationService.updateMemberAssiociationForCustomer(customer.getId());
             }
 
             if (order.getDiningTable() != null) {
@@ -1075,6 +1081,7 @@ public class OrderServiceImpl implements OrderService {
             customer.setMemberPoint(customer.getMemberPoint() + pointsEarned);
             order.setPointEarned(pointsEarned);
             usersRepository.save(customer);
+            memberAssociationService.updateMemberAssiociationForCustomer(customer.getId());
         }
 
         orderRepository.save(order);

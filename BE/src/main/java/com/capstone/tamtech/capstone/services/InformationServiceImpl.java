@@ -1,5 +1,7 @@
 package com.capstone.tamtech.capstone.services;
 
+import com.capstone.tamtech.capstone.dto.CustomerBaseInfoDTO;
+import com.capstone.tamtech.capstone.dto.CustomerDTO;
 import com.capstone.tamtech.capstone.dto.InformationDTO;
 import com.capstone.tamtech.capstone.entities.Information;
 import com.capstone.tamtech.capstone.entities.Users;
@@ -31,6 +33,9 @@ public class InformationServiceImpl implements InformationService {
 
     @Autowired
     private HttpServletRequest httpServletRequest;
+
+    @Autowired
+    private MemberAssociationServiceImpl memberAssociationService;
 
     private String extractBearerToken() {
         String header = httpServletRequest.getHeader("Authorization");
@@ -149,6 +154,21 @@ public class InformationServiceImpl implements InformationService {
                 .map(this::toDTO)
                 .toList();
     }
+
+    @Override
+    public CustomerBaseInfoDTO getBaseInfo(int customerId) {
+        Users user = usersRepository.findById(customerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy khách hàng"));
+
+            CustomerBaseInfoDTO baseInfo = new CustomerBaseInfoDTO();
+            baseInfo.setId(customerId);
+            baseInfo.setName(user.getFullName());
+            baseInfo.setPhoneNumber(user.getPhoneNumber());
+            baseInfo.setPoint(user.getMemberPoint());
+            baseInfo.setMemberAssociation(memberAssociationService.getMemberAssociationsByCustomer(customerId));
+
+            return baseInfo;
+        }
 
     private InformationDTO toDTO(Information information) {
         InformationDTO dto = new InformationDTO();

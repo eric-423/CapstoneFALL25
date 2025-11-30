@@ -15,4 +15,6 @@ public interface AuthService {
     Boolean forgotPasswordForCustomer(CustomerForgotPasswordRequest customerForgotPasswordRequest) throws Exception;
 
     Boolean resetPasswordForCustomer(CustomerResetPasswordRequest customerResetPasswordRequest);
+
+    Boolean changePassword(int customerId, String newPassword);
 }

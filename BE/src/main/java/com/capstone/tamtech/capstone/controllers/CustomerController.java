@@ -1,10 +1,14 @@
 package com.capstone.tamtech.capstone.controllers;
 
+import com.capstone.tamtech.capstone.dto.CustomerBaseInfoDTO;
+import com.capstone.tamtech.capstone.dto.CustomerDTO;
 import com.capstone.tamtech.capstone.dto.InformationDTO;
 import com.capstone.tamtech.capstone.entities.Information;
 import com.capstone.tamtech.capstone.payload.ResponseData;
 import com.capstone.tamtech.capstone.payload.request.InformationRequest;
+import com.capstone.tamtech.capstone.services.impl.AuthService;
 import com.capstone.tamtech.capstone.services.impl.InformationService;
+import com.capstone.tamtech.capstone.services.impl.UserManagementService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,11 +22,22 @@ public class CustomerController {
     @Autowired
     private InformationService informationService;
 
+    @Autowired
+    private AuthService authService;
+
     @PostMapping("/{customerId}/informations")
     public ResponseEntity<Information> addInformation(@PathVariable int customerId,
             @RequestBody InformationRequest request) {
         Information created = informationService.addInformation(customerId, request);
         return ResponseEntity.ok(created);
+    }
+
+
+    @GetMapping("/{customerId}/base-info")
+    public ResponseEntity<?> getBaseInfo(@PathVariable int customerId) {
+        CustomerBaseInfoDTO baseInfo = informationService.getBaseInfo(customerId);
+
+        return ResponseEntity.ok(baseInfo);
     }
 
     @PutMapping("/{customerId}/informations/{informationId}")
