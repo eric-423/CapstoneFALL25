@@ -138,7 +138,6 @@ export default function OrderDetailPage() {
 
       try {
         setLoading(true);
-        // Fetch order from list first
         const ordersResponse = await getBranchOrders();
         const order = ordersResponse?.data?.find((o) => o.id === orderId);
 
@@ -149,8 +148,6 @@ export default function OrderDetailPage() {
         }
 
         setSelectedOrder(order);
-
-        // Fetch detail
         const detail = await fetchOrderDetail(orderId);
         setOrderDetail(detail);
       } catch (error) {
