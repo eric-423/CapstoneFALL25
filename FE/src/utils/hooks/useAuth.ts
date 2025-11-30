@@ -42,9 +42,9 @@ const useAuth = () => {
       if (data?.data.access_token) {
         const decodedData = JwtDecode(data.data.access_token);
         const userData: UserAuthData = {
-          id: decodedData.id,
-          phoneNumber: decodedData.phoneNumber,
-          role: decodedData.role,
+          id: decodedData.i ?? 0,
+          phoneNumber: decodedData.p ?? '',
+          role: decodedData.r ?? 'CUSTOMER',
           isNewUser: getCookie(configs.cookies.isNew) === 'true',
         };
 
@@ -109,9 +109,9 @@ const useAuth = () => {
         }
 
         const userData: UserAuthData = {
-          id: decodedToken.id,
-          phoneNumber: decodedToken.phoneNumber,
-          role: decodedToken.role,
+          id: decodedToken.i ?? 0,
+          phoneNumber: decodedToken.p ?? '',
+          role: decodedToken.r ?? 'CUSTOMER',
           isNewUser: getCookie(configs.cookies.isNew) === 'true',
         };
 

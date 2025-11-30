@@ -4,10 +4,25 @@ import { ProtectedLayout } from '@/components/layouts/ProtectedLayout';
 import { useAuthContext } from '@/utils/contexts/AuthContext';
 import { useMemo } from 'react';
 import { useCustomerOrders } from '@/utils/hooks/useCustomerOrders';
+import { getCustomerDetails } from '@/apis/user.api';
+import { useQuery } from '@tanstack/react-query';
 
 export default function ProfileContent() {
    const { user } = useAuthContext();
    const { orders, isLoadingOrders } = useCustomerOrders({ realtime: false, initialStatus: 'ALL' });
+
+   const {
+      data: customerDetailsResponse,
+      isLoading: isLoadingCustomerDetails,
+   } = useQuery({
+      queryKey: ["customer-details", user?.id],
+      queryFn: () => getCustomerDetails(),
+      enabled: Boolean(user?.id),
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+   });
+
+   const customerDetails = customerDetailsResponse?.data;
 
    const { totalEarnedPoints, totalUsedPoints } = useMemo(() => {
       return orders.reduce(
@@ -35,25 +50,75 @@ export default function ProfileContent() {
 
                   {user && (
                      <div className="space-y-6">
-                        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                           <div>
-                              <label className="block text-sm font-medium text-gray-700">
-                                 ID người dùng
-                              </label>
-                              <div className="mt-1 p-3 border border-gray-300 rounded-md bg-gray-50">
-                                 {user.id}
-                              </div>
+                        {isLoadingCustomerDetails ? (
+                           <div className="p-4 text-center">
+                              <p className="text-gray-600">Đang tải thông tin...</p>
                            </div>
+                        ) : (
+                           <>
+                              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                 <div>
+                                    <label className="block text-sm font-medium text-gray-700">
+                                       Tên đầy đủ
+                                    </label>
+                                    <div className="mt-1 p-3 border border-gray-300 rounded-md bg-gray-50">
+                                       {customerDetails?.fullName || user.name || "Chưa cập nhật"}
+                                    </div>
+                                 </div>
 
-                           <div>
-                              <label className="block text-sm font-medium text-gray-700">
-                                 Số điện thoại
-                              </label>
-                              <div className="mt-1 p-3 border border-gray-300 rounded-md bg-gray-50">
-                                 {user.phoneNumber}
+                                 <div>
+                                    <label className="block text-sm font-medium text-gray-700">
+                                       ID người dùng
+                                    </label>
+                                    <div className="mt-1 p-3 border border-gray-300 rounded-md bg-gray-50">
+                                       {user.id}
+                                    </div>
+                                 </div>
+
+                                 <div>
+                                    <label className="block text-sm font-medium text-gray-700">
+                                       Số điện thoại
+                                    </label>
+                                    <div className="mt-1 p-3 border border-gray-300 rounded-md bg-gray-50">
+                                       {customerDetails?.phone || user.phoneNumber}
+                                    </div>
+                                 </div>
+
+                                 {customerDetails?.email && (
+                                    <div>
+                                       <label className="block text-sm font-medium text-gray-700">
+                                          Email
+                                       </label>
+                                       <div className="mt-1 p-3 border border-gray-300 rounded-md bg-gray-50">
+                                          {customerDetails.email}
+                                       </div>
+                                    </div>
+                                 )}
+
+                                 {customerDetails?.memberRank && (
+                                    <div>
+                                       <label className="block text-sm font-medium text-gray-700">
+                                          Hạng thành viên
+                                       </label>
+                                       <div className="mt-1 p-3 border border-gray-300 rounded-md bg-gray-50">
+                                          {customerDetails.memberRank}
+                                       </div>
+                                    </div>
+                                 )}
+
+                                 {customerDetails?.memberPoint !== undefined && (
+                                    <div>
+                                       <label className="block text-sm font-medium text-gray-700">
+                                          Điểm tích lũy
+                                       </label>
+                                       <div className="mt-1 p-3 border border-gray-300 rounded-md bg-gray-50">
+                                          {customerDetails.memberPoint.toLocaleString()} điểm
+                                       </div>
+                                    </div>
+                                 )}
                               </div>
-                           </div>
-                        </div>
+                           </>
+                        )}
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                            <div className="border border-orange-100 bg-orange-50 rounded-xl p-4 shadow-sm">
