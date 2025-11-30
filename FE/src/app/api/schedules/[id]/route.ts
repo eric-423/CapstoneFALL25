@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
-const API_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://tam-tac.com';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://tam-tac.com';
 
 export async function PUT(
   request: NextRequest,
@@ -12,6 +12,7 @@ export async function PUT(
     const accessToken = cookieStore.get('access_token')?.value || cookieStore.get('token')?.value;
 
     if (!accessToken) {
+      console.error('No token found in cookies');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -19,9 +20,17 @@ export async function PUT(
     }
 
     const body = await request.json();
+    const scheduleId = (await context.params).id;
+
+    console.log('Updating schedule:', { scheduleId, body, tokenLength: accessToken.length });
+
+    const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
+    const url = `${baseUrl}/schedules/${scheduleId}`;
+
+    console.log('Calling backend API:', url, 'with token:', accessToken.substring(0, 20) + '...');
 
     const response = await fetch(
-      `${API_URL}/api/schedules/${(await context.params).id}`,
+      url,
       {
         method: 'PUT',
         headers: {
@@ -32,16 +41,50 @@ export async function PUT(
       }
     );
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+    const responseText = await response.text();
+    console.log('BE Response:', {
+      status: response.status,
+      ok: response.ok,
+      responseText: responseText.substring(0, 200)
+    });
+
+    let parsedData: any = {};
+    
+    try {
+      parsedData = responseText ? JSON.parse(responseText) : {};
+    } catch (e) {
+      console.error('Failed to parse response:', responseText);
       return NextResponse.json(
-        errorData,
-        { status: response.status }
+        {
+          status: 500,
+          desc: 'Failed to parse response from server',
+          error: responseText
+        },
+        { status: 500 }
       );
     }
 
-    const data = await response.json();
-    return NextResponse.json(data);
+    // Kiểm tra nếu response body có status 200, coi như thành công (ngay cả khi response.ok = false)
+    if (parsedData.status === 200 || response.ok) {
+      return NextResponse.json(parsedData, { status: 200 });
+    }
+
+    // Xử lý lỗi
+    console.error('Update schedule failed:', {
+      status: response.status,
+      statusText: response.statusText,
+      parsedData,
+      body
+    });
+    
+    return NextResponse.json(
+      {
+        status: response.status || parsedData.status || 500,
+        desc: parsedData.desc || parsedData.message || parsedData.error || 'Failed to update schedule',
+        error: parsedData
+      },
+      { status: response.status || 500 }
+    );
   } catch (error) {
     console.error('Error updating schedule:', error);
     return NextResponse.json(
@@ -66,8 +109,12 @@ export async function DELETE(
       );
     }
 
+    const scheduleId = (await context.params).id;
+    const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
+    const url = `${baseUrl}/schedules/${scheduleId}`;
+
     const response = await fetch(
-      `${API_URL}/schedules/${(await context.params).id}`,
+      url,
       {
         method: 'DELETE',
         headers: {

@@ -123,7 +123,7 @@ class WebSocketService {
           this.teardownClient();
         },
         onWebSocketError: (event) => {
-          console.error('[WebSocketService] WebSocket error:', event);
+          console.log('[WebSocketService] WebSocket error:', event);
         },
       });
 

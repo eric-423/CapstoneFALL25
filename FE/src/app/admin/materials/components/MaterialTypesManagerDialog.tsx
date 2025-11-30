@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { getMaterialTypes, createMaterialType, updateMaterialType, deleteMaterialType, type MaterialType } from '@/apis/material.api';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
+import { useBodyScrollLock } from '../../components/useBodyScrollLock';
 
 interface MaterialTypesManagerDialogProps {
     open: boolean;
@@ -17,6 +18,7 @@ export function MaterialTypesManagerDialog({ open, onOpenChange }: MaterialTypes
     const [materialTypes, setMaterialTypes] = useState<MaterialType[]>([]);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(false);
+    useBodyScrollLock(open);
 
     // Inline editing state
     const [editingId, setEditingId] = useState<number | null>(null);

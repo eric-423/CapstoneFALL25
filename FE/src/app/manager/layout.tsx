@@ -10,7 +10,6 @@ import {
   type BarcodeProcessContext,
 } from "@/utils/hooks/useBarcodeScanner";
 import {
-  assignChefToOrder,
   assignShipperToOrder,
   getBranchOrders,
 } from "@/apis/order.api";
@@ -24,12 +23,9 @@ import {
   LogOut,
   Menu,
   X,
-  Users,
   Warehouse,
   BookOpen,
-  Gift,
   DollarSign,
-  Tag,
 } from "lucide-react";
 import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 
@@ -150,16 +146,12 @@ export default function ManagerLayout({
     () => [
       { href: "/manager/dashboard", label: "Dashboard", icon: LayoutDashboard },
       { href: "/manager/orders", label: "Đơn hàng", icon: ShoppingBag },
-      { href: "/manager/users", label: "Người dùng", icon: Users },
       {
         href: "/manager/warehouses",
         label: "Kho & Nguyên liệu",
         icon: Warehouse,
       },
-      { href: "/manager/recipes", label: "Công thức", icon: BookOpen },
-      { href: "/manager/combos", label: "Combo", icon: Gift },
       { href: "/manager/finance", label: "Tài chính", icon: DollarSign },
-      { href: "/manager/promotions", label: "Khuyến mãi", icon: Tag },
     ],
     []
   );

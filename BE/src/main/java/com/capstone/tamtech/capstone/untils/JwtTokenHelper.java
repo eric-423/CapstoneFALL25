@@ -19,14 +19,10 @@ public class JwtTokenHelper {
     public String generateToken(Users user, String roleName, Long time) {
         SecretKey secretKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(key));
         String token = Jwts.builder()
-                .issuer("TamTechRestaurant")
-                .subject("JWT Token")
-                .claim("role", roleName)
-                .claim("name", user.getFullName())
-                .claim("address", user.getAddress())
-                .claim("id", user.getId())
-                .claim("phone", user.getPhoneNumber())
-                .claim("email", user.getEmail())
+                .claim("r", roleName)
+                .claim("i", user.getId())
+                .claim("p", user.getPhoneNumber())
+                .claim("e", user.getEmail())
                 .issuedAt(new Date())
                 .expiration(new Date((new Date().getTime()) + time))
                 .signWith(secretKey).compact();

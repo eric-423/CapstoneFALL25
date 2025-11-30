@@ -551,17 +551,17 @@ export default function ManagerOrdersPage() {
                               {getStatusLabel(order.orderStatus)}
                             </Badge>
                           </div>
-                          {order.table && (
+                          {order.isTable && (
                             <Badge className="bg-blue-100 text-blue-700 border-blue-200 border-2 px-3 py-1 text-xs font-bold rounded-lg">
                               Tại bàn
                             </Badge>
                           )}
-                          {order.pickUp && (
+                          {order.isPickUp && (
                             <Badge className="bg-purple-100 text-purple-700 border-purple-200 border-2 px-3 py-1 text-xs font-bold rounded-lg">
                               Mang đi
                             </Badge>
                           )}
-                          {!order.table && !order.pickUp && (
+                          {!order.isTable && !order.isPickUp && (
                             <Badge className="bg-green-100 text-green-700 border-green-200 border-2 px-3 py-1 text-xs font-bold rounded-lg">
                               <Truck size={12} className="mr-1" />
                               Giao hàng

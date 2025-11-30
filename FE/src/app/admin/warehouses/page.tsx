@@ -273,6 +273,7 @@ export default function WarehousesPage() {
                 initialAddress={initialAddress}
                 existingBranchIds={warehouses.map(w => w.branchId)}
                 branches={branches}
+                warehouses={warehouses}
             />
         </AdminPageLayout>
     );

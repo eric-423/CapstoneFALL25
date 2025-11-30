@@ -37,6 +37,9 @@ public class UserManagementServiceImpl implements UserManagementService {
     @Autowired
     private MemberAssociationRepository memberAssociationRepository;
 
+    @Autowired
+    private com.capstone.tamtech.capstone.services.impl.MemberAssociationService memberAssociationService;
+
     @Override
     @Transactional(readOnly = true)
     public PagedResponse<UserManagementDTO> getAllUsers(UserSearchRequest searchRequest) {
@@ -148,6 +151,10 @@ public class UserManagementServiceImpl implements UserManagementService {
         }
 
         Users saved = usersRepository.save(user);
+        if (request.getMemberAssociationId() == null) {
+            memberAssociationService.updateMemberAssiociationForCustomer(saved.getId());
+            saved = usersRepository.findById(saved.getId()).orElse(saved);
+        }
         return toDTO(saved);
     }
 
@@ -220,6 +227,10 @@ public class UserManagementServiceImpl implements UserManagementService {
         }
 
         Users updated = usersRepository.save(user);
+        if (request.getMemberPoint() != null) {
+            memberAssociationService.updateMemberAssiociationForCustomer(updated.getId());
+            updated = usersRepository.findById(updated.getId()).orElse(updated);
+        }
         return toDTO(updated);
     }
 

@@ -1,5 +1,7 @@
 package com.capstone.tamtech.capstone.services.impl;
 
+import com.capstone.tamtech.capstone.dto.CustomerBaseInfoDTO;
+import com.capstone.tamtech.capstone.dto.CustomerDTO;
 import com.capstone.tamtech.capstone.dto.InformationDTO;
 import com.capstone.tamtech.capstone.entities.Information;
 import com.capstone.tamtech.capstone.payload.request.InformationRequest;
@@ -16,4 +18,6 @@ public interface InformationService {
     InformationDTO getInformation(int customerId, int informationId);
 
     List<InformationDTO> getAllInformations(int customerId);
+
+    CustomerBaseInfoDTO getBaseInfo(int customerId);
 }

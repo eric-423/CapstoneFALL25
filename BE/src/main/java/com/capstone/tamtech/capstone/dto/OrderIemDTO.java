@@ -13,6 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderIemDTO implements Serializable {
+    private Long orderItemId;
     private int productId;
     private String productName;
     private int orderId;

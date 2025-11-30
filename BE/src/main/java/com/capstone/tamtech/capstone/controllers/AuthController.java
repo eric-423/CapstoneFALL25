@@ -67,6 +67,21 @@ public class AuthController {
         return new ResponseEntity<>(responseData,HttpStatus.OK);
     }
 
+    @PostMapping("/customer/change-password/{customerId}")
+    public ResponseEntity<?> changePasswordForCustomer(@PathVariable int customerId, @RequestBody String newPassword) throws Exception {
+        Boolean result = authService.changePassword(customerId, newPassword);
+        ResponseData responseData = new ResponseData();
+        if(!result){
+            responseData.setStatus(400);
+            responseData.setDesc("Đổi mật khẩu thất bại");
+            return new ResponseEntity<>(responseData, HttpStatus.BAD_REQUEST);
+        } else{
+            responseData.setStatus(200);
+            responseData.setDesc("Đổi mật khẩu thành công");
+        }
+        return new ResponseEntity<>(responseData,HttpStatus.OK);
+    }
+
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Xác thực OTP thành công", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseData.class), examples = @ExampleObject(value = "{\"status\": 200, \"desc\": \"Xác thực mã OTP thành công\", \"data\": true}"))),
             @ApiResponse(responseCode = "400", description = "Mã OTP không hợp lệ hoặc đã hết hạn", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{\"status\": 400, \"desc\": \"Mã OTP không hợp lệ hoặc đã hết hạn\", \"data\": false}")))

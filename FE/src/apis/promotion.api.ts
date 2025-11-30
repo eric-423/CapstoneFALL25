@@ -16,8 +16,7 @@ export interface Promotion {
     usedDate: string | null;
     userPromotionStatus: string | null;
     usageCount: number;
-    // Calculated fields
-    code?: string; // Can be ID or custom code
+    code?: string;
 }
 
 export interface CreatePromotionData {
@@ -58,9 +57,7 @@ export interface PromotionsResponse {
     data: Promotion[];
 }
 
-/**
- * Lấy tất cả promotions
- */
+
 export async function getAllPromotions() {
     const response = await fetch('/api/promotions/all', {
         method: 'GET',

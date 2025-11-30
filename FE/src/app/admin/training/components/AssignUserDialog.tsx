@@ -18,6 +18,7 @@ import {
 } from "@/apis/trainning.api";
 import { TrainingCourse, StaffRole } from "@/utils/types/training.type";
 import { toast } from "react-toastify";
+import { useBodyScrollLock } from "../../components/useBodyScrollLock";
 
 interface AssignUserDialogProps {
   open: boolean;
@@ -44,6 +45,7 @@ export function AssignUserDialog({
   const [selectedUserIds, setSelectedUserIds] = useState<Set<number>>(
     new Set()
   );
+  useBodyScrollLock(open);
 
   useEffect(() => {
     if (open && trainingId) {

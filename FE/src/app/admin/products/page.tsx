@@ -8,6 +8,7 @@ import { UtensilsCrossed, Plus, Search, Loader2, Edit, ChevronLeft, ChevronRight
 import { toast } from 'react-toastify';
 import { AdminPageLayout, AdminPageHeader } from '../components/AdminPageLayout';
 import { Card } from '@/components/ui/card';
+import { FilterDropdown } from '../components/FilterDropdown';
 import {
     getAllBranchProducts,
     type Product,
@@ -108,19 +109,22 @@ export default function ProductsPage() {
                     {/* Page Size */}
                     <div className="flex items-center gap-3 justify-end">
                         <label className="text-sm text-[#2D1E1A]/80 font-medium whitespace-nowrap">Hiển thị:</label>
-                        <select
-                            value={pageSize}
-                            onChange={(e) => {
-                                setPageSize(parseInt(e.target.value));
+                        <FilterDropdown
+                            label="Hiển thị"
+                            value={pageSize.toString()}
+                            onChange={(value) => {
+                                setPageSize(parseInt(value));
                                 setCurrentPage(0);
                             }}
-                            className="px-3 py-2 border bg-white/80 border-[#78A243]/30 rounded-lg text-sm text-[#2D1E1A] focus:border-[#78A243] outline-none"
-                        >
-                            <option value="5">5</option>
-                            <option value="10">10</option>
-                            <option value="20">20</option>
-                            <option value="50">50</option>
-                        </select>
+                            items={[
+                                { value: "5", label: "5" },
+                                { value: "10", label: "10" },
+                                { value: "20", label: "20" },
+                                { value: "50", label: "50" }
+                            ]}
+                            showAllOption={false}
+                            className="w-[80px]"
+                        />
                         <span className="text-sm text-[#2D1E1A]/80 whitespace-nowrap">
                             Tổng: <span className="font-bold text-[#78A243]">{totalElements}</span>
                         </span>

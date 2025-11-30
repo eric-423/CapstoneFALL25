@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { createNutrient, updateNutrient, type Nutrient } from '@/apis/nutrient.api';
+import { useBodyScrollLock } from '../../components/useBodyScrollLock';
 
 interface NutrientFormDialogProps {
     open: boolean;
@@ -18,6 +19,7 @@ interface NutrientFormDialogProps {
 
 export function NutrientFormDialog({ open, onOpenChange, nutrient, onSuccess }: NutrientFormDialogProps) {
     const [loading, setLoading] = useState(false);
+    useBodyScrollLock(open);
     const [formData, setFormData] = useState({
         name: '',
         code: '',

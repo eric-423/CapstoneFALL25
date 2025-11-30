@@ -15,6 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useBodyScrollLock } from "../../components/useBodyScrollLock";
 
 interface LessonDetailPanelProps {
   lesson: TrainingLesson | null;
@@ -45,6 +46,9 @@ export function LessonDetailPanel({
     useState<LessonDocument | null>(null);
   const [deletingDocumentId, setDeletingDocumentId] = useState<number | null>(
     null
+  );
+  useBodyScrollLock(
+    documentFormOpen || documentEditMode.open || !!documentToDelete
   );
 
   const handleDeleteDocument = async () => {
