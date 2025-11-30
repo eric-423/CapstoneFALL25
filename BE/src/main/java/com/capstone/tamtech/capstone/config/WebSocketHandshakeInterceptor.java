@@ -42,10 +42,10 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
                 try {
                     Claims claims = jwtTokenHelper.getClaimsFromToken(token);
 
-                    String role = claims.get("role", String.class);
-                    Integer userId = claims.get("id", Integer.class);
-                    String email = claims.get("email", String.class);
-                    String phone = claims.get("phone", String.class);
+                    String role = claims.get("r", String.class);
+                    Integer userId = claims.get("i", Integer.class);
+                    String email = claims.get("e", String.class);
+                    String phone = claims.get("p", String.class);
 
                     String principal = email != null && !email.isEmpty() ? email : phone;
 
