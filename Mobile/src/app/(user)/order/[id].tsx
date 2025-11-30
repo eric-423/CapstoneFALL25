@@ -222,8 +222,8 @@ const OrderDetailsPage = () => {
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.container}>
           <View style={styles.headerTitle}>
-            <Text style={styles.title}>
-              Giao hàng #{orderDetails?.orderId || orderIdParam}
+            <Text style={[styles.title, { textAlign: "center" }]}>
+              Giao hàng đơn số {orderDetails?.orderId || orderIdParam}
             </Text>
           </View>
           {isLoading && (
@@ -234,28 +234,6 @@ const OrderDetailsPage = () => {
           {!!error && !isLoading && (
             <Text style={styles.errorText}>{error}</Text>
           )}
-          <View style={styles.contentItems}>
-            <View>
-              <Text style={styles.label}>Thời gian đặt hàng</Text>
-              <Text style={styles.value}>
-                {formatDateToDDMMYYYY(orderDetails?.order_create_at || "")}
-              </Text>
-            </View>
-            <View>
-              <Text style={styles.label}>Hóa đơn</Text>
-              <Text style={styles.value}>{orderDetails?.orderId}</Text>
-            </View>
-          </View>
-          <View style={styles.contentItems}>
-            <View>
-              <Text style={styles.label}>Hình thức</Text>
-              <Text style={styles.value}>{orderDetails?.payment_method}</Text>
-            </View>
-            <View>
-              <Text style={styles.label}>Địa chỉ</Text>
-              <Text style={styles.value}>{orderDetails?.order_address}</Text>
-            </View>
-          </View>
           <View style={styles.orderDetailsStatus}>
             <Text style={styles.statusLabel}>Trạng thái đơn hàng</Text>
             <View style={styles.statusLayout}>
@@ -360,8 +338,8 @@ const OrderDetailsPage = () => {
                 borderBottomColor: APP_COLOR.BROWN,
                 borderBottomWidth: 0.5,
                 paddingBottom: 10,
-                marginBottom: 10,
-                width: "54%",
+                marginBottom: 4.5,
+                width: "50%",
                 gap: 5,
               }}
             >
@@ -424,6 +402,18 @@ const OrderDetailsPage = () => {
                 >
                   {orderDetails?.order_address}
                 </Text>
+              </View>
+
+              <View>
+                <Text style={styles.label}>Thời gian đặt hàng</Text>
+                <Text style={styles.value}>
+                  {formatDateToDDMMYYYY(orderDetails?.order_create_at || "")}
+                </Text>
+              </View>
+
+              <View>
+                <Text style={styles.label}>Hình thức</Text>
+                <Text style={styles.value}>{orderDetails?.payment_method}</Text>
               </View>
             </View>
           </View>
@@ -523,12 +513,16 @@ const OrderDetailsPage = () => {
                   <TouchableOpacity
                     style={[
                       styles.buttonFooter,
-                      { backgroundColor: APP_COLOR.ORANGE },
+                      {
+                        backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
+                        borderWidth: 1,
+                        borderColor: APP_COLOR.BROWN,
+                      },
                     ]}
                     onPress={() => router.navigate("/(tabs)")}
                   >
                     <Text
-                      style={[styles.buttonText, { color: APP_COLOR.WHITE }]}
+                      style={[styles.buttonText, { color: APP_COLOR.BROWN }]}
                     >
                       Thanh toán
                     </Text>
@@ -631,8 +625,9 @@ const OrderDetailsPage = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
     backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
+    paddingVertical: 35,
+    paddingHorizontal: 16,
   },
   headerTitle: {
     marginBottom: 10,
@@ -683,9 +678,6 @@ const styles = StyleSheet.create({
     marginVertical: 4,
     justifyContent: "space-between",
     backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
-    flexDirection: "row",
-  },
-  contentItems: {
     flexDirection: "row",
   },
   itemValue: {
