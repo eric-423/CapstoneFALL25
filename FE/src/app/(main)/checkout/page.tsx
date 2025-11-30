@@ -4,6 +4,7 @@ import { createOrderApiRoute, CreateOrderPayload } from "@/apis/order.api";
 import {
     getCustomerInformation,
     saveCustomerInformation,
+    getMyPromotion,
 } from "@/apis/user.api";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { Button } from "@/components/ui/button";
@@ -101,6 +102,8 @@ import { useRouter } from "next/navigation";
 import CheckoutSection from "./components/checkout-section";
 import { CheckoutFormData, checkoutSchema } from "./schema";
 import ControlledDateTimePicker from "@/components/common/date-time-picker";
+import { Promotion } from '@/apis/promotion.api';
+
 
 export default function CheckoutPage() {
     useScrollTop();
@@ -188,6 +191,28 @@ export default function CheckoutPage() {
                 : [],
         [customerInformationData]
     );
+
+
+    const {
+        data: promotionsResponseData,
+        isLoading: isLoadingPromotions,
+    } = useQuery({
+        queryKey: ["customer-promotions", user?.id],
+        queryFn: () => getMyPromotion(),
+        enabled: Boolean(user?.id),
+        refetchOnMount: false,
+        refetchOnWindowFocus: false,
+    });
+
+    const promotionsData: Promotion[] = useMemo(
+        () =>
+            promotionsResponseData?.data && Array.isArray(promotionsResponseData.data)
+                ? promotionsResponseData.data
+                : [],
+        [promotionsResponseData]
+    );
+
+
 
     const primaryAddress = useMemo(() => {
         if (!customerInformations.length) return "";

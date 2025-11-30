@@ -1,16 +1,25 @@
 import { jwtDecode } from 'jwt-decode';
 
 interface JWTPayload {
-  id: number;
-  phoneNumber: string;
-  fullName?: string;
-  name?: string;
-  email: string;
-  role: string;
-  branchId: number;
+  r?: string; // role
+  i?: number; // id (userId)
+  p?: string; // phoneNumber
+  m?: string; // mail/email
   exp: number;
   iat: number;
   [key: string]: unknown;
+}
+
+// Helper function để extract data từ token
+export function extractTokenData(payload: JWTPayload) {
+  return {
+    id: payload.i ?? 0,
+    phoneNumber: payload.p ?? '',
+    role: payload.r ?? 'CUSTOMER',
+    email: payload.m ?? '',
+    exp: payload.exp,
+    iat: payload.iat,
+  };
 }
 
 function JwtDecode(token: string): JWTPayload {
