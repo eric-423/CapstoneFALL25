@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Platform,
+  Alert,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { APP_COLOR, STATUS_COLORS } from "@/utils/constant";
@@ -15,7 +16,7 @@ import Entypo from "@expo/vector-icons/Entypo";
 import { formatDateToDDMMYYYY } from "@/utils/cart";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { GetOrderById } from "@/utils/api";
+import { GetOrderById, CompleteOrder } from "@/utils/api";
 interface StatusInfo {
   text: string;
   color: string;
@@ -33,8 +34,6 @@ const statusMap: Record<string, StatusInfo> = {
   DELIVERING: { text: "Đang giao hàng", color: STATUS_COLORS.DELIVERING },
   DELIVERED: { text: "Đã giao hàng", color: STATUS_COLORS.DELIVERED },
   COMPLETED: { text: "Đã hoàn thành", color: STATUS_COLORS.DONE },
-  CANCEL: { text: "Đã hủy", color: STATUS_COLORS.CANCELED },
-  CANCELED: { text: "Đã hủy", color: STATUS_COLORS.CANCELED },
   DEFAULT: { text: "Đang cập nhật", color: STATUS_COLORS.DEFAULT },
 };
 
@@ -68,6 +67,7 @@ interface IOrderDetails {
   certificationOfDelivered: string | null;
   order_delivery_at: string | null;
   paymentUrl: string;
+  billPdfUrl: string | null;
 }
 
 const mapApiOrderToState = (data: any): IOrderDetails => ({
@@ -106,6 +106,7 @@ const mapApiOrderToState = (data: any): IOrderDetails => ({
   certificationOfDelivered: data?.certificationOfDelivered ?? null,
   order_delivery_at: data?.delivery_at ?? data?.deliveryAt ?? null,
   paymentUrl: data?.paymentUrl ?? "",
+  billPdfUrl: data?.billPdfUrl ?? null,
 });
 
 const OrderDetailsPage = () => {
@@ -113,6 +114,7 @@ const OrderDetailsPage = () => {
   const [orderDetails, setOrderDetails] = useState<IOrderDetails>();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isCompleting, setIsCompleting] = useState(false);
   const orderIdParam = Array.isArray(id) ? id[0] : id;
   useEffect(() => {
     if (!orderIdParam) return;
@@ -121,7 +123,6 @@ const OrderDetailsPage = () => {
         setIsLoading(true);
         setError(null);
         const response = await GetOrderById(Number(orderIdParam));
-        console.log(response.data.data);
         const data = response.data?.data || response.data;
         if (data) {
           setOrderDetails(mapApiOrderToState(data));
@@ -170,13 +171,59 @@ const OrderDetailsPage = () => {
     color: STATUS_COLORS.DEFAULT,
   };
 
+  const handleCompleteOrder = async () => {
+    if (!orderDetails?.orderId) return;
+    Alert.alert("Xác nhận", "Bạn có chắc chắn đã nhận được đơn hàng?", [
+      {
+        text: "Hủy",
+        style: "cancel",
+      },
+      {
+        text: "Xác nhận",
+        onPress: async () => {
+          try {
+            setIsCompleting(true);
+            await CompleteOrder(orderDetails.orderId);
+            Alert.alert("Thành công", "Đơn hàng đã được xác nhận hoàn thành!");
+            const response = await GetOrderById(Number(orderIdParam));
+            const data = response.data?.data || response.data;
+            if (data) {
+              setOrderDetails(mapApiOrderToState(data));
+            }
+          } catch (error: any) {
+            console.error("Error completing order:", error);
+            Alert.alert(
+              "Lỗi",
+              error?.response?.data?.desc ||
+                "Không thể hoàn thành đơn hàng. Vui lòng thử lại."
+            );
+          } finally {
+            setIsCompleting(false);
+          }
+        },
+      },
+    ]);
+  };
+
+  const handleViewBill = () => {
+    if (!orderDetails?.billPdfUrl) {
+      Alert.alert("Lỗi", "Không tìm thấy hóa đơn");
+      return;
+    }
+
+    router.navigate({
+      pathname: "/(user)/order/bill.webview",
+      params: { billUrl: orderDetails.billPdfUrl },
+    });
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: APP_COLOR.BACKGROUND_ORANGE }}>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.container}>
           <View style={styles.headerTitle}>
-            <Text style={styles.title}>
-              Giao hàng #{orderDetails?.orderId || orderIdParam}
+            <Text style={[styles.title, { textAlign: "center" }]}>
+              Giao hàng đơn số {orderDetails?.orderId || orderIdParam}
             </Text>
           </View>
           {isLoading && (
@@ -187,28 +234,6 @@ const OrderDetailsPage = () => {
           {!!error && !isLoading && (
             <Text style={styles.errorText}>{error}</Text>
           )}
-          <View style={styles.contentItems}>
-            <View>
-              <Text style={styles.label}>Thời gian đặt hàng</Text>
-              <Text style={styles.value}>
-                {formatDateToDDMMYYYY(orderDetails?.order_create_at || "")}
-              </Text>
-            </View>
-            <View>
-              <Text style={styles.label}>Hóa đơn</Text>
-              <Text style={styles.value}>{orderDetails?.orderId}</Text>
-            </View>
-          </View>
-          <View style={styles.contentItems}>
-            <View>
-              <Text style={styles.label}>Hình thức</Text>
-              <Text style={styles.value}>{orderDetails?.payment_method}</Text>
-            </View>
-            <View>
-              <Text style={styles.label}>Địa chỉ</Text>
-              <Text style={styles.value}>{orderDetails?.order_address}</Text>
-            </View>
-          </View>
           <View style={styles.orderDetailsStatus}>
             <Text style={styles.statusLabel}>Trạng thái đơn hàng</Text>
             <View style={styles.statusLayout}>
@@ -313,8 +338,8 @@ const OrderDetailsPage = () => {
                 borderBottomColor: APP_COLOR.BROWN,
                 borderBottomWidth: 0.5,
                 paddingBottom: 10,
-                marginBottom: 10,
-                width: "54%",
+                marginBottom: 4.5,
+                width: "50%",
                 gap: 5,
               }}
             >
@@ -377,6 +402,18 @@ const OrderDetailsPage = () => {
                 >
                   {orderDetails?.order_address}
                 </Text>
+              </View>
+
+              <View>
+                <Text style={styles.label}>Thời gian đặt hàng</Text>
+                <Text style={styles.value}>
+                  {formatDateToDDMMYYYY(orderDetails?.order_create_at || "")}
+                </Text>
+              </View>
+
+              <View>
+                <Text style={styles.label}>Hình thức</Text>
+                <Text style={styles.value}>{orderDetails?.payment_method}</Text>
               </View>
             </View>
           </View>
@@ -476,12 +513,16 @@ const OrderDetailsPage = () => {
                   <TouchableOpacity
                     style={[
                       styles.buttonFooter,
-                      { backgroundColor: APP_COLOR.ORANGE },
+                      {
+                        backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
+                        borderWidth: 1,
+                        borderColor: APP_COLOR.BROWN,
+                      },
                     ]}
                     onPress={() => router.navigate("/(tabs)")}
                   >
                     <Text
-                      style={[styles.buttonText, { color: APP_COLOR.WHITE }]}
+                      style={[styles.buttonText, { color: APP_COLOR.BROWN }]}
                     >
                       Thanh toán
                     </Text>
@@ -515,6 +556,52 @@ const OrderDetailsPage = () => {
                       </Text>
                     </TouchableOpacity>
                   )}
+                {normalizedStatus === "DELIVERED" && orderDetails?.orderId && (
+                  <TouchableOpacity
+                    style={[
+                      styles.buttonFooter,
+                      {
+                        backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
+                        borderWidth: 1,
+                        borderColor: APP_COLOR.BROWN,
+                      },
+                    ]}
+                    onPress={handleCompleteOrder}
+                    disabled={isCompleting}
+                  >
+                    <Text
+                      style={[
+                        styles.buttonText,
+                        { color: APP_COLOR.BROWN, textAlign: "center" },
+                      ]}
+                    >
+                      {isCompleting ? "Đang xử lý..." : "Đã nhận đơn"}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+                {normalizedStatus === "COMPLETED" &&
+                  orderDetails?.billPdfUrl && (
+                    <TouchableOpacity
+                      style={[
+                        styles.buttonFooter,
+                        {
+                          backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
+                          borderWidth: 1,
+                          borderColor: APP_COLOR.BROWN,
+                        },
+                      ]}
+                      onPress={handleViewBill}
+                    >
+                      <Text
+                        style={[
+                          styles.buttonText,
+                          { color: APP_COLOR.BROWN, textAlign: "center" },
+                        ]}
+                      >
+                        Xem hóa đơn
+                      </Text>
+                    </TouchableOpacity>
+                  )}
                 <TouchableOpacity
                   style={[
                     styles.buttonFooter,
@@ -538,8 +625,9 @@ const OrderDetailsPage = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
     backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
+    paddingVertical: 35,
+    paddingHorizontal: 16,
   },
   headerTitle: {
     marginBottom: 10,
@@ -590,9 +678,6 @@ const styles = StyleSheet.create({
     marginVertical: 4,
     justifyContent: "space-between",
     backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
-    flexDirection: "row",
-  },
-  contentItems: {
     flexDirection: "row",
   },
   itemValue: {

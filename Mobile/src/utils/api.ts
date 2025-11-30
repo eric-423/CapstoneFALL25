@@ -513,3 +513,17 @@ export const SearchProductByName = async (branchId: number, name: string) => {
     }
   );
 };
+
+export const CompleteOrder = async (orderId: number) => {
+  const token = await AsyncStorage.getItem("access_token");
+  return axios.put(
+    `${BASE_URL}/orders/customer/comleted/${orderId}`,
+    {},
+    {
+      headers: {
+        accept: "*/*",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    }
+  );
+};
