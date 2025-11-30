@@ -273,6 +273,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/attendance/summary")
                         .hasAnyRole("ADMIN", "MANAGER")
 
+                        .requestMatchers("/api/promotion-types/**").hasAnyRole("MANAGER", "ADMIN")
                         .anyRequest().authenticated());
 
         return http.build();
