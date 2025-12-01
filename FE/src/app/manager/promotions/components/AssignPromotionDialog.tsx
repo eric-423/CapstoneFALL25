@@ -1,303 +1,338 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { X, UserPlus, Users, Search } from 'lucide-react';
-import { toast } from 'react-toastify';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { assignPromotion, type UserAssignment } from '@/apis/promotion.api';
-import { getAllUsers, type UserSearchRequest } from '@/apis/user.api';
-import { type User } from '@/apis/admin-user.api';
+import React, { useState, useEffect } from "react";
+import { X, UserPlus, Users, Search } from "lucide-react";
+import { toast } from "react-toastify";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { assignPromotion, type UserAssignment } from "@/apis/promotion.api";
+import { getAllUsers, type UserSearchRequest } from "@/apis/user.api";
+import { type User } from "@/apis/admin-user.api";
 
 interface AssignPromotionDialogProps {
-    promotionCode: string;
-    promotionName: string;
-    onSuccess: () => void;
+  promotionCode: string;
+  promotionName: string;
+  onSuccess: () => void;
 }
 
-export function AssignPromotionDialog({ promotionCode, promotionName, onSuccess }: AssignPromotionDialogProps) {
-    const [open, setOpen] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [customers, setCustomers] = useState<User[]>([]);
-    const [loadingCustomers, setLoadingCustomers] = useState(false);
-    const [searchKeyword, setSearchKeyword] = useState('');
-    const [selectedUsers, setSelectedUsers] = useState<Map<number, number>>(new Map()); // userId -> usageCount
+export function AssignPromotionDialog({
+  promotionCode,
+  promotionName,
+  onSuccess,
+}: AssignPromotionDialogProps) {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [customers, setCustomers] = useState<User[]>([]);
+  const [loadingCustomers, setLoadingCustomers] = useState(false);
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const [selectedUsers, setSelectedUsers] = useState<Map<number, number>>(
+    new Map()
+  ); // userId -> usageCount
 
-    // Fetch customers when dialog opens
-    useEffect(() => {
-        if (open) {
-            fetchCustomers();
-        }
-    }, [open]);
+  // Fetch customers when dialog opens
+  useEffect(() => {
+    if (open) {
+      fetchCustomers();
+    }
+  }, [open]);
 
-    const fetchCustomers = async () => {
-        try {
-            setLoadingCustomers(true);
-            const searchRequest: UserSearchRequest = {
-                role: 'CUSTOMER',
-                status: false,
-                page: 0,
-                size: 1000,
-                sortBy: 'id',
-                sortDirection: 'ASC',
-            };
+  const fetchCustomers = async () => {
+    try {
+      setLoadingCustomers(true);
+      const searchRequest: UserSearchRequest = {
+        role: "CUSTOMER",
+        status: false,
+        page: 0,
+        size: 1000,
+        sortBy: "id",
+        sortDirection: "ASC",
+      };
 
-            if (searchKeyword) {
-                searchRequest.keyword = searchKeyword;
-            }
+      if (searchKeyword) {
+        searchRequest.keyword = searchKeyword;
+      }
 
-            const response = await getAllUsers(searchRequest);
-            setCustomers(response.data.content);
-        } catch (error) {
-            console.error('Failed to fetch customers:', error);
-            toast.error('❌ Không thể tải danh sách khách hàng!');
-        } finally {
-            setLoadingCustomers(false);
-        }
-    };
+      const response = await getAllUsers(searchRequest);
+      setCustomers(response.data.content);
+    } catch (error) {
+      console.error("Failed to fetch customers:", error);
+      toast.error("❌ Không thể tải danh sách khách hàng!");
+    } finally {
+      setLoadingCustomers(false);
+    }
+  };
 
-    const handleSearch = () => {
-        fetchCustomers();
-    };
+  const handleSearch = () => {
+    fetchCustomers();
+  };
 
-    const toggleUserSelection = (userId: number) => {
-        const newSelectedUsers = new Map(selectedUsers);
-        if (newSelectedUsers.has(userId)) {
-            newSelectedUsers.delete(userId);
-        } else {
-            newSelectedUsers.set(userId, 1); // Default usage count is 1
-        }
-        setSelectedUsers(newSelectedUsers);
-    };
+  const toggleUserSelection = (userId: number) => {
+    const newSelectedUsers = new Map(selectedUsers);
+    if (newSelectedUsers.has(userId)) {
+      newSelectedUsers.delete(userId);
+    } else {
+      newSelectedUsers.set(userId, 1); // Default usage count is 1
+    }
+    setSelectedUsers(newSelectedUsers);
+  };
 
-    const updateUsageCount = (userId: number, count: number) => {
-        if (count < 1) return;
-        const newSelectedUsers = new Map(selectedUsers);
-        newSelectedUsers.set(userId, count);
-        setSelectedUsers(newSelectedUsers);
-    };
+  const updateUsageCount = (userId: number, count: number) => {
+    if (count < 1) return;
+    const newSelectedUsers = new Map(selectedUsers);
+    newSelectedUsers.set(userId, count);
+    setSelectedUsers(newSelectedUsers);
+  };
 
-    const handleAssign = async () => {
-        if (selectedUsers.size === 0) {
-            toast.warning('⚠️ Vui lòng chọn ít nhất một khách hàng!');
-            return;
-        }
+  const handleAssign = async () => {
+    if (selectedUsers.size === 0) {
+      toast.warning("⚠️ Vui lòng chọn ít nhất một khách hàng!");
+      return;
+    }
 
-        try {
-            setLoading(true);
+    try {
+      setLoading(true);
 
-            const userAssignments: UserAssignment[] = Array.from(selectedUsers.entries()).map(
-                ([userId, usageCount]) => ({
-                    userId,
-                    usageCount,
-                })
-            );
+      const userAssignments: UserAssignment[] = Array.from(
+        selectedUsers.entries()
+      ).map(([userId, usageCount]) => ({
+        userId,
+        usageCount,
+      }));
 
-            await assignPromotion({
-                promotionCode,
-                userAssignments,
-            });
+      await assignPromotion({
+        promotionCode,
+        userAssignments,
+      });
 
-            toast.success(`✅ Đã gán khuyến mãi cho ${selectedUsers.size} khách hàng!`);
-            setOpen(false);
-            setSelectedUsers(new Map());
-            onSuccess();
-        } catch (error) {
-            console.error('Failed to assign promotion:', error);
-            toast.error('❌ Không thể gán khuyến mãi!');
-        } finally {
-            setLoading(false);
-        }
-    };
+      toast.success(
+        `✅ Đã gán khuyến mãi cho ${selectedUsers.size} khách hàng!`
+      );
+      setOpen(false);
+      setSelectedUsers(new Map());
+      onSuccess();
+    } catch (error) {
+      console.error("Failed to assign promotion:", error);
+      toast.error("❌ Không thể gán khuyến mãi!");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const handleClose = () => {
-        setOpen(false);
-        setSelectedUsers(new Map());
-        setSearchKeyword('');
-    };
+  const handleClose = () => {
+    setOpen(false);
+    setSelectedUsers(new Map());
+    setSearchKeyword("");
+  };
 
-    return (
-        <>
-            <Button
-                onClick={() => setOpen(true)}
-                size="sm"
-                className="bg-gradient-to-r from-[#78A243] to-[#78A243]/80 hover:from-[#78A243]/90 hover:to-[#78A243]/70 text-white font-semibold rounded-lg transition-all duration-300 shadow-md hover:shadow-lg"
-            >
-                <UserPlus className="h-4 w-4 mr-1" />
-                Gán KH
-            </Button>
+  return (
+    <>
+      <Button
+        onClick={() => setOpen(true)}
+        size="sm"
+        className="bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg transition-all duration-300 shadow-md hover:shadow-lg"
+      >
+        <UserPlus className="h-4 w-4 mr-1" />
+        Gán KH
+      </Button>
 
-            {open && (
-                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-                    <Card className="w-full max-w-4xl bg-white shadow-2xl rounded-2xl border-2 border-[#78A243]/20 overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
-                        {/* Header */}
-                        <div className="p-6 border-b-2 border-gray-100 bg-gradient-to-r from-[#78A243]/5 to-transparent flex-shrink-0">
-                            <div className="flex items-start gap-4">
-                                <div className="w-12 h-12 bg-gradient-to-br from-[#78A243] to-[#78A243]/80 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
-                                    <UserPlus className="h-6 w-6 text-white" />
-                                </div>
-                                <div className="flex-1">
-                                    <h2 className="text-xl font-bold text-gray-900">
-                                        Gán khuyến mãi cho khách hàng
-                                    </h2>
-                                    <p className="text-sm text-gray-600 mt-1">
-                                        Khuyến mãi: <span className="font-bold text-[#78A243]">{promotionName}</span>
-                                    </p>
-                                    <p className="text-xs text-gray-500 mt-0.5">
-                                        Mã: <span className="font-mono font-bold">{promotionCode}</span>
-                                    </p>
-                                </div>
-                                <button
-                                    onClick={handleClose}
-                                    disabled={loading}
-                                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
-                                >
-                                    <X className="h-5 w-5 text-gray-500" />
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Search Bar */}
-                        <div className="p-4 border-b border-gray-200 bg-gray-50 flex-shrink-0">
-                            <div className="flex gap-3">
-                                <div className="relative flex-1">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                    <input
-                                        type="text"
-                                        placeholder="Tìm kiếm khách hàng (Enter để tìm)..."
-                                        value={searchKeyword}
-                                        onChange={(e) => setSearchKeyword(e.target.value)}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter') {
-                                                handleSearch();
-                                            }
-                                        }}
-                                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:border-[#78A243] focus:ring-2 focus:ring-[#78A243]/20 outline-none"
-                                    />
-                                </div>
-                                <Button
-                                    onClick={handleSearch}
-                                    disabled={loadingCustomers}
-                                    className="bg-[#78A243] hover:bg-[#78A243]/90"
-                                >
-                                    <Search className="h-4 w-4 mr-2" />
-                                    Tìm
-                                </Button>
-                            </div>
-                        </div>
-
-                        {/* Selected Count */}
-                        {selectedUsers.size > 0 && (
-                            <div className="px-4 py-2 bg-[#78A243]/10 border-b border-[#78A243]/20 flex-shrink-0">
-                                <p className="text-sm font-semibold text-[#78A243]">
-                                    <Users className="inline h-4 w-4 mr-1" />
-                                    Đã chọn: {selectedUsers.size} khách hàng
-                                </p>
-                            </div>
-                        )}
-
-                        {/* Customer List */}
-                        <div className="p-6 space-y-3 overflow-y-auto flex-1">
-                            {loadingCustomers ? (
-                                <div className="text-center py-12">
-                                    <div className="w-12 h-12 border-4 border-[#78A243]/30 border-t-[#78A243] rounded-full animate-spin mx-auto mb-4"></div>
-                                    <p className="text-gray-600">Đang tải danh sách khách hàng...</p>
-                                </div>
-                            ) : customers.length === 0 ? (
-                                <div className="text-center py-12">
-                                    <Users className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-                                    <p className="font-semibold text-gray-900">Không tìm thấy khách hàng</p>
-                                    <p className="text-sm text-gray-500 mt-1">Thử tìm kiếm với từ khóa khác</p>
-                                </div>
-                            ) : (
-                                customers.map((customer) => {
-                                    const isSelected = selectedUsers.has(customer.id);
-                                    const usageCount = selectedUsers.get(customer.id) || 1;
-
-                                    return (
-                                        <div
-                                            key={customer.id}
-                                            className={`p-4 rounded-lg border-2 transition-all ${isSelected
-                                                ? 'border-[#78A243] bg-[#78A243]/5'
-                                                : 'border-gray-200 hover:border-gray-300 bg-white'
-                                                }`}
-                                        >
-                                            <div className="flex items-start gap-3">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={isSelected}
-                                                    onChange={() => toggleUserSelection(customer.id)}
-                                                    className="mt-1 h-5 w-5 rounded border-gray-300 text-[#78A243] focus:ring-[#78A243]"
-                                                />
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-2 mb-1">
-                                                        <h4 className="font-semibold text-gray-900">{customer.fullName}</h4>
-                                                        {customer.emailVerified && (
-                                                            <Badge className="bg-green-100 text-green-700 text-xs">✓ Email</Badge>
-                                                        )}
-                                                        {customer.phoneVerified && (
-                                                            <Badge className="bg-blue-100 text-blue-700 text-xs">✓ SĐT</Badge>
-                                                        )}
-                                                    </div>
-                                                    <div className="text-sm text-gray-600 space-y-0.5">
-                                                        <p>📧 {customer.email}</p>
-                                                        <p>📱 {customer.phoneNumber}</p>
-                                                        <p className="text-xs text-gray-500">
-                                                            Điểm tích lũy: <span className="font-bold text-[#F8A91F]">{customer.memberPoint}</span>
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                {isSelected && (
-                                                    <div className="flex items-center gap-2">
-                                                        <label className="text-sm font-medium text-gray-700">Số lần:</label>
-                                                        <input
-                                                            type="number"
-                                                            min="1"
-                                                            value={usageCount}
-                                                            onChange={(e) => updateUsageCount(customer.id, parseInt(e.target.value) || 1)}
-                                                            className="w-20 px-2 py-1 border border-gray-300 rounded text-center font-semibold focus:border-[#78A243] focus:ring-2 focus:ring-[#78A243]/20 outline-none"
-                                                        />
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    );
-                                })
-                            )}
-                        </div>
-
-                        {/* Footer */}
-                        <div className="p-6 bg-gray-50 border-t border-gray-200 flex gap-3 justify-end flex-shrink-0">
-                            <Button
-                                onClick={handleClose}
-                                disabled={loading}
-                                variant="outline"
-                                className="px-5 py-2.5 border-2 border-gray-300 hover:bg-gray-100 font-semibold"
-                            >
-                                Hủy bỏ
-                            </Button>
-                            <Button
-                                onClick={handleAssign}
-                                disabled={loading || selectedUsers.size === 0}
-                                className="px-5 py-2.5 bg-gradient-to-r from-[#78A243] to-[#78A243]/80 hover:from-[#78A243]/90 hover:to-[#78A243]/70 text-white shadow-lg hover:shadow-xl transition-all font-semibold"
-                            >
-                                {loading ? (
-                                    <>
-                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                                        Đang xử lý...
-                                    </>
-                                ) : (
-                                    <>
-                                        <UserPlus className="h-4 w-4 mr-2" />
-                                        Gán cho {selectedUsers.size} khách hàng
-                                    </>
-                                )}
-                            </Button>
-                        </div>
-                    </Card>
+      {open && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <Card className="w-full max-w-4xl bg-white shadow-2xl rounded-2xl border-2 border-[#78A243]/20 overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
+            {/* Header */}
+            <div className="p-6 border-b-2 border-gray-100 bg-gradient-to-r from-[#78A243]/5 to-transparent flex-shrink-0">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-[#78A243] to-[#78A243]/80 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                  <UserPlus className="h-6 w-6 text-white" />
                 </div>
+                <div className="flex-1">
+                  <h2 className="text-xl font-bold text-gray-900">
+                    Gán khuyến mãi cho khách hàng
+                  </h2>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Khuyến mãi:{" "}
+                    <span className="font-bold text-[#78A243]">
+                      {promotionName}
+                    </span>
+                  </p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Mã:{" "}
+                    <span className="font-mono font-bold">{promotionCode}</span>
+                  </p>
+                </div>
+                <button
+                  onClick={handleClose}
+                  disabled={loading}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  <X className="h-5 w-5 text-gray-500" />
+                </button>
+              </div>
+            </div>
+
+            {/* Search Bar */}
+            <div className="p-4 border-b border-gray-200 bg-gray-50 flex-shrink-0">
+              <div className="flex gap-3">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Tìm kiếm khách hàng (Enter để tìm)..."
+                    value={searchKeyword}
+                    onChange={(e) => setSearchKeyword(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleSearch();
+                      }
+                    }}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:border-[#78A243] focus:ring-2 focus:ring-[#78A243]/20 outline-none"
+                  />
+                </div>
+                <Button
+                  onClick={handleSearch}
+                  disabled={loadingCustomers}
+                  className="bg-[#78A243] hover:bg-[#78A243]/90"
+                >
+                  <Search className="h-4 w-4 mr-2" />
+                  Tìm
+                </Button>
+              </div>
+            </div>
+
+            {/* Selected Count */}
+            {selectedUsers.size > 0 && (
+              <div className="px-4 py-2 bg-[#78A243]/10 border-b border-[#78A243]/20 flex-shrink-0">
+                <p className="text-sm font-semibold text-[#78A243]">
+                  <Users className="inline h-4 w-4 mr-1" />
+                  Đã chọn: {selectedUsers.size} khách hàng
+                </p>
+              </div>
             )}
-        </>
-    );
+
+            {/* Customer List */}
+            <div className="p-6 space-y-3 overflow-y-auto flex-1">
+              {loadingCustomers ? (
+                <div className="text-center py-12">
+                  <div className="w-12 h-12 border-4 border-[#78A243]/30 border-t-[#78A243] rounded-full animate-spin mx-auto mb-4"></div>
+                  <p className="text-gray-600">
+                    Đang tải danh sách khách hàng...
+                  </p>
+                </div>
+              ) : customers.length === 0 ? (
+                <div className="text-center py-12">
+                  <Users className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+                  <p className="font-semibold text-gray-900">
+                    Không tìm thấy khách hàng
+                  </p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Thử tìm kiếm với từ khóa khác
+                  </p>
+                </div>
+              ) : (
+                customers.map((customer) => {
+                  const isSelected = selectedUsers.has(customer.id);
+                  const usageCount = selectedUsers.get(customer.id) || 1;
+
+                  return (
+                    <div
+                      key={customer.id}
+                      className={`p-4 rounded-lg border-2 transition-all ${
+                        isSelected
+                          ? "border-[#78A243] bg-[#78A243]/5"
+                          : "border-gray-200 hover:border-gray-300 bg-white"
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleUserSelection(customer.id)}
+                          className="mt-1 h-5 w-5 rounded border-gray-300 text-[#78A243] focus:ring-[#78A243]"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-semibold text-gray-900">
+                              {customer.fullName}
+                            </h4>
+                            {customer.emailVerified && (
+                              <Badge className="bg-green-100 text-green-700 text-xs">
+                                ✓ Email
+                              </Badge>
+                            )}
+                            {customer.phoneVerified && (
+                              <Badge className="bg-blue-100 text-blue-700 text-xs">
+                                ✓ SĐT
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="text-sm text-gray-600 space-y-0.5">
+                            <p>📧 {customer.email}</p>
+                            <p>📱 {customer.phoneNumber}</p>
+                            <p className="text-xs text-gray-500">
+                              Điểm tích lũy:{" "}
+                              <span className="font-bold text-[#F8A91F]">
+                                {customer.memberPoint}
+                              </span>
+                            </p>
+                          </div>
+                        </div>
+                        {isSelected && (
+                          <div className="flex items-center gap-2">
+                            <label className="text-sm font-medium text-gray-700">
+                              Số lần:
+                            </label>
+                            <input
+                              type="number"
+                              min="1"
+                              value={usageCount}
+                              onChange={(e) =>
+                                updateUsageCount(
+                                  customer.id,
+                                  parseInt(e.target.value) || 1
+                                )
+                              }
+                              className="w-20 px-2 py-1 border border-gray-300 rounded text-center font-semibold focus:border-[#78A243] focus:ring-2 focus:ring-[#78A243]/20 outline-none"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="p-6 bg-gray-50 border-t border-gray-200 flex gap-3 justify-end flex-shrink-0">
+              <Button
+                onClick={handleClose}
+                disabled={loading}
+                variant="outline"
+                className="px-5 py-2.5 border-2 border-gray-300 hover:bg-gray-100 font-semibold"
+              >
+                Hủy bỏ
+              </Button>
+              <Button
+                onClick={handleAssign}
+                disabled={loading || selectedUsers.size === 0}
+                className="px-5 py-2.5 bg-gradient-to-r from-[#78A243] to-[#78A243]/80 hover:from-[#78A243]/90 hover:to-[#78A243]/70 text-white shadow-lg hover:shadow-xl transition-all font-semibold"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                    Đang xử lý...
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Gán cho {selectedUsers.size} khách hàng
+                  </>
+                )}
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
+    </>
+  );
 }
