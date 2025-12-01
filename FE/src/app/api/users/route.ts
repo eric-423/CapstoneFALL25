@@ -1,21 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import JwtDecode from '@/utils/jwtDecode';
 
 const API_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 export async function GET(request: NextRequest) {
     try {
         const cookieStore = await cookies();
-        const accessToken = cookieStore.get('access_token')?.value || cookieStore.get('token')?.value;
+        const token =  cookieStore.get('token')?.value;
 
-        if (!accessToken) {
+        if (!token) {
             return NextResponse.json(
                 { error: 'Unauthorized' },
                 { status: 401 }
             );
         }
 
+        const decodedToken = JwtDecode(token);
+        const userRole = decodedToken.r?.toUpperCase();
+
+        const isManager = userRole === 'MANAGER' || userRole === 'BRANCH_MANAGER';
+        let branchIdFromCookie: string | undefined;
+
+        if (isManager) {
+            branchIdFromCookie = cookieStore.get('branchId')?.value;
+        }
+
         const searchParams = request.nextUrl.searchParams;
+        
+        if (isManager && branchIdFromCookie && !searchParams.has('branchId')) {
+            searchParams.set('branchId', branchIdFromCookie);
+        }
+
         const queryString = searchParams.toString();
 
         const response = await fetch(
@@ -24,7 +40,7 @@ export async function GET(request: NextRequest) {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Bearer ${accessToken}`,
+                    Authorization: `Bearer ${token}`,
                 },
             }
         );
@@ -47,13 +63,12 @@ export async function GET(request: NextRequest) {
     }
 }
 
-// POST: Tạo user mới
 export async function POST(request: NextRequest) {
     try {
         const cookieStore = await cookies();
-        const accessToken = cookieStore.get('access_token')?.value || cookieStore.get('token')?.value;
+        const token = cookieStore.get('token')?.value;
 
-        if (!accessToken) {
+        if (!token) {
             return NextResponse.json(
                 { error: 'Unauthorized' },
                 { status: 401 }
@@ -68,7 +83,7 @@ export async function POST(request: NextRequest) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Bearer ${accessToken}`,
+                    Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify(body),
             }
