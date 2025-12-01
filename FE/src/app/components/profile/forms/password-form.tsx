@@ -38,8 +38,8 @@ export default function PasswordForm() {
 
   const { mutate: changePasswordMutate, isPending: isChangingPassword } =
     useMutation({
-      mutationFn: (data: { phoneNumber: string; password: string }) =>
-        changePassword(data),
+      mutationFn: (data: { userId: number; password: string }) =>
+        changePassword(data.userId, data.password),
       onSuccess: () => {
         toast.success("Mật khẩu của bạn đã được đổi thành công.");
         form.reset();
@@ -50,8 +50,13 @@ export default function PasswordForm() {
     });
 
   const onSubmit = (data: setPasswordFormData) => {
+    if (!user?.id) {
+      toast.error("Không xác định được tài khoản. Vui lòng đăng nhập lại.");
+      return;
+    }
+
     changePasswordMutate({
-      phoneNumber: user?.phoneNumber ?? "",
+      userId: user.id,
       password: data.password ?? "",
     });
   };

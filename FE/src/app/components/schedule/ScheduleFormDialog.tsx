@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/select';
 import { Schedule, CreateScheduleData, UpdateScheduleData } from '@/apis/schedule.api';
 import { toast } from 'react-toastify';
-import { useBodyScrollLock } from '../../components/useBodyScrollLock';
+import { useBodyScrollLock } from '@/app/admin/components/useBodyScrollLock';
 
 interface ScheduleFormDialogProps {
   open: boolean;
@@ -60,8 +60,8 @@ export function ScheduleFormDialog({
     date: selectedDate
       ? selectedDate.toISOString().split('T')[0]
       : schedule?.date
-        ? schedule.date.split('T')[0]
-        : '',
+      ? schedule.date.split('T')[0]
+      : '',
     startTime: formatTimeForInput(schedule?.startTime) || '08:00',
     endTime: formatTimeForInput(schedule?.endTime) || '17:00',
   });
@@ -78,8 +78,8 @@ export function ScheduleFormDialog({
         date: selectedDate
           ? selectedDate.toISOString().split('T')[0]
           : schedule?.date
-            ? schedule.date.split('T')[0]
-            : '',
+          ? schedule.date.split('T')[0]
+          : '',
         startTime: formatTimeForInput(schedule?.startTime) || '08:00',
         endTime: formatTimeForInput(schedule?.endTime) || '17:00',
       });
@@ -114,25 +114,23 @@ export function ScheduleFormDialog({
       return;
     }
 
-    // Kiểm tra ngày không được là quá khứ
-    const selectedDate = new Date(formData.date);
-    selectedDate.setHours(0, 0, 0, 0);
+    const selectedDateObj = new Date(formData.date);
+    selectedDateObj.setHours(0, 0, 0, 0);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
-    if (selectedDate < today) {
+
+    if (selectedDateObj < today) {
       toast.error('Ngày lịch trình không được trước ngày hôm nay');
       return;
     }
 
     try {
       setLoading(true);
-      
-      // Đảm bảo userId luôn có khi update
-      const userId = schedule ? (schedule.userId || formData.userId) : formData.userId;
-      
+
+      const userId = schedule ? schedule.userId || formData.userId : formData.userId;
+
       const payload = {
-        userId: userId,
+        userId,
         name: formData.name,
         description: formData.description || '',
         date: formData.date,
@@ -140,10 +138,9 @@ export function ScheduleFormDialog({
         endTime: formatTimeForPayload(formData.endTime),
       };
 
-      console.log('Submitting schedule payload:', payload);
       await onSubmit(payload);
       toast.success(
-        schedule ? 'Cập nhật lịch trình thành công!' : 'Tạo lịch trình thành công!'
+        schedule ? 'Cập nhật lịch trình thành công!' : 'Tạo lịch trình thành công!',
       );
       onOpenChange(false);
     } catch (error: any) {
@@ -169,8 +166,10 @@ export function ScheduleFormDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5 mt-3 sm:mt-4">
-          {/* Nhân viên */}
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-4 sm:space-y-5 mt-3 sm:mt-4"
+        >
           <div className="space-y-2">
             <Label htmlFor="userId" className="text-xs sm:text-sm font-semibold">
               Nhân viên <span className="text-red-500">*</span>
@@ -185,8 +184,8 @@ export function ScheduleFormDialog({
               <SelectTrigger className="w-full text-sm">
                 <SelectValue placeholder="Chọn nhân viên" />
               </SelectTrigger>
-              <SelectContent 
-                className="z-[102] max-h-[300px] !fixed" 
+              <SelectContent
+                className="z-[102] max-h-[300px] !fixed"
                 position="popper"
                 sideOffset={4}
               >
@@ -204,7 +203,6 @@ export function ScheduleFormDialog({
             )}
           </div>
 
-          {/* Tên lịch trình */}
           <div className="space-y-2">
             <Label htmlFor="name" className="text-xs sm:text-sm font-semibold">
               Tên lịch trình <span className="text-red-500">*</span>
@@ -212,14 +210,15 @@ export function ScheduleFormDialog({
             <Input
               id="name"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
               placeholder="Ví dụ: Ca sáng, Ca chiều, Ca tối..."
               required
               className="w-full text-sm"
             />
           </div>
 
-          {/* Ngày */}
           <div className="space-y-2">
             <Label htmlFor="date" className="text-xs sm:text-sm font-semibold">
               Ngày <span className="text-red-500">*</span>
@@ -228,17 +227,21 @@ export function ScheduleFormDialog({
               id="date"
               type="date"
               value={formData.date}
-              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, date: e.target.value })
+              }
               min={new Date().toISOString().split('T')[0]}
               required
               className="w-full text-sm"
             />
           </div>
 
-          {/* Thời gian */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div className="space-y-2">
-              <Label htmlFor="startTime" className="text-xs sm:text-sm font-semibold">
+              <Label
+                htmlFor="startTime"
+                className="text-xs sm:text-sm font-semibold"
+              >
                 Giờ bắt đầu <span className="text-red-500">*</span>
               </Label>
               <Input
@@ -254,7 +257,10 @@ export function ScheduleFormDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="endTime" className="text-xs sm:text-sm font-semibold">
+              <Label
+                htmlFor="endTime"
+                className="text-xs sm:text-sm font-semibold"
+              >
                 Giờ kết thúc <span className="text-red-500">*</span>
               </Label>
               <Input
@@ -270,10 +276,15 @@ export function ScheduleFormDialog({
             </div>
           </div>
 
-          {/* Mô tả */}
           <div className="space-y-2">
-            <Label htmlFor="description" className="text-xs sm:text-sm font-semibold">
-              Mô tả <span className="text-gray-400 text-[10px] sm:text-xs">(tùy chọn)</span>
+            <Label
+              htmlFor="description"
+              className="text-xs sm:text-sm font-semibold"
+            >
+              Mô tả{' '}
+              <span className="text-gray-400 text-[10px] sm:text-xs">
+                (tùy chọn)
+              </span>
             </Label>
             <Textarea
               id="description"
@@ -297,8 +308,8 @@ export function ScheduleFormDialog({
             >
               Hủy
             </Button>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={loading}
               className="bg-[#EC6426] hover:bg-[#EC6426]/90 flex-1 sm:flex-initial w-full sm:w-auto order-1 sm:order-2"
             >
@@ -310,4 +321,5 @@ export function ScheduleFormDialog({
     </Dialog>
   );
 }
+
 

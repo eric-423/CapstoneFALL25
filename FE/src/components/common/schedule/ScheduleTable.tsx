@@ -151,7 +151,7 @@ export function ScheduleTable({
           })}
         </div>
 
-        {/* Schedule Grid - Cải thiện với visual feedback và responsive */}
+        {/* Schedule Grid */}
         <div className="grid grid-cols-7 gap-1.5 sm:gap-3">
           {DAYS_OF_WEEK.map((day, index) => {
             const date = weekDays[index];
@@ -172,7 +172,6 @@ export function ScheduleTable({
                     : 'bg-white border-gray-200 hover:border-orange-300 hover:shadow-md cursor-pointer'
                 )}
                 onClick={() => {
-                  // Cho phép click để tạo mới nếu không phải ngày quá khứ
                   if (!isPast) {
                     onCellClick?.(date);
                   }
@@ -200,7 +199,6 @@ export function ScheduleTable({
                         onDelete={onDelete}
                       />
                     ))}
-                    {/* Hint để thêm thêm lịch trình - chỉ hiển thị nếu không phải ngày quá khứ */}
                     {!isPast && (
                       <div 
                         className="mt-1 sm:mt-2 pt-1 sm:pt-2 border-t border-dashed border-gray-200 cursor-pointer hover:bg-orange-50/50 rounded transition-colors"
@@ -224,4 +222,5 @@ export function ScheduleTable({
     </div>
   );
 }
+
 

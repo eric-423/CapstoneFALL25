@@ -155,6 +155,24 @@ const useAuthState = () => {
     const isEmployee = currentRole && employeeRoles.includes(currentRole);
     const redirectPath = isEmployee ? '/inside/login' : '/login';
 
+    const externalUserId = authState.user?.id
+      ? authState.user.id.toString()
+      : undefined;
+
+    try {
+      if (externalUserId) {
+        await fetch('/api/dify/reset', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ externalUserId }),
+        });
+      }
+    } catch (error) {
+      console.warn('[useAuth] Failed to reset Dify conversation on logout:', error);
+    }
+
     try {
       await fetch('/api/auth/logout', {
         method: 'POST',
