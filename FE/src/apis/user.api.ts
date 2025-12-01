@@ -132,10 +132,12 @@ export const signInStaff = async (data: {
     return response;
 };
 
-export const changePassword = (data: {
-    phoneNumber: string;
-    password: string;
-}) => http.post("/customer/change-password", data);
+export const changePassword = (userId: number, newPassword: string) =>
+    http.post(`/auth/customer/change-password/${userId}`, newPassword, {
+        headers: {
+            "Content-Type": "text/plain",
+        },
+    });
 
 // New: Customer register and OTP send
 
@@ -634,12 +636,12 @@ export async function getCustomerDetails(): Promise<CustomerDetailsResponse> {
     }
 
     const result = await response.json();
-    
+
     // Nếu result đã có structure { status, desc, data } thì trả về trực tiếp
     if (result && typeof result === 'object' && 'data' in result && 'status' in result) {
         return result as CustomerDetailsResponse;
     }
-    
+
     // Nếu result là data trực tiếp (không có wrapper), wrap lại
     return {
         status: 200,

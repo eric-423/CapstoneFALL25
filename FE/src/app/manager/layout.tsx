@@ -26,6 +26,7 @@ import {
   Warehouse,
   BookOpen,
   DollarSign,
+  CalendarDays,
 } from "lucide-react";
 import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 
@@ -146,6 +147,7 @@ export default function ManagerLayout({
     () => [
       { href: "/manager/dashboard", label: "Dashboard", icon: LayoutDashboard },
       { href: "/manager/orders", label: "Đơn hàng", icon: ShoppingBag },
+      { href: "/manager/schedule", label: "Lịch làm việc", icon: CalendarDays },
       {
         href: "/manager/warehouses",
         label: "Kho & Nguyên liệu",

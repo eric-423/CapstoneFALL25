@@ -33,15 +33,15 @@ export function ScheduleCard({
   // Kiểm tra xem schedule có phải là quá khứ không
   const isPastSchedule = () => {
     if (!schedule.date) return false;
-    
+
     const scheduleDate = new Date(schedule.date);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     scheduleDate.setHours(0, 0, 0, 0);
-    
+
     // Nếu ngày đã qua
     if (scheduleDate < today) return true;
-    
+
     // Nếu là hôm nay, kiểm tra thời gian kết thúc
     if (scheduleDate.getTime() === today.getTime() && schedule.endTime) {
       const [hours, minutes] = schedule.endTime.split(':');
@@ -50,7 +50,7 @@ export function ScheduleCard({
       const now = new Date();
       return now > endTime;
     }
-    
+
     return false;
   };
 
@@ -161,4 +161,5 @@ export function ScheduleCard({
     </Card>
   );
 }
+
 
