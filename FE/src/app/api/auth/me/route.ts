@@ -2,14 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { jwtDecode } from 'jwt-decode';
 
 interface DecodedToken {
-  id?: number;
-  sub?: string;
-  phoneNumber?: string;
-  phone?: string;
-  fullName?: string;
-  name?: string;
-  username?: string;
-  role?: string;
+  r?: string; // role
+  i?: number; // id (userId)
+  p?: string; // phoneNumber
+  m?: string; // mail/email
   isNewUser?: boolean;
   exp?: number;
   [key: string]: unknown;
@@ -31,21 +27,16 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Token expired' }, { status: 401 });
       }
 
-      if (!decodedToken || (!decodedToken.id && !decodedToken.sub)) {
+      const userId = decodedToken.i;
+      if (!decodedToken || !userId) {
         return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
       }
 
-      const fullName =
-        decodedToken.fullName ||
-        decodedToken.name ||
-        decodedToken.username ||
-        '';
-
       return NextResponse.json({
-        id: decodedToken.id || decodedToken.sub,
-        phoneNumber: decodedToken.phoneNumber || decodedToken.phone || '',
-        fullName,
-        role: decodedToken.role || 'CUSTOMER',
+        id: userId,
+        phoneNumber: decodedToken.p ?? '',
+        fullName: '',
+        role: decodedToken.r ?? 'CUSTOMER',
         isNewUser: decodedToken.isNewUser ?? false,
         exp: decodedToken.exp,
       });

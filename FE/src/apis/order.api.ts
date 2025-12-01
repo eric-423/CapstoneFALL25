@@ -48,6 +48,25 @@ export interface UpdateDiningTableOrderRequest {
   orderItems: OrderItemRequest[];
 }
 
+export interface ComboItemDTO {
+  productId: number;
+  comboId: number;
+  quantity: number;
+  note: string;
+}
+
+export interface ComboDTO {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  startDate: string;
+  endDate: string;
+  branchId: number;
+  comboItems: ComboItemDTO[];
+  active: boolean;
+}
+
 export interface OrderProductResponse {
   productId: number;
   productName: string;
@@ -55,6 +74,8 @@ export interface OrderProductResponse {
   note: string;
   price: number;
   feedback?: string;
+  comboDTO?: ComboDTO | null;
+  isCombo?: boolean;
 }
 
 export type OrderMode = 'PICKUP' | 'DELIVERY';
@@ -76,6 +97,7 @@ export interface CreateOrderPayload {
   orderItemList: CreateOrderItem[];
   mode: OrderMode | string;
   branchId: number;
+  paymentMethodId?: number;
 }
 
 export interface OrderResponse {
@@ -107,11 +129,13 @@ export interface OrderResponse {
   orderDate?: string;
   paymentTime?: string | null;
   deliveryAt?: string | null;
+  paymentUrl?: string | null;
+  billPdfUrl?: string | null;
 }
 
 export interface CustomerOrderDetailItem {
   productId: number;
-  productName: string;
+  productName: string | null;
   orderId: number;
   quantity: number;
   price: number;
@@ -120,7 +144,7 @@ export interface CustomerOrderDetailItem {
   feedbackPoint?: number | null;
   expiredFeedbackTime?: string | null;
   productImg?: string | null;
-  comboDTO?: unknown;
+  comboDTO?: ComboDTO | null;
   isConfirmed?: boolean;
   isDelivered?: boolean | null;
   feedBackYet?: boolean;
@@ -167,6 +191,7 @@ export interface CustomerOrderDetailData {
   pickupTime?: string | null;
   customerName?: string | null;
   paymentUrl?: string | null;
+  billPdfUrl?: string | null;
   shipperName?: string | null;
   waiterName?: string | null;
   chefName?: string | null;
@@ -207,14 +232,48 @@ export interface BranchOrderResponse {
   waiterName: string | null;
   chefName: string | null;
   itemCount: number;
-  table: boolean;
-  pickUp: boolean;
+  isPickUp: boolean;
+  isTable: boolean;
 }
 
 export interface BranchOrdersApiResponse {
   status: number;
   desc: string;
   data: BranchOrderResponse[];
+}
+
+// Chef Order Interfaces - New structure from API
+export interface ChefOrderItem {
+  orderItemId: number;
+  productId: number;
+  productName: string;
+  orderId: number;
+  quantity: number;
+  price: number;
+  note: string;
+  feedback: string | null;
+  feedbackPoint: number;
+  expiredFeedbackTime: string | null;
+  productImg: string;
+  comboDTO: ComboDTO | null;
+  isConfirmed: boolean;
+  confirmAt: string;
+  isDelivered: boolean | null;
+  deliveredAt: string | null;
+  cookedAt: string | null;
+  isCooked: boolean | null;
+  feedBackYet: boolean;
+}
+
+export interface ChefOrderResponse {
+  orderId: number;
+  orderItems: ChefOrderItem[];
+}
+
+export interface ChefOrdersApiResponse {
+  status: number;
+  desc: string | null;
+  data: ChefOrderResponse[];
 }
 
 
@@ -528,7 +587,7 @@ export const staffAssignShipperToOrder = async (orderId: number): Promise<Assign
 };
 
 
-export const getChefOrders = async (chefId: number, status?: string): Promise<BranchOrdersApiResponse> => {
+export const getChefOrders = async (chefId: number, status?: string): Promise<ChefOrdersApiResponse> => {
   try {
     const params = status ? `?status=${status}` : '';
     const response = await fetch(`/api/orders/cheff/view/${chefId}${params}`, {
@@ -558,11 +617,19 @@ export interface MarkOrderAsCookedResponse {
   message?: string;
 }
 
-export const markOrderAsCooked = async (orderId: number): Promise<MarkOrderAsCookedResponse> => {
+
+export const markOrderAsCooked = async (
+  orderId: number,
+  orderItemIds: number[],
+): Promise<MarkOrderAsCookedResponse> => {
   try {
     const response = await fetch(`/api/orders/cheff/cooked/${orderId}`, {
       method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       credentials: 'include',
+      body: JSON.stringify({ orderItemIds }),
     });
 
     if (!response.ok) {

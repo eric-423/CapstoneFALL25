@@ -160,6 +160,20 @@ public class AuthServiceImpl implements AuthService {
         return false;
     }
 
+    @Override
+    public Boolean changePassword(int customerId, String newPassword) {
+        try {
+            Users users = usersRepository.findById(customerId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Người dùng không tồn tại trong hệ thống"));
+
+            users.setPassword(passwordEncoder.encode(newPassword));
+            usersRepository.save(users);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
 
     private UserDTO convertToDTO(Users user) {
         UserDTO userDTO = new UserDTO();

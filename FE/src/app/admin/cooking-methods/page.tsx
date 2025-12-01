@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AdminPageLayout, AdminPageHeader } from '../components/AdminPageLayout';
+import { FilterDropdown } from '../components/FilterDropdown';
 import { getCookingMethods, type CookingMethod, type CookingMethodSearchParams } from '@/apis/cooking-method.api';
 import { CookingMethodFormDialog } from './components/CookingMethodFormDialog';
 import { CookingMethodNutrientForm } from './components/CookingMethodNutrientForm';
@@ -126,21 +127,25 @@ export default function CookingMethodsPage() {
                 {/* Page Size */}
                 <div className="flex items-center gap-3">
                     <label className="text-sm text-[#2D1E1A] font-medium whitespace-nowrap">Hiển thị:</label>
-                    <select
-                        value={pageSize}
-                        onChange={(e) => {
-                            setPageSize(parseInt(e.target.value));
+                    <FilterDropdown
+                        label={`${pageSize}`}
+                        value={pageSize.toString()}
+                        onChange={(value) => {
+                            const nextSize = parseInt(value || '10');
+                            setPageSize(nextSize);
                             setCurrentPage(0);
                         }}
-                        className="px-3 py-2 border bg-white/80 border-[#78A243]/30 rounded-lg text-sm text-[#2D1E1A] focus:border-[#78A243] outline-none"
-                    >
-                        <option value="5">5</option>
-                        <option value="10">10</option>
-                        <option value="20">20</option>
-                        <option value="50">50</option>
-                    </select>
-                    <span className="text-sm text-[#2D1E1A]/70 whitespace-nowrap ml-2">
-                        Tổng: <span className="font-bold text-[#2D1E1A]">{totalElements}</span>
+                        items={[
+                            { value: '5', label: '5' },
+                            { value: '10', label: '10' },
+                            { value: '20', label: '20' },
+                            { value: '50', label: '50' }
+                        ]}
+                        showAllOption={false}
+                        className="w-[96px]"
+                    />
+                    <span className="text-sm text-[#2D1E1A]/80 whitespace-nowrap">
+                        Tổng: <span className="font-bold text-[#78A243]">{totalElements}</span>
                     </span>
                 </div>
             </div>

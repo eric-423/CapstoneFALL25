@@ -16,6 +16,7 @@ import { createTraining, CreateTrainingPayload, updateTraining } from '@/apis/tr
 import { Role, getRoles } from '@/apis/role.api';
 import { TrainingCourse } from '@/utils/types/training.type';
 import { toast } from 'react-toastify';
+import { useBodyScrollLock } from '../../components/useBodyScrollLock';
 
 interface TrainingFormData {
     name: string;
@@ -48,6 +49,7 @@ export function AddTrainingDialog({
 }: AddTrainingDialogProps) {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    useBodyScrollLock(open);
     const [roles, setRoles] = useState<Role[]>([]);
     const [isLoadingRoles, setIsLoadingRoles] = useState(false);
     const [formData, setFormData] = useState<TrainingFormData>(INITIAL_FORM);

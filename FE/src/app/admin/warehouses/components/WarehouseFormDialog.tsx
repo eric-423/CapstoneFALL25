@@ -7,15 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { AddressAutocomplete } from '@/components/common/address-autocomplete';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { createWarehouse, updateWarehouse, type Warehouse } from '@/apis/material.api';
 import { type Branch } from '@/apis/branch.api';
+import { useBodyScrollLock } from '../../components/useBodyScrollLock';
+import { AdminSelect } from '../../components/AdminSelect';
 
 interface WarehouseFormDialogProps {
     open: boolean;
@@ -26,6 +21,7 @@ interface WarehouseFormDialogProps {
     initialAddress?: string;
     existingBranchIds?: number[];
     branches: Branch[];
+    warehouses: Warehouse[];
 }
 
 export function WarehouseFormDialog({
@@ -36,9 +32,11 @@ export function WarehouseFormDialog({
     initialBranchId,
     initialAddress,
     existingBranchIds = [],
-    branches
+    branches,
+    warehouses
 }: WarehouseFormDialogProps) {
     const [loading, setLoading] = useState(false);
+    useBodyScrollLock(open);
     const [formData, setFormData] = useState(() => {
         if (warehouse) {
             return {
@@ -143,6 +141,31 @@ export function WarehouseFormDialog({
             return;
         }
 
+        const normalizedAddress = formData.address.trim().toLowerCase();
+
+        // Check for duplicate address in other warehouses
+        const duplicateWarehouse = warehouses.find(w =>
+            w.address.trim().toLowerCase() === normalizedAddress &&
+            (!warehouse || w.id !== warehouse.id)
+        );
+
+        if (duplicateWarehouse) {
+            toast.error(`❌ Địa chỉ này đã được sử dụng bởi kho khác (ID: ${duplicateWarehouse.id})!`);
+            return;
+        }
+
+        // Check for duplicate address in branches
+        const duplicateBranch = branches.find(b =>
+            b.address.trim().toLowerCase() === normalizedAddress
+        );
+
+        // Note: It's acceptable if the warehouse address matches its OWN branch address
+        // But we should warn if it matches ANOTHER branch's address
+        if (duplicateBranch && String(duplicateBranch.id) !== formData.branchId) {
+            toast.error(`❌ Địa chỉ này đã được sử dụng bởi chi nhánh "${duplicateBranch.name}"!`);
+            return;
+        }
+
         try {
             setLoading(true);
 
@@ -199,23 +222,18 @@ export function WarehouseFormDialog({
                             <Label htmlFor="branchId" className="text-sm font-semibold text-[#2D1E1A]">
                                 Chi nhánh <span className="text-red-500">*</span>
                             </Label>
-                            <Select
-                                key={`branch-select-${warehouse?.id || 'new'}-${warehouse?.branchId || 'no-branch'}`}
+                            <AdminSelect
                                 value={formData.branchId}
                                 onValueChange={(value) => setFormData({ ...formData, branchId: value })}
                                 disabled={loading}
-                            >
-                                <SelectTrigger className="mt-2">
-                                    <SelectValue placeholder={warehouse?.branchName || "Chọn chi nhánh"} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {availableBranches.map((branch) => (
-                                        <SelectItem key={branch.id} value={branch.id.toString()}>
-                                            {branch.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                                placeholder={warehouse?.branchName || "Chọn chi nhánh"}
+                                className="mt-2"
+                                options={availableBranches.map((branch) => ({
+                                    value: branch.id.toString(),
+                                    label: branch.name,
+                                    subLabel: branch.address || undefined
+                                }))}
+                            />
                         </div>
 
                         {/* Địa chỉ */}
@@ -258,19 +276,17 @@ export function WarehouseFormDialog({
                             <Label htmlFor="isActive" className="text-sm font-semibold text-[#2D1E1A]">
                                 Trạng thái
                             </Label>
-                            <Select
+                            <AdminSelect
                                 value={formData.isActive.toString()}
                                 onValueChange={(value) => setFormData({ ...formData, isActive: value === 'true' })}
                                 disabled={loading}
-                            >
-                                <SelectTrigger className="mt-2">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="true">Hoạt động</SelectItem>
-                                    <SelectItem value="false">Ngừng hoạt động</SelectItem>
-                                </SelectContent>
-                            </Select>
+                                placeholder="Chọn trạng thái"
+                                className="mt-2"
+                                options={[
+                                    { value: 'true', label: 'Hoạt động' },
+                                    { value: 'false', label: 'Ngừng hoạt động' },
+                                ]}
+                            />
                         </div>
                     </div>
 

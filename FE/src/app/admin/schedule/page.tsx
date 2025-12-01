@@ -32,6 +32,7 @@ import {
 import { getAllUsers, type UserSearchRequest } from '@/apis/user.api';
 import { toast } from 'react-toastify';
 import { User } from '@/apis/admin-user.api';
+import { useBodyScrollLock } from '../components/useBodyScrollLock';
 
 export default function SchedulePage() {
     const [schedules, setSchedules] = useState<Schedule[]>([]);
@@ -49,12 +50,13 @@ export default function SchedulePage() {
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [flagShowCurrentWeekButton, setFlagShowCurrentWeekButton] = useState(false);
     const [flagRightCurrentWeekButton, setFlagRightCurrentWeekButton] = useState(false);
+    useBodyScrollLock(showFormDialog || deleteDialogOpen);
     // Fetch schedules
     const fetchSchedules = useCallback(async () => {
         try {
             setLoading(true);
             const response = await getSchedules();
-            setSchedules(response.data || []);
+            setSchedules(response.data as Schedule[]);
         } catch (error) {
             console.error('Failed to fetch schedules:', error);
             toast.error('Không thể tải danh sách lịch trình');
@@ -160,6 +162,32 @@ export default function SchedulePage() {
 
     // Handle edit
     const handleEdit = (schedule: Schedule) => {
+        // Kiểm tra xem schedule có phải là quá khứ không
+        if (schedule.date) {
+            const scheduleDate = new Date(schedule.date);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            scheduleDate.setHours(0, 0, 0, 0);
+
+            // Nếu ngày đã qua
+            if (scheduleDate < today) {
+                toast.error('Không thể chỉnh sửa lịch trình đã qua');
+                return;
+            }
+
+            // Nếu là hôm nay, kiểm tra thời gian kết thúc
+            if (scheduleDate.getTime() === today.getTime() && schedule.endTime) {
+                const [hours, minutes] = schedule.endTime.split(':');
+                const endTime = new Date();
+                endTime.setHours(parseInt(hours || '0'), parseInt(minutes || '0'), 0, 0);
+                const now = new Date();
+                if (now > endTime) {
+                    toast.error('Không thể chỉnh sửa ca đã kết thúc');
+                    return;
+                }
+            }
+        }
+
         const normalizedDate = schedule.date ? new Date(schedule.date) : undefined;
         if (normalizedDate) {
             normalizedDate.setHours(12, 0, 0, 0);
@@ -239,107 +267,97 @@ export default function SchedulePage() {
                 description="Quản lý lịch trình làm việc của nhân viên"
                 icon={Calendar}
                 actions={
-                    <Button onClick={handleCreateNew} className="bg-[#EC6426] hover:bg-[#EC6426]/90">
-                        <Plus className="w-4 h-4 mr-2" />
-                        Tạo lịch trình
+                    <Button
+                        onClick={handleCreateNew}
+                        className="bg-[#EC6426] hover:bg-[#EC6426]/90 w-full sm:w-auto"
+                        size="sm"
+                    >
+                        <Plus className="w-4 h-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Tạo lịch trình</span>
+                        <span className="sm:hidden">Tạo mới</span>
                     </Button>
                 }
             />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
+                <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-200">
                     <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm text-gray-600 mb-1">Tổng lịch trình</p>
-                            <p className="text-2xl font-bold text-gray-900">{totalSchedules}</p>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-xs sm:text-sm text-gray-600 mb-1">Tổng lịch trình</p>
+                            <p className="text-xl sm:text-2xl font-bold text-gray-900">{totalSchedules}</p>
                         </div>
-                        <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-                            <Calendar className="w-6 h-6 text-orange-600" />
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-orange-100 rounded-xl flex items-center justify-center flex-shrink-0 ml-2">
+                            <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+                <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-200">
                     <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm text-gray-600 mb-1">Lịch trình tuần này</p>
-                            <p className="text-2xl font-bold text-gray-900">{thisWeekSchedules}</p>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-xs sm:text-sm text-gray-600 mb-1">Lịch trình tuần này</p>
+                            <p className="text-xl sm:text-2xl font-bold text-gray-900">{thisWeekSchedules}</p>
                         </div>
-                        <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                            <Clock className="w-6 h-6 text-blue-600" />
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 ml-2">
+                            <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 mb-6">
-                <div className="flex items-center justify-between">
-
-
-
-                    <div className="flex items-center gap-2">
+            {/* Week Navigation - Cải thiện layout responsive */}
+            <div className="bg-white rounded-xl p-3 sm:p-5 shadow-sm border border-gray-200 mb-4 sm:mb-6">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
+                    {/* Left: Previous Week Button */}
+                    <div className="flex items-center gap-2 order-2 sm:order-1 w-full sm:w-auto justify-center sm:justify-start">
                         <Button
                             variant="outline"
                             size="sm"
                             onClick={goToPreviousWeek}
-                            className="flex items-center gap-2"
+                            className="flex items-center gap-1 sm:gap-2 hover:bg-orange-50 hover:border-orange-300 flex-1 sm:flex-initial"
                         >
                             <ChevronLeft className="w-4 h-4" />
-                            Tuần trước
+                            <span className="hidden sm:inline">Tuần trước</span>
+                            <span className="sm:hidden text-xs">Trước</span>
                         </Button>
-
-
-                        {
-                            flagRightCurrentWeekButton && (
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={goToCurrentWeek}
-                                    className="text-xs"
-                                >
-                                    Hôm nay
-                                </Button>
-                            )
-                        }
                     </div>
 
-
-
-                    <div className="flex items-center gap-4">
+                    {/* Center: Current Week Display */}
+                    <div className="flex flex-col items-center gap-2 order-1 sm:order-2 flex-1 w-full sm:w-auto">
                         <div className="text-center">
-                            <p className="text-sm font-semibold text-gray-700">
+                            <p className="text-base sm:text-lg font-bold text-gray-900">
                                 {weekRange.start} - {weekRange.end}
                             </p>
-                            <p className="text-xs text-gray-500">Tuần hiện tại</p>
+                            <p className="text-xs text-gray-500 mt-0.5 sm:mt-1">Tuần hiện tại</p>
                         </div>
+
+                        {(flagShowCurrentWeekButton || flagRightCurrentWeekButton) && (
+                            <Button
+                                variant="default"
+                                size="sm"
+                                onClick={goToCurrentWeek}
+                                className="bg-[#EC6426] hover:bg-[#EC6426]/90 text-white text-xs px-3 sm:px-4"
+                            >
+                                <span className="hidden sm:inline">Hiện Tại</span>
+                                <span className="sm:hidden">Hôm nay</span>
+                            </Button>
+                        )}
 
                     </div>
 
-                    <div className='flex items-center gap-2'>
-                        {
-                            flagShowCurrentWeekButton && (
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={goToCurrentWeek}
-                                    className="text-xs"
-                                >
-                                    Hôm nay
-                                </Button>
-                            )
-                        }
-
+                    {/* Right: Next Week Button */}
+                    <div className="flex items-center gap-2 order-3 w-full sm:w-auto justify-center sm:justify-end">
                         <Button
                             variant="outline"
                             size="sm"
                             onClick={goToNextWeek}
-                            className="flex items-center gap-2"
+                            className="flex items-center gap-1 sm:gap-2 hover:bg-orange-50 hover:border-orange-300 flex-1 sm:flex-initial"
                         >
-                            Tuần sau
+                            <span className="hidden sm:inline">Tuần sau</span>
+                            <span className="sm:hidden text-xs">Sau</span>
                             <ChevronRight className="w-4 h-4" />
                         </Button>
                     </div>
-
                 </div>
             </div>
 
@@ -349,22 +367,15 @@ export default function SchedulePage() {
                     <p className="text-gray-500">Đang tải lịch trình...</p>
                 </div>
             ) : (
-
-                <>
-                    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                        <ScheduleTable
-                            schedules={schedules}
-                            currentWeek={currentWeek}
-                            onEdit={handleEdit}
-                            onDelete={handleDeleteRequest}
-                            onCellClick={handleCellClick}
-                        />
-
-                    </div>
-
-                </>
-
-
+                <div className="bg-white rounded-xl p-2 sm:p-6 shadow-sm border border-gray-200 overflow-hidden">
+                    <ScheduleTable
+                        schedules={schedules}
+                        currentWeek={currentWeek}
+                        onEdit={handleEdit}
+                        onDelete={handleDeleteRequest}
+                        onCellClick={handleCellClick}
+                    />
+                </div>
             )}
 
             {/* Form Dialog */}

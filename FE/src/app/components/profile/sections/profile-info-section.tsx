@@ -11,12 +11,15 @@ import {
   MapPin,
   Phone,
   ShoppingBag,
+  Award,
+  Star,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface ProfileInfoSectionProps {
   user: UserAuthData;
   totalOrders?: number;
-  totalEarnedPoints?: number;
+
   isLoading?: boolean;
   addAddressRef?: React.MutableRefObject<(() => void) | null>;
 }
@@ -24,7 +27,6 @@ interface ProfileInfoSectionProps {
 export default function ProfileInfoSection({
   user,
   totalOrders,
-  totalEarnedPoints = 0,
   isLoading,
   addAddressRef,
 }: ProfileInfoSectionProps) {
@@ -43,8 +45,8 @@ export default function ProfileInfoSection({
                   <div className="flex justify-center lg:justify-center">
                     <CircleUserRound className="h-20 w-20" />
                   </div>
-                  <h3 className="text-xl font-semibold">
-                    {user?.fullName || "Khách hàng"}
+                  <h3 className="text-xl font-semibold text-center">
+                    {user?.name || "Khách hàng"}
                   </h3>
                   <div className="flex items-center gap-1 justify-center lg:justify-center">
                     <Phone className="h-4 w-4" />
@@ -67,14 +69,47 @@ export default function ProfileInfoSection({
                     <div className="flex items-center gap-2 justify-center lg:justify-start">
                       <LucideUser className="h-5 w-5 text-[#C04A00]" />
                       <span className="text-sm font-medium text-[#C04A00]">
-                        Điểm đã kiếm
+                        Điểm của bạn
                       </span>
                     </div>
                     <p className="text-2xl font-bold text-[#EC6426] mt-1 text-center lg:text-left">
-                      {totalEarnedPoints.toLocaleString()} điểm
+                      {user?.memberAssociation?.point?.toLocaleString() || '0'} điểm
                     </p>
                   </div>
                 </div>
+
+                {user?.memberAssociation && (
+                  <div className="mt-4 w-full max-w-sm max-lg:mx-auto lg:max-w-none">
+                    <Card className="bg-gradient-to-br from-orange-50 to-amber-50 border-2 border-orange-200 shadow-md">
+                      <CardContent className="p-5">
+                        <div className="flex items-start gap-4">
+                          <div className="flex-shrink-0">
+                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#EC6426] to-[#C04A00] flex items-center justify-center shadow-lg">
+                              <Award className="h-8 w-8 text-white" />
+                            </div>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h4 className="text-lg font-bold text-gray-900">
+                                Hạng thành viên
+                              </h4>
+                              <Badge
+                                className="bg-[#EC6426] text-white border-0 px-3 py-1"
+                                variant="default"
+                              >
+                                <Star className="h-3 w-3 mr-1" />
+                                {user.memberAssociation.name}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-gray-600 mb-3">
+                              {user.memberAssociation.description}
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
               </div>
             </CardContent>
           )}

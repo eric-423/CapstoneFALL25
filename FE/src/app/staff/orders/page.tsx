@@ -562,17 +562,17 @@ export default function ManagerOrdersPage() {
                                                             {getStatusLabel(order.orderStatus)}
                                                         </Badge>
                                                     </div>
-                                                    {order.table && (
+                                                    {order.isTable && (
                                                         <Badge className="bg-blue-100 text-blue-700 border-blue-200 border-2 px-3 py-1 text-xs font-bold rounded-lg">
                                                             Tại bàn
                                                         </Badge>
                                                     )}
-                                                    {order.pickUp && (
+                                                    {order.isPickUp && (
                                                         <Badge className="bg-purple-100 text-purple-700 border-purple-200 border-2 px-3 py-1 text-xs font-bold rounded-lg">
                                                             Mang đi
                                                         </Badge>
                                                     )}
-                                                    {!order.table && !order.pickUp && (
+                                                    {!order.isTable && !order.isPickUp && (
                                                         <Badge className="bg-green-100 text-green-700 border-green-200 border-2 px-3 py-1 text-xs font-bold rounded-lg">
                                                             <Truck size={12} className="mr-1" />
                                                             Giao hàng
@@ -792,17 +792,17 @@ export default function ManagerOrdersPage() {
                                         </DialogDescription>
                                     </div>
                                     <div className="flex flex-wrap gap-2">
-                                        {selectedOrder.table && (
+                                        {selectedOrder.isTable && (
                                             <Badge className="bg-blue-50 text-blue-700 border-blue-200 border-2 px-3 py-1 text-xs font-semibold rounded-xl">
                                                 Tại bàn
                                             </Badge>
                                         )}
-                                        {selectedOrder.pickUp && (
+                                        {selectedOrder.isPickUp && (
                                             <Badge className="bg-purple-50 text-purple-700 border-purple-200 border-2 px-3 py-1 text-xs font-semibold rounded-xl">
                                                 Mang đi
                                             </Badge>
                                         )}
-                                        {!selectedOrder.table && !selectedOrder.pickUp && (
+                                        {!selectedOrder.isTable && !selectedOrder.isPickUp && (
                                             <Badge className="bg-green-50 text-green-700 border-green-200 border-2 px-3 py-1 text-xs font-semibold rounded-xl flex items-center gap-1">
                                                 <Truck size={12} />
                                                 Giao hàng
@@ -1031,29 +1031,54 @@ export default function ManagerOrdersPage() {
                                     </h3>
                                     {orderDetail?.orderItems && orderDetail.orderItems.length > 0 ? (
                                         <div className="space-y-3 max-h-72 overflow-y-auto pr-2">
-                                            {orderDetail.orderItems.map((item) => (
-                                                <div
-                                                    key={`${item.productId}-${item.note}-${item.price}`}
-                                                    className="flex items-start justify-between gap-3 border-b border-dashed border-gray-200 pb-3"
-                                                >
-                                                    <div className="flex-1">
-                                                        <p className="font-semibold text-sm text-gray-900">
-                                                            {item.productName}
-                                                        </p>
-                                                        {item.note && (
-                                                            <p className="text-xs text-gray-500 mt-1 bg-gray-100 rounded-lg px-3 py-1 whitespace-pre-line">
-                                                                {item.note}
+                                            {orderDetail.orderItems.map((item, index) => {
+                                                const isCombo = item.comboDTO !== null && item.comboDTO !== undefined;
+                                                const displayName = isCombo && item.comboDTO 
+                                                    ? item.comboDTO.name 
+                                                    : (item.productName || 'Sản phẩm');
+                                                const displayDescription = isCombo && item.comboDTO 
+                                                    ? item.comboDTO.description 
+                                                    : null;
+                                                const displayPrice = isCombo && item.comboDTO 
+                                                    ? item.comboDTO.price 
+                                                    : (item.price ?? 0);
+
+                                                return (
+                                                    <div
+                                                        key={`${isCombo ? 'combo' : 'product'}-${item.productId}-${index}`}
+                                                        className="flex items-start justify-between gap-3 border-b border-dashed border-gray-200 pb-3"
+                                                    >
+                                                        <div className="flex-1">
+                                                            <div className="flex items-center gap-2">
+                                                                <p className="font-semibold text-sm text-gray-900">
+                                                                    {displayName}
+                                                                </p>
+                                                                {isCombo && (
+                                                                    <span className="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full font-medium">
+                                                                        COMBO
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            {displayDescription && (
+                                                                <p className="text-xs text-gray-600 mt-1">
+                                                                    {displayDescription}
+                                                                </p>
+                                                            )}
+                                                            {item.note && (
+                                                                <p className="text-xs text-gray-500 mt-1 bg-gray-100 rounded-lg px-3 py-1 whitespace-pre-line">
+                                                                    {item.note}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                        <div className="text-right text-sm">
+                                                            <p className="font-semibold text-[#EC6426]">
+                                                                {formatCurrency(displayPrice)}
                                                             </p>
-                                                        )}
+                                                            <p className="text-xs text-gray-500">x {item.quantity}</p>
+                                                        </div>
                                                     </div>
-                                                    <div className="text-right text-sm">
-                                                        <p className="font-semibold text-[#EC6426]">
-                                                            {formatCurrency(item.price ?? 0)}
-                                                        </p>
-                                                        <p className="text-xs text-gray-500">x {item.quantity}</p>
-                                                    </div>
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
                                     ) : (
                                         <p className="text-sm text-gray-500">

@@ -1,186 +1,222 @@
-// Promotions API functions
-
 export interface Promotion {
-    id: string;
-    name: string;
-    description: string;
-    value: number;
-    minimumOrderValue: number;
-    startDate: string;
-    endDate: string;
-    status: boolean;
-    createdAt: string;
-    promotionTypeName: string;
-    createdByName: string;
-    receivedDate: string | null;
-    usedDate: string | null;
-    userPromotionStatus: string | null;
-    usageCount: number;
-    // Calculated fields
-    code?: string; // Can be ID or custom code
+  id: string;
+  name: string;
+  description: string;
+  value: number;
+  minimumOrderValue: number;
+  startDate: string;
+  endDate: string;
+  status: boolean;
+  createdAt: string;
+  promotionTypeName: string;
+  createdByName: string;
+  receivedDate: string | null;
+  usedDate: string | null;
+  userPromotionStatus: string | null;
+  usageCount: number;
+  code?: string;
 }
 
 export interface CreatePromotionData {
-    name: string;
-    description: string;
-    value: number;
-    minimumOrderValue: number;
-    startDate: string;
-    endDate: string;
-    status: boolean;
-    promotionTypeId: number;
+  name: string;
+  description: string;
+  value: number;
+  minimumOrderValue: number;
+  startDate: string;
+  endDate: string;
+  status: boolean;
+  promotionTypeId: number;
 }
 
 export interface UpdatePromotionData {
-    name: string;
-    description: string;
-    value: number;
-    minimumOrderValue: number;
-    startDate: string;
-    endDate: string;
-    status: boolean;
-    promotionTypeId: number;
+  name: string;
+  description: string;
+  value: number;
+  minimumOrderValue: number;
+  startDate: string;
+  endDate: string;
+  status: boolean;
+  promotionTypeId: number;
 }
 
 export interface UserAssignment {
-    userId: number;
-    usageCount: number;
+  userId: number;
+  usageCount: number;
 }
 
 export interface AssignPromotionData {
-    promotionCode: string;
-    userAssignments: UserAssignment[];
+  promotionCode: string;
+  userAssignments: UserAssignment[];
 }
 
 export interface PromotionsResponse {
-    status: number;
-    desc: string;
-    data: Promotion[];
+  status: number;
+  desc: string;
+  data: Promotion[];
 }
 
-/**
- * Lấy tất cả promotions
- */
+export interface PromotionType {
+  id: number;
+  name: string;
+  description?: string;
+}
+
+export async function getPromotionTypes() {
+  const response = await fetch("/api/promotions/type", {
+    method: "GET",
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw {
+      response: {
+        data: errorBody,
+        status: response.status,
+      },
+    };
+  }
+
+  const result = await response.json();
+  if (Array.isArray(result)) {
+    return result as PromotionType[];
+  }
+  if (result.data && Array.isArray(result.data)) {
+    return result.data as PromotionType[];
+  }
+  console.warn("Unexpected response format from promotion types API:", result);
+  return [] as PromotionType[];
+}
+
 export async function getAllPromotions() {
-    const response = await fetch('/api/promotions/all', {
-        method: 'GET',
-        credentials: 'include',
-    });
+  const response = await fetch("/api/promotions/all", {
+    method: "GET",
+    credentials: "include",
+  });
 
-    if (!response.ok) {
-        const errorBody = await response.json().catch(() => ({}));
-        throw {
-            response: {
-                data: errorBody,
-                status: response.status,
-            },
-        };
-    }
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw {
+      response: {
+        data: errorBody,
+        status: response.status,
+      },
+    };
+  }
 
-    const result = await response.json();
-    return result.data as Promotion[];
+  const result = await response.json();
+  return result.data as Promotion[];
 }
 
 /**
  * Tạo promotion mới
  */
 export async function createPromotion(data: CreatePromotionData) {
-    const response = await fetch('/api/promotions/create', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(data),
-    });
+  const response = await fetch("/api/promotions/create", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify(data),
+  });
 
-    if (!response.ok) {
-        const errorBody = await response.json().catch(() => ({}));
-        throw {
-            response: {
-                data: errorBody,
-                status: response.status,
-            },
-        };
-    }
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw {
+      response: {
+        data: errorBody,
+        status: response.status,
+      },
+    };
+  }
 
-    const result = await response.json();
-    return result;
+  const result = await response.json();
+  return result;
 }
 
 /**
  * Assign promotion cho users
  */
 export async function assignPromotion(data: AssignPromotionData) {
-    const response = await fetch('/api/promotions/assign', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(data),
-    });
+  const response = await fetch("/api/promotions/assign", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify(data),
+  });
 
-    if (!response.ok) {
-        const errorBody = await response.json().catch(() => ({}));
-        throw {
-            response: {
-                data: errorBody,
-                status: response.status,
-            },
-        };
-    }
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw {
+      response: {
+        data: errorBody,
+        status: response.status,
+      },
+    };
+  }
 
-    const result = await response.json();
-    return result;
+  const result = await response.json();
+  return result;
 }
 
 /**
  * Cập nhật promotion
  */
-export async function updatePromotion(promotionCode: string, data: UpdatePromotionData) {
-    const response = await fetch(`/api/promotions/${promotionCode}`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(data),
-    });
+export async function updatePromotion(
+  promotionCode: string,
+  data: UpdatePromotionData
+) {
+  const response = await fetch(`/api/promotions/${promotionCode}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify(data),
+  });
 
-    if (!response.ok) {
-        const errorBody = await response.json().catch(() => ({}));
-        throw {
-            response: {
-                data: errorBody,
-                status: response.status,
-            },
-        };
-    }
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw {
+      response: {
+        data: errorBody,
+        status: response.status,
+      },
+    };
+  }
 
-    const result = await response.json();
-    return result;
+  const result = await response.json();
+  return result;
 }
 
 /**
  * Thay đổi trạng thái promotion
  */
-export async function togglePromotionStatus(promotionCode: string, status: boolean) {
-    const response = await fetch(`/api/promotions/${promotionCode}/status?status=${status}`, {
-        method: 'PUT',
-        credentials: 'include',
-    });
-
-    if (!response.ok) {
-        const errorBody = await response.json().catch(() => ({}));
-        throw {
-            response: {
-                data: errorBody,
-                status: response.status,
-            },
-        };
+export async function togglePromotionStatus(
+  promotionCode: string,
+  status: boolean
+) {
+  const response = await fetch(
+    `/api/promotions/${promotionCode}/status?status=${status}`,
+    {
+      method: "PUT",
+      credentials: "include",
     }
+  );
 
-    const result = await response.json();
-    return result;
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw {
+      response: {
+        data: errorBody,
+        status: response.status,
+      },
+    };
+  }
+
+  const result = await response.json();
+  return result;
 }

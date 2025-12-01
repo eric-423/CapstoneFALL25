@@ -132,4 +132,23 @@ public class WarehouseController {
             return new ResponseEntity<>(responseData, HttpStatus.BAD_REQUEST);
         }
     }
+
+    @Operation(summary = "Update vật liệu trong kho")
+    @PutMapping("/{warehouseId}/materials")
+    public ResponseEntity<?> updateMaterialsToWarehouse(
+            @Parameter(description = "ID của kho", required = true) @PathVariable int warehouseId,
+            @RequestBody AddMaterialToWarehouseRequest request) {
+        try {
+            List<MaterialWarehouseDTO> results = warehouseService.updateMaterialWarehouse(warehouseId, request);
+
+            ResponseData responseData = new ResponseData();
+            responseData.setData(results);
+            responseData.setDesc("Added " + results.size() + " material(s) to warehouse successfully");
+            return new ResponseEntity<>(responseData, HttpStatus.OK);
+        } catch (Exception e) {
+            ResponseData responseData = new ResponseData();
+            responseData.setDesc("Error: " + e.getMessage());
+            return new ResponseEntity<>(responseData, HttpStatus.BAD_REQUEST);
+        }
+    }
 }

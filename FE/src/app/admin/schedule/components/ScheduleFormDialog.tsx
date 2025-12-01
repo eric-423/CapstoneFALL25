@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/select';
 import { Schedule, CreateScheduleData, UpdateScheduleData } from '@/apis/schedule.api';
 import { toast } from 'react-toastify';
+import { useBodyScrollLock } from '../../components/useBodyScrollLock';
 
 interface ScheduleFormDialogProps {
   open: boolean;
@@ -66,6 +67,7 @@ export function ScheduleFormDialog({
   });
 
   const [loading, setLoading] = useState(false);
+  useBodyScrollLock(open);
 
   useEffect(() => {
     if (open) {
@@ -112,27 +114,42 @@ export function ScheduleFormDialog({
       return;
     }
 
-    if (new Date(formData.date) < new Date()) {
+    // Kiểm tra ngày không được là quá khứ
+    const selectedDate = new Date(formData.date);
+    selectedDate.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (selectedDate < today) {
       toast.error('Ngày lịch trình không được trước ngày hôm nay');
       return;
     }
 
     try {
       setLoading(true);
+      
+      // Đảm bảo userId luôn có khi update
+      const userId = schedule ? (schedule.userId || formData.userId) : formData.userId;
+      
       const payload = {
-        ...formData,
+        userId: userId,
+        name: formData.name,
+        description: formData.description || '',
+        date: formData.date,
         startTime: formatTimeForPayload(formData.startTime),
         endTime: formatTimeForPayload(formData.endTime),
       };
 
+      console.log('Submitting schedule payload:', payload);
       await onSubmit(payload);
       toast.success(
         schedule ? 'Cập nhật lịch trình thành công!' : 'Tạo lịch trình thành công!'
       );
       onOpenChange(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting schedule:', error);
-      toast.error('Có lỗi xảy ra khi lưu lịch trình');
+      const errorMessage = error?.message || 'Có lỗi xảy ra khi lưu lịch trình';
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -140,21 +157,24 @@ export function ScheduleFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="w-[95vw] sm:max-w-[550px] max-h-[90vh] overflow-y-auto mx-2 sm:mx-auto">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="text-lg sm:text-xl">
             {schedule ? 'Chỉnh sửa lịch trình' : 'Tạo lịch trình mới'}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-xs sm:text-sm">
             {schedule
-              ? 'Cập nhật thông tin lịch trình cho nhân viên'
-              : 'Tạo lịch trình làm việc mới cho nhân viên'}
+              ? 'Cập nhật thông tin lịch trình làm việc cho nhân viên'
+              : 'Điền thông tin để tạo lịch trình làm việc mới cho nhân viên'}
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5 mt-3 sm:mt-4">
+          {/* Nhân viên */}
           <div className="space-y-2">
-            <Label htmlFor="userId">Nhân viên *</Label>
+            <Label htmlFor="userId" className="text-xs sm:text-sm font-semibold">
+              Nhân viên <span className="text-red-500">*</span>
+            </Label>
             <Select
               value={formData.userId ? formData.userId.toString() : ''}
               onValueChange={(value) =>
@@ -162,10 +182,14 @@ export function ScheduleFormDialog({
               }
               disabled={!!schedule}
             >
-              <SelectTrigger className="w-[50%] ">
+              <SelectTrigger className="w-full text-sm">
                 <SelectValue placeholder="Chọn nhân viên" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent 
+                className="z-[102] max-h-[300px] !fixed" 
+                position="popper"
+                sideOffset={4}
+              >
                 {users.map((user) => (
                   <SelectItem key={user.id} value={user.id.toString()}>
                     {user.name}
@@ -173,33 +197,50 @@ export function ScheduleFormDialog({
                 ))}
               </SelectContent>
             </Select>
+            {!!schedule && (
+              <p className="text-[10px] sm:text-xs text-gray-500 mt-1">
+                Không thể thay đổi nhân viên sau khi tạo lịch trình
+              </p>
+            )}
           </div>
 
+          {/* Tên lịch trình */}
           <div className="space-y-2">
-            <Label htmlFor="name">Tên lịch trình *</Label>
+            <Label htmlFor="name" className="text-xs sm:text-sm font-semibold">
+              Tên lịch trình <span className="text-red-500">*</span>
+            </Label>
             <Input
               id="name"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="Nhập tên lịch trình"
+              placeholder="Ví dụ: Ca sáng, Ca chiều, Ca tối..."
               required
+              className="w-full text-sm"
             />
           </div>
 
+          {/* Ngày */}
           <div className="space-y-2">
-            <Label htmlFor="date">Ngày *</Label>
+            <Label htmlFor="date" className="text-xs sm:text-sm font-semibold">
+              Ngày <span className="text-red-500">*</span>
+            </Label>
             <Input
               id="date"
               type="date"
               value={formData.date}
               onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+              min={new Date().toISOString().split('T')[0]}
               required
+              className="w-full text-sm"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          {/* Thời gian */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div className="space-y-2">
-              <Label htmlFor="startTime">Giờ bắt đầu *</Label>
+              <Label htmlFor="startTime" className="text-xs sm:text-sm font-semibold">
+                Giờ bắt đầu <span className="text-red-500">*</span>
+              </Label>
               <Input
                 id="startTime"
                 type="time"
@@ -208,11 +249,14 @@ export function ScheduleFormDialog({
                   setFormData({ ...formData, startTime: e.target.value })
                 }
                 required
+                className="w-full text-sm"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="endTime">Giờ kết thúc *</Label>
+              <Label htmlFor="endTime" className="text-xs sm:text-sm font-semibold">
+                Giờ kết thúc <span className="text-red-500">*</span>
+              </Label>
               <Input
                 id="endTime"
                 type="time"
@@ -221,33 +265,43 @@ export function ScheduleFormDialog({
                   setFormData({ ...formData, endTime: e.target.value })
                 }
                 required
+                className="w-full text-sm"
               />
             </div>
           </div>
 
+          {/* Mô tả */}
           <div className="space-y-2">
-            <Label htmlFor="description">Mô tả</Label>
+            <Label htmlFor="description" className="text-xs sm:text-sm font-semibold">
+              Mô tả <span className="text-gray-400 text-[10px] sm:text-xs">(tùy chọn)</span>
+            </Label>
             <Textarea
               id="description"
               value={formData.description}
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
               }
-              placeholder="Nhập mô tả (tùy chọn)"
+              placeholder="Nhập mô tả chi tiết về lịch trình (nếu có)..."
               rows={3}
+              className="w-full text-sm"
             />
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="gap-2 pt-3 sm:pt-4 flex-col sm:flex-row">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={loading}
+              className="flex-1 sm:flex-initial w-full sm:w-auto order-2 sm:order-1"
             >
               Hủy
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button 
+              type="submit" 
+              disabled={loading}
+              className="bg-[#EC6426] hover:bg-[#EC6426]/90 flex-1 sm:flex-initial w-full sm:w-auto order-1 sm:order-2"
+            >
               {loading ? 'Đang lưu...' : schedule ? 'Cập nhật' : 'Tạo mới'}
             </Button>
           </DialogFooter>

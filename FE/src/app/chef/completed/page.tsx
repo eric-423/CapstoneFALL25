@@ -4,13 +4,13 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Clock, Loader2, AlertCircle } from 'lucide-react';
-import { getChefOrders, BranchOrderResponse } from '@/apis/order.api';
+import { getChefOrders, ChefOrderResponse } from '@/apis/order.api';
 import { useAuthContext } from '@/utils/contexts/AuthContext';
 import CompleteLayout from '../components/CompleteLayout';
 
 export default function CompletedPage() {
     const { user } = useAuthContext();
-    const [orders, setOrders] = useState<BranchOrderResponse[]>([]);
+    const [orders, setOrders] = useState<ChefOrderResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -65,10 +65,10 @@ export default function CompletedPage() {
         return () => clearInterval(interval);
     }, [user?.id]);
 
-    const getProcessingTime = (orderDate: string, paymentTime: string | null) => {
-        const orderDateTime = new Date(orderDate);
-        const completedDateTime = paymentTime ? new Date(paymentTime) : new Date();
-        const diffMinutes = Math.ceil((completedDateTime.getTime() - orderDateTime.getTime()) / 60000);
+    const getProcessingTime = (confirmAt: string, cookedAt: string | null) => {
+        const confirmDateTime = new Date(confirmAt);
+        const completedDateTime = cookedAt ? new Date(cookedAt) : new Date();
+        const diffMinutes = Math.ceil((completedDateTime.getTime() - confirmDateTime.getTime()) / 60000);
 
         if (diffMinutes <= 0) {
             return 0;
@@ -88,15 +88,26 @@ export default function CompletedPage() {
         });
     };
 
-    const sortByDate = (orders: BranchOrderResponse[]) => {
+    const sortByDate = (orders: ChefOrderResponse[]) => {
         return [...orders].sort((a, b) => {
-            return new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime();
+            const aDate = a.orderItems[0]?.confirmAt || '';
+            const bDate = b.orderItems[0]?.confirmAt || '';
+            return new Date(bDate).getTime() - new Date(aDate).getTime();
         });
+    };
+
+    const getTotalAmount = (order: ChefOrderResponse) => {
+        return order.orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     };
 
     const totalCompleted = orders.length;
     const avgProcessingTime = orders.length > 0
-        ? Math.round(orders.reduce((sum, order) => sum + getProcessingTime(order.orderDate, order.paymentTime), 0) / orders.length)
+        ? Math.round(orders.reduce((sum, order) => {
+            const firstItem = order.orderItems[0];
+            if (!firstItem) return sum;
+            const cookedAt = order.orderItems.find(item => item.cookedAt)?.cookedAt || null;
+            return sum + getProcessingTime(firstItem.confirmAt, cookedAt);
+        }, 0) / orders.length)
         : 0;
 
     return (
@@ -168,77 +179,117 @@ export default function CompletedPage() {
                         </Card>
                     ) : (
                         <div className='grid gap-4'>
-                            {sortByDate(orders).map((order) => (
-                                <Card key={order.id} className='bg-green-50 border-green-200 transition-all duration-200 hover:shadow-md'>
-                                    <CardContent className='p-6'>
-                                        <div className='flex items-center justify-between'>
-                                            <div className='flex-1'>
-                                                <div className='flex items-center gap-3 mb-2'>
-                                                    <h3 className='text-lg font-semibold text-gray-800'>
-                                                        Đơn hàng #{order.id}
-                                                    </h3>
-                                                    <Badge className='bg-green-100 text-green-800 border-green-200'>
-                                                        Đã hoàn thành
-                                                    </Badge>
-                                                    <span className='text-sm text-gray-500'>
-                                                        {order.itemCount} món
-                                                    </span>
+                            {sortByDate(orders).map((order) => {
+                                const firstItem = order.orderItems[0];
+                                const totalAmount = getTotalAmount(order);
+                                const totalItems = order.orderItems.reduce((sum, item) => sum + item.quantity, 0);
+                                const cookedItem = order.orderItems.find(item => item.cookedAt);
+                                const cookedAt = cookedItem?.cookedAt;
+                                
+                                return (
+                                    <Card key={order.orderId} className='bg-green-50 border-green-200 transition-all duration-200 hover:shadow-md'>
+                                        <CardContent className='p-6'>
+                                            <div className='flex items-center justify-between'>
+                                                <div className='flex-1'>
+                                                    <div className='flex items-center gap-3 mb-2'>
+                                                        <h3 className='text-lg font-semibold text-gray-800'>
+                                                            Đơn hàng #{order.orderId}
+                                                        </h3>
+                                                        <Badge className='bg-green-100 text-green-800 border-green-200'>
+                                                            Đã hoàn thành
+                                                        </Badge>
+                                                        <span className='text-sm text-gray-500'>
+                                                            {totalItems} món
+                                                        </span>
+                                                    </div>
+
+                                                    {firstItem && (
+                                                        <div className='mb-3'>
+                                                            <span className='font-medium text-sm text-gray-600'>Xác nhận lúc:</span>
+                                                            <span className='ml-2 text-sm text-gray-700'>
+                                                                {formatDate(firstItem.confirmAt)}
+                                                            </span>
+                                                        </div>
+                                                    )}
+
+                                                    <div className='mb-4 space-y-2'>
+                                                        <p className='text-sm font-medium text-gray-700'>Danh sách món:</p>
+                                                        <div className='space-y-2'>
+                                                            {order.orderItems.map((item, index) => (
+                                                                <div key={index} className='flex items-start gap-3 p-3 bg-white rounded-lg'>
+                                                                    {item.productImg && (
+                                                                        <img 
+                                                                            src={item.productImg} 
+                                                                            alt={item.productName}
+                                                                            className='w-16 h-16 object-cover rounded'
+                                                                        />
+                                                                    )}
+                                                                    <div className='flex-1'>
+                                                                        <div className='flex items-center justify-between'>
+                                                                            <p className='font-medium text-gray-800'>{item.productName}</p>
+                                                                            <p className='text-sm text-gray-600'>
+                                                                                {item.price.toLocaleString('vi-VN')} đ × {item.quantity}
+                                                                            </p>
+                                                                        </div>
+                                                                        {item.note && (
+                                                                            <p className='text-xs text-gray-500 mt-1'>
+                                                                                Ghi chú: {item.note}
+                                                                            </p>
+                                                                        )}
+                                                                        {item.comboDTO && (
+                                                                            <Badge className='mt-1 bg-blue-50 text-blue-700 border-blue-200 text-xs'>
+                                                                                Combo
+                                                                            </Badge>
+                                                                        )}
+                                                                        {item.cookedAt && (
+                                                                            <p className='text-xs text-green-600 mt-1'>
+                                                                                Đã nấu: {formatDate(item.cookedAt)}
+                                                                            </p>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className='mt-3 flex items-center gap-4'>
+                                                        {cookedAt && firstItem && (
+                                                            <>
+                                                                <div className='flex items-center text-sm'>
+                                                                    <CheckCircle className='h-4 w-4 text-green-500 mr-1' />
+                                                                    <span className='text-gray-600'>Hoàn thành:</span>
+                                                                    <span className='ml-1 font-medium text-green-600'>
+                                                                        {formatDate(cookedAt)}
+                                                                    </span>
+                                                                </div>
+                                                                <div className='flex items-center text-sm'>
+                                                                    <Clock className='h-4 w-4 text-blue-500 mr-1' />
+                                                                    <span className='text-gray-600'>Thời gian chế biến:</span>
+                                                                    <span className='ml-1 font-medium text-blue-600'>
+                                                                        {getProcessingTime(firstItem.confirmAt, cookedAt)} phút
+                                                                    </span>
+                                                                </div>
+                                                            </>
+                                                        )}
+                                                        <div className='flex items-center text-sm'>
+                                                            <span className='text-gray-600'>Tổng tiền:</span>
+                                                            <span className='ml-1 font-medium text-green-600'>
+                                                                {totalAmount.toLocaleString('vi-VN')} đ
+                                                            </span>
+                                                        </div>
+                                                    </div>
                                                 </div>
 
-                                                <div className='grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600 mb-3'>
-                                                    <div>
-                                                        <span className='font-medium'>Khách hàng:</span> {order.customerName}
-                                                    </div>
-                                                    <div>
-                                                        <span className='font-medium'>SĐT:</span> {order.customerPhone}
-                                                    </div>
-                                                    <div>
-                                                        <span className='font-medium'>Đặt lúc:</span> {formatDate(order.orderDate)}
-                                                    </div>
-                                                </div>
-
-                                                {order.address && (
-                                                    <div className='mb-2'>
-                                                        <span className='font-medium text-sm text-gray-600'>Địa chỉ:</span>
-                                                        <p className='text-sm text-gray-700 bg-gray-50 p-2 rounded mt-1'>
-                                                            {order.address}
-                                                        </p>
-                                                    </div>
-                                                )}
-
-                                                <div className='mt-3 flex items-center gap-4'>
-                                                    <div className='flex items-center text-sm'>
-                                                        <CheckCircle className='h-4 w-4 text-green-500 mr-1' />
-                                                        <span className='text-gray-600'>Hoàn thành:</span>
-                                                        <span className='ml-1 font-medium text-green-600'>
-                                                            {formatDate(order.orderDate)}
-                                                        </span>
-                                                    </div>
-                                                    <div className='flex items-center text-sm'>
-                                                        <Clock className='h-4 w-4 text-blue-500 mr-1' />
-                                                        <span className='text-gray-600'>Thời gian chế biến:</span>
-                                                        <span className='ml-1 font-medium text-blue-600'>
-                                                            {getProcessingTime(order.orderDate, order.paymentTime)} phút
-                                                        </span>
-                                                    </div>
-                                                    <div className='flex items-center text-sm'>
-                                                        <span className='text-gray-600'>Tổng tiền:</span>
-                                                        <span className='ml-1 font-medium text-green-600'>
-                                                            {order.amount.toLocaleString('vi-VN')} đ
-                                                        </span>
+                                                <div className='ml-6'>
+                                                    <div className='flex items-center justify-center w-16 h-16 bg-green-100 rounded-full'>
+                                                        <CheckCircle className='h-8 w-8 text-green-600' />
                                                     </div>
                                                 </div>
                                             </div>
-
-                                            <div className='ml-6'>
-                                                <div className='flex items-center justify-center w-16 h-16 bg-green-100 rounded-full'>
-                                                    <CheckCircle className='h-8 w-8 text-green-600' />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ))}
+                                        </CardContent>
+                                    </Card>
+                                );
+                            })}
                         </div>
                     )}
                 </div>

@@ -66,7 +66,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/branches/statistics")
                         .hasAnyRole("ADMIN", "MANAGER")
 
-
+                        .requestMatchers("/api/cart-items/**").hasAnyRole("CUSTOMER")
 
                         .requestMatchers(HttpMethod.GET, "/api/warehouses")
                         .hasAnyRole("MANAGER", "ADMIN", "CHEFF", "WAITER")
@@ -77,6 +77,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/warehouses").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(HttpMethod.PUT, "/api/warehouses/{id}").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(HttpMethod.POST, "/api/warehouses/{id}/materials")
+                        .hasAnyRole("ADMIN", "MANAGER", "CHEFF")
+                        .requestMatchers(HttpMethod.PUT, "/api/warehouses/{id}/materials")
                         .hasAnyRole("ADMIN", "MANAGER", "CHEFF")
 
                         .requestMatchers(HttpMethod.GET, "/api/material-types")
@@ -235,7 +237,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/shipper/orders/*/location").hasRole("SHIPPER")
 
                         .requestMatchers("/api/orders/branch/**")
-                        .hasAnyRole("MANAGER", "ADMIN", "WAITER", "CHEFF", "SHIPPER","STAFF")
+                        .hasAnyRole("MANAGER", "ADMIN", "WAITER", "CHEFF", "SHIPPER", "STAFF")
                         .requestMatchers("/api/orders/statuses").permitAll()
 
                         .requestMatchers("/api/orders/customer/pickup").hasAnyRole("CUSTOMER", "STAFF")
@@ -247,7 +249,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/promotions/customer/**").hasRole("CUSTOMER")
 
                         .requestMatchers(HttpMethod.GET, "/api/orders/*/bill/download")
-                        .hasAnyRole("ADMIN", "MANAGER", "WAITER", "CUSTOMER","STAFF")
+                        .hasAnyRole("ADMIN", "MANAGER", "WAITER", "CUSTOMER", "STAFF")
                         .requestMatchers(HttpMethod.POST, "/api/orders/*/bill/regenerate")
                         .hasAnyRole("ADMIN", "MANAGER")
 
