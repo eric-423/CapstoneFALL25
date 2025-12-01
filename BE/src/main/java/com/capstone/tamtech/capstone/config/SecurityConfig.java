@@ -274,6 +274,10 @@ public class SecurityConfig {
                         .hasAnyRole("ADMIN", "MANAGER")
 
                         .requestMatchers("/api/promotion-types/**").hasAnyRole("MANAGER", "ADMIN")
+
+                        .requestMatchers(HttpMethod.POST,"/api/schedules/**").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.PUT,"/api/schedules/**").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers("/api/schedules/**").hasAnyRole("ADMIN", "MANAGER", "STAFF", "CHEFF", "WAITER")
                         .anyRequest().authenticated());
 
         return http.build();
