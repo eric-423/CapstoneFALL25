@@ -886,7 +886,8 @@ public class OrderServiceImpl implements OrderService {
         }
 
         orderDTO.setAmount(order.getAmount());
-        if (order.getShipper() != null) {
+
+        if (!order.isPickUp() && (order.getIsTable() == null)) {
             orderDTO.setShippingFee(order.getShippingFee());
             if (order.getDeliveryAtt() != null) {
                 orderDTO.setDelivery_at(order.getDeliveryAtt());
