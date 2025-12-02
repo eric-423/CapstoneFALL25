@@ -83,6 +83,7 @@ public class OrderServiceImpl implements OrderService {
                 throw new BadRequestException("Insufficient points");
             } else {
                 user.setMemberPoint(user.getMemberPoint() - orderRequest.getPointUsed());
+                order.setPointUsed(orderRequest.getPointUsed());
                 usersRepository.save(user);
             }
         }
@@ -248,6 +249,7 @@ public class OrderServiceImpl implements OrderService {
                 throw new BadRequestException("Insufficient points");
             } else {
                 user.setMemberPoint(user.getMemberPoint() - orderRequest.getPointUsed());
+                order.setPointUsed(orderRequest.getPointUsed());
                 usersRepository.save(user);
             }
         }
