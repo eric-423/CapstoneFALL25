@@ -74,7 +74,7 @@ export default function AvailableVoucher({
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 max-w-6xl">
         {promotions.map((promotion) => (
           <Card
             key={promotion.id}
@@ -86,7 +86,7 @@ export default function AvailableVoucher({
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-2 flex-1">
                   <div className="flex-1 min-w-0">
-                    <CardTitle className="text-lg font-bold text-gray-900 group-hover:text-[#EC6426] transition-colors mb-0.5">
+                    <CardTitle className="text-lg font-bold text-gray-900 group-hover:text-[#EC6426] transition-colors mb-0.5 line-clamp-1">
                       {promotion.name}
                     </CardTitle>
                     <p className="text-xs text-gray-600 line-clamp-1">
