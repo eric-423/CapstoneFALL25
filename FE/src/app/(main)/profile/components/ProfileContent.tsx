@@ -62,7 +62,7 @@ export default function ProfileContent() {
                                        Tên đầy đủ
                                     </label>
                                     <div className="mt-1 p-3 border border-gray-300 rounded-md bg-gray-50">
-                                       {customerDetails?.fullName || user.name || "Chưa cập nhật"}
+                                       {customerDetails?.fullName || user.fullName || "Chưa cập nhật"}
                                     </div>
                                  </div>
 

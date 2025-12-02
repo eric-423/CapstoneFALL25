@@ -3,12 +3,12 @@
 import React, { memo } from "react";
 import { LucideIcon } from "lucide-react";
 
-interface AdminPageLayoutProps {
+export interface AdminPageLayoutProps {
   children: React.ReactNode;
   className?: string;
 }
 
-interface AdminPageHeaderProps {
+export interface AdminPageHeaderProps {
   title: string;
   description?: string;
   icon?: LucideIcon;
