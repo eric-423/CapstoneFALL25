@@ -40,8 +40,20 @@ const OfferCard: React.FC<OfferCardProps> = ({
         <Image source={imageSource} style={offerCardStyles.image} />
       </View>
       <View style={offerCardStyles.container}>
-        <Text style={offerCardStyles.discountText}>{discountText}</Text>
-        <Text style={offerCardStyles.descriptionText}>{descriptionText}</Text>
+        <Text
+          style={offerCardStyles.discountText}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
+          {discountText}
+        </Text>
+        <Text
+          style={offerCardStyles.descriptionText}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
+          {descriptionText}
+        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -49,7 +61,6 @@ const OfferCard: React.FC<OfferCardProps> = ({
 
 const TodayOffersSection: React.FC<TodayOffersSectionProps> = ({
   title = "Ưu Đãi Hôm Nay",
-  onPressSeeMore,
   offers = [],
 }) => {
   return (

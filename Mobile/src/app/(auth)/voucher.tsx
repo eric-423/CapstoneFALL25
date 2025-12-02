@@ -7,6 +7,7 @@ import CustomerPoint from "@/components/account/user.point";
 import { GetCustomerPromotion } from "@/utils/api";
 import Toast from "react-native-root-toast";
 import { useCurrentApp } from "@/context/app.context";
+import { router } from "expo-router";
 const Voucher = () => {
   const [vouchers, setVouchers] = useState<any[]>([]);
   const [groupedVouchers, setGroupedVouchers] = useState<any[]>([]);
@@ -44,6 +45,7 @@ const Voucher = () => {
 
   useEffect(() => {
     const fetchVouchers = async () => {
+      if (!appState) router.navigate("/(tabs)");
       try {
         setIsLoading(true);
         const response = await GetCustomerPromotion();
@@ -75,12 +77,6 @@ const Voucher = () => {
         console.error("Error fetching vouchers:", error);
         setVouchers([]);
         setGroupedVouchers([]);
-        Toast.show(error?.response?.data?.desc || "Không thể tải mã ưu đãi", {
-          duration: Toast.durations.LONG,
-          textColor: "white",
-          backgroundColor: APP_COLOR.CANCEL,
-          opacity: 1,
-        });
       } finally {
         setIsLoading(false);
       }

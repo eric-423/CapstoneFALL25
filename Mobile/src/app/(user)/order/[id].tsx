@@ -125,10 +125,10 @@ const OrderDetailsPage = () => {
         const response = await GetOrderById(Number(orderIdParam));
         const data = response.data?.data || response.data;
         if (data) {
+          console.log(data);
           setOrderDetails(mapApiOrderToState(data));
         }
       } catch (fetchError) {
-        console.error("Error fetching order details:", fetchError);
         setError("Không thể tải thông tin đơn hàng. Vui lòng thử lại.");
       } finally {
         setIsLoading(false);
@@ -187,6 +187,8 @@ const OrderDetailsPage = () => {
             Alert.alert("Thành công", "Đơn hàng đã được xác nhận hoàn thành!");
             const response = await GetOrderById(Number(orderIdParam));
             const data = response.data?.data || response.data;
+            console.log(data);
+
             if (data) {
               setOrderDetails(mapApiOrderToState(data));
             }
@@ -466,7 +468,11 @@ const OrderDetailsPage = () => {
             <View style={styles.detailsContainer}>
               <Text style={styles.totalValue}>Thành tiền</Text>
               <Text style={styles.totalValue}>
-                {currencyFormatter(orderDetails?.order_amount)}
+                {currencyFormatter(
+                  orderDetails?.order_subtotal ||
+                    orderDetails?.order_amount ||
+                    0
+                )}
               </Text>
             </View>
             <View style={styles.detailsContainer}>
@@ -478,7 +484,7 @@ const OrderDetailsPage = () => {
             <View style={styles.detailsContainer}>
               <Text style={styles.totalValue}>Giảm giá</Text>
               <Text style={styles.totalValue}>
-                {currencyFormatter(orderDetails?.order_discount_value)}
+                -{currencyFormatter(orderDetails?.order_discount_value)}
               </Text>
             </View>
             <View style={styles.detailsContainer}>
@@ -519,7 +525,19 @@ const OrderDetailsPage = () => {
                         borderColor: APP_COLOR.BROWN,
                       },
                     ]}
-                    onPress={() => router.navigate("/(tabs)")}
+                    onPress={() => {
+                      if (orderDetails?.paymentUrl) {
+                        router.navigate({
+                          pathname: "/(user)/order/payment.webview",
+                          params: { paymentUrl: orderDetails.paymentUrl },
+                        });
+                      } else {
+                        Alert.alert(
+                          "Lỗi",
+                          "Không tìm thấy URL thanh toán. Vui lòng thử lại sau."
+                        );
+                      }
+                    }}
                   >
                     <Text
                       style={[styles.buttonText, { color: APP_COLOR.BROWN }]}
@@ -688,6 +706,8 @@ const styles = StyleSheet.create({
   statusLayout: {
     width: 130,
     height: 30,
+    position: "relative",
+    left: 15,
   },
   orderDetailsStatus: {
     flexDirection: "row",

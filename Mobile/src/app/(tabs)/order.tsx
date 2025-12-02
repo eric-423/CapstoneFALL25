@@ -13,7 +13,7 @@ interface IProductType {
   name: string;
 }
 const OrderScreen = () => {
-  const { branchId } = useCurrentApp();
+  const { branchId, selectedProductTypeId, sortDirection } = useCurrentApp();
   const [productType, setProductType] = useState<IProductType[]>([]);
   const [activeTab, setActiveTab] = useState<"Danh mục" | "Combo">("Danh mục");
   useEffect(() => {
@@ -32,14 +32,18 @@ const OrderScreen = () => {
       <TopListMenu activeTab={activeTab} setActiveTab={setActiveTab} />
       <ModalProvider>
         {activeTab === "Danh mục" ? (
-          productType.map((s) => (
-            <CollectionMenu
-              key={s.id}
-              name={s.name}
-              id={s.id}
-              branchId={branchId || 0}
-            />
-          ))
+          selectedProductTypeId === null && sortDirection ? (
+            <CollectionMenu name="Tất cả" id={0} branchId={branchId || 0} />
+          ) : (
+            productType.map((s) => (
+              <CollectionMenu
+                key={s.id}
+                name={s.name}
+                id={s.id}
+                branchId={branchId || 0}
+              />
+            ))
+          )
         ) : (
           <CollectionMenu branchId={branchId || 0} part="combo" name="Combo" />
         )}
