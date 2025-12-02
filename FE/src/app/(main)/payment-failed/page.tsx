@@ -14,7 +14,6 @@ export default function PaymentFailedPage() {
     const hasClearedCart = useRef(false);
 
     useEffect(() => {
-        // Xóa giỏ hàng khi vào trang thanh toán thất bại
         if (!hasClearedCart.current) {
             clearCart();
             hasClearedCart.current = true;
