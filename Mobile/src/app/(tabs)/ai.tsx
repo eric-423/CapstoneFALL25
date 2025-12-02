@@ -1,10 +1,4 @@
-import React, {
-  useEffect,
-  useState,
-  useCallback,
-  useMemo,
-  useRef,
-} from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import {
   View,
   StyleSheet,
@@ -30,22 +24,29 @@ const AIScreen = () => {
   const [userId, setUserId] = useState<number | null>(null);
   const [jwtToken, setJwtToken] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
+
   const webViewRef = React.useRef<any>(null);
 
   const loadUserData = useCallback(async () => {
     try {
       const token = await AsyncStorage.getItem("access_token");
-      setJwtToken(token);
 
       if (token) {
+        setJwtToken(token);
         const decoded = jwtDecode<DecodedToken>(token);
         const id = decoded.i || decoded.userId || decoded.sub || null;
         setUserId(id);
       } else if (appState?.userInfo?.id) {
+        setJwtToken(null);
         setUserId(appState.userInfo.id);
+      } else {
+        setJwtToken(null);
+        setUserId(null);
       }
     } catch (error) {
       console.error("Error loading user data for Dify:", error);
+      setJwtToken(null);
+      setUserId(null);
     }
   }, [appState]);
 
@@ -53,7 +54,6 @@ const AIScreen = () => {
     loadUserData();
   }, [loadUserData]);
 
-  // Request microphone permission
   useEffect(() => {
     const requestMicrophonePermission = async () => {
       try {
@@ -95,17 +95,59 @@ const AIScreen = () => {
   }, [isReady]);
 
   useEffect(() => {
-    if (userId !== null && jwtToken !== null && !isReady) {
+    if (!isReady) {
       setIsReady(true);
+    }
+  }, [isReady]);
+
+  useEffect(() => {
+    if (webViewRef.current && isReady) {
+      const finalUserId = userId || "guest";
+      const finalToken = jwtToken || "";
+      const inputs = {
+        external_user_id: finalUserId.toString(),
+        jwt_token: finalToken,
+      };
+      const configToInject = {
+        token: "zuJKSoxQFk62iEMg",
+        inputs: inputs,
+        systemVariables: {
+          user_id: inputs.external_user_id,
+          external_user_id: inputs.external_user_id,
+          jwt_token: inputs.jwt_token,
+        },
+        userVariables: {
+          external_user_id: inputs.external_user_id,
+          jwt_token: inputs.jwt_token,
+        },
+      };
+
+      setTimeout(() => {
+        webViewRef.current?.injectJavaScript(`
+          (function() {
+            try {
+              const config = ${JSON.stringify(configToInject)};
+              window.difyChatbotConfig = config;
+              window.difyInputs = config.inputs;
+              window.difyExternalUserId = config.inputs.external_user_id;
+              window.difyJwtToken = config.inputs.jwt_token;
+              console.log('Config updated:', config);
+            } catch (e) {
+              console.error('Error updating config:', e);
+            }
+          })();
+          true;
+        `);
+      }, 500);
     }
   }, [userId, jwtToken, isReady]);
 
   const htmlContent = useMemo(() => {
-    if (!userId || !jwtToken) return "";
-
+    const finalUserId = userId || "guest";
+    const finalToken = jwtToken || "";
     const inputs: Record<string, string> = {
-      external_user_id: userId.toString(),
-      jwt_token: jwtToken,
+      external_user_id: finalUserId.toString(),
+      jwt_token: finalToken,
     };
     const inputsJson = JSON.stringify(inputs);
 
@@ -116,7 +158,6 @@ const AIScreen = () => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
         <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob: https: http:;">
         <script>
-          // Microphone permission helper
           window.requestMicrophonePermission = function(retryCount = 0) {
             return new Promise((resolve, reject) => {
               if (!navigator.mediaDevices?.getUserMedia) {
@@ -142,7 +183,6 @@ const AIScreen = () => {
             });
           };
           
-          // Pre-request microphone permission
           (function preRequestMicrophone() {
             if (navigator.mediaDevices?.getUserMedia) {
               setTimeout(() => {
@@ -153,7 +193,6 @@ const AIScreen = () => {
                     }, 5000);
                   })
                   .catch(() => {
-                    // Retry once
                     setTimeout(() => {
                       navigator.mediaDevices.getUserMedia({ audio: true })
                         .then((stream) => {
@@ -168,7 +207,6 @@ const AIScreen = () => {
             }
           })();
           
-          // Override getUserMedia in parent window
           if (navigator.mediaDevices?.getUserMedia) {
             const originalGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
             navigator.mediaDevices.getUserMedia = function(constraints) {
@@ -184,7 +222,6 @@ const AIScreen = () => {
             };
           }
           
-          // Inject into iframe when it loads
           function injectMicrophoneHelperIntoIframe() {
             const iframe = document.querySelector('iframe[src*="udify"]');
             if (!iframe?.contentWindow) return;
@@ -251,7 +288,6 @@ const AIScreen = () => {
             }
           }
           
-          // Monitor for iframe creation
           const iframeObserver = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
               mutation.addedNodes.forEach((node) => {
@@ -323,14 +359,20 @@ const AIScreen = () => {
               if (!window.difyChatbotConfig) {
                 window.difyChatbotConfig = JSON.parse(JSON.stringify(originalConfig));
               } else {
-                if (!window.difyChatbotConfig.inputs?.external_user_id || !window.difyChatbotConfig.inputs?.jwt_token) {
+                if (!window.difyChatbotConfig.inputs?.external_user_id) {
+                  window.difyChatbotConfig.inputs = originalConfig.inputs;
+                  window.difyChatbotConfig.token = originalConfig.token;
+                } else if (window.difyChatbotConfig.inputs.external_user_id !== originalConfig.inputs.external_user_id || 
+                          window.difyChatbotConfig.inputs.jwt_token !== originalConfig.inputs.jwt_token) {
                   window.difyChatbotConfig.inputs = originalConfig.inputs;
                   window.difyChatbotConfig.token = originalConfig.token;
                 }
-                if (!window.difyChatbotConfig.systemVariables?.external_user_id) {
+                if (!window.difyChatbotConfig.systemVariables?.external_user_id || 
+                    window.difyChatbotConfig.systemVariables.external_user_id !== originalConfig.systemVariables.external_user_id) {
                   window.difyChatbotConfig.systemVariables = originalConfig.systemVariables;
                 }
-                if (!window.difyChatbotConfig.userVariables?.external_user_id) {
+                if (!window.difyChatbotConfig.userVariables?.external_user_id ||
+                    window.difyChatbotConfig.userVariables.external_user_id !== originalConfig.userVariables.external_user_id) {
                   window.difyChatbotConfig.userVariables = originalConfig.userVariables;
                 }
               }
@@ -388,17 +430,32 @@ const AIScreen = () => {
   }, [userId, jwtToken]);
 
   const injectedJavaScriptBeforeContentLoaded = useMemo(() => {
-    if (!userId || !jwtToken) return "";
-    const inputs = { external_user_id: userId.toString(), jwt_token: jwtToken };
+    const finalUserId = userId || "guest";
+    const guestToken = jwtToken || "";
+    const inputs = {
+      external_user_id: finalUserId.toString(),
+      jwt_token: guestToken,
+    };
     return `
       (function() {
         try {
+          const inputs = ${JSON.stringify(inputs)};
           window.difyChatbotConfig = {
             token: 'zuJKSoxQFk62iEMg',
-            inputs: ${JSON.stringify(inputs)},
-            systemVariables: {},
-            userVariables: {},
+            inputs: inputs,
+            systemVariables: { 
+              user_id: inputs.external_user_id, 
+              external_user_id: inputs.external_user_id, 
+              jwt_token: inputs.jwt_token 
+            },
+            userVariables: { 
+              external_user_id: inputs.external_user_id, 
+              jwt_token: inputs.jwt_token 
+            },
           };
+          window.difyInputs = inputs;
+          window.difyExternalUserId = inputs.external_user_id;
+          window.difyJwtToken = inputs.jwt_token;
         } catch (e) {
           console.error('Error in injectedJavaScriptBeforeContentLoaded:', e);
         }
@@ -408,13 +465,24 @@ const AIScreen = () => {
   }, [userId, jwtToken]);
 
   const injectedJavaScript = useMemo(() => {
-    if (!userId || !jwtToken) return "";
-    const inputs = { external_user_id: userId.toString(), jwt_token: jwtToken };
+    const finalUserId = userId || "guest";
+    const guestToken = jwtToken || "";
+    const inputs = {
+      external_user_id: finalUserId.toString(),
+      jwt_token: guestToken,
+    };
     const originalConfig = {
       token: "zuJKSoxQFk62iEMg",
       inputs: inputs,
-      systemVariables: {},
-      userVariables: {},
+      systemVariables: {
+        user_id: inputs.external_user_id,
+        external_user_id: inputs.external_user_id,
+        jwt_token: inputs.jwt_token,
+      },
+      userVariables: {
+        external_user_id: inputs.external_user_id,
+        jwt_token: inputs.jwt_token,
+      },
     };
     return `
       (function() {
@@ -432,7 +500,7 @@ const AIScreen = () => {
           let checkCount = 0;
           const configMonitor = setInterval(() => {
             checkCount++;
-            if (!window.difyChatbotConfig?.inputs?.external_user_id || !window.difyChatbotConfig?.inputs?.jwt_token) {
+            if (!window.difyChatbotConfig?.inputs?.external_user_id) {
               forceSetConfig();
             }
             if (checkCount >= 10) clearInterval(configMonitor);
@@ -445,15 +513,13 @@ const AIScreen = () => {
     `;
   }, [userId, jwtToken]);
 
-  if (!isReady || htmlContent === "") {
+  if (!isReady) {
     return (
       <View style={styles.container}>
         <View
           style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
         >
-          <Text style={{ color: APP_COLOR.BROWN }}>
-            Vui lòng đăng nhập để sử dụng tính năng...
-          </Text>
+          <Text style={{ color: APP_COLOR.BROWN }}>Đang tải chatbot...</Text>
         </View>
       </View>
     );
@@ -508,7 +574,7 @@ const AIScreen = () => {
           injectedJavaScriptBeforeContentLoaded
         }
         injectedJavaScript={injectedJavaScript}
-        key={`dify-${userId}-${jwtToken ? "token" : "no-token"}`}
+        key={`dify-${userId || "guest"}-${jwtToken ? "token" : "guest"}`}
         onError={(syntheticEvent) => {
           console.warn("WebView error: ", syntheticEvent.nativeEvent);
         }}
@@ -607,9 +673,7 @@ const AIScreen = () => {
                 })
                 .catch(() => {});
             }
-          } catch (e) {
-            // Not JSON, ignore
-          }
+          } catch (e) {}
         }}
         ref={webViewRef}
         onConsoleMessage={(event: any) => {
