@@ -97,8 +97,41 @@ export function LessonFormDialog({
             newErrors.content = "Vui lòng nhập nội dung bài học";
         if (!form.point.trim()) {
             newErrors.point = "Vui lòng nhập điểm bài học";
-        } else if (Number.isNaN(Number(form.point)) || Number(form.point) <= 0) {
-            newErrors.point = "Điểm phải là số nguyên dương";
+        } else {
+            const numericPoint = Number(form.point);
+            const coursePointLimit =
+                typeof training?.point === "number" ? training.point : undefined;
+            const currentLessonPointSum =
+                typeof training?.totalLessonPoint === "number"
+                    ? training.totalLessonPoint
+                    : 0;
+            const editingLessonPoint =
+                mode === "edit" && typeof lesson?.point === "number"
+                    ? lesson.point
+                    : 0;
+            const usedPointWithoutCurrent = Math.max(
+                0,
+                currentLessonPointSum - editingLessonPoint
+            );
+            const remainingPointBudget =
+                typeof coursePointLimit === "number"
+                    ? Math.max(0, coursePointLimit - usedPointWithoutCurrent)
+                    : undefined;
+
+            if (Number.isNaN(numericPoint) || numericPoint <= 0) {
+                newErrors.point = "Điểm phải lớn hơn 0";
+            } else if (
+                typeof coursePointLimit === "number" &&
+                coursePointLimit > 0 &&
+                numericPoint > coursePointLimit
+            ) {
+                newErrors.point = `Điểm bài học không được vượt quá điểm khóa`;
+            } else if (
+                typeof remainingPointBudget === "number" &&
+                numericPoint > remainingPointBudget
+            ) {
+                newErrors.point = `Tổng điểm bài học vượt quá giới hạn khóa học`;
+            }
         }
         if (!form.orderIndex.trim()) {
             newErrors.orderIndex = "Vui lòng nhập thứ tự bài học";
@@ -106,7 +139,7 @@ export function LessonFormDialog({
             Number.isNaN(Number(form.orderIndex)) ||
             Number(form.orderIndex) <= 0
         ) {
-            newErrors.orderIndex = "Thứ tự phải là số nguyên dương";
+            newErrors.orderIndex = "Thứ tự phải lớn hơn 0";
         }
 
         setErrors(newErrors);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -16,20 +16,42 @@ export default function ChefPage() {
    const [loading, setLoading] = useState(true);
    const [error, setError] = useState<string | null>(null);
    const [completedItems, setCompletedItems] = useState<number[]>([]);
+   const [completedOrdersCount, setCompletedOrdersCount] = useState(0);
+   const isInitialFetchRef = useRef(true);
 
    useEffect(() => {
+      isInitialFetchRef.current = true;
+
       if (!user?.id) {
          setError('Không thể lấy thông tin người dùng');
          setLoading(false);
          return;
       }
 
-      const fetchOrders = async () => {
+      const chefId = user.id;
+      let isMounted = true;
+
+      const fetchCompletedOrdersCount = async () => {
          try {
+            const response = await getChefOrders(chefId, 'COOKED');
+
+            if (response.status === 0 && response.data && isMounted) {
+               setCompletedOrdersCount(response.data.length);
+            }
+         } catch (err) {
+            console.error('Error fetching completed orders count:', err);
+         }
+      };
+
+      const fetchOrders = async () => {
+         const shouldShowInitialLoader = isInitialFetchRef.current;
+         if (shouldShowInitialLoader) {
             setLoading(true);
+         }
+
+         try {
             setError(null);
 
-            const chefId = user.id;
             const response = await getChefOrders(chefId, 'COOKING');
 
             if (response.status === 0 && response.data) {
@@ -59,14 +81,24 @@ export default function ChefPage() {
                setError('Có lỗi xảy ra khi tải danh sách đơn hàng. Vui lòng thử lại sau.');
             }
          } finally {
-            setLoading(false);
+            if (shouldShowInitialLoader) {
+               setLoading(false);
+               isInitialFetchRef.current = false;
+            }
          }
       };
 
       fetchOrders();
+      fetchCompletedOrdersCount();
 
-      const interval = setInterval(fetchOrders, 10000);
-      return () => clearInterval(interval);
+      const interval = setInterval(() => {
+         fetchOrders();
+         fetchCompletedOrdersCount();
+      }, 10000);
+      return () => {
+         clearInterval(interval);
+         isMounted = false;
+      };
    }, [user?.id]);
 
 
@@ -95,21 +127,43 @@ export default function ChefPage() {
       }
    };
 
+   const formatElapsedTime = (minutes: number) => {
+      if (minutes <= 0 || Number.isNaN(minutes)) {
+         return 'Vừa đặt';
+      }
+
+      const minutesPerDay = 60 * 24;
+      const days = Math.floor(minutes / minutesPerDay);
+      const hours = Math.floor((minutes % minutesPerDay) / 60);
+      const remainingMinutes = minutes % 60;
+
+      if (days > 0) {
+         const parts = [`${days} ngày`];
+         if (hours > 0) {
+            parts.push(`${hours} giờ`);
+         }
+         if (remainingMinutes > 0 && hours === 0) {
+            parts.push(`${remainingMinutes} phút`);
+         }
+         return parts.join(' ');
+      }
+
+      if (hours > 0) {
+         const parts = [`${hours} giờ`];
+         if (remainingMinutes > 0) {
+            parts.push(`${remainingMinutes} phút`);
+         }
+         return parts.join(' ');
+      }
+
+      return `${remainingMinutes} phút`;
+   };
+
    const getTimeRemaining = (confirmAt: string) => {
       const confirmDateTime = new Date(confirmAt);
       const now = new Date();
       const diffMinutes = Math.ceil((now.getTime() - confirmDateTime.getTime()) / 60000);
-
-      if (diffMinutes <= 0) {
-         return 'Vừa đặt';
-      }
-
-      if (diffMinutes > 60) {
-         const hours = Math.floor(diffMinutes / 60);
-         return `${hours} giờ ${diffMinutes % 60} phút`;
-      }
-
-      return `${diffMinutes} phút`;
+      return formatElapsedTime(diffMinutes);
    };
 
    const formatDate = (dateString: string) => {
@@ -156,8 +210,8 @@ export default function ChefPage() {
                      <div className='flex items-center'>
                         <CheckCircle className='h-8 w-8 text-green-500' />
                         <div className='ml-4'>
-                           <p className='text-sm font-medium text-gray-600'>Hoàn thành hôm nay</p>
-                           <p className='text-2xl font-bold text-gray-900'>{completedItems.length}</p>
+                           <p className='text-sm font-medium text-gray-600'>Đơn Đã Hoàn Thành</p>
+                           <p className='text-2xl font-bold text-gray-900'>{completedOrdersCount}</p>
                         </div>
                      </div>
                   </CardContent>
@@ -267,7 +321,7 @@ export default function ChefPage() {
                                                          {item.productName}
                                                       </p>
                                                       <div className='flex items-center gap-3'>
-                                                         <p className='text-sm text-gray-600'>
+                                                         <p className='text-md text-primary text-bold'>
                                                             {item.price.toLocaleString('vi-VN')} đ × {item.quantity}
                                                          </p>
 
@@ -309,7 +363,7 @@ export default function ChefPage() {
                                        {firstItem && (
                                           <div className='flex items-center text-sm'>
                                              <Clock className='h-4 w-4 text-orange-500 mr-1' />
-                                             <span className='text-gray-600'>Thời gian đã qua:</span>
+                                             <span className='text-gray-600'>Thời gian của đơn hàng:</span>
                                              <span className='ml-1 font-medium text-orange-600'>
                                                 {getTimeRemaining(firstItem.confirmAt)}
                                              </span>
