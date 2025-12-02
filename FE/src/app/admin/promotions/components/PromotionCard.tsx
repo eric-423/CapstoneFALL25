@@ -154,7 +154,6 @@ export function PromotionCard({
         </div>
       </div>
 
-      {/* Actions */}
       <div className="flex gap-2 pt-3 border-t border-gray-100">
         <AssignPromotionDialog
           promotionCode={promo.id}
