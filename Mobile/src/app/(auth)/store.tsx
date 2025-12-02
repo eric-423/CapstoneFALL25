@@ -45,7 +45,7 @@ const StorePage = () => {
   }, [isTyping, displayText]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: APP_COLOR.BACKGROUND_ORANGE }}>
+    <View style={{ flex: 1, backgroundColor: "#FDE3CF" }}>
       <View
         style={{
           width: screenWidth,
@@ -53,6 +53,10 @@ const StorePage = () => {
           alignItems: "center",
           justifyContent: "center",
           paddingTop: 10,
+          position: "absolute",
+          top: 30,
+          left: 0,
+          zIndex: 1000,
         }}
       >
         <Text
@@ -83,6 +87,8 @@ const StorePage = () => {
           resizeMode: "cover",
           width: screenWidth,
           height: screenHeight * 0.87,
+          position: "absolute",
+          top: 60,
         }}
       />
     </View>

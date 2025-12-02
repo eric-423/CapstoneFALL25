@@ -23,6 +23,7 @@ const AIScreen = () => {
   const { appState } = useCurrentApp();
   const [userId, setUserId] = useState<number | null>(null);
   const [jwtToken, setJwtToken] = useState<string | null>(null);
+  const [guestId, setGuestId] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
 
   const webViewRef = React.useRef<any>(null);
@@ -36,17 +37,35 @@ const AIScreen = () => {
         const decoded = jwtDecode<DecodedToken>(token);
         const id = decoded.i || decoded.userId || decoded.sub || null;
         setUserId(id);
+        setGuestId(null);
       } else if (appState?.userInfo?.id) {
         setJwtToken(null);
         setUserId(appState.userInfo.id);
+        setGuestId(null);
       } else {
+        let storedGuestId = await AsyncStorage.getItem("dify_guest_id");
+        if (!storedGuestId) {
+          storedGuestId = `guest-${Date.now()}-${Math.random()
+            .toString(36)
+            .slice(2, 8)}`;
+          await AsyncStorage.setItem("dify_guest_id", storedGuestId);
+        }
         setJwtToken(null);
         setUserId(null);
+        setGuestId(storedGuestId);
       }
     } catch (error) {
       console.error("Error loading user data for Dify:", error);
+      let storedGuestId = (await AsyncStorage.getItem("dify_guest_id")) || null;
+      if (!storedGuestId) {
+        storedGuestId = `guest-${Date.now()}-${Math.random()
+          .toString(36)
+          .slice(2, 8)}`;
+        await AsyncStorage.setItem("dify_guest_id", storedGuestId);
+      }
       setJwtToken(null);
       setUserId(null);
+      setGuestId(storedGuestId);
     }
   }, [appState]);
 
@@ -102,7 +121,7 @@ const AIScreen = () => {
 
   useEffect(() => {
     if (webViewRef.current && isReady) {
-      const finalUserId = userId || "guest";
+      const finalUserId = userId ?? guestId ?? "guest";
       const finalToken = jwtToken || "";
       const inputs = {
         external_user_id: finalUserId.toString(),
@@ -143,7 +162,7 @@ const AIScreen = () => {
   }, [userId, jwtToken, isReady]);
 
   const htmlContent = useMemo(() => {
-    const finalUserId = userId || "guest";
+    const finalUserId = userId ?? guestId ?? "guest";
     const finalToken = jwtToken || "";
     const inputs: Record<string, string> = {
       external_user_id: finalUserId.toString(),
@@ -427,10 +446,10 @@ const AIScreen = () => {
       <body></body>
     </html>
   `;
-  }, [userId, jwtToken]);
+  }, [userId, jwtToken, guestId]);
 
   const injectedJavaScriptBeforeContentLoaded = useMemo(() => {
-    const finalUserId = userId || "guest";
+    const finalUserId = userId ?? guestId ?? "guest";
     const guestToken = jwtToken || "";
     const inputs = {
       external_user_id: finalUserId.toString(),
@@ -462,10 +481,10 @@ const AIScreen = () => {
       })();
       true;
     `;
-  }, [userId, jwtToken]);
+  }, [userId, jwtToken, guestId]);
 
   const injectedJavaScript = useMemo(() => {
-    const finalUserId = userId || "guest";
+    const finalUserId = userId ?? guestId ?? "guest";
     const guestToken = jwtToken || "";
     const inputs = {
       external_user_id: finalUserId.toString(),
@@ -511,7 +530,7 @@ const AIScreen = () => {
       })();
       true;
     `;
-  }, [userId, jwtToken]);
+  }, [userId, jwtToken, guestId]);
 
   if (!isReady) {
     return (
@@ -574,7 +593,9 @@ const AIScreen = () => {
           injectedJavaScriptBeforeContentLoaded
         }
         injectedJavaScript={injectedJavaScript}
-        key={`dify-${userId || "guest"}-${jwtToken ? "token" : "guest"}`}
+        key={`dify-${userId ?? guestId ?? "guest"}-${
+          jwtToken ? "token" : "guest"
+        }`}
         onError={(syntheticEvent) => {
           console.warn("WebView error: ", syntheticEvent.nativeEvent);
         }}

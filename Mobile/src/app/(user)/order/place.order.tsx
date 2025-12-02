@@ -13,6 +13,7 @@ import {
   FlatList,
   Modal,
   ActivityIndicator,
+  TextInput,
 } from "react-native";
 import { Formik } from "formik";
 import { ChangePasswordSchema } from "@/utils/validate.schema";
@@ -64,6 +65,20 @@ const PlaceOrderPage = () => {
   const [canShip, setCanShip] = useState(false);
   const [orderMode, setOrderMode] = useState<"SHIPPING" | "PICKUP">("SHIPPING");
   const [distance, setDistance] = useState<number | null>(null);
+  const [pointUsed, setPointUsed] = useState<number>(
+    appState?.userInfo?.memberPoint || 0
+  );
+  const [pointsToUse, setPointsToUse] = useState<string>("");
+  const [pointDiscountAmount, setPointDiscountAmount] = useState<number>(0);
+  useEffect(() => {
+    const currentPoints = appState?.userInfo?.memberPoint || 0;
+    setPointUsed(currentPoints);
+    if (Number(pointsToUse) > currentPoints) {
+      setPointsToUse("");
+      setPointDiscountAmount(0);
+    }
+  }, [appState?.userInfo?.memberPoint, pointsToUse]);
+
   useEffect(() => {
     const fetchBranchInfo = async () => {
       if (!branchId) {
@@ -490,6 +505,16 @@ const PlaceOrderPage = () => {
               originalShippingFee,
               calculateDiscount,
             ]);
+            useEffect(() => {
+              const points = Number(pointsToUse) || 0;
+              if (points > 0 && points <= pointUsed) {
+                setPointDiscountAmount(points * 1000);
+                setFieldValue("pointUsed", points);
+              } else {
+                setPointDiscountAmount(0);
+                setFieldValue("pointUsed", 0);
+              }
+            }, [pointsToUse, pointUsed, setFieldValue]);
             const handleCreateOrder = async () => {
               if (!appState?.userInfo?.id) {
                 console.error("Customer ID không tồn tại");
@@ -548,6 +573,7 @@ const PlaceOrderPage = () => {
                   branchId: branchId,
                   paymentMethodId: 2,
                   paymentMethod: "Thanh toán online",
+                  pointUsed: Number(pointsToUse) || 0,
                 };
                 const res = await CreateOrder(payload);
                 if (res.data?.data?.paymentUrl) {
@@ -616,7 +642,6 @@ const PlaceOrderPage = () => {
                         </Text>
                       </Pressable>
                     </View>
-
                     <View style={styles.textInputView}>
                       <Text
                         style={[
@@ -678,6 +703,116 @@ const PlaceOrderPage = () => {
                         </Text>
                       </View>
                     )}
+                    {selectedPromotion && discountAmount > 0 && (
+                      <View style={styles.textInputView}>
+                        <Text
+                          style={[
+                            styles.textInputText,
+                            { fontFamily: FONTS.regular, fontSize: 17 },
+                          ]}
+                        >
+                          Phí giảm sau khi áp mã
+                        </Text>
+                        <Text
+                          style={{
+                            fontFamily: FONTS.regular,
+                            fontSize: 17,
+                            color: APP_COLOR.ORANGE,
+                          }}
+                        >
+                          -{currencyFormatter(discountAmount)}
+                        </Text>
+                      </View>
+                    )}
+                    {pointUsed > 0 && (
+                      <View style={styles.textInputView}>
+                        <View style={{ flex: 1 }}>
+                          <Text
+                            style={[
+                              styles.textInputText,
+                              { fontFamily: FONTS.regular, fontSize: 17 },
+                            ]}
+                          >
+                            Sử dụng điểm thưởng
+                          </Text>
+                          <Text
+                            style={{
+                              fontFamily: FONTS.regular,
+                              fontSize: 12,
+                              color: APP_COLOR.BROWN,
+                              marginTop: 4,
+                            }}
+                          >
+                            Bạn có {pointUsed} điểm (1 điểm = 1.000đ)
+                          </Text>
+                        </View>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: 8,
+                          }}
+                        >
+                          <TextInput
+                            style={{
+                              borderBottomWidth: 1,
+                              borderBottomColor: APP_COLOR.BROWN,
+                              paddingBottom: 3,
+                              width: 50,
+                              textAlign: "center",
+                              fontFamily: FONTS.regular,
+                              fontSize: 16,
+                              color: APP_COLOR.BROWN,
+                            }}
+                            value={pointsToUse}
+                            onChangeText={(text) => {
+                              const numericValue = text.replace(/[^0-9]/g, "");
+                              const numValue = Number(numericValue);
+                              if (numericValue === "" || numValue === 0) {
+                                setPointsToUse("");
+                              } else if (numValue > pointUsed) {
+                                setPointsToUse(pointUsed.toString());
+                              } else {
+                                setPointsToUse(numericValue);
+                              }
+                            }}
+                            keyboardType="numeric"
+                            placeholder="0"
+                            placeholderTextColor={APP_COLOR.BROWN}
+                          />
+                          <Text
+                            style={{
+                              fontFamily: FONTS.regular,
+                              fontSize: 14,
+                              color: APP_COLOR.BROWN,
+                            }}
+                          >
+                            điểm
+                          </Text>
+                        </View>
+                      </View>
+                    )}
+                    {pointDiscountAmount > 0 && (
+                      <View style={styles.textInputView}>
+                        <Text
+                          style={[
+                            styles.textInputText,
+                            { fontFamily: FONTS.regular, fontSize: 17 },
+                          ]}
+                        >
+                          Giảm từ điểm thưởng
+                        </Text>
+                        <Text
+                          style={{
+                            fontFamily: FONTS.regular,
+                            fontSize: 17,
+                            color: APP_COLOR.ORANGE,
+                          }}
+                        >
+                          -{currencyFormatter(pointDiscountAmount)}
+                        </Text>
+                      </View>
+                    )}{" "}
                     {canShip && (
                       <Text
                         style={{
@@ -708,9 +843,13 @@ const PlaceOrderPage = () => {
                         }}
                       >
                         {currencyFormatter(
-                          calculateTotalPrice(cart, restaurant?._id) +
-                            shippingFee -
-                            discountAmount || 0
+                          Math.max(
+                            0,
+                            calculateTotalPrice(cart, restaurant?._id) +
+                              shippingFee -
+                              discountAmount -
+                              pointDiscountAmount
+                          )
                         )}
                       </Text>
                     </View>
@@ -719,7 +858,7 @@ const PlaceOrderPage = () => {
                 {selectedPromotion && (
                   <View
                     style={{
-                      marginTop: 10,
+                      marginHorizontal: 5,
                       paddingHorizontal: 10,
                       paddingVertical: 10,
                       backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
@@ -741,7 +880,7 @@ const PlaceOrderPage = () => {
                             fontFamily: FONTS.bold,
                             fontSize: 16,
                             color: APP_COLOR.BROWN,
-                            marginBottom: 3,
+                            marginBottom: 1,
                           }}
                         >
                           {selectedPromotion.name}

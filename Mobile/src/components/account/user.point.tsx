@@ -1,7 +1,7 @@
 import { APP_COLOR } from "@/utils/constant";
 import { Pressable, Text, View } from "react-native";
 import CusInfoText from "./user.info.text";
-import AntDesign from "@expo/vector-icons/AntDesign";
+import EvilIcons from "@expo/vector-icons/EvilIcons";
 import { FONTS } from "@/theme/typography";
 interface ICustomerPointProps {
   fullName: string;
@@ -21,7 +21,7 @@ const CustomerPoint = (props: ICustomerPointProps) => {
         justifyContent: "space-around",
       }}
     >
-      <View style={{ width: "70%" }}>
+      <View style={{ width: "70%", justifyContent: "center" }}>
         <CusInfoText
           title="Họ và tên"
           info={props.fullName ? props.fullName : "Chưa có thông tin"}
@@ -40,7 +40,7 @@ const CustomerPoint = (props: ICustomerPointProps) => {
           alignItems: "center",
         }}
       >
-        <AntDesign name="scan" size={45} color={APP_COLOR.WHITE} />
+        <EvilIcons name="user" size={40} color={APP_COLOR.WHITE} />
         <View
           style={{
             borderWidth: 0.5,
