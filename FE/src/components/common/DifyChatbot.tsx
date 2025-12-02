@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useAuth } from '@/utils/hooks';
+import JwtDecode from '@/utils/jwtDecode';
+import useAuth from '@/utils/hooks/useAuth.nextjs';
 
 declare global {
     interface Window {
@@ -16,7 +17,6 @@ declare global {
 }
 
 const DIFY_TOKEN = 'zuJKSoxQFk62iEMg';
-
 const SCRIPT_URL = 'https://udify.app/embed.min.js';
 
 const removeExistingChatbot = () => {
@@ -29,73 +29,81 @@ const removeExistingChatbot = () => {
     if (existingIframe) existingIframe.remove();
 };
 
-export default function DifyChatbot() {
-    const { user } = useAuth();
+const getToken = async () => {
+    try {
+        const res = await fetch('/api/auth/me/getToken', {
+            method: 'GET',
+            credentials: 'include',
+        });
+        const data = await res.json().catch(() => null);
+        return data?.token ?? '';
+    } catch (error) {
+        console.error('Failed to fetch JWT token for Dify chatbot:', error);
+        return null;
+    }
+};
 
-    console.log(user);
+const initChatbot = async () => {
+    removeExistingChatbot();
+
+    const inputs: Record<string, string> = {};
+    const sva: Record<string, string> = {};
+    const jwtToken = await getToken();
+    const userId = jwtToken ? JwtDecode(jwtToken).i?.toString() : null;
+
+    if (jwtToken && userId) {
+        inputs.jwt_token = jwtToken;
+        inputs.external_user_id = userId;
+
+        sva.user_id = userId;
+
+        window.difyChatbotConfig = {
+            token: DIFY_TOKEN,
+            dynamicScript: true,
+            inputs,
+            systemVariables: { ...sva },
+            userVariables: {},
+        };
+    } else {
+        removeExistingChatbot();
+        const UUID = crypto.randomUUID();
+        window.difyChatbotConfig = {
+            token: DIFY_TOKEN,
+            dynamicScript: true,
+            inputs: {
+                jwt_token: ' ',
+                external_user_id: 'guest',
+                user_id: UUID.toString(),
+            },
+            systemVariables: {
+                user_id: UUID.toString(),
+            },
+            userVariables: {},
+        };
+    }
+
+    if (!document.getElementById(DIFY_TOKEN)) {
+        const script = document.createElement('script');
+        script.src = SCRIPT_URL;
+        script.id = DIFY_TOKEN;
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+    }
+};
+
+export default function DifyChatbot() {
+    const { isAuthenticated, isLoading, user } = useAuth();
 
     useEffect(() => {
         if (typeof window === 'undefined') return;
+        if (isLoading) return;
 
-        const isCustomer =
-            !user || user.role?.toUpperCase() === 'CUSTOMER';
-
-        if (!isCustomer) {
-            removeExistingChatbot();
-            return;
-        }
-
-        const initChatbot = () => {
-            removeExistingChatbot();
-
-            const inputs: Record<string, string> = {};
-            const sva: Record<string, string> = {};
-
-            if (user?.id) {
-                inputs.external_user_id = user.id.toString();
-                sva.user_id = user.id.toString();
-
-                window.difyChatbotConfig = {
-                    token: DIFY_TOKEN,
-                    dynamicScript: true,
-                    inputs,
-                    systemVariables: { ...sva },
-                    userVariables: {},
-                };
-
-            } else {
-                const UUID = crypto.randomUUID();
-
-                window.difyChatbotConfig = {
-                    token: DIFY_TOKEN,
-                    dynamicScript: true,
-                    inputs: {
-                        jwt_token: ' ',
-                        external_user_id: 'guest',
-                        user_id: UUID.toString(),
-                    },
-                    systemVariables: {
-                        user_id: UUID.toString(),
-                    },
-                    userVariables: {},
-                };
-            }
-
-
-            if (!document.getElementById(DIFY_TOKEN)) {
-                const script = document.createElement('script');
-                script.src = SCRIPT_URL;
-                script.id = DIFY_TOKEN;
-                script.async = true;
-                script.defer = true;
-                document.head.appendChild(script);
-            }
-        };
-
+        removeExistingChatbot();
         initChatbot();
 
         return removeExistingChatbot;
-    }, [user?.id, user?.role]);
+    }, [isAuthenticated, user?.id, isLoading]);
 
     return null;
 }
