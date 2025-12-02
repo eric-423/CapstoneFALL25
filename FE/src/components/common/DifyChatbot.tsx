@@ -95,7 +95,7 @@ export default function DifyChatbot() {
         initChatbot();
 
         return removeExistingChatbot;
-    }, [user?.id, user?.role]);
+    }, [user]);
 
     return null;
 }
