@@ -135,9 +135,6 @@ export async function createPromotion(data: CreatePromotionData) {
   return result;
 }
 
-/**
- * Assign promotion cho users
- */
 export async function assignPromotion(data: AssignPromotionData) {
   const response = await fetch("/api/promotions/assign", {
     method: "POST",
@@ -162,9 +159,6 @@ export async function assignPromotion(data: AssignPromotionData) {
   return result;
 }
 
-/**
- * Cập nhật promotion
- */
 export async function updatePromotion(
   promotionCode: string,
   data: UpdatePromotionData
@@ -192,15 +186,14 @@ export async function updatePromotion(
   return result;
 }
 
-/**
- * Thay đổi trạng thái promotion
- */
 export async function togglePromotionStatus(
   promotionCode: string,
   status: boolean
 ) {
   const response = await fetch(
-    `/api/promotions/${promotionCode}/status?status=${status}`,
+    `/api/promotions/change-status?promotionCode=${encodeURIComponent(
+      promotionCode
+    )}&status=${status}`,
     {
       method: "PUT",
       credentials: "include",
@@ -219,4 +212,36 @@ export async function togglePromotionStatus(
 
   const result = await response.json();
   return result;
+}
+
+export async function getAvailablePromotions() {
+  const response = await fetch("/api/promotions/available", {
+    method: "GET",
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw {
+      response: {
+        data: errorBody,
+        status: response.status,
+      },
+    };
+  }
+
+  const result = await response.json();
+
+  // Backend trả về { status, desc, data: [...] }
+  // Kiểm tra và extract data array
+  if (result && typeof result === "object") {
+    if (Array.isArray(result)) {
+      return result as Promotion[];
+    }
+    if (result.data && Array.isArray(result.data)) {
+      return result.data as Promotion[];
+    }
+  }
+
+  return [] as Promotion[];
 }
