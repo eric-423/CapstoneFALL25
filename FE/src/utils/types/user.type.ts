@@ -1,4 +1,4 @@
-import { SuccessResponse } from './response.type';
+import { SuccessResponse } from "./response.type";
 
 export interface User {
   id: string;
@@ -28,7 +28,7 @@ export type VerifyTokenForgotPasswordResponse = SuccessResponse<{
 export type UserAuthData = {
   id: number;
   phoneNumber: string;
-  name?: string;
+  fullName?: string;
   role: string;
   memberAssociation: memberAssociation;
 };
@@ -38,4 +38,4 @@ export type memberAssociation = {
   point: number;
   name: string;
   description: string;
-}
+};
