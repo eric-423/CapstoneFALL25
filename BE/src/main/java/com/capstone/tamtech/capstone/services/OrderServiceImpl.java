@@ -547,6 +547,10 @@ public class OrderServiceImpl implements OrderService {
         order.setSubTotal(newSubTotal);
         order.setStatus(orderStatusRepository.findByName("COOKING")
                 .orElseThrow(() -> new RuntimeException("OrderStatus CONFIRMED not found")));
+        if(order.getWorker()!=null){
+            assignOrderToCheff(order.getId());
+        }
+        assignOrderToCheff(order.getId());
         inventoryService.consumeMaterialsForOrderItems(order.getOrderItems(), branchId);
         orderRepository.save(order);
         return true;
