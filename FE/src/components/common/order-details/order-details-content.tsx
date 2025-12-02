@@ -483,7 +483,7 @@ export function OrderDetailsContent({
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 mt-6">
-                {normalizedStatus === "COMPLETED" && (
+                {order.billPdfUrl && (
                     <Button
                         variant="default"
                         className="w-full sm:w-auto"

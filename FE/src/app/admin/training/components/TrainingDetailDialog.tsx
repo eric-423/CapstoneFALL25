@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { ArrowRight, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -75,6 +75,14 @@ export function TrainingDetailDialog({
     const { lessonsData, loading: lessonsLoading, error: lessonsError } =
         useLessons(trainingId, lessonsPagination, lessonsRefreshKey);
 
+    const filteredLessons = useMemo(() => {
+        return lessonsData.items.filter((lesson) =>
+            lessonsPagination.includeDeleted
+                ? lesson.isActive === false
+                : lesson.isActive !== false
+        );
+    }, [lessonsData.items, lessonsPagination.includeDeleted]);
+
     const {
         lesson: lessonDetail,
         loading: lessonDetailLoading,
@@ -120,7 +128,7 @@ export function TrainingDetailDialog({
             setLessonPanelView("list");
             setSelectedLessonId(null);
         }
-    }, [open, trainingId]);
+    }, [open, trainingId, lessonsRefreshKey]);
 
     const handleViewLessonDetail = (lessonId: number) => {
         setSelectedLessonId(lessonId);
@@ -271,7 +279,7 @@ export function TrainingDetailDialog({
                                             Bài học của khóa
                                         </p>
                                         <p className="text-xs text-gray-500">
-                                            Tổng cộng {lessonsData.totalElements} bài học
+                                            Hiển thị {filteredLessons.length} / {lessonsData.totalElements} bài học
                                         </p>
                                     </div>
                                     <div className="flex flex-wrap items-center gap-3">
@@ -294,8 +302,8 @@ export function TrainingDetailDialog({
                                                 }`}
                                         >
                                             {lessonsPagination.includeDeleted
-                                                ? "Hiện bài đang ẩn"
-                                                : "Hiển thị bài đang hoạt động"}
+                                                ? "Hiển thị bài học đang hoạt động"
+                                                : "Hiển thị bài học đang ẩn"}
                                         </button>
                                         <div className="flex items-center gap-2 text-sm text-gray-600">
                                             <button
@@ -323,7 +331,7 @@ export function TrainingDetailDialog({
 
                                 {lessonPanelView === "list" ? (
                                     <LessonListPanel
-                                        lessons={lessonsData.items}
+                                        lessons={filteredLessons}
                                         loading={lessonsLoading}
                                         error={lessonsError}
                                         onViewDetail={handleViewLessonDetail}

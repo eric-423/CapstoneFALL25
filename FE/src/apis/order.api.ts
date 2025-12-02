@@ -563,8 +563,9 @@ export const staffAssignShipperToOrder = async (orderId: number): Promise<Assign
 
 
 export const getChefOrders = async (chefId: number, status?: string): Promise<ChefOrdersApiResponse> => {
+  const params = status ? `?status=${status}` : '';
+
   try {
-    const params = status ? `?status=${status}` : '';
     const response = await fetch(`/api/orders/cheff/view/${chefId}${params}`, {
       method: 'GET',
       credentials: 'include',
@@ -572,18 +573,30 @@ export const getChefOrders = async (chefId: number, status?: string): Promise<Ch
 
     if (!response.ok) {
       const errorBody = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
-      const error = new Error(`Failed to fetch chef orders: ${response.status} ${response.statusText}`);
-      (error as Error & { response?: { data: unknown; status: number } }).response = {
-        data: errorBody,
-        status: response.status,
+      return {
+        status: errorBody?.status ?? response.status,
+        desc:
+          errorBody?.desc ||
+          errorBody?.error ||
+          errorBody?.message ||
+          errorBody?.details?.error ||
+          'Không thể tải danh sách đơn bếp',
+        data: Array.isArray(errorBody?.data) ? errorBody.data : [],
       };
-      throw error;
     }
 
     const data = await response.json();
     return data;
   } catch (error) {
-    throw error;
+    const apiError = error as Error & {
+      response?: { status?: number; data?: { desc?: string; error?: string; message?: string; data?: ChefOrderResponse[] } };
+    };
+
+    return {
+      status: apiError.response?.status ?? 500,
+      desc: apiError.response?.data?.desc || apiError.response?.data?.error || apiError.message || 'Không thể tải danh sách đơn bếp',
+      data: Array.isArray(apiError.response?.data?.data) ? apiError.response?.data?.data : [],
+    };
   }
 };
 

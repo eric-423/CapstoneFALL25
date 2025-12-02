@@ -1,20 +1,24 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Clock, Loader2, AlertCircle } from 'lucide-react';
 import { getChefOrders, ChefOrderResponse } from '@/apis/order.api';
 import { useAuthContext } from '@/utils/contexts/AuthContext';
 import CompleteLayout from '../components/CompleteLayout';
+import Image from 'next/image';
 
 export default function CompletedPage() {
     const { user } = useAuthContext();
     const [orders, setOrders] = useState<ChefOrderResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const isInitialFetchRef = useRef(true);
 
     useEffect(() => {
+        isInitialFetchRef.current = true;
+
         if (!user?.id) {
             setError('Không thể lấy thông tin người dùng');
             setLoading(false);
@@ -22,8 +26,12 @@ export default function CompletedPage() {
         }
 
         const fetchCompletedOrders = async () => {
-            try {
+            const shouldShowInitialLoader = isInitialFetchRef.current;
+            if (shouldShowInitialLoader) {
                 setLoading(true);
+            }
+
+            try {
                 setError(null);
 
                 const chefId = user.id;
@@ -55,7 +63,10 @@ export default function CompletedPage() {
                     setError('Có lỗi xảy ra khi tải danh sách đơn hàng đã hoàn thành. Vui lòng thử lại sau.');
                 }
             } finally {
-                setLoading(false);
+                if (shouldShowInitialLoader) {
+                    setLoading(false);
+                    isInitialFetchRef.current = false;
+                }
             }
         };
 
@@ -75,6 +86,37 @@ export default function CompletedPage() {
         }
 
         return diffMinutes;
+    };
+
+    const formatProcessingDuration = (minutes: number) => {
+        if (minutes <= 0 || Number.isNaN(minutes)) {
+            return '0 phút';
+        }
+
+        const minutesPerDay = 60 * 24;
+        const days = Math.floor(minutes / minutesPerDay);
+        const hours = Math.floor((minutes % minutesPerDay) / 60);
+        const remainingMinutes = minutes % 60;
+
+        if (days > 0) {
+            const parts = [`${days} ngày`];
+            if (hours > 0) {
+                parts.push(`${hours} giờ`);
+            } else if (remainingMinutes > 0) {
+                parts.push(`${remainingMinutes} phút`);
+            }
+            return parts.join(' ');
+        }
+
+        if (hours > 0) {
+            const parts = [`${hours} giờ`];
+            if (remainingMinutes > 0) {
+                parts.push(`${remainingMinutes} phút`);
+            }
+            return parts.join(' ');
+        }
+
+        return `${remainingMinutes} phút`;
     };
 
     const formatDate = (dateString: string) => {
@@ -132,7 +174,9 @@ export default function CompletedPage() {
                                 <Clock className='h-8 w-8 text-blue-500' />
                                 <div className='ml-4'>
                                     <p className='text-sm font-medium text-gray-600'>Thời gian trung bình</p>
-                                    <p className='text-2xl font-bold text-gray-900'>{avgProcessingTime}p</p>
+                                    <p className='text-2xl font-bold text-gray-900'>
+                                        {formatProcessingDuration(avgProcessingTime)}
+                                    </p>
                                 </div>
                             </div>
                         </CardContent>
@@ -185,7 +229,7 @@ export default function CompletedPage() {
                                 const totalItems = order.orderItems.reduce((sum, item) => sum + item.quantity, 0);
                                 const cookedItem = order.orderItems.find(item => item.cookedAt);
                                 const cookedAt = cookedItem?.cookedAt;
-                                
+
                                 return (
                                     <Card key={order.orderId} className='bg-green-50 border-green-200 transition-all duration-200 hover:shadow-md'>
                                         <CardContent className='p-6'>
@@ -218,10 +262,13 @@ export default function CompletedPage() {
                                                             {order.orderItems.map((item, index) => (
                                                                 <div key={index} className='flex items-start gap-3 p-3 bg-white rounded-lg'>
                                                                     {item.productImg && (
-                                                                        <img 
-                                                                            src={item.productImg} 
-                                                                            alt={item.productName}
-                                                                            className='w-16 h-16 object-cover rounded'
+                                                                        <Image
+                                                                            src={item.productImg}
+                                                                            alt={item.productName || 'Hình món ăn'}
+                                                                            width={64}
+                                                                            height={64}
+                                                                            loading='lazy'
+                                                                            className='object-cover rounded w-16 h-16'
                                                                         />
                                                                     )}
                                                                     <div className='flex-1'>
@@ -266,7 +313,7 @@ export default function CompletedPage() {
                                                                     <Clock className='h-4 w-4 text-blue-500 mr-1' />
                                                                     <span className='text-gray-600'>Thời gian chế biến:</span>
                                                                     <span className='ml-1 font-medium text-blue-600'>
-                                                                        {getProcessingTime(firstItem.confirmAt, cookedAt)} phút
+                                                                        {formatProcessingDuration(getProcessingTime(firstItem.confirmAt, cookedAt))}
                                                                     </span>
                                                                 </div>
                                                             </>
