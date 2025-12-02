@@ -16,13 +16,13 @@ declare global {
 }
 
 const DIFY_TOKEN = 'zuJKSoxQFk62iEMg';
-const SCRIPT_ID = DIFY_TOKEN;
+
 const SCRIPT_URL = 'https://udify.app/embed.min.js';
 
 const removeExistingChatbot = () => {
     if (typeof window === 'undefined') return;
 
-    const existingScript = document.getElementById(SCRIPT_ID);
+    const existingScript = document.getElementById(DIFY_TOKEN);
     if (existingScript) existingScript.remove();
 
     const existingIframe = document.querySelector('iframe[src*="udify"]');
@@ -37,10 +37,6 @@ export default function DifyChatbot() {
     useEffect(() => {
         if (typeof window === 'undefined') return;
 
-        // Cho phép chatbot hoạt động cho:
-        // - Khách chưa đăng nhập (user = null)
-        // - Người dùng có role CUSTOMER
-        // Các role nội bộ khác (ADMIN, MANAGER, STAFF, ...) sẽ không thấy chatbot
         const isCustomer =
             !user || user.role?.toUpperCase() === 'CUSTOMER';
 
@@ -54,9 +50,11 @@ export default function DifyChatbot() {
 
             const inputs: Record<string, string> = {};
             const sva: Record<string, string> = {};
+
             if (user?.id) {
                 inputs.external_user_id = user.id.toString();
                 sva.user_id = user.id.toString();
+
                 window.difyChatbotConfig = {
                     token: DIFY_TOKEN,
                     dynamicScript: true,
@@ -64,6 +62,7 @@ export default function DifyChatbot() {
                     systemVariables: { ...sva },
                     userVariables: {},
                 };
+
             } else {
                 const UUID = crypto.randomUUID();
 
@@ -83,10 +82,10 @@ export default function DifyChatbot() {
             }
 
 
-            if (!document.getElementById(SCRIPT_ID)) {
+            if (!document.getElementById(DIFY_TOKEN)) {
                 const script = document.createElement('script');
                 script.src = SCRIPT_URL;
-                script.id = SCRIPT_ID;
+                script.id = DIFY_TOKEN;
                 script.async = true;
                 script.defer = true;
                 document.head.appendChild(script);
