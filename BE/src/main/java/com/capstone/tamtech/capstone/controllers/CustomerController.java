@@ -32,6 +32,16 @@ public class CustomerController {
         return ResponseEntity.ok(created);
     }
 
+    @GetMapping("/{customerId}/point")
+    public ResponseEntity<?> getCustomerPoint(@PathVariable int customerId) {
+        int point = informationService.getTotalPoints(customerId);
+
+        ResponseData responseData = new ResponseData();
+        responseData.setData(point);
+
+        return ResponseEntity.ok(responseData);
+    }
+
 
     @GetMapping("/{customerId}/base-info")
     public ResponseEntity<?> getBaseInfo(@PathVariable int customerId) {

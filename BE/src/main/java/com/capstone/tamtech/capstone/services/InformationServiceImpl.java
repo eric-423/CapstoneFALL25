@@ -160,15 +160,23 @@ public class InformationServiceImpl implements InformationService {
         Users user = usersRepository.findById(customerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy khách hàng"));
 
-            CustomerBaseInfoDTO baseInfo = new CustomerBaseInfoDTO();
-            baseInfo.setId(customerId);
-            baseInfo.setName(user.getFullName());
-            baseInfo.setPhoneNumber(user.getPhoneNumber());
-            baseInfo.setPoint(user.getMemberPoint());
-            baseInfo.setMemberAssociation(memberAssociationService.getMemberAssociationsByCustomer(customerId));
+        CustomerBaseInfoDTO baseInfo = new CustomerBaseInfoDTO();
+        baseInfo.setId(customerId);
+        baseInfo.setName(user.getFullName());
+        baseInfo.setPhoneNumber(user.getPhoneNumber());
+        baseInfo.setPoint(user.getMemberPoint());
+        baseInfo.setMemberAssociation(memberAssociationService.getMemberAssociationsByCustomer(customerId));
 
-            return baseInfo;
-        }
+        return baseInfo;
+    }
+
+    @Override
+    public Integer getTotalPoints(int customerId) {
+        Users user = usersRepository.findById(customerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy khách hàng"));
+
+        return user.getMemberPoint();
+    }
 
     private InformationDTO toDTO(Information information) {
         InformationDTO dto = new InformationDTO();
