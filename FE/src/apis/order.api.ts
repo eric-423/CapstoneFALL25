@@ -234,6 +234,8 @@ export interface BranchOrderResponse {
   itemCount: number;
   isPickUp: boolean;
   isTable: boolean;
+  table: boolean;
+  pickUp: boolean;
 }
 
 export interface BranchOrdersApiResponse {
@@ -488,34 +490,6 @@ export interface AssignChefResponse {
 
 export const assignChefToOrder = async (orderId: number): Promise<AssignChefResponse> => {
   try {
-    const url = `/api/orders/manager/assign/cheff/${orderId}`;
-
-    const response = await fetch(url, {
-      method: 'PUT',
-      credentials: 'include',
-    });
-
-    if (!response.ok) {
-      const errorBody = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
-      const error = new Error(`Failed to assign chef: ${response.status} ${response.statusText}`);
-      (error as Error & { response?: { data: unknown; status: number } }).response = {
-        data: errorBody,
-        status: response.status,
-      };
-      throw error;
-    }
-
-    const data = await response.json();
-    const success = data === true || data === 'true' || data.success === true;
-    return { success };
-  } catch (error) {
-    throw error;
-  }
-};
-
-
-export const staffAssignChefToOrder = async (orderId: number): Promise<AssignChefResponse> => {
-  try {
     const url = `/api/orders/staff/assign/cheff/${orderId}`;
 
     const response = await fetch(url, {
@@ -540,6 +514,7 @@ export const staffAssignChefToOrder = async (orderId: number): Promise<AssignChe
     throw error;
   }
 };
+
 
 
 export const assignShipperToOrder = async (orderId: number): Promise<AssignShipperResponse> => {
