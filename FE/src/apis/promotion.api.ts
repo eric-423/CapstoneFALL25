@@ -231,9 +231,6 @@ export async function getAvailablePromotions() {
   }
 
   const result = await response.json();
-
-  // Backend trả về { status, desc, data: [...] }
-  // Kiểm tra và extract data array
   if (result && typeof result === "object") {
     if (Array.isArray(result)) {
       return result as Promotion[];
