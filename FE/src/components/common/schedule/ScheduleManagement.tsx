@@ -69,7 +69,7 @@ export function ScheduleManagement({
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [flagShowCurrentWeekButton, setFlagShowCurrentWeekButton] = useState(false);
     const [flagRightCurrentWeekButton, setFlagRightCurrentWeekButton] = useState(false);
-    
+
     useBodyScrollLock(showFormDialog || deleteDialogOpen);
 
     // Fetch schedules
@@ -77,10 +77,13 @@ export function ScheduleManagement({
         try {
             setLoading(true);
             const response = await getSchedules();
-            setSchedules(response.data as Schedule[]);
+
+            const data = (response as unknown as { data: Schedule[] }).data;
+            setSchedules(data);
         } catch (error) {
             console.error('Failed to fetch schedules:', error);
             toast.error('Không thể tải danh sách lịch trình');
+            setSchedules([]);
         } finally {
             setLoading(false);
         }
@@ -263,9 +266,10 @@ export function ScheduleManagement({
 
     const weekRange = getWeekRange();
 
-    // Calculate stats
-    const totalSchedules = schedules.length;
-    const thisWeekSchedules = schedules.filter((schedule) => {
+    // Calculate stats (bảo vệ khi schedules có thể bị undefined do response lỗi)
+    const safeSchedules = Array.isArray(schedules) ? schedules : [];
+    const totalSchedules = safeSchedules.length;
+    const thisWeekSchedules = safeSchedules.filter((schedule) => {
         if (!schedule.date) return false;
         const scheduleDate = new Date(schedule.date);
         const monday = new Date(currentWeek);
@@ -469,4 +473,5 @@ export function ScheduleManagement({
         </AdminPageLayout>
     );
 }
+
 
