@@ -161,10 +161,10 @@ public class OrderServiceImpl implements OrderService {
         order.setDiscountValue(discountValue);
 
         double percentDiscountAmount = 0.0;
-        if (discountPercent != null && discountPercent > 0) {
+        if (discountPercent > 0) {
             percentDiscountAmount = subTotal * ((double) discountPercent / 100.0);
         }
-        double amount = subTotal - discountValue - percentDiscountAmount + order.getShippingFee();
+        double amount = subTotal - discountValue - percentDiscountAmount + order.getShippingFee() - orderRequest.getPointUsed()*1000;
         if (amount < 0) {
             amount = 0;
         }
@@ -309,7 +309,7 @@ public class OrderServiceImpl implements OrderService {
         if (discountPercent != null && discountPercent > 0) {
             percentDiscountAmount = subTotal * ((double) discountPercent / 100.0);
         }
-        double amount = subTotal - discountValue - percentDiscountAmount;
+        double amount = subTotal - discountValue - percentDiscountAmount - orderRequest.getPointUsed()*1000;
         if (amount < 0) {
             amount = 0;
         }
@@ -1018,7 +1018,7 @@ public class OrderServiceImpl implements OrderService {
         order.setDiscountValue(discountValue);
 
         double percentDiscountAmount = 0.0;
-        if (discountPercent != null && discountPercent > 0) {
+        if (discountPercent > 0) {
             percentDiscountAmount = subTotal * ((double) discountPercent / 100.0);
         }
         double amount = subTotal - discountValue - percentDiscountAmount;

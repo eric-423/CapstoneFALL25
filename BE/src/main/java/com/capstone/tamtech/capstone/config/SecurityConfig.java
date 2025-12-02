@@ -279,6 +279,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST,"/api/schedules/**").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(HttpMethod.PUT,"/api/schedules/**").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers("/api/schedules/**").hasAnyRole("ADMIN", "MANAGER", "STAFF", "CHEFF", "WAITER")
+
+                        .requestMatchers("/api/dashboard/**").hasAnyRole("ADMIN", "MANAGER")
                         .anyRequest().authenticated());
 
         return http.build();
