@@ -1,4 +1,5 @@
 import { APP_COLOR, APP_FONT } from "@/constants/Colors";
+import { useCurrentApp } from "@/context/app.context";
 import useCustomFonts from "@/hooks/useFonts";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { Tabs } from "expo-router";
@@ -6,6 +7,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 export default function TabLayout() {
   const { onLayoutRootView } = useCustomFonts();
+  const { appState } = useCurrentApp();
   return (
     <GestureHandlerRootView style={{ flex: 1 }} onLayout={onLayoutRootView}>
       <SafeAreaView style={{ flex: 1 }}>
@@ -30,19 +32,20 @@ export default function TabLayout() {
           <Tabs.Screen
             name="index"
             options={{
-              title: "Nhận đơn",
+              title: "Chấm công",
               tabBarIcon: ({ color, size }) => (
-                <AntDesign name="filetext1" size={size - 1} color={color} />
+                <AntDesign name="clockcircleo" size={size - 1} color={color} />
               ),
             }}
           />
           <Tabs.Screen
-            name="manage"
+            name="shipping"
             options={{
-              title: "Quản lý",
+              title: "Vận chuyển",
               tabBarIcon: ({ color, size }) => (
-                <AntDesign name="setting" size={size - 1} color={color} />
+                <AntDesign name="filetext1" size={size - 1} color={color} />
               ),
+              href: appState?.userInfo.role === "SHIPPER" ? undefined : null,
             }}
           />
         </Tabs>

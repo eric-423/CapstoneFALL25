@@ -1,14 +1,34 @@
 import { APP_COLOR, APP_FONT } from "@/constants/Colors";
+import { useCurrentApp } from "@/context/app.context";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { router } from "expo-router";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 interface IStaff {
   staffName?: string;
   staffCounter?: string;
 }
 const StaffHeader = (props: IStaff) => {
+  const { setAppState } = useCurrentApp();
+
+  const handleLogout = () => {
+    Alert.alert("Đăng xuất", "Bạn có chắc chắn muốn đăng xuất?", [
+      {
+        text: "Hủy",
+        style: "cancel",
+      },
+      {
+        text: "Đăng xuất",
+        style: "destructive",
+        onPress: () => {
+          setAppState(null);
+          router.navigate("/(auth)/welcome");
+        },
+      },
+    ]);
+  };
+
   return (
     <View
       style={{
@@ -42,8 +62,8 @@ const StaffHeader = (props: IStaff) => {
           </Text>
         </View>
       </View>
-      <Pressable onPress={() => router.navigate("/(tabs)/notification")}>
-        <Ionicons name="notifications" size={30} color={APP_COLOR.BROWN} />
+      <Pressable onPress={handleLogout}>
+        <Ionicons name="log-out-outline" size={30} color={APP_COLOR.BROWN} />
       </Pressable>
     </View>
   );
