@@ -7,7 +7,7 @@ const API_URL = process.env.NEXT_PUBLIC_BASE_URL;
 export async function GET(request: NextRequest) {
     try {
         const cookieStore = await cookies();
-        const token =  cookieStore.get('token')?.value;
+        const token = cookieStore.get('token')?.value;
 
         if (!token) {
             return NextResponse.json(
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
         }
 
         const searchParams = request.nextUrl.searchParams;
-        
+
         if (isManager && branchIdFromCookie && !searchParams.has('branchId')) {
             searchParams.set('branchId', branchIdFromCookie);
         }

@@ -32,8 +32,19 @@ const removeExistingChatbot = () => {
 export default function DifyChatbot() {
     const { user } = useAuth();
 
+    console.log(user);
+
     useEffect(() => {
-        if (typeof window === 'undefined' || user?.role?.toUpperCase() !== 'CUSTOMER') {
+        if (typeof window === 'undefined') return;
+
+        // Cho phép chatbot hoạt động cho:
+        // - Khách chưa đăng nhập (user = null)
+        // - Người dùng có role CUSTOMER
+        // Các role nội bộ khác (ADMIN, MANAGER, STAFF, ...) sẽ không thấy chatbot
+        const isCustomer =
+            !user || user.role?.toUpperCase() === 'CUSTOMER';
+
+        if (!isCustomer) {
             removeExistingChatbot();
             return;
         }
@@ -42,19 +53,36 @@ export default function DifyChatbot() {
             removeExistingChatbot();
 
             const inputs: Record<string, string> = {};
+            const sva: Record<string, string> = {};
             if (user?.id) {
                 inputs.external_user_id = user.id.toString();
+                sva.user_id = user.id.toString();
+                window.difyChatbotConfig = {
+                    token: DIFY_TOKEN,
+                    dynamicScript: true,
+                    inputs,
+                    systemVariables: { ...sva },
+                    userVariables: {},
+                };
+            } else {
+                const UUID = crypto.randomUUID();
+
+                window.difyChatbotConfig = {
+                    token: DIFY_TOKEN,
+                    dynamicScript: true,
+                    inputs: {
+                        jwt_token: ' ',
+                        external_user_id: 'guest',
+                        user_id: UUID.toString(),
+                    },
+                    systemVariables: {
+                        user_id: UUID.toString(),
+                    },
+                    userVariables: {},
+                };
             }
 
-            window.difyChatbotConfig = {
-                token: DIFY_TOKEN,
-                dynamicScript: true,
-                inputs,
-                systemVariables: {
-                    user_id: user?.id?.toString() ?? '',
-                },
-                userVariables: {},
-            };
+
             if (!document.getElementById(SCRIPT_ID)) {
                 const script = document.createElement('script');
                 script.src = SCRIPT_URL;
