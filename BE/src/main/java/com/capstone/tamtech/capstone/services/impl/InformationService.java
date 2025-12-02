@@ -20,4 +20,6 @@ public interface InformationService {
     List<InformationDTO> getAllInformations(int customerId);
 
     CustomerBaseInfoDTO getBaseInfo(int customerId);
+
+    Integer getTotalPoints(int customerId);
 }
