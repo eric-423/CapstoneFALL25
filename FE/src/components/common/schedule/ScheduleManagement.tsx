@@ -31,17 +31,10 @@ import {
 import { getAllUsers, type UserSearchRequest } from '@/apis/user.api';
 import { toast } from 'react-toastify';
 import { User } from '@/apis/admin-user.api';
-
-interface AdminPageLayoutProps {
-    children: React.ReactNode;
-}
-
-interface AdminPageHeaderProps {
-    title: string;
-    description?: string;
-    icon?: React.ElementType;
-    actions?: React.ReactNode;
-}
+import type {
+    AdminPageLayoutProps,
+    AdminPageHeaderProps,
+} from '@/app/admin/components/AdminPageLayout';
 
 interface ScheduleManagementProps {
     AdminPageLayout: React.ComponentType<AdminPageLayoutProps>;

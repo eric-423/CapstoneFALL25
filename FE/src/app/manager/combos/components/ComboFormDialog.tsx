@@ -86,7 +86,8 @@ export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboF
         setStartDate('');
         setEndDate('');
         setIsActive(true);
-        setBranchId(branches.length > 0 ? parseInt(branches[0].id) : null);
+        // branches[0].id đã là number theo AdminContext.Branch, không cần parseInt
+        setBranchId(branches.length > 0 ? branches[0].id : null);
         setComboItems([]);
     };
 

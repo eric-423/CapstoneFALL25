@@ -10,6 +10,7 @@ import { searchProducts, type Product, type ProductSearchParams } from '@/apis/p
 import { useAdminContext } from '@/utils/contexts/AdminContext';
 import { useBodyScrollLock } from '../../components/useBodyScrollLock';
 import { AdminSelect } from '../../components/AdminSelect';
+import { Input } from '@/components/ui/input';
 
 interface ComboFormDialogProps {
     open: boolean;
@@ -89,7 +90,7 @@ export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboF
         setStartDate('');
         setEndDate('');
         setIsActive(true);
-        setBranchId(branches.length > 0 ? parseInt(branches[0].id) : null);
+        setBranchId(branches.length > 0 ? branches[0].id : null);
         setComboItems([]);
     };
 
@@ -269,7 +270,7 @@ export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboF
                                         Ngày bắt đầu
                                         <span className="text-red-500">*</span>
                                     </label>
-                                    <input
+                                    <Input
                                         type="date"
                                         value={startDate}
                                         onChange={(e) => setStartDate(e.target.value)}
@@ -283,7 +284,7 @@ export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboF
                                         Ngày kết thúc
                                         <span className="text-red-500">*</span>
                                     </label>
-                                    <input
+                                    <Input
                                         type="date"
                                         value={endDate}
                                         onChange={(e) => setEndDate(e.target.value)}
@@ -384,7 +385,7 @@ export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboF
 
                                                         <div className="md:col-span-2 space-y-1">
                                                             <label className="text-xs font-bold text-gray-700">Số lượng</label>
-                                                            <input
+                                                            <Input
                                                                 type="number"
                                                                 value={item.quantity}
                                                                 onChange={(e) => handleItemChange(index, 'quantity', parseInt(e.target.value))}

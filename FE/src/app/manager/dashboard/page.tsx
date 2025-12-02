@@ -36,11 +36,11 @@ const montserrat = Montserrat({
 export default function ManagerDashboardPage() {
   const { selectedBranch, timePeriod, dateRange } = useAdminContext();
   const branchId = useMemo(
-    () => (selectedBranch?.id ? parseInt(selectedBranch.id) : 1),
+    () => (selectedBranch?.id ? selectedBranch.id : 1),
     [selectedBranch?.id]
   );
   const branchIdOrUndefined = useMemo(
-    () => (selectedBranch?.id ? parseInt(selectedBranch.id) : undefined),
+    () => (selectedBranch?.id ? selectedBranch.id : undefined),
     [selectedBranch?.id]
   );
 
@@ -172,9 +172,9 @@ export default function ManagerDashboardPage() {
                     data={
                       revenue7DaysData
                         ? revenue7DaysData.dailyRevenues.map((item) => ({
-                            date: item.date,
-                            revenue: item.revenue,
-                          }))
+                          date: item.date,
+                          revenue: item.revenue,
+                        }))
                         : revenueData
                     }
                   />
@@ -229,10 +229,10 @@ export default function ManagerDashboardPage() {
                       trend={
                         newCustomerStats
                           ? {
-                              value: newCustomerStats.percentageChange,
-                              isPositive:
-                                newCustomerStats.percentageChange >= 0,
-                            }
+                            value: newCustomerStats.percentageChange,
+                            isPositive:
+                              newCustomerStats.percentageChange >= 0,
+                          }
                           : undefined
                       }
                       subtitle={
@@ -255,10 +255,10 @@ export default function ManagerDashboardPage() {
                       trend={
                         serviceTimeStats
                           ? {
-                              value: serviceTimeStats.percentageChange,
-                              isPositive:
-                                serviceTimeStats.percentageChange <= 0,
-                            }
+                            value: serviceTimeStats.percentageChange,
+                            isPositive:
+                              serviceTimeStats.percentageChange <= 0,
+                          }
                           : undefined
                       }
                       subtitle={
