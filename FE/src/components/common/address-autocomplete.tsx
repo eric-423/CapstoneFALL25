@@ -179,6 +179,12 @@ export function AddressAutocomplete({
             debounceRef.current = null;
         }
 
+        if (!isFocused) {
+            setPredictions([]);
+            setIsFetching(false);
+            return;
+        }
+
         if (disabled || !isScriptLoaded) {
             setPredictions([]);
             setIsFetching(false);
@@ -192,7 +198,7 @@ export function AddressAutocomplete({
         }
 
         debouncedSearch(q);
-    }, [inputValue, isScriptLoaded, disabled, debouncedSearch]);
+    }, [inputValue, isFocused, isScriptLoaded, disabled, debouncedSearch]);
 
     const handleSelect = useCallback((p: google.maps.places.AutocompletePrediction) => {
         isSelectingRef.current = true;
@@ -310,7 +316,7 @@ export function AddressAutocomplete({
                 </p>
             )}
 
-            {(isAutocompleteReady && !disabled && (isFetching || predictions.length > 0)) && (
+            {(isAutocompleteReady && !disabled && isFocused && (isFetching || predictions.length > 0)) && (
                 <div
                     ref={dropdownRef}
                     className="absolute left-0 right-0 top-full z-[9999] mt-1 overflow-hidden rounded-lg border border-border bg-background shadow-xl max-h-[300px] overflow-y-auto"

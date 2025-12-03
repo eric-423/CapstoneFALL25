@@ -189,7 +189,7 @@ export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboF
                     <div className="p-6 space-y-6">{/* Basic Info Section */}
                         <div className="space-y-4">
                             <div className="flex items-center gap-2 pb-2 border-b-2 border-[#78A243]/20">
-                                <div className="w-8 h-8 bg-gradient-to-br from-[#78A243] to-[#DA7339] rounded-lg flex items-center justify-center">
+                                <div className="w-8 h-8 bg-gradient-to-br from-[#78A243] to-[#78A243]/80 rounded-lg flex items-center justify-center">
                                     <span className="text-white font-bold text-sm">1</span>
                                 </div>
                                 <h3 className="text-lg font-bold text-[#2D1E1A]">Thông tin cơ bản</h3>

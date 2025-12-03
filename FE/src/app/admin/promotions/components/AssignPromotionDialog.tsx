@@ -173,7 +173,7 @@ export function AssignPromotionDialog({
       <Button
         onClick={() => setOpen(true)}
         size="sm"
-        className="bg-orange-500 hover:bg-orange-600 text-white font-semibold  transition-all duration-300 shadow-md hover:shadow-lg items-center justify-center"
+        className="bg-[#78A243] hover:bg-[#78A243]/90 text-white font-semibold transition-all duration-300 shadow-md hover:shadow-lg items-center justify-center"
       >
         <UserPlus className="h-4 w-4 mr-1" />
         Gán KH
@@ -284,11 +284,10 @@ export function AssignPromotionDialog({
                   return (
                     <div
                       key={customer.id}
-                      className={`group relative rounded-xl border transition-all shadow-sm hover:shadow-md ${
-                        isSelected
+                      className={`group relative rounded-xl border transition-all shadow-sm hover:shadow-md ${isSelected
                           ? "border-[#78A243] bg-[#F7FBF2]"
                           : "border-gray-200 bg-white hover:border-gray-300"
-                      }`}
+                        }`}
                     >
                       <div className="flex gap-4 p-4">
                         {/* Cột checkbox + avatar */}

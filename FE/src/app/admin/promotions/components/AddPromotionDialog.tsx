@@ -29,15 +29,12 @@ import {
 
 interface PromotionFormData {
   name: string;
-  code: string;
   description: string;
   promotionType: string;
   value: string;
   minimumOrderValue: string;
-  maxDiscount: string;
   startDate: string;
   endDate: string;
-  usageLimit: string;
   status: boolean;
 }
 
@@ -62,23 +59,20 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
   useBodyScrollLock(open);
   const [formData, setFormData] = useState<PromotionFormData>({
     name: "",
-    code: "",
     description: "",
     promotionType: "",
     value: "",
     minimumOrderValue: "",
-    maxDiscount: "",
     startDate: "",
     endDate: "",
-    usageLimit: "",
     status: true,
   });
 
   const [errors, setErrors] = useState<Partial<PromotionFormData>>({});
   const mapPromotionType = (type: PromotionType): PromotionTypeOption => {
     return {
-      value: String(type.id), // Dùng id làm value để truyền vào promotion
-      label: type.name, // Hiển thị tên cho người dùng
+      value: String(type.id),
+      label: type.name,
       color: "[#FFFCF7]",
       promotionTypeId: type.id,
     };
@@ -124,12 +118,6 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
     }
     if (formData.minimumOrderValue && Number(formData.minimumOrderValue) < 0) {
       newErrors.minimumOrderValue = "Giá trị không được âm";
-    }
-    if (formData.maxDiscount && Number(formData.maxDiscount) < 0) {
-      newErrors.maxDiscount = "Giá trị không được âm";
-    }
-    if (formData.usageLimit && Number(formData.usageLimit) <= 0) {
-      newErrors.usageLimit = "Giới hạn phải lớn hơn 0";
     }
 
     if (!formData.startDate) newErrors.startDate = "Vui lòng chọn ngày bắt đầu";
@@ -204,15 +192,12 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
   const resetForm = () => {
     setFormData({
       name: "",
-      code: "",
       description: "",
       promotionType: promotionTypes.length > 0 ? promotionTypes[0].value : "",
       value: "",
       minimumOrderValue: "",
-      maxDiscount: "",
       startDate: "",
       endDate: "",
-      usageLimit: "",
       status: true,
     });
     setErrors({});
@@ -249,22 +234,22 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg hover:shadow-xl transition-all px-6 py-6 text-base">
-          <Plus size={20} className="mr-2" />
+        <Button className="bg-[#78A243] hover:bg-[#78A243]/90 text-white shadow-md hover:shadow-lg transition-all">
+          <Plus size={18} className="mr-2" />
           Thêm khuyến mãi
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[700px] max-h-[95vh] overflow-y-auto bg-white border-0 shadow-2xl">
+      <DialogContent className="sm:max-w-[600px] max-h-[95vh] overflow-y-auto bg-white border-0 shadow-2xl">
         <DialogHeader>
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
-              <Gift className="text-white" size={24} />
+            <div className="w-12 h-12 bg-[#78A243]/20 rounded-xl flex items-center justify-center">
+              <Gift className="text-[#78A243]" size={24} />
             </div>
             <div>
-              <DialogTitle className="text-2xl font-bold text-gray-900">
+              <DialogTitle className="text-xl font-bold text-[#2D1E1A]">
                 Thêm khuyến mãi mới
               </DialogTitle>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-[#2D1E1A]/60 mt-1">
                 Tạo chương trình khuyến mãi cho khách hàng
               </p>
             </div>
@@ -281,14 +266,14 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
               placeholder="Giảm giá mùa hè, Khuyến mãi cuối năm..."
               value={formData.name}
               onChange={(e) => handleInputChange("name", e.target.value)}
-              className={`h-11 border-2 ${errors.name ? "border-red-400 focus:border-red-500" : "border-gray-200 focus:border-orange-500"} focus:ring-orange-500/20 focus:ring-4 transition-all`}
+              className={`h-11 border-2 ${errors.name ? "border-red-400 focus:border-red-500" : "border-gray-200 focus:border-[#78A243]"} focus:ring-[#78A243]/20 focus:ring-4 transition-all`}
             />
             {errors.name && (
               <p className="text-xs text-red-600 font-medium">{errors.name}</p>
             )}
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-gray-700">
+            <label className="text-sm font-semibold text-[#2D1E1A]">
               Mô tả <span className="text-red-500">*</span>
             </label>
             <textarea
@@ -296,7 +281,7 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
               value={formData.description}
               onChange={(e) => handleInputChange("description", e.target.value)}
               rows={3}
-              className={`w-full px-3 py-2 rounded-md border-2 ${errors.description ? "border-red-400" : "border-gray-200"} focus:border-orange-500 focus:ring-orange-500/20 focus:ring-4 outline-none transition-all text-gray-900 placeholder:text-gray-400`}
+              className={`w-full px-3 py-2 rounded-md border-2 ${errors.description ? "border-red-400" : "border-gray-200"} focus:border-[#78A243] focus:ring-[#78A243]/20 focus:ring-4 outline-none transition-all text-[#2D1E1A] placeholder:text-gray-400`}
             />
             {errors.description && (
               <p className="text-xs text-red-600 font-medium">
@@ -307,18 +292,18 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-semibold text-gray-700">
+              <label className="text-sm font-semibold text-[#2D1E1A]">
                 Loại giảm giá <span className="text-red-500">*</span>
               </label>
               {isLoadingTypes ? (
                 <div className="flex items-center justify-center">
-                  <div className="w-6 h-6 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
-                  <span className="ml-2 text-sm text-gray-600">
+                  <div className="w-6 h-6 border-2 border-[#78A243] border-t-transparent rounded-full animate-spin" />
+                  <span className="ml-2 text-sm text-[#2D1E1A]/60">
                     Đang tải loại khuyến mãi...
                   </span>
                 </div>
               ) : promotionTypes.length === 0 ? (
-                <div className="text-center py-4 text-sm text-gray-500">
+                <div className="text-center py-4 text-sm text-[#2D1E1A]/60">
                   Không có loại khuyến mãi nào
                 </div>
               ) : (
@@ -328,7 +313,7 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
                     handleInputChange("promotionType", value)
                   }
                 >
-                  <SelectTrigger className="w-full h-11 border-2 border-gray-200 focus:border-orange-500 focus:ring-orange-500/20 focus:ring-4 transition-all">
+                  <SelectTrigger className="w-full h-11 border-2 border-gray-200 focus:border-[#78A243] focus:ring-[#78A243]/20 focus:ring-4 transition-all">
                     <SelectValue placeholder="Chọn loại giảm giá" />
                   </SelectTrigger>
                   <SelectContent
@@ -339,10 +324,10 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
                       <SelectItem
                         key={type.value}
                         value={type.value}
-                        className="cursor-pointer hover:bg-orange-50 focus:bg-orange-50"
+                        className="cursor-pointer hover:bg-[#78A243]/10 focus:bg-[#78A243]/10"
                       >
                         <div className="flex items-center gap-3 py-1">
-                          <span className="font-semibold text-gray-700">
+                          <span className="font-semibold text-[#2D1E1A]">
                             {type.label}
                           </span>
                         </div>
@@ -353,23 +338,21 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
               )}
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-gray-700">
+              <label className="text-sm font-semibold text-[#2D1E1A]">
                 Trạng thái
               </label>
-              <div className="flex items-center justify-between p-4 rounded-lg border-2 border-gray-200 hover:border-orange-300 transition-all bg-gray-50 h-11">
+              <div className="flex items-center justify-between p-4 rounded-lg border-2 border-gray-200 hover:border-[#78A243]/50 transition-all bg-[#78A243]/5 h-11">
                 <label
                   htmlFor="status"
-                  className="text-sm font-semibold text-gray-700 cursor-pointer"
+                  className="text-sm font-semibold text-[#2D1E1A] cursor-pointer"
                 >
                   Kích hoạt ngay
                 </label>
                 <button
                   type="button"
                   onClick={() => handleInputChange("status", !formData.status)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 ${
-                    formData.status
-                      ? "bg-gradient-to-r from-green-500 to-green-600"
-                      : "bg-gray-300"
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#78A243] focus:ring-offset-2 ${
+                    formData.status ? "bg-[#78A243]" : "bg-gray-300"
                   }`}
                 >
                   <span
@@ -384,7 +367,7 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <label className="text-sm font-semibold text-[#2D1E1A] flex items-center gap-2">
                 Giá trị giảm <span className="text-red-500">*</span>
               </label>
               <Input
@@ -392,7 +375,7 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
                 min="0"
                 value={formData.value}
                 onChange={(e) => handleInputChange("value", e.target.value)}
-                className={`h-11 border-2 ${errors.value ? "border-red-400" : "border-gray-200"} focus:border-orange-500`}
+                className={`h-11 border-2 ${errors.value ? "border-red-400" : "border-gray-200"} focus:border-[#78A243]`}
               />
               {errors.value && (
                 <p className="text-xs text-red-600 font-medium">
@@ -402,7 +385,7 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-gray-700">
+              <label className="text-sm font-semibold text-[#2D1E1A]">
                 Đơn hàng tối thiểu (VNĐ)
               </label>
               <Input
@@ -431,7 +414,7 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
                 type="date"
                 value={formData.startDate}
                 onChange={(e) => handleInputChange("startDate", e.target.value)}
-                className={`h-11 border-2 ${errors.startDate ? "border-red-400" : "border-gray-200"} focus:border-orange-500`}
+                className={`h-11 border-2 ${errors.startDate ? "border-red-400" : "border-gray-200"} focus:border-[#78A243]`}
               />
               {errors.startDate && (
                 <p className="text-xs text-red-600 font-medium">
@@ -441,15 +424,15 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                <Calendar size={16} className="text-orange-500" />
+              <label className="text-sm font-semibold text-[#2D1E1A] flex items-center gap-2">
+                <Calendar size={16} className="text-[#78A243]" />
                 Ngày kết thúc <span className="text-red-500">*</span>
               </label>
               <Input
                 type="date"
                 value={formData.endDate}
                 onChange={(e) => handleInputChange("endDate", e.target.value)}
-                className={`h-11 border-2 ${errors.endDate ? "border-red-400" : "border-gray-200"} focus:border-orange-500`}
+                className={`h-11 border-2 ${errors.endDate ? "border-red-400" : "border-gray-200"} focus:border-[#78A243]`}
               />
               {errors.endDate && (
                 <p className="text-xs text-red-600 font-medium">
@@ -459,7 +442,7 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
             </div>
           </div>
 
-          <div className="flex gap-3 pt-4 border-t border-gray-200">
+          <div className="flex gap-3 pt-4 border-t border-[#78A243]/20">
             <Button
               type="button"
               variant="outline"
@@ -468,14 +451,14 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
                 resetForm();
               }}
               disabled={isLoading}
-              className="flex-1 h-11 border-2 border-gray-300 bg-white !text-gray-900 hover:!bg-gray-100 hover:!text-gray-900 font-semibold"
+              className="flex-1 h-11 border-2 border-gray-300 bg-white !text-[#2D1E1A] hover:!bg-gray-100 hover:!text-[#2D1E1A] font-semibold"
             >
               Hủy
             </Button>
             <Button
               type="submit"
               disabled={isLoading}
-              className="flex-1 h-11 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg hover:shadow-xl transition-all font-semibold"
+              className="flex-1 h-11 bg-[#78A243] hover:bg-[#78A243]/90 text-white shadow-md hover:shadow-lg transition-all font-semibold"
             >
               {isLoading ? (
                 <>

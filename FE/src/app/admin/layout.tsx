@@ -157,9 +157,26 @@ export default function AdminLayout({
 
   // Calculate active menu index for animated circle
   const activeIndex = useMemo(() => {
-    const index = menuItems.findIndex(item => pathname === item.href);
+    // Find exact match first
+    let index = menuItems.findIndex(item => pathname === item.href);
+
+    // If no exact match, find parent route match (for nested routes like /admin/warehouses/1/materials)
+    if (index < 0) {
+      index = menuItems.findIndex(item =>
+        pathname.startsWith(item.href + '/') && item.href !== '/admin'
+      );
+    }
+
     return index >= 0 ? index : 0;
   }, [pathname, menuItems]);
+
+  // Check if a menu item is active (exact match or parent route match)
+  const isMenuItemActive = useCallback((itemHref: string) => {
+    if (pathname === itemHref) return true;
+    // Check for nested routes (e.g., /admin/warehouses/1/materials should match /admin/warehouses)
+    if (pathname.startsWith(itemHref + '/') && itemHref !== '/admin') return true;
+    return false;
+  }, [pathname]);
 
   const handleLogout = useCallback(() => {
     logout();
@@ -273,7 +290,7 @@ export default function AdminLayout({
                   <MenuItem
                     key={item.href}
                     item={item}
-                    isActive={pathname === item.href}
+                    isActive={isMenuItemActive(item.href)}
                     isCollapsed={isCollapsed}
                     index={index}
                     totalItems={menuItems.length}

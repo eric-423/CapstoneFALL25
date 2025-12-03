@@ -1,7 +1,7 @@
 "use client";
 
-import { GraduationCap, CheckCircle, BookOpen, Users } from "lucide-react";
-import { AdminStatsCard, AdminStatsGrid } from "../../components/AdminPageLayout";
+import { GraduationCap, CheckCircle, BookOpen, Award } from "lucide-react";
+import { AdminCard } from "../../components/AdminCard";
 
 interface TrainingStatsCardsProps {
   totalCourses: number;
@@ -17,36 +17,32 @@ export function TrainingStatsCards({
   totalLessonPoints,
 }: TrainingStatsCardsProps) {
   return (
-    <AdminStatsGrid>
-      <AdminStatsCard
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <AdminCard
         title="Tổng khóa học"
         value={totalCourses}
         icon={GraduationCap}
-        iconClassName="from-blue-500 to-cyan-500"
-        className="AdminStatsCard"
+        subtitle="Khóa đào tạo trong hệ thống"
       />
-      <AdminStatsCard
+      <AdminCard
         title="Đang hoạt động"
         value={activeCourses}
         icon={CheckCircle}
-        className="AdminStatsCard"
-        iconClassName="from-green-500 to-emerald-500"
+        subtitle="Khóa học đang mở"
       />
-      <AdminStatsCard
+      <AdminCard
         title="Số bài học"
         value={totalLessons}
         icon={BookOpen}
-        className="AdminStatsCard"
-        iconClassName="from-purple-500 to-indigo-500"
+        subtitle="Tổng bài học"
       />
-      <AdminStatsCard
+      <AdminCard
         title="Tổng điểm"
         value={totalLessonPoints}
-        icon={Users}
-        className="AdminStatsCard"
-        iconClassName="from-orange-500 to-red-500"
+        icon={Award}
+        subtitle="Điểm tích lũy"
       />
-    </AdminStatsGrid>
+    </div>
   );
 }
 

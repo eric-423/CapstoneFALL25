@@ -76,19 +76,26 @@ export default function CompletedPage() {
         return () => clearInterval(interval);
     }, [user?.id]);
 
-    const getProcessingTime = (confirmAt: string, cookedAt: string | null) => {
-        const confirmDateTime = new Date(confirmAt);
-        const completedDateTime = cookedAt ? new Date(cookedAt) : new Date();
-        const diffMinutes = Math.ceil((completedDateTime.getTime() - confirmDateTime.getTime()) / 60000);
-
-        if (diffMinutes <= 0) {
-            return 0;
-        }
-
-        return diffMinutes;
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        return date.toLocaleString('vi-VN', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+        });
     };
 
-    const formatProcessingDuration = (minutes: number) => {
+    const getProcessingTime = (confirmAt: string, cookedAt: string | null): number => {
+        if (!cookedAt) return 0;
+        const confirmDateTime = new Date(confirmAt);
+        const cookedDateTime = new Date(cookedAt);
+        const diffMinutes = Math.ceil((cookedDateTime.getTime() - confirmDateTime.getTime()) / 60000);
+        return diffMinutes > 0 ? diffMinutes : 0;
+    };
+
+    const formatProcessingDuration = (minutes: number): string => {
         if (minutes <= 0 || Number.isNaN(minutes)) {
             return '0 phút';
         }
@@ -119,17 +126,6 @@ export default function CompletedPage() {
         return `${remainingMinutes} phút`;
     };
 
-    const formatDate = (dateString: string) => {
-        const date = new Date(dateString);
-        return date.toLocaleString('vi-VN', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
-    };
-
     const sortByDate = (orders: ChefOrderResponse[]) => {
         return [...orders].sort((a, b) => {
             const aDate = a.orderItems[0]?.confirmAt || '';
@@ -143,13 +139,30 @@ export default function CompletedPage() {
     };
 
     const totalCompleted = orders.length;
-    const avgProcessingTime = orders.length > 0
-        ? Math.round(orders.reduce((sum, order) => {
-            const firstItem = order.orderItems[0];
-            if (!firstItem) return sum;
-            const cookedAt = order.orderItems.find(item => item.cookedAt)?.cookedAt || null;
-            return sum + getProcessingTime(firstItem.confirmAt, cookedAt);
-        }, 0) / orders.length)
+
+    // Tính thời gian trung bình chế biến: lấy cookedAt - confirmAt cho từng order (từ đầu list đến cuối), cộng lại và chia đều
+    let totalProcessingTime = 0;
+    let totalOrdersWithCookedAt = 0;
+
+    orders.forEach(order => {
+        // Lấy confirmAt từ item đầu tiên trong order
+        const firstItem = order.orderItems[0];
+        if (!firstItem?.confirmAt) return;
+
+        // Tìm item có cookedAt (có thể là item cuối cùng hoặc bất kỳ item nào có cookedAt)
+        const cookedItem = order.orderItems.find(item => item.cookedAt);
+        if (!cookedItem?.cookedAt) return;
+
+        // Tính thời gian: cookedAt - confirmAt
+        const processingTime = getProcessingTime(firstItem.confirmAt, cookedItem.cookedAt);
+        if (processingTime > 0) {
+            totalProcessingTime += processingTime;
+            totalOrdersWithCookedAt += 1;
+        }
+    });
+
+    const avgProcessingTime = totalOrdersWithCookedAt > 0
+        ? Math.round(totalProcessingTime / totalOrdersWithCookedAt)
         : 0;
 
     return (
@@ -300,23 +313,14 @@ export default function CompletedPage() {
                                                     </div>
 
                                                     <div className='mt-3 flex items-center gap-4'>
-                                                        {cookedAt && firstItem && (
-                                                            <>
-                                                                <div className='flex items-center text-sm'>
-                                                                    <CheckCircle className='h-4 w-4 text-green-500 mr-1' />
-                                                                    <span className='text-gray-600'>Hoàn thành:</span>
-                                                                    <span className='ml-1 font-medium text-green-600'>
-                                                                        {formatDate(cookedAt)}
-                                                                    </span>
-                                                                </div>
-                                                                <div className='flex items-center text-sm'>
-                                                                    <Clock className='h-4 w-4 text-blue-500 mr-1' />
-                                                                    <span className='text-gray-600'>Thời gian chế biến:</span>
-                                                                    <span className='ml-1 font-medium text-blue-600'>
-                                                                        {formatProcessingDuration(getProcessingTime(firstItem.confirmAt, cookedAt))}
-                                                                    </span>
-                                                                </div>
-                                                            </>
+                                                        {cookedAt && (
+                                                            <div className='flex items-center text-sm'>
+                                                                <CheckCircle className='h-4 w-4 text-green-500 mr-1' />
+                                                                <span className='text-gray-600'>Hoàn thành:</span>
+                                                                <span className='ml-1 font-medium text-green-600'>
+                                                                    {formatDate(cookedAt)}
+                                                                </span>
+                                                            </div>
                                                         )}
                                                         <div className='flex items-center text-sm'>
                                                             <span className='text-gray-600'>Tổng tiền:</span>

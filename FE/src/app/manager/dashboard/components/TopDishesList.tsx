@@ -52,7 +52,7 @@ export function TopDishesList({
         >
           {topDishes.map((dish, index) => (
             <div
-              key={dish.itemId}
+              key={`${dish.itemId}-${index}`}
               className="flex items-center gap-3 p-2 rounded-lg hover:bg-black/5 transition-colors"
             >
               <div className="flex items-center justify-center w-6 font-bold text-sm text-gray-500">

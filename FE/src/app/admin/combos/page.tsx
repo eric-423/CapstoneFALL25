@@ -25,6 +25,7 @@ import { searchCombos, deleteCombo, getComboById, type Combo, type ComboSearchPa
 import { useAdminContext } from '@/utils/contexts/AdminContext';
 import { ComboFormDialog } from './components/ComboFormDialog';
 import { FilterDropdown } from '../components/FilterDropdown';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 
 export default function CombosManagementPage() {
     const { branches } = useAdminContext();
@@ -54,6 +55,16 @@ export default function CombosManagementPage() {
     const [showDialog, setShowDialog] = useState(false);
     const [editingCombo, setEditingCombo] = useState<ComboDetail | null>(null);
     const [loadingComboDetail, setLoadingComboDetail] = useState(false);
+    const [confirmDialog, setConfirmDialog] = useState<{
+        open: boolean;
+        comboId: number;
+        comboName: string;
+    }>({
+        open: false,
+        comboId: 0,
+        comboName: ''
+    });
+    const [deleteLoading, setDeleteLoading] = useState(false);
 
     const fetchCombos = useCallback(async () => {
         try {
@@ -74,15 +85,25 @@ export default function CombosManagementPage() {
     }, [fetchCombos]);
 
     const handleDelete = async (comboId: number, comboName: string) => {
-        if (!confirm(`Bạn có chắc muốn xóa combo "${comboName}"?`)) return;
+        setConfirmDialog({
+            open: true,
+            comboId,
+            comboName
+        });
+    };
 
+    const handleConfirmDelete = async () => {
         try {
-            await deleteCombo(comboId);
-            toast.success(`Đã xóa combo "${comboName}" thành công!`);
+            setDeleteLoading(true);
+            await deleteCombo(confirmDialog.comboId);
+            toast.success(`Đã xóa combo "${confirmDialog.comboName}" thành công!`);
+            setConfirmDialog({ open: false, comboId: 0, comboName: '' });
             await fetchCombos();
         } catch (error) {
             console.error('Failed to delete combo:', error);
             toast.error('Không thể xóa combo. Vui lòng thử lại!');
+        } finally {
+            setDeleteLoading(false);
         }
     };
 
@@ -427,6 +448,23 @@ export default function CombosManagementPage() {
                 onOpenChange={setShowDialog}
                 combo={editingCombo}
                 onSuccess={handleDialogSuccess}
+            />
+
+            {/* Confirm Delete Dialog */}
+            <ConfirmDialog
+                open={confirmDialog.open}
+                onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}
+                onConfirm={handleConfirmDelete}
+                title="Xóa combo"
+                content={
+                    <span>
+                        Bạn có chắc chắn muốn xóa combo <span className="font-bold text-gray-900">&quot;{confirmDialog.comboName}&quot;</span>?
+                    </span>
+                }
+                alertMessage="Combo đã xóa sẽ không thể khôi phục. Các đơn hàng liên quan có thể bị ảnh hưởng."
+                confirmText="Xóa combo"
+                variant="destructive"
+                loading={deleteLoading}
             />
         </AdminPageLayout>
     );

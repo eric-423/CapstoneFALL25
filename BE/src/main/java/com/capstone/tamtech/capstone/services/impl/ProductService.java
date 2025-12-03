@@ -16,5 +16,5 @@ public interface ProductService {
 
     PagedResponse<ProductDTO> searchProductForAllBranch(ProductSearchRequest searchRequest);
 
-    ProductDTO getProductById(Integer productId);
+    ProductSearchDTO getProductById(Integer productId, Integer branchId);
 }

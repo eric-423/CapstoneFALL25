@@ -109,7 +109,7 @@ public class ProductServiceImpl implements ProductService {
 
             KeyMaterialWarehouse keyMaterialWarehouse = new KeyMaterialWarehouse();
             keyMaterialWarehouse.setMaterialId(materialId);
-            keyMaterialWarehouse.setWarehouseId(branch.getWarehouses().getBranch().getId());
+            keyMaterialWarehouse.setWarehouseId(branch.getWarehouses().getId());
 
             Double availableQuantity = materialWarehouseRepository
                     .findById(keyMaterialWarehouse)
@@ -146,11 +146,11 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ProductDTO getProductById(Integer productId) {
+    public ProductSearchDTO getProductById(Integer productId, Integer branchId) {
         Product product = productRepository.findById(productId).orElseThrow(() ->
                 new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + productId));
 
-        return toDTO(product);
+        return mapToProductSearchDTO(product, new HashMap<>());
     }
 
     @Override
@@ -291,7 +291,7 @@ public class ProductServiceImpl implements ProductService {
         String sortBy = mapSortField(searchRequest.getSortBy());
 
         Sort sort = Sort.by(Sort.Direction.fromString(
-                searchRequest.getSortDirection() != null ? searchRequest.getSortDirection() : "ASC"),
+                        searchRequest.getSortDirection() != null ? searchRequest.getSortDirection() : "ASC"),
                 sortBy);
 
         return PageRequest.of(page, size, sort);
