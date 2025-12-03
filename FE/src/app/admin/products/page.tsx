@@ -78,8 +78,7 @@ export default function ProductsPage() {
             <AdminPageLayout>
                 {/* Header */}
                 <AdminPageHeader
-                    title="Quản Lý Sản Phẩm"
-                    description="Quản lý menu, giá và công thức món ăn"
+                    title="Quản Lý Món Ăn"
                     icon={UtensilsCrossed}
                     actions={
                         <Button
