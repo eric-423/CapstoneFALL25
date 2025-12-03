@@ -324,3 +324,29 @@ export async function addMaterialsToWarehouse(
         throw new Error('Failed to add materials to warehouse');
     }
 }
+
+export interface UpdateWarehouseMaterialsRequest {
+    materials: {
+        materialId: number;
+        quantity: number;
+        threshold: number;
+    }[];
+}
+
+export async function updateWarehouseMaterials(
+    warehouseId: number,
+    request: UpdateWarehouseMaterialsRequest
+): Promise<void> {
+    const response = await fetch(`/api/warehouses/${warehouseId}/materials`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to update warehouse materials');
+    }
+}

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Package, Plus, ArrowLeft, AlertTriangle, Warehouse as WarehouseIcon } from 'lucide-react';
+import { Package, Plus, ArrowLeft, AlertTriangle, Warehouse as WarehouseIcon, Pencil } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +9,7 @@ import { AdminPageLayout, AdminPageHeader } from '@/app/admin/components/AdminPa
 import { AdminCard } from '@/app/admin/components/AdminCard';
 import { getWarehouseMaterials, getMaterials, type WarehouseMaterial, type Material } from '@/apis/material.api';
 import { AddMaterialDialog } from './components/AddMaterialDialog';
+import { EditMaterialDialog } from './components/EditMaterialDialog';
 import { useRouter } from 'next/navigation';
 
 interface WarehouseMaterialsPageProps {
@@ -26,6 +27,8 @@ export default function WarehouseMaterialsPage({ params }: WarehouseMaterialsPag
 
     // Dialog states
     const [showAddDialog, setShowAddDialog] = useState(false);
+    const [showEditDialog, setShowEditDialog] = useState(false);
+    const [selectedMaterial, setSelectedMaterial] = useState<WarehouseMaterial | null>(null);
 
     useEffect(() => {
         params.then(p => {
@@ -63,6 +66,15 @@ export default function WarehouseMaterialsPage({ params }: WarehouseMaterialsPag
     };
 
     const handleAddSuccess = () => {
+        fetchWarehouseMaterials();
+    };
+
+    const handleEditMaterial = (material: WarehouseMaterial) => {
+        setSelectedMaterial(material);
+        setShowEditDialog(true);
+    };
+
+    const handleEditSuccess = () => {
         fetchWarehouseMaterials();
     };
 
@@ -154,6 +166,9 @@ export default function WarehouseMaterialsPage({ params }: WarehouseMaterialsPag
                                 <th className="px-4 py-3 text-left text-sm font-bold text-[#2D1E1A] uppercase tracking-wider">
                                     Trạng thái
                                 </th>
+                                <th className="px-4 py-3 text-center text-sm font-bold text-[#2D1E1A] uppercase tracking-wider">
+                                    Thao tác
+                                </th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
@@ -212,6 +227,19 @@ export default function WarehouseMaterialsPage({ params }: WarehouseMaterialsPag
                                                 </Badge>
                                             )}
                                         </td>
+                                        <td className="px-4 py-3">
+                                            <div className="flex items-center justify-center gap-2">
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    onClick={() => handleEditMaterial(material)}
+                                                    className="border-[#78A243]/30 hover:bg-[#78A243]/10 hover:border-[#78A243]"
+                                                    title="Sửa nguyên liệu"
+                                                >
+                                                    <Pencil className="h-4 w-4 text-[#78A243]" />
+                                                </Button>
+                                            </div>
+                                        </td>
                                     </tr>
                                 );
                             })}
@@ -242,6 +270,14 @@ export default function WarehouseMaterialsPage({ params }: WarehouseMaterialsPag
                 availableMaterials={allMaterials}
                 existingMaterialIds={warehouseMaterials.map(m => m.materialId)}
                 onSuccess={handleAddSuccess}
+            />
+
+            <EditMaterialDialog
+                open={showEditDialog}
+                onOpenChange={setShowEditDialog}
+                warehouseId={warehouseId || 0}
+                material={selectedMaterial}
+                onSuccess={handleEditSuccess}
             />
         </AdminPageLayout>
     );
