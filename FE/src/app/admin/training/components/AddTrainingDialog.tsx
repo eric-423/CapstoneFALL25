@@ -5,12 +5,10 @@ import { Button } from '@/components/ui/button';
 import {
     Dialog,
     DialogContent,
-    DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { GraduationCap, Plus, Users } from 'lucide-react';
+import { GraduationCap, Plus, Users, X, CheckCircle } from 'lucide-react';
 
 import { createTraining, CreateTrainingPayload, updateTraining } from '@/apis/trainning.api';
 import { Role, getRoles } from '@/apis/role.api';
@@ -156,37 +154,52 @@ export function AddTrainingDialog({
     };
 
     const dialogTitle = isEditMode ? 'Cập nhật Khóa Đào Tạo' : 'Tạo Khóa Đào Tạo Mới';
-    const submitLabel = isEditMode ? 'Cập nhật Khóa Đào Tạo' : 'Tạo Khóa Đào Tạo';
 
     const dialogTrigger = trigger ?? (
-        <Button className="h-11 px-6 bg-[#78A243] hover:bg-[#78A243]/90 text-white shadow-lg hover:shadow-xl transition-all font-semibold">
-            <Plus size={22} className="mr-2" strokeWidth={2.5} />
+        <Button className="bg-[#78A243] hover:bg-[#78A243]/90 text-white shadow-md hover:shadow-lg transition-all font-semibold">
+            <Plus size={18} className="mr-2" />
             Tạo Khóa Đào Tạo
         </Button>
     );
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>{dialogTrigger}</DialogTrigger>
-            <DialogContent className="w-[96vw] max-w-[96vw] sm:!max-w-[90vw] lg:!max-w-[70vw] xl:!max-w-[60vw] max-h-[95vh] overflow-y-auto bg-white">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2 text-2xl font-bold text-[#78A243]">
-                        <GraduationCap size={28} className="text-[#78A243]" />
-                        {dialogTitle}
-                    </DialogTitle>
-                </DialogHeader>
+            <div onClick={() => setOpen(true)}>{dialogTrigger}</div>
+            <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto p-0 gap-0 bg-white border-0 shadow-2xl rounded-2xl [&>button]:hidden">
+                {/* Header */}
+                <div className="bg-[#78A243] p-5 flex items-center justify-between rounded-t-2xl">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
+                            <GraduationCap className="h-5 w-5 text-white" />
+                        </div>
+                        <DialogTitle className="text-xl font-bold text-white">
+                            {dialogTitle}
+                        </DialogTitle>
+                    </div>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setOpen(false)}
+                        disabled={isLoading}
+                        className="border-white/30 bg-white/10 hover:bg-white/20 text-white hover:text-white h-8 w-8 p-0"
+                    >
+                        <X className="h-4 w-4" />
+                    </Button>
+                </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Form */}
+                <form onSubmit={handleSubmit} className="p-6 space-y-4">
                     <div className="space-y-2">
-                        <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                            <GraduationCap size={16} className="text-[#78A243]" />
+                        <label className="text-sm font-semibold text-gray-700 flex items-center gap-1">
+                            <GraduationCap size={14} className="text-[#78A243]" />
                             Tên khóa đào tạo <span className="text-red-500">*</span>
                         </label>
                         <Input
                             placeholder="VD: Cách làm món Phở, Quy trình phục vụ bàn..."
                             value={formData.name}
                             onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                            className={`h-11 border-2 ${errors.name ? 'border-red-400' : 'border-gray-200'} focus:border-[#78A243] focus:ring-[#78A243]/20 focus:ring-4 transition-all`}
+                            className={`w-full px-4 py-3 border-2 ${errors.name ? 'border-red-400' : 'border-gray-200'} rounded-xl text-sm focus:border-[#78A243] focus:ring-2 focus:ring-[#78A243]/20 transition-all outline-none`}
                         />
                         {errors.name && <p className="text-xs text-red-600 font-medium">{errors.name}</p>}
                     </div>
@@ -200,7 +213,7 @@ export function AddTrainingDialog({
                             value={formData.note}
                             onChange={(e) => setFormData(prev => ({ ...prev, note: e.target.value }))}
                             rows={3}
-                            className={`w-full px-3 py-2 rounded-md border-2 ${errors.note ? 'border-red-400' : 'border-gray-200'} focus:border-[#78A243] focus:ring-[#78A243]/20 focus:ring-4 outline-none transition-all`}
+                            className={`w-full px-4 py-3 border-2 ${errors.note ? 'border-red-400' : 'border-gray-200'} rounded-xl text-sm focus:border-[#78A243] focus:ring-2 focus:ring-[#78A243]/20 transition-all resize-none outline-none`}
                         />
                         {errors.note && <p className="text-xs text-red-600 font-medium">{errors.note}</p>}
                     </div>
@@ -215,14 +228,14 @@ export function AddTrainingDialog({
                             min={1}
                             value={formData.point}
                             onChange={(e) => setFormData(prev => ({ ...prev, point: e.target.value }))}
-                            className={`h-11 border-2 ${errors.point ? 'border-red-400' : 'border-gray-200'} focus:border-[#78A243] focus:ring-[#78A243]/20 focus:ring-4 transition-all`}
+                            className={`w-full px-4 py-3 border-2 ${errors.point ? 'border-red-400' : 'border-gray-200'} rounded-xl text-sm focus:border-[#78A243] focus:ring-2 focus:ring-[#78A243]/20 transition-all outline-none`}
                         />
                         {errors.point && <p className="text-xs text-red-600 font-medium">{errors.point}</p>}
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                            <Users size={16} className="text-[#78A243]" />
+                        <label className="text-sm font-semibold text-gray-700 flex items-center gap-1">
+                            <Users size={14} className="text-[#78A243]" />
                             Vai trò áp dụng <span className="text-red-500">*</span>
                         </label>
                         <select
@@ -236,7 +249,7 @@ export function AddTrainingDialog({
                                 }))
                             }
                             disabled={isLoadingRoles}
-                            className={`w-full h-11 border-2 rounded-md px-3 bg-white ${errors.roleId ? 'border-red-400' : 'border-gray-200'} focus:border-[#78A243] focus:ring-4 focus:ring-[#78A243]/20 transition-all`}
+                            className={`w-full px-4 py-3 border-2 ${errors.roleId ? 'border-red-400' : 'border-gray-200'} rounded-xl text-sm focus:border-[#78A243] focus:ring-2 focus:ring-[#78A243]/20 transition-all outline-none bg-white`}
                         >
                             <option value="">
                                 {isLoadingRoles ? 'Đang tải vai trò...' : 'Chọn vai trò'}
@@ -251,7 +264,7 @@ export function AddTrainingDialog({
                         <p className="text-xs text-gray-500">Chọn vai trò mà khóa đào tạo này áp dụng</p>
                     </div>
 
-                    <div className="flex items-center justify-between border border-gray-200 rounded-xl px-4 py-3">
+                    <div className="flex items-center justify-between border-2 border-gray-200 rounded-xl px-4 py-3">
                         <div>
                             <p className="text-sm font-semibold text-gray-700">Kích hoạt khóa học</p>
                             <p className="text-xs text-gray-500">Cho phép nhân viên thấy khóa này sau khi tạo</p>
@@ -268,7 +281,8 @@ export function AddTrainingDialog({
                         </button>
                     </div>
 
-                    <div className="flex gap-3 pt-4 border-t border-gray-200">
+                    {/* Footer */}
+                    <div className="bg-gray-50 border-t border-gray-200 -mx-6 -mb-6 mt-6 p-4 flex gap-3 justify-end rounded-b-2xl">
                         <Button
                             type="button"
                             variant="outline"
@@ -277,26 +291,25 @@ export function AddTrainingDialog({
                                 resetForm();
                             }}
                             disabled={isLoading}
-                            className="flex-1 h-11 border-2 border-gray-300 bg-white !text-gray-900 hover:!bg-gray-100 hover:!text-gray-900 font-semibold"
+                            className="px-5 py-2.5 border-2 border-gray-300 hover:bg-gray-100 font-semibold"
                         >
+                            <X className="h-4 w-4 mr-2" />
                             Hủy
                         </Button>
                         <Button
                             type="submit"
                             disabled={isLoading}
-                            className="flex-1 h-11 bg-[#78A243] hover:bg-[#78A243]/90 text-white shadow-lg hover:shadow-xl transition-all font-semibold"
+                            className="px-5 py-2.5 bg-[#78A243] hover:bg-[#78A243]/90 text-white shadow-lg hover:shadow-xl transition-all font-semibold"
                         >
                             {isLoading ? (
                                 <>
                                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
                                     Đang xử lý...
                                 </>
-                            ) : isEditMode ? (
-                                submitLabel
                             ) : (
                                 <>
-                                    <Plus size={18} className="mr-2" />
-                                    {submitLabel}
+                                    <CheckCircle className="h-4 w-4 mr-2" />
+                                    {isEditMode ? 'Cập nhật' : 'Tạo mới'}
                                 </>
                             )}
                         </Button>

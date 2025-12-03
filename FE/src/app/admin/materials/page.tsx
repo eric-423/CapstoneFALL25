@@ -172,7 +172,6 @@ export default function MaterialsPage() {
         <AdminPageLayout>
             <AdminPageHeader
                 title="Quản lý nguyên liệu"
-                description="Quản lý tổng quan nguyên liệu của tất cả các kho"
                 icon={Package}
                 actions={
                     <div className="flex gap-2">
@@ -319,35 +318,35 @@ export default function MaterialsPage() {
                                             </p>
                                         </td>
                                         <td className="px-6 py-4">
-                                        <div className="flex items-center justify-center gap-2">
-                                            <Button
-                                                onClick={() => handleEdit(material)}
-                                                size="sm"
-                                                variant="outline"
-                                                className="text-[#78A243] border-[#78A243]/30 hover:bg-[#78A243]/10"
-                                                disabled={actionLoading}
-                                            >
-                                                <Edit2 className="h-3 w-3" />
-                                            </Button>
-                                            <Button
-                                                onClick={() => {
-                                                    setNutrientMaterial(material);
-                                                    setShowNutrientDialog(true);
-                                                }}
-                                                size="sm"
-                                                variant="outline"
-                                                className="text-[#DA7339] border-[#DA7339]/30 hover:bg-[#DA7339]/10"
-                                                disabled={actionLoading}
-                                                title="Quản lý dinh dưỡng"
-                                            >
-                                                <Beaker className="h-3 w-3" />
-                                            </Button>
-                                            <Button
-                                                onClick={() => handleDeleteClick(material)}
-                                                size="sm"
-                                                variant="outline"
-                                                className="text-red-600 border-red-200 hover:bg-red-50"
-                                                disabled={actionLoading}
+                                            <div className="flex items-center justify-center gap-2">
+                                                <Button
+                                                    onClick={() => handleEdit(material)}
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="text-[#78A243] border-[#78A243]/30 hover:bg-[#78A243]/10"
+                                                    disabled={actionLoading}
+                                                >
+                                                    <Edit2 className="h-3 w-3" />
+                                                </Button>
+                                                <Button
+                                                    onClick={() => {
+                                                        setNutrientMaterial(material);
+                                                        setShowNutrientDialog(true);
+                                                    }}
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="text-[#DA7339] border-[#DA7339]/30 hover:bg-[#DA7339]/10"
+                                                    disabled={actionLoading}
+                                                    title="Quản lý dinh dưỡng"
+                                                >
+                                                    <Beaker className="h-3 w-3" />
+                                                </Button>
+                                                <Button
+                                                    onClick={() => handleDeleteClick(material)}
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="text-red-600 border-red-200 hover:bg-red-50"
+                                                    disabled={actionLoading}
                                                 >
                                                     <Trash2 className="h-3 w-3" />
                                                 </Button>

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, MapPin } from 'lucide-react';
+import { X, MapPin, Warehouse as WarehouseIcon, CheckCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -196,115 +196,117 @@ export function WarehouseFormDialog({
     if (!open) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <Card className="w-full max-w-2xl bg-white shadow-2xl rounded-2xl overflow-hidden py-0">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+            <Card className="w-full max-w-2xl bg-white shadow-2xl rounded-2xl border-0 overflow-hidden py-0">
                 {/* Header */}
-                <div className="bg-[#78A243] p-6">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-2xl font-bold text-white">
+                <div className="bg-[#78A243] p-5 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
+                            <WarehouseIcon className="h-5 w-5 text-white" />
+                        </div>
+                        <h2 className="text-xl font-bold text-white">
                             {warehouse ? 'Chỉnh sửa kho' : 'Thêm kho mới'}
                         </h2>
-                        <button
-                            onClick={() => onOpenChange(false)}
-                            disabled={loading}
-                            className="p-2 hover:bg-white/20 rounded-lg transition-colors disabled:opacity-50"
-                        >
-                            <X className="h-6 w-6 text-white" />
-                        </button>
                     </div>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onOpenChange(false)}
+                        disabled={loading}
+                        className="border-white/30 bg-white/10 hover:bg-white/20 text-white hover:text-white h-8 w-8 p-0"
+                    >
+                        <X className="h-4 w-4" />
+                    </Button>
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="p-6">
-                    <div className="space-y-6">
-                        {/* Chi nhánh */}
-                        <div>
-                            <Label htmlFor="branchId" className="text-sm font-semibold text-[#2D1E1A]">
-                                Chi nhánh <span className="text-red-500">*</span>
-                            </Label>
-                            <AdminSelect
-                                value={formData.branchId}
-                                onValueChange={(value) => setFormData({ ...formData, branchId: value })}
-                                disabled={loading}
-                                placeholder={warehouse?.branchName || "Chọn chi nhánh"}
-                                className="mt-2"
-                                options={availableBranches.map((branch) => ({
-                                    value: branch.id.toString(),
-                                    label: branch.name,
-                                    subLabel: branch.address || undefined
-                                }))}
-                            />
-                        </div>
+                <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                    {/* Chi nhánh */}
+                    <div className="space-y-2">
+                        <Label htmlFor="branchId" className="text-sm font-semibold text-gray-700 flex items-center gap-1">
+                            <WarehouseIcon className="h-4 w-4" />
+                            Chi nhánh <span className="text-red-500">*</span>
+                        </Label>
+                        <AdminSelect
+                            value={formData.branchId}
+                            onValueChange={(value) => setFormData({ ...formData, branchId: value })}
+                            disabled={loading}
+                            placeholder={warehouse?.branchName || "Chọn chi nhánh"}
+                            options={availableBranches.map((branch) => ({
+                                value: branch.id.toString(),
+                                label: branch.name,
+                                subLabel: branch.address || undefined
+                            }))}
+                        />
+                    </div>
 
-                        {/* Địa chỉ */}
-                        <div>
-                            <Label htmlFor="address" className="text-sm font-semibold text-[#2D1E1A]">
-                                Địa chỉ kho <span className="text-red-500">*</span>
-                            </Label>
-                            <div className="mt-2 space-y-2">
-                                <AddressAutocomplete
-                                    value={formData.address}
-                                    onChange={(value) => setFormData({ ...formData, address: value })}
-                                    placeholder="VD: 123 Nguyễn Huệ, Phường Bến Thành, Quận 1, TP.HCM"
-                                    rows={3}
-                                    disabled={loading}
-                                />
-                                {formData.branchId && (
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => {
-                                            const selectedBranch = branches.find(b => b.id.toString() === formData.branchId);
-                                            if (selectedBranch) {
-                                                setFormData({ ...formData, address: selectedBranch.address });
-                                                toast.success('✅ Đã sử dụng địa chỉ chi nhánh');
-                                            }
-                                        }}
-                                        disabled={loading}
-                                        className="text-[#78A243] border-[#78A243]/30 hover:bg-[#78A243]/10"
-                                    >
-                                        <MapPin className="h-3 w-3 mr-1" />
-                                        Sử dụng địa chỉ chi nhánh
-                                    </Button>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Trạng thái */}
-                        <div>
-                            <Label htmlFor="isActive" className="text-sm font-semibold text-[#2D1E1A]">
-                                Trạng thái
-                            </Label>
-                            <AdminSelect
-                                value={formData.isActive.toString()}
-                                onValueChange={(value) => setFormData({ ...formData, isActive: value === 'true' })}
+                    {/* Địa chỉ */}
+                    <div className="space-y-2">
+                        <Label htmlFor="address" className="text-sm font-semibold text-gray-700 flex items-center gap-1">
+                            <MapPin className="h-4 w-4" />
+                            Địa chỉ kho <span className="text-red-500">*</span>
+                        </Label>
+                        <AddressAutocomplete
+                            value={formData.address}
+                            onChange={(value) => setFormData({ ...formData, address: value })}
+                            placeholder="VD: 123 Nguyễn Huệ, Phường Bến Thành, Quận 1, TP.HCM"
+                            rows={3}
+                            disabled={loading}
+                        />
+                        {formData.branchId && (
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                    const selectedBranch = branches.find(b => b.id.toString() === formData.branchId);
+                                    if (selectedBranch) {
+                                        setFormData({ ...formData, address: selectedBranch.address });
+                                        toast.success('✅ Đã sử dụng địa chỉ chi nhánh');
+                                    }
+                                }}
                                 disabled={loading}
-                                placeholder="Chọn trạng thái"
-                                className="mt-2"
-                                options={[
-                                    { value: 'true', label: 'Hoạt động' },
-                                    { value: 'false', label: 'Ngừng hoạt động' },
-                                ]}
-                            />
-                        </div>
+                                className="text-[#78A243] border-[#78A243]/30 hover:bg-[#78A243]/10"
+                            >
+                                <MapPin className="h-3 w-3 mr-1" />
+                                Sử dụng địa chỉ chi nhánh
+                            </Button>
+                        )}
+                    </div>
+
+                    {/* Trạng thái */}
+                    <div className="space-y-2">
+                        <Label htmlFor="isActive" className="text-sm font-semibold text-gray-700">
+                            Trạng thái
+                        </Label>
+                        <AdminSelect
+                            value={formData.isActive.toString()}
+                            onValueChange={(value) => setFormData({ ...formData, isActive: value === 'true' })}
+                            disabled={loading}
+                            placeholder="Chọn trạng thái"
+                            options={[
+                                { value: 'true', label: 'Hoạt động' },
+                                { value: 'false', label: 'Ngừng hoạt động' },
+                            ]}
+                        />
                     </div>
 
                     {/* Footer */}
-                    <div className="mt-6 flex gap-3 justify-end border-t pt-6">
+                    <div className="bg-gray-50 border-t border-gray-200 -mx-6 -mb-6 mt-6 p-4 flex gap-3 justify-end">
                         <Button
                             type="button"
                             onClick={() => onOpenChange(false)}
                             disabled={loading}
                             variant="outline"
-                            className="px-6"
+                            className="px-5 py-2.5 border-2 border-gray-300 hover:bg-gray-100 font-semibold"
                         >
-                            Hủy bỏ
+                            <X className="h-4 w-4 mr-2" />
+                            Hủy
                         </Button>
                         <Button
                             type="submit"
                             disabled={loading}
-                            className="px-6 bg-[#78A243] hover:bg-[#78A243]/90 text-white"
+                            className="px-5 py-2.5 bg-[#78A243] hover:bg-[#78A243]/90 text-white shadow-lg hover:shadow-xl transition-all font-semibold"
                         >
                             {loading ? (
                                 <>
@@ -312,7 +314,10 @@ export function WarehouseFormDialog({
                                     Đang lưu...
                                 </>
                             ) : (
-                                warehouse ? 'Cập nhật' : 'Thêm mới'
+                                <>
+                                    <CheckCircle className="h-4 w-4 mr-2" />
+                                    {warehouse ? 'Cập nhật' : 'Tạo mới'}
+                                </>
                             )}
                         </Button>
                     </div>

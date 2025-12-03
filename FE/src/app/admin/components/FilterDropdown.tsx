@@ -65,60 +65,56 @@ export function FilterDropdown({
                 </Button>
             </PopoverTrigger>
             <PopoverContent
-                className="w-auto min-w-fit max-w-[calc(100vw-2rem)] p-0 !bg-[#FFFCF7] !z-[9999] max-h-[400px] flex flex-col"
+                className="w-auto min-w-fit max-w-[calc(100vw-2rem)] p-0 !bg-[#FFFCF7] !z-[9999] max-h-[280px] overflow-hidden"
                 align="center"
                 sideOffset={8}
                 style={{ width: "fit-content", minWidth: "fit-content" }}
             >
-                <div className="flex-1 overflow-hidden">
-                    <ScrollArea className="max-h-[300px]">
-                        <div className="px-3 py-2 space-y-1">
-                            {/* Option to clear/select all if needed, or just the items */}
-                            {showAllOption && (
-                                <Button
-                                    variant="ghost"
-                                    onClick={() => handleSelect("")}
-                                    className={cn(
-                                        "flex w-full justify-start p-3 h-auto text-left gap-3",
-                                        value === ""
-                                            ? "bg-orange-100 !text-orange-600 font-medium"
-                                            : "hover:bg-orange-50 !text-orange-500"
-                                    )}
-                                >
-                                    <div className="text-left">
-                                        <div className="font-medium text-sm">Tất cả</div>
-                                    </div>
-                                    {value === "" && <Check className="h-4 w-4 ml-auto" />}
-                                </Button>
+                <div className="px-3 py-2 space-y-1 max-h-[264px] overflow-y-auto">
+                    {/* Option to clear/select all if needed, or just the items */}
+                    {showAllOption && (
+                        <Button
+                            variant="ghost"
+                            onClick={() => handleSelect("")}
+                            className={cn(
+                                "flex w-full justify-start p-3 h-auto text-left gap-3",
+                                value === ""
+                                    ? "bg-orange-100 !text-orange-600 font-medium"
+                                    : "hover:bg-orange-50 !text-orange-500"
                             )}
+                        >
+                            <div className="text-left">
+                                <div className="font-medium text-sm">Tất cả</div>
+                            </div>
+                            {value === "" && <Check className="h-4 w-4 ml-auto" />}
+                        </Button>
+                    )}
 
-                            {items.map((item) => (
-                                <Button
-                                    key={item.value}
-                                    variant="ghost"
-                                    onClick={() => handleSelect(item.value)}
-                                    className={cn(
-                                        "flex w-full justify-start p-3 h-auto text-left gap-3",
-                                        value === item.value
-                                            ? "bg-orange-100 !text-orange-600 font-medium"
-                                            : "hover:bg-orange-50 !text-orange-500"
-                                    )}
-                                >
-                                    <div className="text-left">
-                                        <div className="font-medium text-sm">
-                                            {item.label}
-                                        </div>
-                                        {item.subLabel && (
-                                            <div className="text-xs text-gray-600 mt-1">
-                                                {item.subLabel}
-                                            </div>
-                                        )}
+                    {items.map((item) => (
+                        <Button
+                            key={item.value}
+                            variant="ghost"
+                            onClick={() => handleSelect(item.value)}
+                            className={cn(
+                                "flex w-full justify-start p-3 h-auto text-left gap-3",
+                                value === item.value
+                                    ? "bg-orange-100 !text-orange-600 font-medium"
+                                    : "hover:bg-orange-50 !text-orange-500"
+                            )}
+                        >
+                            <div className="text-left">
+                                <div className="font-medium text-sm">
+                                    {item.label}
+                                </div>
+                                {item.subLabel && (
+                                    <div className="text-xs text-gray-600 mt-1">
+                                        {item.subLabel}
                                     </div>
-                                    {value === item.value && <Check className="h-4 w-4 ml-auto" />}
-                                </Button>
-                            ))}
-                        </div>
-                    </ScrollArea>
+                                )}
+                            </div>
+                            {value === item.value && <Check className="h-4 w-4 ml-auto" />}
+                        </Button>
+                    ))}
                 </div>
             </PopoverContent>
         </Popover>

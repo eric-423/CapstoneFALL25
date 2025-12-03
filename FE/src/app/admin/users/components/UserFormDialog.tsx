@@ -270,10 +270,10 @@ export function UserFormDialog({ open, onOpenChange, user, onSuccess }: UserForm
                         </div>
                     </div>
                     <Button
-                        variant="ghost"
-                        size="icon"
+                        variant="outline"
+                        size="sm"
                         onClick={() => onOpenChange(false)}
-                        className="h-8 w-8 rounded-full border border-white/30 bg-white/10 hover:bg-white/20 text-white hover:text-white"
+                        className="border-white/30 bg-white/10 hover:bg-white/20 text-white hover:text-white h-8 w-8 p-0"
                     >
                         <X className="h-4 w-4" />
                     </Button>

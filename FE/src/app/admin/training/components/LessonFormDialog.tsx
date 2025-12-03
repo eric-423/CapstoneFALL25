@@ -1,14 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { BookOpen, Edit, Plus } from "lucide-react";
+import { BookOpen, X, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
-    DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
 import {
@@ -251,40 +249,46 @@ export function LessonFormDialog({
 
     return (
         <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className=" w-[96vw] max-w-[96vw] sm:!max-w-[90vw] lg:!max-w-[55vw] xl:!max-w-[40vw] max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2 text-2xl font-bold bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">
-                        <BookOpen size={28} className="text-orange-500" />
-                        {mode === "edit" ? "Cập nhật bài học" : "Thêm bài học mới"}
-                    </DialogTitle>
-                    <DialogDescription>
-                        {mode === "edit" ? (
-                            <>
-                                Cập nhật thông tin bài học cho khóa đào tạo:{" "}
-                                <span className="font-semibold text-primary">
-                                    {training?.name}
-                                </span>
-                            </>
-                        ) : (
-                            <>
-                                Tạo bài học mới cho khóa đào tạo:{" "}
-                                <span className="font-semibold text-primary">
-                                    {training?.name}
-                                </span>
-                            </>
-                        )}
-                    </DialogDescription>
-                </DialogHeader>
-
-                {errors.form && (
-                    <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                        <p className="text-sm text-red-600 font-semibold">{errors.form}</p>
+            <DialogContent
+                className="sm:max-w-2xl max-h-[90vh] overflow-hidden p-0 gap-0 bg-white border-0 shadow-2xl rounded-2xl [&>button]:hidden z-[111] flex flex-col"
+                overlayClassName="z-[110]"
+            >
+                {/* Header - Fixed */}
+                <div className="bg-[#78A243] p-5 flex items-center justify-between rounded-t-2xl flex-shrink-0">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
+                            <BookOpen className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                            <DialogTitle className="text-xl font-bold text-white">
+                                {mode === "edit" ? "Cập nhật bài học" : "Thêm bài học mới"}
+                            </DialogTitle>
+                            <p className="text-sm text-white/80 mt-0.5">
+                                Khóa: <strong>{training?.name}</strong>
+                            </p>
+                        </div>
                     </div>
-                )}
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={onClose}
+                        disabled={loading}
+                        className="border-white/30 bg-white/10 hover:bg-white/20 text-white hover:text-white h-8 w-8 p-0"
+                    >
+                        <X className="h-4 w-4" />
+                    </Button>
+                </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto flex-1">
+                    {errors.form && (
+                        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                            <p className="text-sm text-red-600 font-semibold">{errors.form}</p>
+                        </div>
+                    )}
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-1">
+                        <div className="space-y-2">
                             <label className="text-sm font-semibold text-gray-700">
                                 Tiêu đề <span className="text-red-500">*</span>
                             </label>
@@ -294,14 +298,14 @@ export function LessonFormDialog({
                                 onChange={(e) =>
                                     setForm((prev) => ({ ...prev, title: e.target.value }))
                                 }
-                                className={`h-11 border-2 ${errors.title ? "border-red-400" : "border-gray-200"
-                                    } focus:border-orange-500 focus:ring-orange-500/20 focus:ring-4 transition-all`}
+                                className={`w-full px-4 py-3 border-2 ${errors.title ? "border-red-400" : "border-gray-200"
+                                    } rounded-xl text-sm focus:border-[#78A243] focus:ring-2 focus:ring-[#78A243]/20 transition-all outline-none`}
                             />
                             {errors.title && (
-                                <p className="text-xs text-red-500">{errors.title}</p>
+                                <p className="text-xs text-red-600 font-medium">{errors.title}</p>
                             )}
                         </div>
-                        <div className="space-y-1">
+                        <div className="space-y-2">
                             <label className="text-sm font-semibold text-gray-700">
                                 Điểm bài học <span className="text-red-500">*</span>
                             </label>
@@ -312,14 +316,14 @@ export function LessonFormDialog({
                                 onChange={(e) =>
                                     setForm((prev) => ({ ...prev, point: e.target.value }))
                                 }
-                                className={`h-11 border-2 ${errors.point ? "border-red-400" : "border-gray-200"
-                                    } focus:border-orange-500 focus:ring-orange-500/20 focus:ring-4 transition-all`}
+                                className={`w-full px-4 py-3 border-2 ${errors.point ? "border-red-400" : "border-gray-200"
+                                    } rounded-xl text-sm focus:border-[#78A243] focus:ring-2 focus:ring-[#78A243]/20 transition-all outline-none`}
                             />
                             {errors.point && (
-                                <p className="text-xs text-red-500">{errors.point}</p>
+                                <p className="text-xs text-red-600 font-medium">{errors.point}</p>
                             )}
                         </div>
-                        <div className="space-y-1">
+                        <div className="space-y-2">
                             <label className="text-sm font-semibold text-gray-700">
                                 Thứ tự <span className="text-red-500">*</span>
                             </label>
@@ -330,14 +334,14 @@ export function LessonFormDialog({
                                 onChange={(e) =>
                                     setForm((prev) => ({ ...prev, orderIndex: e.target.value }))
                                 }
-                                className={`h-11 border-2 ${errors.orderIndex ? "border-red-400" : "border-gray-200"
-                                    } focus:border-orange-500 focus:ring-orange-500/20 focus:ring-4 transition-all`}
+                                className={`w-full px-4 py-3 border-2 ${errors.orderIndex ? "border-red-400" : "border-gray-200"
+                                    } rounded-xl text-sm focus:border-[#78A243] focus:ring-2 focus:ring-[#78A243]/20 transition-all outline-none`}
                             />
                             {errors.orderIndex && (
-                                <p className="text-xs text-red-500">{errors.orderIndex}</p>
+                                <p className="text-xs text-red-600 font-medium">{errors.orderIndex}</p>
                             )}
                         </div>
-                        <div className="space-y-1">
+                        <div className="space-y-2">
                             <label className="text-sm font-semibold text-gray-700">
                                 Trạng thái
                             </label>
@@ -347,7 +351,7 @@ export function LessonFormDialog({
                                         form.isActive ? "Ẩn bài học" : "Kích hoạt bài học"
                                     }
                                     type="button"
-                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${form.isActive ? "bg-orange-500" : "bg-gray-300"
+                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${form.isActive ? "bg-[#78A243]" : "bg-gray-300"
                                         }`}
                                     onClick={() =>
                                         setForm((prev) => ({ ...prev, isActive: !prev.isActive }))
@@ -365,45 +369,45 @@ export function LessonFormDialog({
                         </div>
                     </div>
 
-                    <div className="space-y-1">
+                    <div className="space-y-2">
                         <label className="text-sm font-semibold text-gray-700">
                             Mô tả ngắn <span className="text-red-500">*</span>
                         </label>
                         <textarea
                             rows={3}
                             placeholder="Mô tả ngắn gọn nội dung bài học"
-                            className={`w-full rounded-md border-2 px-3 py-2 text-sm ${errors.description ? "border-red-400" : "border-gray-200"
-                                } focus:border-orange-500 focus:ring-orange-500/20 focus:ring-4 transition-all outline-none`}
+                            className={`w-full px-4 py-3 border-2 ${errors.description ? "border-red-400" : "border-gray-200"
+                                } rounded-xl text-sm focus:border-[#78A243] focus:ring-2 focus:ring-[#78A243]/20 transition-all resize-none outline-none`}
                             value={form.description}
                             onChange={(e) =>
                                 setForm((prev) => ({ ...prev, description: e.target.value }))
                             }
                         />
                         {errors.description && (
-                            <p className="text-xs text-red-500">{errors.description}</p>
+                            <p className="text-xs text-red-600 font-medium">{errors.description}</p>
                         )}
                     </div>
 
-                    <div className="space-y-1">
+                    <div className="space-y-2">
                         <label className="text-sm font-semibold text-gray-700">
                             Nội dung chi tiết <span className="text-red-500">*</span>
                         </label>
                         <textarea
                             rows={6}
                             placeholder="Nhập nội dung chi tiết của bài học..."
-                            className={`w-full rounded-md border-2 px-3 py-2 text-sm ${errors.content ? "border-red-400" : "border-gray-200"
-                                } focus:border-orange-500 focus:ring-orange-500/20 focus:ring-4 transition-all outline-none`}
+                            className={`w-full px-4 py-3 border-2 ${errors.content ? "border-red-400" : "border-gray-200"
+                                } rounded-xl text-sm focus:border-[#78A243] focus:ring-2 focus:ring-[#78A243]/20 transition-all resize-none outline-none`}
                             value={form.content}
                             onChange={(e) =>
                                 setForm((prev) => ({ ...prev, content: e.target.value }))
                             }
                         />
                         {errors.content && (
-                            <p className="text-xs text-red-500">{errors.content}</p>
+                            <p className="text-xs text-red-600 font-medium">{errors.content}</p>
                         )}
                     </div>
 
-                    <div className="space-y-1">
+                    <div className="space-y-2">
                         <label
                             className="text-sm font-semibold text-gray-700"
                             htmlFor={`lesson-video-input-${mode}`}
@@ -416,7 +420,7 @@ export function LessonFormDialog({
                             id={`lesson-video-input-${mode}`}
                             aria-label="Tải video bài học"
                             onChange={(e) => setFileVideo(e.target.files?.[0] ?? null)}
-                            className="block w-full text-sm text-gray-700 border-2 border-gray-200 rounded-md cursor-pointer focus:border-primary file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90"
+                            className="block w-full text-sm text-gray-700 border-2 border-gray-200 rounded-xl cursor-pointer focus:border-[#78A243] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#78A243] file:text-white hover:file:bg-[#78A243]/90"
                         />
                         {fileVideo && (
                             <p className="text-xs text-gray-500">Đã chọn: {fileVideo.name}</p>
@@ -427,7 +431,7 @@ export function LessonFormDialog({
                                     href={form.videoUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-xs text-primary underline-offset-4 hover:underline inline-flex items-center gap-1"
+                                    className="text-xs text-[#78A243] underline-offset-4 hover:underline inline-flex items-center gap-1"
                                 >
                                     Xem video hiện tại
                                     <ExternalLink size={12} />
@@ -440,39 +444,36 @@ export function LessonFormDialog({
                             </p>
                         )}
                         {errors.video && (
-                            <p className="text-xs text-red-500">{errors.video}</p>
+                            <p className="text-xs text-red-600 font-medium">{errors.video}</p>
                         )}
                     </div>
 
-                    <div className="flex gap-3 pt-4 border-t border-gray-200">
+                    {/* Footer */}
+                    <div className="bg-gray-50 border-t border-gray-200 -mx-6 -mb-6 mt-6 p-4 flex gap-3 justify-end rounded-b-2xl">
                         <Button
                             type="button"
                             variant="outline"
                             onClick={onClose}
-                            className="flex-1 h-11 border-2 border-gray-300 bg-white !text-gray-900 hover:!bg-gray-100 hover:!text-gray-900 font-semibold"
+                            className="px-5 py-2.5 border-2 border-gray-300 hover:bg-gray-100 font-semibold"
                             disabled={loading}
                         >
+                            <X className="h-4 w-4 mr-2" />
                             Hủy
                         </Button>
                         <Button
                             type="submit"
                             disabled={loading}
-                            className="flex-1 h-11 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg hover:shadow-xl transition-all font-semibold"
+                            className="px-5 py-2.5 bg-[#78A243] hover:bg-[#78A243]/90 text-white shadow-lg hover:shadow-xl transition-all font-semibold"
                         >
                             {loading ? (
                                 <>
                                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
                                     Đang lưu...
                                 </>
-                            ) : mode === "edit" ? (
-                                <>
-                                    <Edit size={18} className="mr-2" />
-                                    Cập nhật bài học
-                                </>
                             ) : (
                                 <>
-                                    <Plus size={18} className="mr-2" />
-                                    Tạo bài học
+                                    <CheckCircle className="h-4 w-4 mr-2" />
+                                    {mode === "edit" ? "Cập nhật" : "Tạo bài học"}
                                 </>
                             )}
                         </Button>
