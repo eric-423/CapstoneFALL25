@@ -8,7 +8,7 @@ import {
   type BarcodeProcessContext,
 } from "@/utils/hooks/useBarcodeScanner";
 import {
-  staffAssignChefToOrder,
+  assignChefToOrder,
   staffAssignShipperToOrder,
   getBranchOrders,
 } from "@/apis/order.api";
@@ -183,7 +183,7 @@ export default function StaffLayout({
     const contextBase: BarcodeProcessContext = { status };
 
     if (["IN_PROCESS", "PROCESSING"].includes(status)) {
-      const assignResult = await staffAssignChefToOrder(orderId);
+      const assignResult = await assignChefToOrder(orderId);
       if (!assignResult.success) {
         return {
           success: false,

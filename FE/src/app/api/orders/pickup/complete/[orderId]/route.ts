@@ -4,14 +4,20 @@ import { apiBaseURL } from '@/utils/configs/environment';
 
 const BASE_URL = apiBaseURL || process.env.NEXT_PUBLIC_API_URL || 'https://tam-tac.com/api';
 
-export async function PUT(request: NextRequest, { params }: { params: { orderId?: string } }) {
+type CompletePickupRouteContext = {
+    params: Promise<{ orderId?: string | string[] }>;
+};
+
+export async function PUT(request: NextRequest, context: CompletePickupRouteContext) {
     try {
         const token = request.cookies.get('token')?.value;
         if (!token) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const orderId = params?.orderId;
+        const resolvedParams = await context.params;
+        const rawOrderId = resolvedParams?.orderId;
+        const orderId = Array.isArray(rawOrderId) ? rawOrderId[0] : rawOrderId;
         if (!orderId) {
             return NextResponse.json({ error: 'Missing orderId' }, { status: 400 });
         }

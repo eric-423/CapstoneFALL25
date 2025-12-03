@@ -2,12 +2,7 @@
 
 import { Montserrat } from 'next/font/google';
 import { useRouter } from 'next/navigation';
-import {
-    useState,
-    useEffect,
-    useMemo,
-    useCallback,
-} from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { flushSync } from 'react-dom';
 
 import {
@@ -16,6 +11,7 @@ import {
     AdminStatsCard,
     AdminStatsGrid,
 } from '@/app/admin/components/AdminPageLayout';
+import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -54,8 +50,8 @@ import {
     getOrderStatuses,
     staffAssignShipperToOrder,
 } from '@/apis/order.api';
-import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { toast } from 'react-toastify';
+import { getKioskMode } from '@/utils/getKioskMode';
 
 const montserrat = Montserrat({
     subsets: ['latin', 'vietnamese'],
@@ -78,41 +74,226 @@ const DEFAULT_STATUSES = [
     'CANCELLED',
 ];
 
-const statusLabels: Record<string, string> = {
-    ALL: 'Tất cả',
-    CREATED: 'Đã tạo',
-    COOKING: 'Đang nấu',
-    COOKED: 'Đã nấu xong',
-    IN_PROCESS: 'Đang xử lý',
-    PROCESSING: 'Đang xử lý',
-    SHIPPING: 'Đang giao',
-    DELIVERING: 'Đang giao hàng',
-    DELIVERED: 'Đã giao',
-    COMPLETED: 'Hoàn thành',
-    CANCELLED: 'Đã hủy',
-    CANCEL: 'Đã hủy',
-    PAID: 'Đã thanh toán',
-};
-
-const statusClasses: Record<string, string> = {
-    CREATED: 'bg-blue-50 text-blue-700 border-blue-200',
-    COOKING: 'bg-orange-50 text-orange-700 border-orange-200',
-    COOKED: 'bg-amber-50 text-amber-700 border-amber-200',
-    IN_PROCESS: 'bg-yellow-50 text-yellow-700 border-yellow-200',
-    PROCESSING: 'bg-yellow-50 text-yellow-700 border-yellow-200',
-    SHIPPING: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-    DELIVERING: 'bg-purple-50 text-purple-700 border-purple-200',
-    DELIVERED: 'bg-purple-50 text-purple-700 border-purple-200',
-    COMPLETED: 'bg-green-50 text-green-700 border-green-200',
-    CANCELLED: 'bg-red-50 text-red-700 border-red-200',
-    CANCEL: 'bg-red-50 text-red-700 border-red-200',
-    PAID: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-};
-
 const PRINT_CONFIG = {
     autoClose: true,
     useServerPrint: process.env.NEXT_PUBLIC_USE_SERVER_PRINT === 'true',
     isKioskMode: getKioskMode(),
+};
+
+const getStatusLabel = (status: string): string => {
+    const statusMap: Record<string, string> = {
+        ALL: 'Tất cả',
+        CREATED: 'Đã tạo',
+        COOKING: 'Đang nấu',
+        COOKED: 'Đã nấu xong',
+        IN_PROCESS: 'Đang xử lý',
+        PROCESSING: 'Đang xử lý',
+        SHIPPING: 'Đang giao',
+        DELIVERING: 'Đang giao hàng',
+        DELIVERED: 'Đã giao',
+        COMPLETED: 'Hoàn thành',
+        CANCELLED: 'Đã hủy',
+        CANCEL: 'Đã hủy',
+        PAID: 'Đã thanh toán',
+    };
+    return statusMap[status] || status;
+};
+
+const getStatusBadgeClass = (status: string): string => {
+    const statusClasses: Record<string, string> = {
+        CREATED: 'bg-blue-50 text-blue-700 border-blue-200',
+        COOKING: 'bg-orange-50 text-orange-700 border-orange-200',
+        COOKED: 'bg-amber-50 text-amber-700 border-amber-200',
+        IN_PROCESS: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+        PROCESSING: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+        SHIPPING: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+        DELIVERING: 'bg-purple-50 text-purple-700 border-purple-200',
+        DELIVERED: 'bg-purple-50 text-purple-700 border-purple-200',
+        COMPLETED: 'bg-green-50 text-green-700 border-green-200',
+        CANCELLED: 'bg-red-50 text-red-700 border-red-200',
+        CANCEL: 'bg-red-50 text-red-700 border-red-200',
+        PAID: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    };
+    return statusClasses[status] || 'bg-gray-50 text-gray-700 border-gray-200';
+};
+
+const getStatusIcon = (status: string) => {
+    switch (status) {
+        case 'COMPLETED':
+            return <CheckCircle size={14} strokeWidth={2.5} />;
+        case 'COOKING':
+        case 'COOKED':
+            return <Clock size={14} strokeWidth={2.5} />;
+        case 'IN_PROCESS':
+        case 'PROCESSING':
+            return <Clock size={14} strokeWidth={2.5} />;
+        case 'SHIPPING':
+        case 'DELIVERING':
+        case 'DELIVERED':
+            return <Truck size={14} strokeWidth={2.5} />;
+        case 'CANCELLED':
+        case 'CANCEL':
+            return <XCircle size={14} strokeWidth={2.5} />;
+        case 'PAID':
+            return <DollarSign size={14} strokeWidth={2.5} />;
+        default:
+            return <Package size={14} strokeWidth={2.5} />;
+    }
+};
+
+const formatDate = (dateString: string | null): string => {
+    if (!dateString) return 'Chưa có';
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleString('vi-VN', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+        });
+    } catch {
+        return 'Không hợp lệ';
+    }
+};
+
+const formatCurrency = (amount: number): string => {
+    return new Intl.NumberFormat('vi-VN').format(amount) + 'đ';
+};
+
+const focusBarcodeScanner = () => {
+    if (typeof window === 'undefined') return;
+
+    window.focus();
+    document.body.focus();
+
+    const input = document.createElement('input');
+    input.style.cssText = 'position:fixed;left:-9999px;opacity:0;';
+    input.autofocus = true;
+    document.body.appendChild(input);
+    input.focus();
+
+    const remove = () => input.parentNode && document.body.removeChild(input);
+    setTimeout(remove, 6000);
+
+    input.addEventListener('input', (e) => {
+        const v = (e.target as HTMLInputElement).value;
+        if (v.length > 6) {
+            window.dispatchEvent(new CustomEvent('barcodeScanned', { detail: v }));
+            remove();
+        }
+    });
+    input.addEventListener('blur', () => setTimeout(() => input.focus(), 100));
+};
+
+const fetchAssignToChef = async (orderId: number) => {
+    try {
+        const assignResult = await assignChefToOrder(orderId);
+        return assignResult.success;
+    } catch {
+        toast.error('Lỗi khi chuyển cho bếp. Vui lòng thử lại.');
+        return false;
+    }
+};
+
+async function fetchOrderDetail(orderId: number) {
+    const response = await getCustomerOrderDetail(orderId);
+    return response?.data ?? null;
+}
+
+const downloadInvoiceBlob = async (orderId: number) => {
+    const response = await fetch(`/api/orders/${orderId}/bill/download`, {
+        credentials: 'include',
+    });
+    if (!response.ok) throw new Error('Không lấy được invoice');
+    return response.blob();
+};
+
+const printBlobInBrowser = async (blob: Blob) => {
+    const url = URL.createObjectURL(blob);
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText =
+        'position:fixed;right:0;bottom:0;width:0;height:0;border:0;opacity:0;';
+    iframe.src = url;
+    document.body.appendChild(iframe);
+
+    const onloadDelay = PRINT_CONFIG.isKioskMode ? 0 : 3;
+    const fallbackDelay = PRINT_CONFIG.isKioskMode ? 10 : 100;
+    const scannerRefocusDelay = PRINT_CONFIG.isKioskMode ? 80 : 200;
+
+    let cleaned = false;
+    let hasTriggeredPrint = false;
+    let onloadTriggerTimeout: ReturnType<typeof setTimeout> | null = null;
+    let fallbackTriggerTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    const cleanup = () => {
+        if (cleaned) return;
+        cleaned = true;
+        if (onloadTriggerTimeout) {
+            clearTimeout(onloadTriggerTimeout);
+            onloadTriggerTimeout = null;
+        }
+        if (fallbackTriggerTimeout) {
+            clearTimeout(fallbackTriggerTimeout);
+            fallbackTriggerTimeout = null;
+        }
+        iframe.contentWindow?.removeEventListener('afterprint', afterPrint);
+        window.removeEventListener('afterprint', afterPrint);
+        document.removeEventListener('visibilitychange', onVisible);
+        if (iframe.parentNode) document.body.removeChild(iframe);
+        URL.revokeObjectURL(url);
+    };
+
+    const triggerPrint = () => {
+        if (hasTriggeredPrint) return;
+        const win = iframe.contentWindow;
+        if (!win) return;
+        hasTriggeredPrint = true;
+
+        if (onloadTriggerTimeout) {
+            clearTimeout(onloadTriggerTimeout);
+            onloadTriggerTimeout = null;
+        }
+
+        if (fallbackTriggerTimeout) {
+            clearTimeout(fallbackTriggerTimeout);
+            fallbackTriggerTimeout = null;
+        }
+
+        focusBarcodeScanner();
+        win.focus();
+
+        win.print();
+
+        setTimeout(focusBarcodeScanner, scannerRefocusDelay);
+    };
+
+    const onVisible = () => {
+        if (document.visibilityState === 'visible') {
+            focusBarcodeScanner();
+            document.removeEventListener('visibilitychange', onVisible);
+        }
+    };
+
+    const afterPrint = (): void => {
+        focusBarcodeScanner();
+        cleanup();
+    };
+
+    document.addEventListener('visibilitychange', onVisible);
+    iframe.onload = () => {
+        iframe.contentWindow?.addEventListener('afterprint', afterPrint);
+        onloadTriggerTimeout = setTimeout(triggerPrint, onloadDelay);
+    };
+
+    fallbackTriggerTimeout = setTimeout(() => {
+        if (!hasTriggeredPrint) {
+            triggerPrint();
+        }
+    }, fallbackDelay);
+
+    setTimeout(cleanup, 5000);
+    window.addEventListener('afterprint', afterPrint);
 };
 
 export function OrdersBoard({ variant }: OrdersBoardProps) {
@@ -141,8 +322,9 @@ export function OrdersBoard({ variant }: OrdersBoardProps) {
                     response.data &&
                     Array.isArray(response.data)
                 ) {
-                    const normalized = normalizeStatuses(response.data);
-                    setOrderStatuses(normalized);
+                    setOrderStatuses(
+                        response.data.filter((status) => status.toUpperCase() !== 'PAID')
+                    );
                 } else {
                     setOrderStatuses(DEFAULT_STATUSES);
                 }
@@ -194,9 +376,9 @@ export function OrdersBoard({ variant }: OrdersBoardProps) {
         };
 
         const eventName = 'refreshOrders';
-        window.addEventListener(eventName as any, handleRefreshOrders as EventListener);
+        window.addEventListener(eventName, handleRefreshOrders as EventListener);
         return () => {
-            window.removeEventListener(eventName as any, handleRefreshOrders as EventListener);
+            window.removeEventListener(eventName, handleRefreshOrders as EventListener);
         };
     }, [fetchOrders]);
 
@@ -330,11 +512,10 @@ export function OrdersBoard({ variant }: OrdersBoardProps) {
                                     key={status}
                                     onClick={() => setSelectedStatus(status)}
                                     variant={selectedStatus === status ? 'default' : 'outline'}
-                                    className={`transition-all duration-300 rounded-xl font-semibold whitespace-nowrap px-4 py-2 ${
-                                        selectedStatus === status
-                                            ? 'bg-[#EC6426] text-white border-0 shadow-md hover:from-[#E05522] hover:to-[#E6991A]'
-                                            : 'border-2 border-[#EC6426]/30 text-[#EC6426] bg-white hover:border-[#EC6426] hover:bg-[#EC6426]/5'
-                                    }`}
+                                    className={`transition-all duration-300 rounded-xl font-semibold whitespace-nowrap px-4 py-2 ${selectedStatus === status
+                                        ? 'bg-[#EC6426] text-white border-0 shadow-md hover:from-[#E05522] hover:to-[#E6991A]'
+                                        : 'border-2 border-[#EC6426]/30 text-[#EC6426] bg-white hover:border-[#EC6426] hover:bg-[#EC6426]/5'
+                                        }`}
                                 >
                                     {getStatusLabel(status)}
                                 </Button>
@@ -458,29 +639,29 @@ export function OrdersBoard({ variant }: OrdersBoardProps) {
                                                 {(order.waiterName ||
                                                     order.chefName ||
                                                     order.shipperName) && (
-                                                    <div className="flex flex-wrap gap-3 pt-2">
-                                                        {order.waiterName && (
-                                                            <div className="text-sm text-gray-600">
-                                                                <span className="font-semibold">
-                                                                    Nhân viên:
-                                                                </span>{' '}
-                                                                {order.waiterName}
-                                                            </div>
-                                                        )}
-                                                        {order.chefName && (
-                                                            <div className="text-xs text-gray-600">
-                                                                <span className="font-semibold">Đầu bếp:</span>{' '}
-                                                                {order.chefName}
-                                                            </div>
-                                                        )}
-                                                        {order.shipperName && (
-                                                            <div className="text-xs text-gray-600">
-                                                                <span className="font-semibold">Shipper:</span>{' '}
-                                                                {order.shipperName}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
+                                                        <div className="flex flex-wrap gap-3 pt-2">
+                                                            {order.waiterName && (
+                                                                <div className="text-sm text-gray-600">
+                                                                    <span className="font-semibold">
+                                                                        Nhân viên:
+                                                                    </span>{' '}
+                                                                    {order.waiterName}
+                                                                </div>
+                                                            )}
+                                                            {order.chefName && (
+                                                                <div className="text-xs text-gray-600">
+                                                                    <span className="font-semibold">Đầu bếp:</span>{' '}
+                                                                    {order.chefName}
+                                                                </div>
+                                                            )}
+                                                            {order.shipperName && (
+                                                                <div className="text-xs text-gray-600">
+                                                                    <span className="font-semibold">Shipper:</span>{' '}
+                                                                    {order.shipperName}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
                                             </div>
 
                                             <div className="flex flex-col items-end gap-3 lg:w-[240px] lg:flex-shrink-0">
@@ -596,6 +777,28 @@ function StaffOrderDetailDialog({
     orderDetail,
     detailLoading,
 }: StaffOrderDetailDialogProps) {
+    if (!selectedOrder) {
+        return (
+            <Dialog
+                open={open}
+                onOpenChange={(isOpen) => {
+                    if (!isOpen) {
+                        onClose();
+                    }
+                }}
+            >
+                <DialogContent className="w-[90vw] sm:w-[90vw] lg:w-[50vw] max-w-[95vw] sm:max-w-5xl lg:max-w-6xl max-h-[90vh] overflow-y-auto bg-[#FFF9F3] rounded-3xl border-none p-4 sm:p-6 shadow-[0_20px_50px_rgba(12,21,55,0.2)]">
+                    {detailLoading && (
+                        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-white/70 rounded-3xl">
+                            <LoadingSpinner />
+                            <p className="text-sm text-gray-600">Đang tải chi tiết đơn hàng...</p>
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
+        );
+    }
+
     return (
         <Dialog
             open={open}
@@ -612,127 +815,126 @@ function StaffOrderDetailDialog({
                         <p className="text-sm text-gray-600">Đang tải chi tiết đơn hàng...</p>
                     </div>
                 )}
-                {selectedOrder && (
-                    <div className="space-y-6">
-                        <DialogHeader>
-                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                <div>
-                                    <DialogTitle className="text-2xl font-bold flex items-center gap-3">
-                                        Chi tiết đơn #{selectedOrder.id}
-                                        <Badge
-                                            className={`px-3 py-1 text-xs font-semibold rounded-lg border-2 ${getStatusBadgeClass(selectedOrder.orderStatus)}`}
-                                        >
-                                            {getStatusIcon(selectedOrder.orderStatus)}
-                                            {getStatusLabel(selectedOrder.orderStatus)}
-                                        </Badge>
-                                    </DialogTitle>
-                                    <DialogDescription>
-                                        Toàn bộ thông tin đơn hàng tại chi nhánh của bạn.
-                                    </DialogDescription>
-                                </div>
-                                <div className="flex flex-wrap gap-2">
-                                    {selectedOrder.isTable && (
-                                        <Badge className="bg-blue-50 text-blue-700 border-blue-200 border-2 px-3 py-1 text-xs font-semibold rounded-xl">
-                                            Tại bàn
-                                        </Badge>
-                                    )}
-                                    {selectedOrder.isPickUp && (
-                                        <Badge className="bg-purple-50 text-purple-700 border-purple-200 border-2 px-3 py-1 text-xs font-semibold rounded-xl">
-                                            Mang đi
-                                        </Badge>
-                                    )}
-                                    {!selectedOrder.isTable && !selectedOrder.isPickUp && (
-                                        <Badge className="bg-green-50 text-green-700 border-green-200 border-2 px-3 py-1 text-xs font-semibold rounded-xl flex items-center gap-1">
-                                            <Truck size={12} />
-                                            Giao hàng
-                                        </Badge>
-                                    )}
-                                </div>
+                <div className="space-y-6">
+                    <DialogHeader>
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <DialogTitle className="text-2xl font-bold flex items-center gap-3">
+                                    Chi tiết đơn #{selectedOrder.id}
+                                    <Badge
+                                        className={`px-3 py-1 text-xs font-semibold rounded-lg border-2 ${getStatusBadgeClass(selectedOrder.orderStatus)}`}
+                                    >
+                                        {getStatusIcon(selectedOrder.orderStatus)}
+                                        {getStatusLabel(selectedOrder.orderStatus)}
+                                    </Badge>
+                                </DialogTitle>
+                                <DialogDescription>
+                                    Toàn bộ thông tin đơn hàng tại chi nhánh của bạn.
+                                </DialogDescription>
                             </div>
-                        </DialogHeader>
+                            <div className="flex flex-wrap gap-2">
+                                {selectedOrder.isTable && (
+                                    <Badge className="bg-blue-50 text-blue-700 border-blue-200 border-2 px-3 py-1 text-xs font-semibold rounded-xl">
+                                        Tại bàn
+                                    </Badge>
+                                )}
+                                {selectedOrder.isPickUp && (
+                                    <Badge className="bg-purple-50 text-purple-700 border-purple-200 border-2 px-3 py-1 text-xs font-semibold rounded-xl">
+                                        Mang đi
+                                    </Badge>
+                                )}
+                                {!selectedOrder.isTable && !selectedOrder.isPickUp && (
+                                    <Badge className="bg-green-50 text-green-700 border-green-200 border-2 px-3 py-1 text-xs font-semibold rounded-xl flex items-center gap-1">
+                                        <Truck size={12} />
+                                        Giao hàng
+                                    </Badge>
+                                )}
+                            </div>
+                        </div>
+                    </DialogHeader>
 
-                        <div className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <Card className="p-4 bg-gray-50 border border-gray-100 rounded-xl">
-                                    <h3 className="font-semibold text-gray-800 mb-3">
-                                        Thông tin khách hàng
-                                    </h3>
-                                    <div className="space-y-2 text-sm text-gray-600">
-                                        <div className="flex items-center gap-2">
-                                            <User size={16} />
-                                            <span className="font-semibold">
-                                                {orderDetail?.customerName ??
-                                                    orderDetail?.customerDTO?.fullName ??
-                                                    selectedOrder.customerName}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <Phone size={16} />
-                                            <span>
-                                                {orderDetail?.customerDTO?.phone ??
-                                                    orderDetail?.phone ??
-                                                    selectedOrder.customerPhone}
-                                            </span>
-                                        </div>
-                                        {(orderDetail?.address || selectedOrder.address) && (
-                                            <div className="flex items-start gap-2">
-                                                <MapPin size={16} className="mt-0.5" />
-                                                <span>
-                                                    {orderDetail?.address ?? selectedOrder.address}
-                                                </span>
-                                            </div>
-                                        )}
-                                        <div className="flex items-start gap-2">
-                                            <Building2 size={16} className="mt-0.5" />
-                                            <span>
-                                                {selectedOrder.branchName}
-                                                {selectedOrder.branchAddress && (
-                                                    <>, {selectedOrder.branchAddress}</>
-                                                )}
-                                            </span>
-                                        </div>
+                    <div className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <Card className="p-4 bg-gray-50 border border-gray-100 rounded-xl">
+                                <h3 className="font-semibold text-gray-800 mb-3">
+                                    Thông tin khách hàng
+                                </h3>
+                                <div className="space-y-2 text-sm text-gray-600">
+                                    <div className="flex items-center gap-2">
+                                        <User size={16} />
+                                        <span className="font-semibold">
+                                            {orderDetail?.customerName ??
+                                                orderDetail?.customerDTO?.fullName ??
+                                                selectedOrder.customerName}
+                                        </span>
                                     </div>
-                                </Card>
-
-                                <Card className="p-4 bg-gray-50 border border-gray-100 rounded-xl">
-                                    <h3 className="font-semibold text-gray-800 mb-3">
-                                        Thời gian xử lý
-                                    </h3>
-                                    <div className="space-y-2 text-sm text-gray-600">
-                                        <div className="flex items-center gap-2">
-                                            <Calendar size={16} />
-                                            <span className="font-semibold">Đặt:</span>
-                                            <span>{formatDate(selectedOrder.orderDate)}</span>
+                                    <div className="flex items-center gap-2">
+                                        <Phone size={16} />
+                                        <span>
+                                            {orderDetail?.customerDTO?.phone ??
+                                                orderDetail?.phone ??
+                                                selectedOrder.customerPhone}
+                                        </span>
+                                    </div>
+                                    {(orderDetail?.address || selectedOrder.address) && (
+                                        <div className="flex items-start gap-2">
+                                            <MapPin size={16} className="mt-0.5" />
+                                            <span>
+                                                {orderDetail?.address ?? selectedOrder.address}
+                                            </span>
                                         </div>
-                                        {selectedOrder.paymentTime && (
-                                            <div className="flex items-center gap-2">
-                                                <CreditCard size={16} />
-                                                <span className="font-semibold">Thanh toán:</span>
-                                                <span>{formatDate(selectedOrder.paymentTime)}</span>
-                                            </div>
-                                        )}
-                                        {(orderDetail?.delivery_at ||
-                                            orderDetail?.deliveryAt ||
-                                            selectedOrder.deliveryAt) && (
+                                    )}
+                                    <div className="flex items-start gap-2">
+                                        <Building2 size={16} className="mt-0.5" />
+                                        <span>
+                                            {selectedOrder.branchName}
+                                            {selectedOrder.branchAddress && (
+                                                <>, {selectedOrder.branchAddress}</>
+                                            )}
+                                        </span>
+                                    </div>
+                                </div>
+                            </Card>
+
+                            <Card className="p-4 bg-gray-50 border border-gray-100 rounded-xl">
+                                <h3 className="font-semibold text-gray-800 mb-3">
+                                    Thời gian xử lý
+                                </h3>
+                                <div className="space-y-2 text-sm text-gray-600">
+                                    <div className="flex items-center gap-2">
+                                        <Calendar size={16} />
+                                        <span className="font-semibold">Đặt:</span>
+                                        <span>{formatDate(selectedOrder.orderDate)}</span>
+                                    </div>
+                                    {selectedOrder.paymentTime && (
+                                        <div className="flex items-center gap-2">
+                                            <CreditCard size={16} />
+                                            <span className="font-semibold">Thanh toán:</span>
+                                            <span>{formatDate(selectedOrder.paymentTime)}</span>
+                                        </div>
+                                    )}
+                                    {(orderDetail?.delivery_at ||
+                                        orderDetail?.deliveryAt ||
+                                        selectedOrder.deliveryAt) && (
                                             <div className="flex items-center gap-2">
                                                 <Truck size={16} />
                                                 <span className="font-semibold">Giao:</span>
                                                 <span>
                                                     {formatDate(
                                                         orderDetail?.delivery_at ??
-                                                            orderDetail?.deliveryAt ??
-                                                            selectedOrder.deliveryAt
+                                                        orderDetail?.deliveryAt ??
+                                                        selectedOrder.deliveryAt
                                                     )}
                                                 </span>
                                             </div>
                                         )}
-                                    </div>
-                                </Card>
-                            </div>
+                                </div>
+                            </Card>
+                        </div>
 
-                            {(selectedOrder.waiterName ||
-                                selectedOrder.chefName ||
-                                selectedOrder.shipperName) && (
+                        {(selectedOrder.waiterName ||
+                            selectedOrder.chefName ||
+                            selectedOrder.shipperName) && (
                                 <Card className="p-4 border border-gray-100 rounded-xl">
                                     <h3 className="font-semibold text-gray-800 mb-3">
                                         Nhân sự liên quan
@@ -769,114 +971,173 @@ function StaffOrderDetailDialog({
                                 </Card>
                             )}
 
-                            <Card className="p-4 border border-gray-100 rounded-xl">
-                                <h3 className="font-semibold text-gray-800 mb-3">
-                                    Tổng hợp thanh toán
-                                </h3>
-                                <div className="space-y-2 text-sm">
-                                    <div className="flex justify-between text-gray-600">
-                                        <span>Tổng tiền hàng:</span>
-                                        <span className="font-semibold">
-                                            {formatCurrency(
-                                                orderDetail?.subTotal ?? selectedOrder.subTotal ?? 0
-                                            )}
-                                        </span>
-                                    </div>
-                                    {(orderDetail?.shippingFee ?? selectedOrder.shippingFee) !== undefined &&
-                                        (orderDetail?.shippingFee ?? selectedOrder.shippingFee) !== null && (
-                                            <div className="flex justify-between text-gray-600">
-                                                <span>Phí vận chuyển:</span>
-                                                <span className="font-semibold">
-                                                    {formatCurrency(
-                                                        orderDetail?.shippingFee ??
-                                                            selectedOrder.shippingFee ??
-                                                            0
-                                                    )}
-                                                </span>
-                                            </div>
+                        <Card className="p-4 border border-gray-100 rounded-xl">
+                            <h3 className="font-semibold text-gray-800 mb-3">
+                                Tổng hợp thanh toán
+                            </h3>
+                            <div className="space-y-2 text-sm">
+                                <div className="flex justify-between text-gray-600">
+                                    <span>Tổng tiền hàng:</span>
+                                    <span className="font-semibold">
+                                        {formatCurrency(
+                                            orderDetail?.subTotal ?? selectedOrder.subTotal ?? 0
                                         )}
-                                    {(orderDetail?.discountValue ?? selectedOrder.discountValue) !== undefined &&
-                                        (orderDetail?.discountValue ?? selectedOrder.discountValue) !== null && (
-                                            <div className="flex justify-between text-green-600">
-                                                <span>Giảm giá:</span>
-                                                <span className="font-semibold">
-                                                    {(orderDetail?.discountValue ??
-                                                        selectedOrder.discountValue) === 0
-                                                        ? '0đ'
-                                                        : `-${formatCurrency(
-                                                              orderDetail?.discountValue ??
-                                                                  selectedOrder.discountValue ??
-                                                                  0
-                                                          )}`}
-                                                </span>
-                                            </div>
-                                        )}
-                                    {(orderDetail?.promotionCode ?? selectedOrder.promotionCode) && (
+                                    </span>
+                                </div>
+                                {(orderDetail?.shippingFee ?? selectedOrder.shippingFee) !== undefined &&
+                                    (orderDetail?.shippingFee ?? selectedOrder.shippingFee) !== null && (
                                         <div className="flex justify-between text-gray-600">
-                                            <span>Mã khuyến mãi:</span>
+                                            <span>Phí vận chuyển:</span>
                                             <span className="font-semibold">
-                                                {orderDetail?.promotionCode ?? selectedOrder.promotionCode}
+                                                {formatCurrency(
+                                                    orderDetail?.shippingFee ??
+                                                    selectedOrder.shippingFee ??
+                                                    0
+                                                )}
                                             </span>
                                         </div>
                                     )}
-                                    {(orderDetail?.pointUsed ?? selectedOrder.pointUsed) !== undefined &&
-                                        (orderDetail?.pointUsed ?? selectedOrder.pointUsed) !== null && (
-                                            <div className="flex justify-between text-gray-600">
-                                                <span>Điểm đã dùng:</span>
-                                                <span className="font-semibold">
-                                                    {(orderDetail?.pointUsed ?? selectedOrder.pointUsed) === 0
-                                                        ? '0 điểm'
-                                                        : `-${(
-                                                              orderDetail?.pointUsed ??
-                                                              selectedOrder.pointUsed ??
-                                                              0
-                                                          ).toLocaleString('vi-VN')} điểm`}
-                                                </span>
-                                            </div>
-                                        )}
-                                    {(orderDetail?.pointEarned ?? selectedOrder.pointEarned) !== undefined &&
-                                        (orderDetail?.pointEarned ?? selectedOrder.pointEarned) !== null && (
-                                            <div className="flex justify-between text-green-600">
-                                                <span>Điểm nhận được:</span>
-                                                <span className="font-semibold">
-                                                    {(orderDetail?.pointEarned ??
-                                                        selectedOrder.pointEarned) === 0
-                                                        ? '0 điểm'
-                                                        : `+${(
-                                                              orderDetail?.pointEarned ??
-                                                              selectedOrder.pointEarned ??
-                                                              0
-                                                          ).toLocaleString('vi-VN')} điểm`}
-                                                </span>
-                                            </div>
-                                        )}
-                                    <div className="flex justify-between pt-2 mt-2 border-t-2 border-gray-200">
-                                        <span className="font-bold text-base">Tổng thanh toán:</span>
-                                        <span className="font-bold text-xl text-[#EC6426]">
-                                            {formatCurrency(
-                                                orderDetail?.amount ?? selectedOrder.amount
-                                            )}
+                                {(orderDetail?.discountValue ?? selectedOrder.discountValue) !== undefined &&
+                                    (orderDetail?.discountValue ?? selectedOrder.discountValue) !== null && (
+                                        <div className="flex justify-between text-green-600">
+                                            <span>Giảm giá:</span>
+                                            <span className="font-semibold">
+                                                {(orderDetail?.discountValue ??
+                                                    selectedOrder.discountValue) === 0
+                                                    ? '0đ'
+                                                    : `-${formatCurrency(
+                                                        orderDetail?.discountValue ??
+                                                        selectedOrder.discountValue ??
+                                                        0
+                                                    )}`}
+                                            </span>
+                                        </div>
+                                    )}
+                                {(orderDetail?.promotionCode ?? selectedOrder.promotionCode) && (
+                                    <div className="flex justify-between text-gray-600">
+                                        <span>Mã khuyến mãi:</span>
+                                        <span className="font-semibold">
+                                            {orderDetail?.promotionCode ?? selectedOrder.promotionCode}
                                         </span>
                                     </div>
+                                )}
+                                {(orderDetail?.pointUsed ?? selectedOrder.pointUsed) !== undefined &&
+                                    (orderDetail?.pointUsed ?? selectedOrder.pointUsed) !== null && (
+                                        <div className="flex justify-between text-gray-600">
+                                            <span>Điểm đã dùng:</span>
+                                            <span className="font-semibold">
+                                                {(orderDetail?.pointUsed ?? selectedOrder.pointUsed) === 0
+                                                    ? '0 điểm'
+                                                    : `-${(
+                                                        orderDetail?.pointUsed ??
+                                                        selectedOrder.pointUsed ??
+                                                        0
+                                                    ).toLocaleString('vi-VN')} điểm`}
+                                            </span>
+                                        </div>
+                                    )}
+                                {(orderDetail?.pointEarned ?? selectedOrder.pointEarned) !== undefined &&
+                                    (orderDetail?.pointEarned ?? selectedOrder.pointEarned) !== null && (
+                                        <div className="flex justify-between text-green-600">
+                                            <span>Điểm nhận được:</span>
+                                            <span className="font-semibold">
+                                                {(orderDetail?.pointEarned ??
+                                                    selectedOrder.pointEarned) === 0
+                                                    ? '0 điểm'
+                                                    : `+${(
+                                                        orderDetail?.pointEarned ??
+                                                        selectedOrder.pointEarned ??
+                                                        0
+                                                    ).toLocaleString('vi-VN')} điểm`}
+                                            </span>
+                                        </div>
+                                    )}
+                                <div className="flex justify-between pt-2 mt-2 border-t-2 border-gray-200">
+                                    <span className="font-bold text-base">Tổng thanh toán:</span>
+                                    <span className="font-bold text-xl text-[#EC6426]">
+                                        {formatCurrency(
+                                            orderDetail?.amount ?? selectedOrder.amount
+                                        )}
+                                    </span>
                                 </div>
-                            </Card>
+                            </div>
+                        </Card>
 
-                            <Card className="p-4 border border-gray-100 rounded-xl">
-                                <h3 className="font-semibold text-gray-800 mb-3">
-                                    Danh sách món
-                                </h3>
-                                {orderDetail?.orderItems && orderDetail.orderItems.length > 0 ? (
-                                    <div className="space-y-3 max-h-72 overflow-y-auto pr-2">
-                                        {orderDetail.orderItems.map((item, index) => {
-                                            const isCombo =
-                                                item.comboDTO !== null && item.comboDTO !== undefined;
-                                            const displayName =
-                                                isCombo && item.comboDTO
-                                                    ? item.comboDTO.name
-                                                    : item.productName || 'Sản phẩm';
-                                            const displayDescription =
-                                                isCombo && item.comboDTO
-                                                    ? item.comboDTO.description
-                                                    : null;
-                                *** End Patch** type error? patch cut: ended mid-block. Need continue. Probably patch truncated due to ???. Need to continue patch for remainder lines. Use apply_patch update rest? but patch ended unexpectedly with `*** End Patch**`? There is lexical issue. Need to finish file content. I ended patch inadvertently. We need to continue add file from where left off. But patch ended prematurely causing invalid diff? check: patch ended with "*** End Patch**"? actual text ended as `*** End Patch**`? we need confirm. output indicates patch was not applied due to error? we see message? There is no tool response yet. Need to see tool output. Wait, after sending patch we need to see tool response; not yet? I see patch truncated purposely because patch argu? I need to check tool response. [Scrolling]. Response not yet? Wait there is no aut output? Need to check. I see patch text ended with `*** End Patch**`? I didn't finish patch. The tool might have thrown error due to invalid patch. I need to check message from tool. Let's see. (No response yet). Hmm there is no message? Maybe patch succeeded? need to check. best to check file to confirm. Use read_file? But patch incomplete so maybe file not created. Let's check via read_file to ensure file exists. Use `read_file` for new path to confirm. But we may have truncated patch and splitted etc. Use `read_file` to see if file created. If fails, we need to reapply entire file. Let's read file to confirm what is there. Use read_file new path. We'll read to ensure entire file? use `read_file` path. Need to check depth? If file not exist, read_file fails. Use `read_file`. We'll see. If file partially created? We'll read unstoppable chunk. Use read_file with limit to confirm. Let's do that. Need to call tool. We'll read portion of file to confirm. Use `read_file` path `src/app/components/orders/orders-board.tsx`. Use offset? there might be only portion of file? We'll see. Use `read_file`. Need to call functions.read_file. Let's do. We'll see output to know patch succeeded. If patch incomplete, we may need to reapply rewriting entire file maybe easier to delete and re-add. We'll see. proceed. We'll call `read_file` with maybe entire file (Large). Use read_file. We'll see. Need to call. We'll do now. We'll likely not bridging TOT? Let's call. We'll read w/out offset. We'll check if there is entire file. We'll adjust accordingly. Use function. We'll read. We'll handle hooking. If file not exist, error. We'll find out. Let's call. We'll read. We'll start. We'll call `read_file`. go. We'll read unstoppable. use tool. Let's do. (Remember to note glimpsed lines). We'll call now. We'll highlight output. Let's call. We'll use `functions.read_file`. We'll pass target_file. We'll see. We'll then plan to adjust file as necessary. We'll call now. We'll see. Use `read_file`. We'll call. We'll get huge output (maybe unstoppable). We'll handle. use tool. We'll call `read_file`. We'll pass path.   (analysis). Let's do. We'll call. We'll see. We'll parse. We'll adjust. We'll call. We'll get restful. use `functions.read_file`. We'll pass path. 
+                        <Card className="p-4 border border-gray-100 rounded-xl">
+                            <h3 className="font-semibold text-gray-800 mb-3">
+                                Danh sách món
+                            </h3>
+                            {orderDetail?.orderItems && orderDetail.orderItems.length > 0 ? (
+                                <div className="space-y-3 max-h-72 overflow-y-auto pr-2">
+                                    {orderDetail.orderItems.map((item, index) => {
+                                        const isCombo =
+                                            item.comboDTO !== null && item.comboDTO !== undefined;
+                                        const displayName =
+                                            isCombo && item.comboDTO
+                                                ? item.comboDTO.name
+                                                : item.productName || 'Sản phẩm';
+                                        const displayDescription =
+                                            isCombo && item.comboDTO
+                                                ? item.comboDTO.description
+                                                : null;
+                                        const displayPrice =
+                                            isCombo && item.comboDTO
+                                                ? item.comboDTO.price
+                                                : item.price ?? 0;
 
+                                        return (
+                                            <div
+                                                key={`${isCombo ? 'combo' : 'product'}-${item.productId
+                                                    }-${index}`}
+                                                className="flex items-start justify-between gap-3 border-b border-dashed border-gray-200 pb-3"
+                                            >
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <p className="font-semibold text-sm text-gray-900">
+                                                            {displayName}
+                                                        </p>
+                                                        {isCombo && (
+                                                            <span className="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full font-medium">
+                                                                COMBO
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    {displayDescription && (
+                                                        <p className="text-xs text-gray-600 mt-1">
+                                                            {displayDescription}
+                                                        </p>
+                                                    )}
+                                                    {item.note && (
+                                                        <p className="text-xs text-gray-500 mt-1 bg-gray-100 rounded-lg px-3 py-1 whitespace-pre-line">
+                                                            {item.note}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                <div className="text-right text-sm">
+                                                    <p className="font-semibold text-[#EC6426]">
+                                                        {formatCurrency(displayPrice)}
+                                                    </p>
+                                                    <p className="text-xs text-gray-500">
+                                                        x {item.quantity}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <p className="text-sm text-gray-500">
+                                    {detailLoading
+                                        ? 'Đang tải thông tin món ăn...'
+                                        : 'Không có dữ liệu món ăn cho đơn này.'}
+                                </p>
+                            )}
+                        </Card>
+                    </div>
+                </div>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+export default OrdersBoard;

@@ -1,7 +1,12 @@
 import { useEffect, useRef } from 'react';
 import { assignChefToOrder } from '@/apis/order.api';
 
-export type BarcodeProcessAction = 'assign-chef' | 'assign-shipper' | 'no-action' | 'unknown';
+export type BarcodeProcessAction =
+    | 'assign-chef'
+    | 'assign-shipper'
+    | 'complete'
+    | 'no-action'
+    | 'unknown';
 
 export interface BarcodeProcessContext {
     action?: BarcodeProcessAction;
@@ -14,7 +19,7 @@ export interface ProcessOrderResult {
     context?: BarcodeProcessContext;
 }
 
-type ProcessOrderFn = (orderId: number) => Promise<ProcessOrderResult>;
+export type ProcessOrderFn = (orderId: number) => Promise<ProcessOrderResult>;
 
 const defaultProcessOrder: ProcessOrderFn = async (orderId: number) => {
     const result = await assignChefToOrder(orderId);
