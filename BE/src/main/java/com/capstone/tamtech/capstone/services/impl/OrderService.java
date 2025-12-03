@@ -52,4 +52,6 @@ public interface OrderService {
     OrderDTO getOrderById(int orderId);
 
     List<OrderCheffViewDTO> getOrdersByChefId(int chefId, String status);
+
+    void autoCompleteDeliveredShippingOrders();
 }
