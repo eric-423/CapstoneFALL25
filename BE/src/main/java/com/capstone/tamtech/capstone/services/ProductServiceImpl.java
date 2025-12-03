@@ -146,6 +146,14 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public ProductDTO getProductById(Integer productId) {
+        Product product = productRepository.findById(productId).orElseThrow(() ->
+                new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + productId));
+
+        return toDTO(product);
+    }
+
+    @Override
     public ProductDTO createProduct(ProductCreateRequest productCreateRequest) {
         Product product = new Product();
 
