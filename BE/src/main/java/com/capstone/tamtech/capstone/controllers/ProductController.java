@@ -213,10 +213,10 @@ public class ProductController {
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
 
-    @GetMapping("/detail/{productId}")
-    public ResponseEntity<?> getProductDetail(@PathVariable Integer productId) {
+    @GetMapping("/detail/{branchId}/{productId}")
+    public ResponseEntity<?> getProductDetail(@PathVariable Integer productId, @PathVariable Integer branchId) {
 
-        ProductDTO productDTO = productService.getProductById(productId);
+        ProductSearchDTO productDTO = productService.getProductById(productId, branchId);
         ResponseData responseData = new ResponseData();
         responseData.setData(productDTO);
         responseData.setStatus(200);

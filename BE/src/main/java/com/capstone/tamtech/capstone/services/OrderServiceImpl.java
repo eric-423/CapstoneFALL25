@@ -940,6 +940,10 @@ public class OrderServiceImpl implements OrderService {
                 order.getBranch() != null ? order.getBranch().getName() : ""
         );
 
+        orderDTO.setBranchAddress(
+                order.getBranch() != null ? order.getBranch().getAddress() : ""
+        );
+
         return orderDTO;
     }
 

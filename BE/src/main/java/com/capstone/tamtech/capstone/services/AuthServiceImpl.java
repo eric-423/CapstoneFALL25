@@ -93,6 +93,7 @@ public class AuthServiceImpl implements AuthService {
         roleHistory.setRole(roleRepository.findByName("CUSTOMER")
                 .orElseThrow(() -> new ResourceNotFoundException("Role CUSTOMER không tồn tại")));
         roleHistory.setUser(customer);
+        roleHistory.setRoleName("CUSTOMER");
 
         roleHistoryRepository.save(roleHistory);
 
