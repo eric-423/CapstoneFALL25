@@ -50,7 +50,7 @@ export function OrderCard({ order, onViewDetails }: OrderCardProps) {
                 <p className="text-sm ">{order.restaurant}</p>
               </div>
               <p className="text-sm font-medium">
-                {order.subTotal.toLocaleString()}đ ({order.totalItems} món)
+                {order.amount?.toLocaleString()}đ ({order.totalItems} món)
               </p>
               <div className="mt-3">{getStatusBadge(order.orderStatus)}</div>
             </div>
