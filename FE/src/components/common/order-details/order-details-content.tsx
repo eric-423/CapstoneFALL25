@@ -439,16 +439,23 @@ export function OrderDetailsContent({
               </div>
             )}
             {order.pointEarned !== undefined && order.pointEarned !== null && (
-              <div className="flex justify-between text-sm text-green-600">
-                <span className="flex items-center gap-1">
-                  <Coins className="h-4 w-4" />
-                  Điểm nhận được:
-                </span>
-                <span className="font-medium">
-                  {order.pointEarned === 0
-                    ? "0 điểm"
-                    : `+${order.pointEarned.toLocaleString("vi-VN")} điểm`}
-                </span>
+              <div>
+                <div className="flex justify-between text-sm text-green-600">
+                  <span className="flex items-center gap-1">
+                    <Coins className="h-4 w-4" />
+                    Điểm nhận được:
+                  </span>
+                  <span className="font-medium">
+                    {order.pointEarned === 0
+                      ? "0 điểm"
+                      : `+${order.pointEarned.toLocaleString("vi-VN")} điểm`}
+                  </span>
+                </div>
+                {order.subTotal !== undefined && order.subTotal !== null && (
+                  <div className="text-xs text-muted-foreground mt-0.5 ml-5">
+                    điểm dự kiến nhận được
+                  </div>
+                )}
               </div>
             )}
             <div className="flex justify-between pt-2 border-t-2 border-gray-300 mt-2">
