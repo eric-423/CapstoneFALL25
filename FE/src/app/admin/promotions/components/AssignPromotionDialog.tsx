@@ -57,7 +57,7 @@ export function AssignPromotionDialog({
       setCustomers(response.data.content);
     } catch (error) {
       console.error("Failed to fetch customers:", error);
-      toast.error("❌ Không thể tải danh sách khách hàng!");
+      toast.error("Không thể tải danh sách khách hàng!");
     } finally {
       setLoadingCustomers(false);
     }
@@ -86,7 +86,7 @@ export function AssignPromotionDialog({
 
   const handleAssign = async () => {
     if (selectedUsers.size === 0) {
-      toast.warning("⚠️ Vui lòng chọn ít nhất một khách hàng!");
+      toast.warning("Vui lòng chọn ít nhất một khách hàng!");
       return;
     }
 
@@ -106,14 +106,14 @@ export function AssignPromotionDialog({
       });
 
       toast.success(
-        `✅ Đã gán khuyến mãi cho ${selectedUsers.size} khách hàng!`
+        `Đã gán khuyến mãi cho ${selectedUsers.size} khách hàng!`
       );
       setOpen(false);
       setSelectedUsers(new Map());
       onSuccess();
     } catch (error) {
       console.error("Failed to assign promotion:", error);
-      toast.error("❌ Không thể gán khuyến mãi!");
+      toast.error("Không thể gán khuyến mãi!");
     } finally {
       setLoading(false);
     }
@@ -235,8 +235,8 @@ export function AssignPromotionDialog({
                     <div
                       key={customer.id}
                       className={`group relative rounded-xl border transition-all shadow-sm hover:shadow-md ${isSelected
-                          ? "border-[#78A243] bg-[#F7FBF2]"
-                          : "border-gray-200 bg-white hover:border-gray-300"
+                        ? "border-[#78A243] bg-[#F7FBF2]"
+                        : "border-gray-200 bg-white hover:border-gray-300"
                         }`}
                     >
                       <div className="flex gap-4 p-4">

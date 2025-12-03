@@ -35,7 +35,7 @@ export default function WarehousesPage() {
             setBranches(branchesData);
         } catch (error) {
             console.error('Failed to fetch data:', error);
-            toast.error('❌ Không thể tải dữ liệu!');
+            toast.error('Không thể tải dữ liệu!');
         } finally {
             setLoading(false);
         }

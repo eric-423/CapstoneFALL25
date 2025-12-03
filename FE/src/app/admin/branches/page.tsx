@@ -49,7 +49,7 @@ export default function BranchesManagementPage() {
             setStatistics(data);
         } catch (error) {
             console.error('Failed to fetch branch statistics:', error);
-            toast.error('❌ Không thể tải danh sách chi nhánh!');
+            toast.error('Không thể tải danh sách chi nhánh!');
         } finally {
             setLoading(false);
         }
@@ -89,10 +89,10 @@ export default function BranchesManagementPage() {
 
             if (confirmType === 'activate') {
                 await activateBranch(selectedBranch.id);
-                toast.success(`✅ Đã kích hoạt chi nhánh "${selectedBranch.name}"!`);
+                toast.success(`Đã kích hoạt chi nhánh "${selectedBranch.name}"!`);
             } else {
                 await deactivateBranch(selectedBranch.id);
-                toast.success(`🔒 Đã vô hiệu hóa chi nhánh "${selectedBranch.name}"!`);
+                toast.success(`Đã vô hiệu hóa chi nhánh "${selectedBranch.name}"!`);
             }
 
             await fetchStatistics();
@@ -100,7 +100,7 @@ export default function BranchesManagementPage() {
             setSelectedBranch(null);
         } catch (error) {
             console.error('Failed to perform action:', error);
-            toast.error(`❌ Không thể ${confirmType === 'activate' ? 'kích hoạt' : 'vô hiệu hóa'} chi nhánh!`);
+            toast.error(`Không thể ${confirmType === 'activate' ? 'kích hoạt' : 'vô hiệu hóa'} chi nhánh!`);
         } finally {
             setActionLoading(false);
         }

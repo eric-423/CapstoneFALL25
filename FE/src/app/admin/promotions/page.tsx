@@ -48,7 +48,7 @@ export default function PromotionsPage() {
     try {
       await togglePromotionStatus(promotionCode, !currentStatus);
       toast.success(
-        `✅ ${!currentStatus ? "Kích hoạt" : "Tắt"} khuyến mãi thành công!`
+        `${!currentStatus ? "Kích hoạt" : "Tắt"} khuyến mãi thành công!`
       );
       fetchPromotions();
     } catch (error) {

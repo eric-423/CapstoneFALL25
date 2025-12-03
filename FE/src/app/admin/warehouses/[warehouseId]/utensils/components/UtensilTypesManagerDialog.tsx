@@ -42,7 +42,7 @@ export function UtensilTypesManagerDialog({ open, onOpenChange, onSuccess }: Ute
             setTypes(data);
         } catch (error) {
             console.error('Failed to fetch utensil types:', error);
-            toast.error('❌ Không thể tải danh sách loại dụng cụ!');
+            toast.error('Không thể tải danh sách loại dụng cụ!');
         } finally {
             setLoading(false);
         }
@@ -68,7 +68,7 @@ export function UtensilTypesManagerDialog({ open, onOpenChange, onSuccess }: Ute
 
     const handleSaveNewType = async () => {
         if (!newTypeName.trim()) {
-            toast.warning('⚠️ Tên loại không được để trống!');
+            toast.warning('Tên loại không được để trống!');
             return;
         }
         try {
@@ -77,13 +77,13 @@ export function UtensilTypesManagerDialog({ open, onOpenChange, onSuccess }: Ute
                 name: newTypeName.trim(),
                 description: newTypeDescription.trim()
             });
-            toast.success('✅ Đã thêm loại dụng cụ mới!');
+            toast.success('Đã thêm loại dụng cụ mới!');
             handleCancelCreate();
             await fetchTypes();
             if (onSuccess) onSuccess();
         } catch (error) {
             console.error('Failed to create utensil type:', error);
-            toast.error('❌ Không thể thêm loại dụng cụ!');
+            toast.error('Không thể thêm loại dụng cụ!');
         } finally {
             setActionLoading(false);
         }
@@ -103,7 +103,7 @@ export function UtensilTypesManagerDialog({ open, onOpenChange, onSuccess }: Ute
 
     const handleSaveUpdate = async (typeId: number) => {
         if (!editingName.trim()) {
-            toast.warning('⚠️ Tên loại không được để trống!');
+            toast.warning('Tên loại không được để trống!');
             return;
         }
         try {
@@ -112,13 +112,13 @@ export function UtensilTypesManagerDialog({ open, onOpenChange, onSuccess }: Ute
                 name: editingName.trim(),
                 description: editingDescription.trim()
             });
-            toast.success('✅ Cập nhật thành công!');
+            toast.success('Cập nhật thành công!');
             handleCancelEdit();
             await fetchTypes();
             if (onSuccess) onSuccess();
         } catch (error) {
             console.error('Failed to update utensil type:', error);
-            toast.error('❌ Không thể cập nhật loại dụng cụ!');
+            toast.error('Không thể cập nhật loại dụng cụ!');
         } finally {
             setActionLoading(false);
         }
@@ -134,13 +134,13 @@ export function UtensilTypesManagerDialog({ open, onOpenChange, onSuccess }: Ute
         try {
             setActionLoading(true);
             await deleteUtensilType(deletingType.id);
-            toast.success(`✅ Đã xóa loại "${deletingType.name}"!`);
+            toast.success(`Đã xóa loại "${deletingType.name}"!`);
             await fetchTypes();
             setShowConfirmDialog(false);
             setDeletingType(null);
             if (onSuccess) onSuccess();
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : '❌ Không thể xóa loại dụng cụ!';
+            const errorMessage = error instanceof Error ? error.message : 'Không thể xóa loại dụng cụ!';
             toast.error(errorMessage);
         } finally {
             setActionLoading(false);
