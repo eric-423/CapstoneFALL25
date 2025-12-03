@@ -1,15 +1,17 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { Package, Plus, ArrowLeft, AlertTriangle, Warehouse as WarehouseIcon, Pencil } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { Package, Plus, ArrowLeft, AlertTriangle, Warehouse as WarehouseIcon, Pencil, Search, X, FileSpreadsheet } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AdminPageLayout, AdminPageHeader } from '@/app/admin/components/AdminPageLayout';
+import { FilterDropdown } from '@/app/admin/components/FilterDropdown';
 import { AdminCard } from '@/app/admin/components/AdminCard';
 import { getWarehouseMaterials, getMaterials, type WarehouseMaterial, type Material } from '@/apis/material.api';
 import { AddMaterialDialog } from './components/AddMaterialDialog';
 import { EditMaterialDialog } from './components/EditMaterialDialog';
+import { ImportMaterialDialog } from './components/ImportMaterialDialog';
 import { useRouter } from 'next/navigation';
 
 interface WarehouseMaterialsPageProps {
@@ -28,7 +30,12 @@ export default function WarehouseMaterialsPage({ params }: WarehouseMaterialsPag
     // Dialog states
     const [showAddDialog, setShowAddDialog] = useState(false);
     const [showEditDialog, setShowEditDialog] = useState(false);
+    const [showImportDialog, setShowImportDialog] = useState(false);
     const [selectedMaterial, setSelectedMaterial] = useState<WarehouseMaterial | null>(null);
+
+    // Filter states
+    const [searchKeyword, setSearchKeyword] = useState('');
+    const [typeFilter, setTypeFilter] = useState('');
 
     useEffect(() => {
         params.then(p => {
@@ -65,7 +72,15 @@ export default function WarehouseMaterialsPage({ params }: WarehouseMaterialsPag
         setShowAddDialog(true);
     };
 
+    const handleImportMaterials = () => {
+        setShowImportDialog(true);
+    };
+
     const handleAddSuccess = () => {
+        fetchWarehouseMaterials();
+    };
+
+    const handleImportSuccess = () => {
         fetchWarehouseMaterials();
     };
 
@@ -88,6 +103,27 @@ export default function WarehouseMaterialsPage({ params }: WarehouseMaterialsPag
     const totalQuantity = warehouseMaterials.reduce((sum, m) => sum + m.quantity, 0);
 
     const warehouseAddress = warehouseMaterials[0]?.warehouseAddress || 'Kho';
+
+    // Get unique material types for filter dropdown
+    const materialTypes = useMemo(() => {
+        const types = [...new Set(warehouseMaterials.map(m => m.materialTypeName))];
+        return types.map(type => ({ value: type, label: type }));
+    }, [warehouseMaterials]);
+
+    // Filter materials
+    const filteredMaterials = useMemo(() => {
+        return warehouseMaterials.filter(material => {
+            const matchesKeyword = !searchKeyword ||
+                material.materialName.toLowerCase().includes(searchKeyword.toLowerCase());
+            const matchesType = !typeFilter || material.materialTypeName === typeFilter;
+            return matchesKeyword && matchesType;
+        });
+    }, [warehouseMaterials, searchKeyword, typeFilter]);
+
+    const handleClearFilters = () => {
+        setSearchKeyword('');
+        setTypeFilter('');
+    };
 
     if (loading) {
         return (
@@ -114,6 +150,14 @@ export default function WarehouseMaterialsPage({ params }: WarehouseMaterialsPag
                         >
                             <ArrowLeft className="h-4 w-4 mr-2" />
                             Quay lại
+                        </Button>
+                        <Button
+                            onClick={handleImportMaterials}
+                            variant="outline"
+                            className="border-2 border-[#DA7339]/30 text-[#DA7339] hover:bg-[#DA7339]/10 hover:border-[#DA7339]"
+                        >
+                            <FileSpreadsheet className="h-4 w-4 mr-2" />
+                            Import Excel
                         </Button>
                         <Button
                             onClick={handleAddMaterials}
@@ -145,6 +189,41 @@ export default function WarehouseMaterialsPage({ params }: WarehouseMaterialsPag
                 />
             </div>
 
+            {/* Filters */}
+            <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-gradient-to-r from-[#EBD187]/20 to-[#78A243]/10 backdrop-blur-sm border-[#78A243]/20 border shadow-sm rounded-xl mb-4">
+                <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[200px]">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#2D1E1A]/60" />
+                        <input
+                            type="text"
+                            placeholder="Tìm theo tên nguyên liệu..."
+                            value={searchKeyword}
+                            onChange={(e) => setSearchKeyword(e.target.value)}
+                            className="w-full max-w-[280px] pl-10 pr-4 py-2 border bg-white/80 border-[#78A243]/30 rounded-lg text-sm focus:border-[#78A243] focus:ring-1 focus:ring-[#78A243]/20 outline-none"
+                        />
+                    </div>
+                    <FilterDropdown
+                        label="Tất cả loại"
+                        title="Lọc theo loại nguyên liệu"
+                        value={typeFilter}
+                        onChange={(value) => setTypeFilter(value)}
+                        items={materialTypes}
+                        className="w-[180px]"
+                    />
+
+                    {(searchKeyword || typeFilter) && (
+                        <Button
+                            onClick={handleClearFilters}
+                            variant="ghost"
+                            size="sm"
+                        >
+                            <X className="h-4 w-4 mr-1" />
+                            Xóa lọc
+                        </Button>
+                    )}
+                </div>
+            </div>
+
             {/* Materials Table */}
             <div className="bg-white rounded-xl border-2 border-gray-200 overflow-hidden">
                 <div className="overflow-x-auto">
@@ -172,7 +251,7 @@ export default function WarehouseMaterialsPage({ params }: WarehouseMaterialsPag
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {warehouseMaterials.map((material) => {
+                            {filteredMaterials.map((material) => {
                                 const isLowStock = material.quantity < material.threshold;
                                 const stockPercentage = (material.quantity / material.threshold) * 100;
 
@@ -247,18 +326,24 @@ export default function WarehouseMaterialsPage({ params }: WarehouseMaterialsPag
                     </table>
                 </div>
 
-                {warehouseMaterials.length === 0 && (
+                {filteredMaterials.length === 0 && (
                     <div className="text-center py-12">
                         <Package className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                        <p className="text-gray-500">Kho chưa có nguyên liệu nào</p>
-                        <Button
-                            onClick={handleAddMaterials}
-                            variant="outline"
-                            className="mt-4"
-                        >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Thêm nguyên liệu đầu tiên
-                        </Button>
+                        <p className="text-gray-500">
+                            {warehouseMaterials.length === 0
+                                ? 'Kho chưa có nguyên liệu nào'
+                                : 'Không tìm thấy nguyên liệu phù hợp'}
+                        </p>
+                        {warehouseMaterials.length === 0 && (
+                            <Button
+                                onClick={handleAddMaterials}
+                                variant="outline"
+                                className="mt-4"
+                            >
+                                <Plus className="h-4 w-4 mr-2" />
+                                Thêm nguyên liệu đầu tiên
+                            </Button>
+                        )}
                     </div>
                 )}
             </div>
@@ -278,6 +363,15 @@ export default function WarehouseMaterialsPage({ params }: WarehouseMaterialsPag
                 warehouseId={warehouseId || 0}
                 material={selectedMaterial}
                 onSuccess={handleEditSuccess}
+            />
+
+            <ImportMaterialDialog
+                open={showImportDialog}
+                onOpenChange={setShowImportDialog}
+                warehouseId={warehouseId || 0}
+                availableMaterials={allMaterials}
+                existingMaterialIds={warehouseMaterials.map(m => m.materialId)}
+                onSuccess={handleImportSuccess}
             />
         </AdminPageLayout>
     );
