@@ -79,7 +79,7 @@ export default function MaterialsPage() {
             setUnits(unitsResponse);
         } catch (error) {
             console.error('Failed to fetch data:', error);
-            toast.error('❌ Không thể tải dữ liệu!');
+            toast.error('Không thể tải dữ liệu!');
         } finally {
             setLoading(false);
         }
@@ -110,13 +110,13 @@ export default function MaterialsPage() {
         try {
             setActionLoading(true);
             await deleteMaterial(deletingMaterial.id);
-            toast.success(`✅ Đã xóa nguyên liệu "${deletingMaterial.name}"!`);
+            toast.success(`Đã xóa nguyên liệu "${deletingMaterial.name}"!`);
             await fetchMaterials();
             setShowConfirmDialog(false);
             setDeletingMaterial(null);
         } catch (error) {
             // console.error('Failed to delete material:', error);
-            const errorMessage = error instanceof Error ? error.message : '❌ Không thể xóa nguyên liệu!';
+            const errorMessage = error instanceof Error ? error.message : 'Không thể xóa nguyên liệu!';
             toast.error(errorMessage);
         } finally {
             setActionLoading(false);

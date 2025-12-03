@@ -44,7 +44,7 @@ export function CookingMethodFormDialog({ open, onOpenChange, cookingMethod, onS
         e.preventDefault();
 
         if (!formData.name.trim()) {
-            toast.error('❌ Vui lòng nhập tên phương pháp!');
+            toast.error('Vui lòng nhập tên phương pháp!');
             return;
         }
 
@@ -58,17 +58,17 @@ export function CookingMethodFormDialog({ open, onOpenChange, cookingMethod, onS
 
             if (cookingMethod) {
                 await updateCookingMethod(cookingMethod.id, requestData);
-                toast.success('✅ Cập nhật phương pháp thành công!');
+                toast.success('Cập nhật phương pháp thành công!');
             } else {
                 await createCookingMethod(requestData);
-                toast.success('✅ Thêm phương pháp thành công!');
+                toast.success('Thêm phương pháp thành công!');
             }
 
             onSuccess();
             onOpenChange(false);
         } catch (error) {
             console.error('Failed to save cooking method:', error);
-            toast.error('❌ Không thể lưu phương pháp nấu!');
+            toast.error('Không thể lưu phương pháp nấu!');
         } finally {
             setLoading(false);
         }

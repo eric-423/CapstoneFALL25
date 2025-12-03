@@ -27,4 +27,6 @@ public class LessonDTO {
     private Integer trainingId;
 
     private Boolean isActive;
+
+    private Boolean isCompleted;
 }

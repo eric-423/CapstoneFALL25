@@ -69,7 +69,7 @@ export default function WarehouseMaterialsPage({ params }: WarehouseMaterialsPag
             setAllMaterials(allMaterialsResponse.data.content);
         } catch (error) {
             console.error('Failed to fetch warehouse materials:', error);
-            toast.error('❌ Không thể tải danh sách nguyên liệu!');
+            toast.error('Không thể tải danh sách nguyên liệu!');
         } finally {
             setLoading(false);
         }

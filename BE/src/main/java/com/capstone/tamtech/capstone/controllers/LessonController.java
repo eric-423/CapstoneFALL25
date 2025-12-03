@@ -1,13 +1,19 @@
 package com.capstone.tamtech.capstone.controllers;
 
+import com.capstone.tamtech.capstone.entities.Users;
+import com.capstone.tamtech.capstone.exception.ResourceNotFoundException;
 import com.capstone.tamtech.capstone.payload.ResponseData;
 import com.capstone.tamtech.capstone.payload.request.LessonOrderUpdateRequest;
 import com.capstone.tamtech.capstone.payload.request.LessonRequest;
 import com.capstone.tamtech.capstone.payload.request.LessonSearchRequest;
+import com.capstone.tamtech.capstone.repositories.UsersRepository;
 import com.capstone.tamtech.capstone.services.impl.LessonService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,15 +23,29 @@ public class LessonController {
     @Autowired
     private LessonService lessonService;
 
+    @Autowired
+    private UsersRepository usersRepository;
+
     @GetMapping("/me/trainings/{trainingId}/lessons")
     public ResponseEntity<?> getMyLessonsByTrainingId(
-            @PathVariable int trainingId,
-            @ModelAttribute LessonSearchRequest lessonSearchRequest) {
-        ResponseData responseData = new ResponseData();
-        if (lessonSearchRequest == null) {
-            lessonSearchRequest = new LessonSearchRequest();
+            @PathVariable int trainingId) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new AccessDeniedException("Unauthenticated");
         }
-        responseData.setData(lessonService.getLessonByTrainingId(trainingId, lessonSearchRequest));
+        String principal = authentication.getName();
+        if (principal == null || principal.isBlank()) {
+            throw new AccessDeniedException("Unauthenticated");
+        }
+
+        int userId = usersRepository.findByEmail(principal)
+                .or(() -> usersRepository.findByPhoneNumber(principal))
+                .orElseThrow(() -> new ResourceNotFoundException("User not found")).getId();
+
+
+        ResponseData responseData = new ResponseData();
+        responseData.setData(lessonService.getMyLessonByTrainingId(trainingId, userId));
         return ResponseEntity.ok(responseData);
     }
 

@@ -48,7 +48,7 @@ export function AddUtensilDialog({
 
     const handleRemoveRow = (index: number) => {
         if (utensils.length === 1) {
-            toast.error('❌ Phải có ít nhất 1 dụng cụ!');
+            toast.error('Phải có ít nhất 1 dụng cụ!');
             return;
         }
         setUtensils(utensils.filter((_, i) => i !== index));
@@ -66,13 +66,13 @@ export function AddUtensilDialog({
         // Validate
         for (const utensil of utensils) {
             if (!utensil.name || !utensil.utensilsTypeId || !utensil.quantity) {
-                toast.error('❌ Vui lòng điền đầy đủ thông tin!');
+                toast.error('Vui lòng điền đầy đủ thông tin!');
                 return;
             }
 
             const quantity = parseInt(utensil.quantity);
             if (isNaN(quantity) || quantity <= 0) {
-                toast.error('❌ Số lượng phải lớn hơn 0!');
+                toast.error('Số lượng phải lớn hơn 0!');
                 return;
             }
         }
@@ -91,13 +91,13 @@ export function AddUtensilDialog({
                 })
             ));
 
-            toast.success('✅ Thêm dụng cụ vào kho thành công!');
+            toast.success('Thêm dụng cụ vào kho thành công!');
             onSuccess();
             onOpenChange(false);
             setUtensils([{ name: '', utensilsTypeId: '', quantity: '' }]);
         } catch (error) {
             console.error('Failed to add utensils:', error);
-            toast.error('❌ Không thể thêm dụng cụ vào kho!');
+            toast.error('Không thể thêm dụng cụ vào kho!');
         } finally {
             setLoading(false);
         }
