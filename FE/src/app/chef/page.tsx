@@ -127,45 +127,6 @@ export default function ChefPage() {
       }
    };
 
-   const formatElapsedTime = (minutes: number) => {
-      if (minutes <= 0 || Number.isNaN(minutes)) {
-         return 'Vừa đặt';
-      }
-
-      const minutesPerDay = 60 * 24;
-      const days = Math.floor(minutes / minutesPerDay);
-      const hours = Math.floor((minutes % minutesPerDay) / 60);
-      const remainingMinutes = minutes % 60;
-
-      if (days > 0) {
-         const parts = [`${days} ngày`];
-         if (hours > 0) {
-            parts.push(`${hours} giờ`);
-         }
-         if (remainingMinutes > 0 && hours === 0) {
-            parts.push(`${remainingMinutes} phút`);
-         }
-         return parts.join(' ');
-      }
-
-      if (hours > 0) {
-         const parts = [`${hours} giờ`];
-         if (remainingMinutes > 0) {
-            parts.push(`${remainingMinutes} phút`);
-         }
-         return parts.join(' ');
-      }
-
-      return `${remainingMinutes} phút`;
-   };
-
-   const getTimeRemaining = (confirmAt: string) => {
-      const confirmDateTime = new Date(confirmAt);
-      const now = new Date();
-      const diffMinutes = Math.ceil((now.getTime() - confirmDateTime.getTime()) / 60000);
-      return formatElapsedTime(diffMinutes);
-   };
-
    const formatDate = (dateString: string) => {
       const date = new Date(dateString);
       return date.toLocaleString('vi-VN', {
@@ -360,15 +321,6 @@ export default function ChefPage() {
                                     </div>
 
                                     <div className='mt-1 flex items-center gap-4'>
-                                       {firstItem && (
-                                          <div className='flex items-center text-sm'>
-                                             <Clock className='h-4 w-4 text-orange-500 mr-1' />
-                                             <span className='text-gray-600'>Thời gian của đơn hàng:</span>
-                                             <span className='ml-1 font-medium text-orange-600'>
-                                                {getTimeRemaining(firstItem.confirmAt)}
-                                             </span>
-                                          </div>
-                                       )}
                                        <div className='flex items-center text-sm'>
                                           <span className='text-gray-600'>Tổng tiền:</span>
                                           <span className='ml-1 font-medium text-green-600'>

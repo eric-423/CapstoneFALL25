@@ -18,3 +18,4 @@ export const getKioskMode = (): boolean => {
     return hasChromeRuntime || hasChromeApp || hasChrome || urlHasKiosk || isKioskUserAgent;
 };
 
+

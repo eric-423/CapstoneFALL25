@@ -117,7 +117,7 @@ const BestSellersSection = ({ products }: BestSellersNewProps) => {
           >
             {displayProducts.map((item, index) => (
               <ProductCard
-                key={item.id}
+                key={`${item.id}-${index}`}
                 id={item.id}
                 title={item.title}
                 description={item.description}
