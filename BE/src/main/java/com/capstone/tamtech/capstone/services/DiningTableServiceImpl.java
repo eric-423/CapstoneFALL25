@@ -5,6 +5,8 @@ import com.capstone.tamtech.capstone.dto.OrderDTO;
 import com.capstone.tamtech.capstone.dto.OrderIemDTO;
 import com.capstone.tamtech.capstone.entities.*;
 import com.capstone.tamtech.capstone.exception.ResourceNotFoundException;
+import com.capstone.tamtech.capstone.payload.request.DiningTableRequest;
+import com.capstone.tamtech.capstone.repositories.BranchRepository;
 import com.capstone.tamtech.capstone.repositories.DiningTableRepository;
 import com.capstone.tamtech.capstone.services.impl.DiningTableService;
 import com.capstone.tamtech.capstone.services.impl.OrderService;
@@ -26,6 +28,8 @@ public class DiningTableServiceImpl implements DiningTableService {
     @Autowired
     private OrderServiceImpl orderServiceImpl;
 
+    @Autowired
+    private BranchRepository branchRepository;
 
     @Override
     public List<DiningTableDTO> getAllDiningTables() {
@@ -117,6 +121,51 @@ public class DiningTableServiceImpl implements DiningTableService {
         diningTables.forEach(diningTable -> diningTableDTOs.add(toDTOWithOrders(diningTable)));
 
         return diningTableDTOs;
+    }
+
+    @Override
+    public DiningTableDTO createDiningTable(DiningTableRequest diningTableRequest) {
+        DiningTable diningTable = new DiningTable();
+        Branch branch = branchRepository.findById(diningTableRequest.getBranchId())
+                .orElseThrow(() -> new ResourceNotFoundException("Branch not found with id: " + diningTableRequest.getBranchId()));
+
+        diningTable.setName(diningTableRequest.getName());
+        diningTable.setIsActive(diningTableRequest.getIsActive());
+        diningTable.setSeat(diningTableRequest.getSeat());
+        diningTable.setNote(diningTableRequest.getNote());
+        diningTable.setBranch(branch);
+
+        diningTableRepository.save(diningTable);
+        return toDTO(diningTableRepository.save(diningTable));
+    }
+
+    @Override
+    public boolean setDiningTableInactive(int id) {
+        DiningTable diningTable = diningTableRepository.findById(id).orElse(null);
+        if (diningTable != null) {
+            diningTable.setIsActive(false);
+            diningTableRepository.save(diningTable);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public DiningTableDTO updateDiningTable(int id, DiningTableRequest diningTableRequest) {
+        DiningTable diningTable = diningTableRepository.findById(id).orElse(null);
+        if (diningTable != null) {
+            Branch branch = branchRepository.findById(diningTableRequest.getBranchId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Branch not found with id: " + diningTableRequest.getBranchId()));
+
+            diningTable.setName(diningTableRequest.getName());
+            diningTable.setIsActive(diningTableRequest.getIsActive());
+            diningTable.setSeat(diningTableRequest.getSeat());
+            diningTable.setNote(diningTableRequest.getNote());
+            diningTable.setBranch(branch);
+
+            return toDTO(diningTableRepository.save(diningTable));
+        }
+        return null;
     }
 
 

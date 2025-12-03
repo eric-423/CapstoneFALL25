@@ -230,7 +230,11 @@ public class SecurityConfig {
                         .requestMatchers("/api/promotions/*/status").hasAnyRole("MANAGER", "ADMIN")
 
                         .requestMatchers("/api/orders/waiter/**").hasRole("WAITER")
-                        .requestMatchers("/api/table/**").permitAll()
+
+                        .requestMatchers(HttpMethod.GET, "/api/table/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/table/**").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.PUT, "/api/table/**").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/table/**").hasAnyRole("ADMIN", "MANAGER")
 
                         .requestMatchers("/api/orders/cheff/**").hasRole("CHEFF")
 
@@ -259,7 +263,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/roles/{roleId}").hasRole("ADMIN")
 
                         .requestMatchers(HttpMethod.GET, "/api/users/statistics").hasAnyRole("ADMIN", "MANAGER")
-                        .requestMatchers(HttpMethod.GET,"/api/users/**").hasAnyRole("ADMIN","MANAGER")
+                        .requestMatchers(HttpMethod.GET, "/api/users/**").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
                         .requestMatchers("/api/role-histories/update/test/role-names").permitAll()
                         .requestMatchers("/api/role-histories/**").hasRole("ADMIN")
@@ -277,8 +281,8 @@ public class SecurityConfig {
 
                         .requestMatchers("/api/promotion-types/**").hasAnyRole("MANAGER", "ADMIN")
 
-                        .requestMatchers(HttpMethod.POST,"/api/schedules/**").hasAnyRole("ADMIN", "MANAGER")
-                        .requestMatchers(HttpMethod.PUT,"/api/schedules/**").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.POST, "/api/schedules/**").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.PUT, "/api/schedules/**").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers("/api/schedules/**").hasAnyRole("ADMIN", "MANAGER", "STAFF", "CHEFF", "WAITER")
 
                         .requestMatchers("/api/dashboard/**").hasAnyRole("ADMIN", "MANAGER")
