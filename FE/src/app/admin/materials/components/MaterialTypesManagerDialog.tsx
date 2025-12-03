@@ -39,7 +39,7 @@ export function MaterialTypesManagerDialog({ open, onOpenChange }: MaterialTypes
             setMaterialTypes(data);
         } catch (error) {
             console.error('Failed to fetch material types:', error);
-            toast.error('❌ Không thể tải danh sách loại nguyên liệu!');
+            toast.error('Không thể tải danh sách loại nguyên liệu!');
         } finally {
             setLoading(false);
         }
@@ -63,18 +63,18 @@ export function MaterialTypesManagerDialog({ open, onOpenChange }: MaterialTypes
 
     const handleSaveNewType = async () => {
         if (!newTypeName.trim()) {
-            toast.warning('⚠️ Tên loại không được để trống!');
+            toast.warning('Tên loại không được để trống!');
             return;
         }
         try {
             setActionLoading(true);
             await createMaterialType({ name: newTypeName.trim() });
-            toast.success('✅ Đã thêm loại nguyên liệu mới!');
+            toast.success('Đã thêm loại nguyên liệu mới!');
             handleCancelCreate();
             await fetchMaterialTypes();
         } catch (error) {
             console.error('Failed to create material type:', error);
-            toast.error('❌ Không thể thêm loại nguyên liệu!');
+            toast.error('Không thể thêm loại nguyên liệu!');
         } finally {
             setActionLoading(false);
         }
@@ -92,18 +92,18 @@ export function MaterialTypesManagerDialog({ open, onOpenChange }: MaterialTypes
 
     const handleSaveUpdate = async (typeId: number) => {
         if (!editingName.trim()) {
-            toast.warning('⚠️ Tên loại không được để trống!');
+            toast.warning('Tên loại không được để trống!');
             return;
         }
         try {
             setActionLoading(true);
             await updateMaterialType(typeId, { name: editingName.trim() });
-            toast.success('✅ Cập nhật thành công!');
+            toast.success('Cập nhật thành công!');
             handleCancelEdit();
             await fetchMaterialTypes();
         } catch (error) {
             console.error('Failed to update material type:', error);
-            toast.error('❌ Không thể cập nhật loại nguyên liệu!');
+            toast.error('Không thể cập nhật loại nguyên liệu!');
         } finally {
             setActionLoading(false);
         }
@@ -119,13 +119,13 @@ export function MaterialTypesManagerDialog({ open, onOpenChange }: MaterialTypes
         try {
             setActionLoading(true);
             await deleteMaterialType(deletingMaterialType.id);
-            toast.success(`✅ Đã xóa loại nguyên liệu "${deletingMaterialType.name}"!`);
+            toast.success(`Đã xóa loại nguyên liệu "${deletingMaterialType.name}"!`);
             await fetchMaterialTypes();
             setShowConfirmDialog(false);
             setDeletingMaterialType(null);
         } catch (error) {
             // console.error('Failed to delete material type:', error);
-            const errorMessage = error instanceof Error ? error.message : '❌ Không thể xóa loại nguyên liệu!';
+            const errorMessage = error instanceof Error ? error.message : 'Không thể xóa loại nguyên liệu!';
             toast.error(errorMessage);
         } finally {
             setActionLoading(false);

@@ -114,7 +114,7 @@ export function MaterialFormDialog({ open, onOpenChange, material, onSuccess }: 
             setUnits(unitsData);
         } catch (error) {
             console.error('Failed to load initial data:', error);
-            toast.error('❌ Không thể tải dữ liệu ban đầu!');
+            toast.error('Không thể tải dữ liệu ban đầu!');
         }
     };
 
@@ -122,7 +122,7 @@ export function MaterialFormDialog({ open, onOpenChange, material, onSuccess }: 
         e.preventDefault();
 
         if (!formData.name.trim() || !formData.unitId || !formData.materialTypeId) {
-            toast.error('❌ Vui lòng điền đầy đủ thông tin chung!');
+            toast.error('Vui lòng điền đầy đủ thông tin chung!');
             return;
         }
 
@@ -140,18 +140,18 @@ export function MaterialFormDialog({ open, onOpenChange, material, onSuccess }: 
             if (material) {
                 await updateMaterial(material.id, requestData);
                 savedMaterialId = material.id;
-                toast.success('✅ Cập nhật thông tin nguyên liệu thành công!');
+                toast.success('Cập nhật thông tin nguyên liệu thành công!');
             } else {
                 const newMaterial = await createMaterial(requestData);
                 savedMaterialId = newMaterial.id;
-                toast.success('✅ Thêm nguyên liệu mới thành công!');
+                toast.success('Thêm nguyên liệu mới thành công!');
             }
 
             onSuccess();
             onOpenChange(false);
         } catch (error) {
             console.error('Failed to save material:', error);
-            toast.error('❌ Không thể lưu nguyên liệu!');
+            toast.error('Không thể lưu nguyên liệu!');
         } finally {
             setLoading(false);
         }

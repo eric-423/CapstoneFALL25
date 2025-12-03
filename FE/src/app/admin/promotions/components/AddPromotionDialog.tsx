@@ -147,7 +147,7 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
       );
 
       if (!selectedType) {
-        toast.error("❌ Vui lòng chọn loại khuyến mãi");
+        toast.error("Vui lòng chọn loại khuyến mãi");
         setIsLoading(false);
         return;
       }
@@ -185,7 +185,7 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
             .message ||
           (error.response.data as { message?: string; error?: string }).error
           : "Có lỗi xảy ra khi tạo khuyến mãi";
-      toast.error(`❌ ${errorMessage || "Có lỗi xảy ra khi tạo khuyến mãi"}`);
+      toast.error(`${errorMessage || "Có lỗi xảy ra khi tạo khuyến mãi"}`);
     } finally {
       setIsLoading(false);
     }

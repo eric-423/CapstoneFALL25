@@ -137,7 +137,7 @@ export function WarehouseFormDialog({
         e.preventDefault();
 
         if (!formData.address.trim() || !formData.branchId) {
-            toast.error('❌ Vui lòng điền đầy đủ thông tin!');
+            toast.error('Vui lòng điền đầy đủ thông tin!');
             return;
         }
 
@@ -150,7 +150,7 @@ export function WarehouseFormDialog({
         );
 
         if (duplicateWarehouse) {
-            toast.error(`❌ Địa chỉ này đã được sử dụng bởi kho khác (ID: ${duplicateWarehouse.id})!`);
+            toast.error(`Địa chỉ này đã được sử dụng bởi kho khác (ID: ${duplicateWarehouse.id})!`);
             return;
         }
 
@@ -162,7 +162,7 @@ export function WarehouseFormDialog({
         // Note: It's acceptable if the warehouse address matches its OWN branch address
         // But we should warn if it matches ANOTHER branch's address
         if (duplicateBranch && String(duplicateBranch.id) !== formData.branchId) {
-            toast.error(`❌ Địa chỉ này đã được sử dụng bởi chi nhánh "${duplicateBranch.name}"!`);
+            toast.error(`Địa chỉ này đã được sử dụng bởi chi nhánh "${duplicateBranch.name}"!`);
             return;
         }
 
@@ -177,17 +177,17 @@ export function WarehouseFormDialog({
 
             if (warehouse) {
                 await updateWarehouse(warehouse.id, requestData);
-                toast.success('✅ Cập nhật kho thành công!');
+                toast.success('Cập nhật kho thành công!');
             } else {
                 await createWarehouse(requestData);
-                toast.success('✅ Thêm kho thành công!');
+                toast.success('Thêm kho thành công!');
             }
 
             onSuccess();
             onOpenChange(false);
         } catch (error) {
             console.error('Failed to save warehouse:', error);
-            toast.error('❌ Không thể lưu kho!');
+            toast.error('Không thể lưu kho!');
         } finally {
             setLoading(false);
         }
@@ -262,7 +262,7 @@ export function WarehouseFormDialog({
                                     const selectedBranch = branches.find(b => b.id.toString() === formData.branchId);
                                     if (selectedBranch) {
                                         setFormData({ ...formData, address: selectedBranch.address });
-                                        toast.success('✅ Đã sử dụng địa chỉ chi nhánh');
+                                        toast.success('Đã sử dụng địa chỉ chi nhánh');
                                     }
                                 }}
                                 disabled={loading}
