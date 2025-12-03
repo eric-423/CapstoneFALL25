@@ -244,7 +244,7 @@ export default function TrainingPage() {
           confirmText="Xoá ngay"
           cancelText="Huỷ"
           onConfirm={handleConfirmDelete}
-          isLoading={deleteLoading}
+          loading={deleteLoading}
           variant="destructive"
         />
 
