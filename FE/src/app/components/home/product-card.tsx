@@ -26,7 +26,6 @@ export function ProductCard({
 }: ProductCardProps) {
   return (
     <motion.div
-      key={id}
       className="flex-shrink-0 w-72 bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow text-center"
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}

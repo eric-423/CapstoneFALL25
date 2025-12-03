@@ -673,7 +673,10 @@ export default function CheckoutPage() {
       return;
     }
 
-    const customerAddress = deliveryAddressValue?.trim();
+    const customerAddress =
+      typeof deliveryAddressValue === "string"
+        ? deliveryAddressValue.trim()
+        : "";
     const branchAddr = (
       selectedBranch?.address ||
       STORE_INFO.address ||
@@ -1517,7 +1520,8 @@ export default function CheckoutPage() {
                         <div className="flex items-start gap-2 text-foreground">
                           <MapPin className="h-4 w-4 text-primary mt-0.5" />
                           <span>
-                            {deliveryAddressValue?.trim()
+                            {typeof deliveryAddressValue === "string" &&
+                            deliveryAddressValue.trim()
                               ? deliveryAddressValue
                               : "Vui lòng nhập địa chỉ giao hàng trong biểu mẫu bên trái."}
                           </span>

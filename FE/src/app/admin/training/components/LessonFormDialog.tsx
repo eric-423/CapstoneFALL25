@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { BookOpen, Edit, Plus } from "lucide-react";
+import { BookOpen, Edit, Plus, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -55,6 +55,7 @@ export function LessonFormDialog({
         isActive: true,
     });
     const [fileVideo, setFileVideo] = useState<File | null>(null);
+    const [videoInputType, setVideoInputType] = useState<"link" | "file">("link");
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(false);
     useBodyScrollLock(open);
@@ -71,6 +72,7 @@ export function LessonFormDialog({
                     lesson.orderIndex !== undefined ? String(lesson.orderIndex) : "",
                 isActive: lesson.isActive ?? true,
             });
+            setVideoInputType(lesson.videoUrl ? "link" : "link");
         } else if (open && mode === "create") {
             setForm({
                 title: "",
@@ -81,6 +83,7 @@ export function LessonFormDialog({
                 orderIndex: String(totalLessons + 1 || 1),
                 isActive: true,
             });
+            setVideoInputType("link");
         }
         setFileVideo(null);
         setErrors({});
@@ -151,28 +154,33 @@ export function LessonFormDialog({
         if (!training) return;
         if (!validate()) return;
 
-        const MAX_SIZE = 50 * 1024 * 1024;
-        if (fileVideo && fileVideo.size > MAX_SIZE) {
-            setErrors({ video: "File không được vượt quá 50MB" });
-            return;
-        }
-
-        if (fileVideo) {
-            const hasDiacritics = /[^\x00-\x7F]/.test(fileVideo.name);
-            if (hasDiacritics) {
-                setErrors({
-                    video: "Tên file không được chứa dấu. Vui lòng đổi tên không dấu.",
-                });
-                return;
-            }
-        }
-
         setErrors({});
         setLoading(true);
 
         let videoUrl = form.videoUrl?.trim() ?? "";
 
-        if (fileVideo) {
+        if (videoInputType === "file") {
+            if (!fileVideo) {
+                setErrors({ video: "Vui lòng chọn file video để upload" });
+                setLoading(false);
+                return;
+            }
+
+            const MAX_SIZE = 50 * 1024 * 1024;
+            if (fileVideo.size > MAX_SIZE) {
+                setErrors({ video: "File không được vượt quá 50MB" });
+                setLoading(false);
+                return;
+            }
+
+            const hasDiacritics = /[^\x00-\x7F]/.test(fileVideo.name);
+            if (hasDiacritics) {
+                setErrors({
+                    video: "Tên file không được chứa dấu. Vui lòng đổi tên không dấu.",
+                });
+                setLoading(false);
+                return;
+            }
             const bucketName = TRAINING_MEDIA_BUCKET;
             if (!bucketName) {
                 setErrors({
@@ -207,6 +215,13 @@ export function LessonFormDialog({
                     return;
                 }
             }
+        } else if (videoInputType === "link") {
+            if (!form.videoUrl?.trim()) {
+                setErrors({ video: "Vui lòng nhập link video" });
+                setLoading(false);
+                return;
+            }
+            videoUrl = form.videoUrl.trim();
         }
 
         const payload: CreateLessonPayload = {
@@ -403,44 +418,90 @@ export function LessonFormDialog({
                         )}
                     </div>
 
-                    <div className="space-y-1">
-                        <label
-                            className="text-sm font-semibold text-gray-700"
-                            htmlFor={`lesson-video-input-${mode}`}
-                        >
-                            Video bài học
-                        </label>
-                        <input
-                            type="file"
-                            accept="video/*"
-                            id={`lesson-video-input-${mode}`}
-                            aria-label="Tải video bài học"
-                            onChange={(e) => setFileVideo(e.target.files?.[0] ?? null)}
-                            className="block w-full text-sm text-gray-700 border-2 border-gray-200 rounded-md cursor-pointer focus:border-primary file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90"
-                        />
-                        {fileVideo && (
-                            <p className="text-xs text-gray-500">Đã chọn: {fileVideo.name}</p>
-                        )}
-                        {!fileVideo && mode === "edit" && form.videoUrl && (
-                            <div className="flex items-center gap-2">
-                                <a
-                                    href={form.videoUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-xs text-primary underline-offset-4 hover:underline inline-flex items-center gap-1"
-                                >
-                                    Xem video hiện tại
-                                    <ExternalLink size={12} />
-                                </a>
+                    <div className="space-y-3">
+                        <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                            <span>Video bài học</span>
+                            <div className="inline-flex items-center gap-2 text-xs text-gray-500">
+                                <input
+                                    type="checkbox"
+                                    className="h-4 w-4 accent-orange-500 cursor-pointer"
+                                    checked={videoInputType === "file"}
+                                    onChange={(e) => {
+                                        const useUpload = e.target.checked;
+                                        if (useUpload) {
+                                            setVideoInputType("file");
+                                            setForm((prev) => ({ ...prev, videoUrl: "" }));
+                                            setErrors((prev) => {
+                                                const { video, ...rest } = prev;
+                                                return rest;
+                                            });
+                                        } else {
+                                            setVideoInputType("link");
+                                            setErrors((prev) => {
+                                                const { video, ...rest } = prev;
+                                                return rest;
+                                            });
+                                            setFileVideo(null);
+                                        }
+                                    }}
+                                    aria-label="Bật để tải file lên Supabase"
+                                />
+                                <Upload size={14} className={videoInputType === "file" ? "text-orange-500" : "text-gray-400"} />
+                                <span>Tải file lên</span>
                             </div>
-                        )}
-                        {!fileVideo && mode === "create" && (
-                            <p className="text-xs text-gray-500">
-                                Upload video để hệ thống tự tạo đường dẫn Supabase.
-                            </p>
-                        )}
-                        {errors.video && (
-                            <p className="text-xs text-red-500">{errors.video}</p>
+                        </label>
+
+                        {videoInputType === "link" ? (
+                            <div className="space-y-1">
+                                <Input
+                                    type="url"
+                                    placeholder="https://example.com/video.mp4"
+                                    value={form.videoUrl}
+                                    onChange={(e) =>
+                                        setForm((prev) => ({ ...prev, videoUrl: e.target.value }))
+                                    }
+                                    className={`h-11 border-2 ${errors.video ? "border-red-400" : "border-gray-200"
+                                        } focus:border-orange-500 focus:ring-orange-500/20 focus:ring-4 transition-all`}
+                                />
+                                {mode === "edit" && form.videoUrl && (
+                                    <div className="flex items-center gap-2 mt-2">
+                                        <a
+                                            href={form.videoUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-xs text-primary underline-offset-4 hover:underline inline-flex items-center gap-1"
+                                        >
+                                            Xem video hiện tại
+                                            <ExternalLink size={12} />
+                                        </a>
+                                    </div>
+                                )}
+                                {errors.video && (
+                                    <p className="text-xs text-red-500">{errors.video}</p>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="space-y-1">
+                                <input
+                                    type="file"
+                                    accept="video/*"
+                                    id={`lesson-video-input-${mode}`}
+                                    aria-label="Tải video bài học"
+                                    onChange={(e) => setFileVideo(e.target.files?.[0] ?? null)}
+                                    className="block w-full text-sm text-gray-700 border-2 border-gray-200 rounded-md cursor-pointer focus:border-primary file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90"
+                                />
+                                {fileVideo && (
+                                    <p className="text-xs text-gray-500 mt-2">Đã chọn: {fileVideo.name}</p>
+                                )}
+                                {!fileVideo && (
+                                    <p className="text-xs text-gray-500 mt-2">
+                                        Upload video để hệ thống tự tạo đường dẫn Supabase.
+                                    </p>
+                                )}
+                                {errors.video && (
+                                    <p className="text-xs text-red-500">{errors.video}</p>
+                                )}
+                            </div>
                         )}
                     </div>
 

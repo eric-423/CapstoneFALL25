@@ -7,10 +7,11 @@ import {
   OrderResponse,
   getCustomerOrderDetail,
   CustomerOrderDetailData,
+  completeCustomerOrder,
 } from "@/apis/order.api";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { toast } from "react-toastify";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, CheckCircle } from "lucide-react";
 import { OrderDetailsContent } from "@/components/common/order-details";
 import { useMemo } from "react";
 
@@ -53,6 +54,12 @@ const mapCustomerOrderDetail = (
     0
   );
 
+  // Tính tổng tiền sản phẩm (subTotal)
+  const subTotal = detail.subTotal ?? fallback?.subTotal ?? 0;
+  
+  // Tính điểm nhận được: tổng tiền sản phẩm / 1000
+  const calculatedPointEarned = Math.floor(subTotal / 1000);
+
   const mergedBase: OrderResponse = {
     id: detail.id ?? fallback?.id ?? 0,
     date: detail.createdAt
@@ -64,7 +71,7 @@ const mapCustomerOrderDetail = (
       Number.isFinite(computedTotalItems) && computedTotalItems >= 0
         ? computedTotalItems
         : (fallback?.totalItems ?? detailItems.length),
-    subTotal: detail.subTotal ?? fallback?.subTotal ?? 0,
+    subTotal: subTotal,
     orderStatus:
       detail.orderStatus ?? detail.status ?? fallback?.orderStatus ?? "",
     paymentStatus: detail.status ?? fallback?.paymentStatus ?? "",
@@ -98,10 +105,7 @@ const mapCustomerOrderDetail = (
       typeof detail.pointUsed === "number"
         ? detail.pointUsed
         : fallback?.pointUsed,
-    pointEarned:
-      typeof detail.pointEarned === "number"
-        ? detail.pointEarned
-        : fallback?.pointEarned,
+    pointEarned: calculatedPointEarned,
     shipperName: detail.shipperName ?? fallback?.shipperName,
     waiterName: detail.waiterName ?? fallback?.waiterName,
     chefName: detail.chefName ?? fallback?.chefName,
@@ -143,6 +147,7 @@ export default function CustomerOrderDetailPage() {
 
   const [order, setOrder] = useState<OrderResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isCompleting, setIsCompleting] = useState(false);
   const refreshIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
     null
   );
@@ -211,6 +216,24 @@ export default function CustomerOrderDetailPage() {
 
   const normalizedStatus = order?.orderStatus?.toUpperCase?.() || "";
   const isCreated = normalizedStatus === "CREATED";
+  const isDelivered = normalizedStatus === "DELIVERED";
+
+  const handleCompleteOrder = async () => {
+    if (!order || isCompleting) return;
+
+    setIsCompleting(true);
+    try {
+      const result = await completeCustomerOrder(orderId);
+      if (result.success) {
+        // Refresh order data after completion
+        await fetchOrder(false);
+      }
+    } catch (error) {
+      console.error("Error completing order:", error);
+    } finally {
+      setIsCompleting(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -251,8 +274,8 @@ export default function CustomerOrderDetailPage() {
               <ArrowLeft className="mr-2 h-4 w-4" />
               Quay lại
             </Button>
-            {isCreated && (
-              <div className="flex flex-col sm:flex-row gap-3 justify-end">
+            <div className="flex flex-col sm:flex-row gap-3 justify-end">
+              {isCreated && (
                 <Button
                   variant="default"
                   className="w-full sm:w-max bg-primary hover:bg-primary/90 whitespace-nowrap"
@@ -263,8 +286,28 @@ export default function CustomerOrderDetailPage() {
                     ({formatCurrency(paymentAmount)})
                   </span>
                 </Button>
-              </div>
-            )}
+              )}
+              {isDelivered && (
+                <Button
+                  variant="default"
+                  className="w-full sm:w-max bg-green-600 hover:bg-green-700 text-white whitespace-nowrap"
+                  onClick={handleCompleteOrder}
+                  disabled={isCompleting}
+                >
+                  {isCompleting ? (
+                    <span className="flex items-center">
+                      <div className="mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Đang xử lý...
+                    </span>
+                  ) : (
+                    <>
+                      <CheckCircle className="mr-2 h-4 w-4" />
+                      Xác nhận đã nhận hàng
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
           </div>
           <OrderDetailsContent
             order={order}

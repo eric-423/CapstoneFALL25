@@ -539,6 +539,34 @@ export const completeOrder = async (orderId: number): Promise<CommonResponse> =>
     }
 }
 
+export const completeCustomerOrder = async (orderId: number): Promise<CommonResponse> => {
+    try {
+        const response = await fetch(`/api/orders/customer/comleted/${orderId}`, {
+            method: 'PUT',
+            credentials: 'include',
+        });
+        
+        if (!response.ok) {
+            const errorBody = await response.json().catch(() => ({ error: 'Failed to complete order' }));
+            return {
+                success: false,
+                message: errorBody.message || errorBody.error || 'Không thể hoàn tất đơn hàng'
+            };
+        }
+        
+        return {
+            success: true,
+            message: 'Đã xác nhận nhận hàng thành công'
+        };
+    } catch (error) {
+        console.error('Error completing customer order:', error);
+        return {
+            success: false,
+            message: 'Có lỗi xảy ra khi xác nhận nhận hàng'
+        };
+    }
+}
+
 
 export const staffAssignShipperToOrder = async (orderId: number): Promise<CommonResponse> => {
     try {
