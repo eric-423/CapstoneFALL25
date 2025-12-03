@@ -1,13 +1,13 @@
-import http from '@/utils/http';
+import http from "@/utils/http";
 
 export enum OrderStatus {
-  'PROCESSING' = 'Đang chuẩn bị',
-  'IN_DELIVERY' = 'Đang giao hàng',
-  'COMPLETED' = 'Đã giao',
-  'VERIFIED' = 'Đặt Hàng Thành Công',
-  'CANCELLED' = 'Đã hủy',
-  'PAID' = 'Đã thanh toán',
-  'UNPAID' = 'Chờ Thanh Toán',
+  "PROCESSING" = "Đang chuẩn bị",
+  "IN_DELIVERY" = "Đang giao hàng",
+  "COMPLETED" = "Đã giao",
+  "VERIFIED" = "Đặt Hàng Thành Công",
+  "CANCELLED" = "Đã hủy",
+  "PAID" = "Đã thanh toán",
+  "UNPAID" = "Chờ Thanh Toán",
 }
 
 export interface OrderProduct {
@@ -31,7 +31,7 @@ export interface DiningOrderRequest {
   shippingAddress?: string;
   shippingPhoneNumber?: string;
   orderItemList: OrderItemRequest[];
-  mode: 'DINING' | 'SHIPPING' | 'PICKUP';
+  mode: "DINING" | "SHIPPING" | "PICKUP";
   diningTableId: number;
   branchId: number;
 }
@@ -78,7 +78,7 @@ export interface OrderProductResponse {
   isCombo?: boolean;
 }
 
-export type OrderMode = 'PICKUP' | 'DELIVERY';
+export type OrderMode = "PICKUP" | "DELIVERY";
 
 export interface CreateOrderItem {
   productId: number;
@@ -98,6 +98,7 @@ export interface CreateOrderPayload {
   mode: OrderMode | string;
   branchId: number;
   paymentMethodId?: number;
+  pointUsed?: number;
 }
 
 export interface OrderResponse {
@@ -203,7 +204,6 @@ export interface CustomerOrderDetailApiResponse {
   data: CustomerOrderDetailData;
 }
 
-
 export interface OrderStatusesResponse {
   status: number;
   desc: string;
@@ -278,8 +278,6 @@ export interface ChefOrdersApiResponse {
   data: ChefOrderResponse[];
 }
 
-
-
 export interface WaiterOrderItemRequest {
   productId: number;
   comboId: number;
@@ -300,17 +298,16 @@ export interface WaiterDeliveredRequest {
   orderItems: WaiterOrderItemRequest[];
 }
 
-export const GET_CUSTOMER_ORDER_QUERY_KEY = 'GET_CUSTOMER_ORDER_QUERY_KEY';
-
+export const GET_CUSTOMER_ORDER_QUERY_KEY = "GET_CUSTOMER_ORDER_QUERY_KEY";
 
 //taoj order
 export const createOrderApiRoute = async (payload: CreateOrderPayload) => {
-  const response = await fetch('/api/orders', {
-    method: 'POST',
+  const response = await fetch("/api/orders", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
-    credentials: 'include',
+    credentials: "include",
     body: JSON.stringify(payload),
   });
 
@@ -327,8 +324,6 @@ export const createOrderApiRoute = async (payload: CreateOrderPayload) => {
   return response.json();
 };
 
-
-
 // export const getCustomerInformation = async (userId: number) => {
 //   const response = await fetch(`/api/customer/infomation?userId=${userId}`, {
 //     method: 'GET',
@@ -365,18 +360,13 @@ export const createOrderApiRoute = async (payload: CreateOrderPayload) => {
 
 //   return response.json();
 // };
-
-
-
-
-
 
 export const getCustomerOrders = async (status?: string) => {
-  const queryParams = status ? `?status=${encodeURIComponent(status)}` : '';
+  const queryParams = status ? `?status=${encodeURIComponent(status)}` : "";
 
   const response = await fetch(`/api/orders/customer/my-orders${queryParams}`, {
-    method: 'GET',
-    credentials: 'include',
+    method: "GET",
+    credentials: "include",
   });
 
   if (!response.ok) {
@@ -390,13 +380,14 @@ export const getCustomerOrders = async (status?: string) => {
   }
 
   return response.json();
-
 };
 
-export const getCustomerOrderDetail = async (orderId: number): Promise<CustomerOrderDetailApiResponse> => {
+export const getCustomerOrderDetail = async (
+  orderId: number
+): Promise<CustomerOrderDetailApiResponse> => {
   const response = await fetch(`/api/orders/${orderId}`, {
-    method: 'GET',
-    credentials: 'include',
+    method: "GET",
+    credentials: "include",
   });
 
   if (!response.ok) {
@@ -413,37 +404,55 @@ export const getCustomerOrderDetail = async (orderId: number): Promise<CustomerO
 };
 
 export const cancelOrder = async (orderId: number, customerId: number) => {
-  const { data } = await http.put(`/orders/cancel/${orderId}?customerId=${customerId}`);
+  const { data } = await http.put(
+    `/orders/cancel/${orderId}?customerId=${customerId}`
+  );
   return data;
 };
 
 export const createDiningOrder = async (orderRequest: DiningOrderRequest) => {
-  const { data } = await http.post('/orders/dining-table/create', orderRequest);
+  const { data } = await http.post("/orders/dining-table/create", orderRequest);
   return data;
 };
 
-export const payDiningTableOrder = async (paymentRequest: DiningTablePaymentRequest) => {
-  const { data } = await http.post('/orders/dining-table/payment', paymentRequest);
+export const payDiningTableOrder = async (
+  paymentRequest: DiningTablePaymentRequest
+) => {
+  const { data } = await http.post(
+    "/orders/dining-table/payment",
+    paymentRequest
+  );
   return data;
 };
 
-export const updateDiningTableOrder = async (orderId: number, updateRequest: UpdateDiningTableOrderRequest) => {
-  const { data } = await http.put(`/orders/dining-table/update/${orderId}`, updateRequest);
+export const updateDiningTableOrder = async (
+  orderId: number,
+  updateRequest: UpdateDiningTableOrderRequest
+) => {
+  const { data } = await http.put(
+    `/orders/dining-table/update/${orderId}`,
+    updateRequest
+  );
   return data;
 };
-
 
 export const getOrderStatuses = async (): Promise<OrderStatusesResponse> => {
   try {
-    const response = await fetch('/api/orders/statuses', {
-      method: 'GET',
-      credentials: 'include',
+    const response = await fetch("/api/orders/statuses", {
+      method: "GET",
+      credentials: "include",
     });
 
     if (!response.ok) {
-      const errorBody = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
-      const error = new Error(`Failed to fetch order statuses: ${response.status} ${response.statusText}`);
-      (error as Error & { response?: { data: unknown; status: number } }).response = {
+      const errorBody = await response
+        .json()
+        .catch(() => ({ error: "Failed to parse error response" }));
+      const error = new Error(
+        `Failed to fetch order statuses: ${response.status} ${response.statusText}`
+      );
+      (
+        error as Error & { response?: { data: unknown; status: number } }
+      ).response = {
         data: errorBody,
         status: response.status,
       };
@@ -457,18 +466,26 @@ export const getOrderStatuses = async (): Promise<OrderStatusesResponse> => {
   }
 };
 
-export const getBranchOrders = async (status?: string): Promise<BranchOrdersApiResponse> => {
+export const getBranchOrders = async (
+  status?: string
+): Promise<BranchOrdersApiResponse> => {
   try {
-    const params = status ? `?status=${status}` : '';
+    const params = status ? `?status=${status}` : "";
     const response = await fetch(`/api/orders/branch/my-branch${params}`, {
-      method: 'GET',
-      credentials: 'include',
+      method: "GET",
+      credentials: "include",
     });
 
     if (!response.ok) {
-      const errorBody = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
-      const error = new Error(`Failed to fetch branch orders: ${response.status} ${response.statusText}`);
-      (error as Error & { response?: { data: unknown; status: number } }).response = {
+      const errorBody = await response
+        .json()
+        .catch(() => ({ error: "Failed to parse error response" }));
+      const error = new Error(
+        `Failed to fetch branch orders: ${response.status} ${response.statusText}`
+      );
+      (
+        error as Error & { response?: { data: unknown; status: number } }
+      ).response = {
         data: errorBody,
         status: response.status,
       };
@@ -477,7 +494,6 @@ export const getBranchOrders = async (status?: string): Promise<BranchOrdersApiR
 
     const data = await response.json();
     return data;
-
   } catch (error) {
     throw error;
   }
@@ -488,19 +504,27 @@ export interface AssignChefResponse {
   message?: string;
 }
 
-export const assignChefToOrder = async (orderId: number): Promise<AssignChefResponse> => {
+export const assignChefToOrder = async (
+  orderId: number
+): Promise<AssignChefResponse> => {
   try {
     const url = `/api/orders/staff/assign/cheff/${orderId}`;
 
     const response = await fetch(url, {
-      method: 'PUT',
-      credentials: 'include',
+      method: "PUT",
+      credentials: "include",
     });
 
     if (!response.ok) {
-      const errorBody = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
-      const error = new Error(`Failed to assign chef: ${response.status} ${response.statusText}`);
-      (error as Error & { response?: { data: unknown; status: number } }).response = {
+      const errorBody = await response
+        .json()
+        .catch(() => ({ error: "Failed to parse error response" }));
+      const error = new Error(
+        `Failed to assign chef: ${response.status} ${response.statusText}`
+      );
+      (
+        error as Error & { response?: { data: unknown; status: number } }
+      ).response = {
         data: errorBody,
         status: response.status,
       };
@@ -508,71 +532,89 @@ export const assignChefToOrder = async (orderId: number): Promise<AssignChefResp
     }
 
     const data = await response.json();
-    const success = data === true || data === 'true' || data.success === true;
+    const success = data === true || data === "true" || data.success === true;
     return { success };
   } catch (error) {
     throw error;
   }
 };
 
-
-
-export const assignShipperToOrder = async (orderId: number): Promise<AssignShipperResponse> => {
+export const assignShipperToOrder = async (
+  orderId: number
+): Promise<AssignShipperResponse> => {
   try {
-    const response = await fetch(`/api/orders/manager/assign/shipper/${orderId}`, {
-      method: 'PUT',
-      credentials: 'include',
-    });
+    const response = await fetch(
+      `/api/orders/manager/assign/shipper/${orderId}`,
+      {
+        method: "PUT",
+        credentials: "include",
+      }
+    );
 
     const data = await response.json();
     return {
-      success: data === true || data === 'true' || data.success === true || response.ok,
-      message: data.message || 'Đã assign shipper thành công'
+      success:
+        data === true ||
+        data === "true" ||
+        data.success === true ||
+        response.ok,
+      message: data.message || "Đã assign shipper thành công",
     };
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return {
       success: false,
-      message: 'Hiện Tại Tất Cả Shipper Đang Bận'
+      message: "Hiện Tại Tất Cả Shipper Đang Bận",
     };
   }
 };
 
-
-
-export const staffAssignShipperToOrder = async (orderId: number): Promise<AssignShipperResponse> => {
+export const staffAssignShipperToOrder = async (
+  orderId: number
+): Promise<AssignShipperResponse> => {
   try {
-    const response = await fetch(`/api/orders/staff/assign/shipper/${orderId}`, {
-      method: 'PUT',
-      credentials: 'include',
-    });
+    const response = await fetch(
+      `/api/orders/staff/assign/shipper/${orderId}`,
+      {
+        method: "PUT",
+        credentials: "include",
+      }
+    );
 
     const data = await response.json();
     return {
-      success: data === true || data === 'true' || data.success === true || response.ok,
-      message: data.message || 'Đã assign shipper thành công'
+      success:
+        data === true ||
+        data === "true" ||
+        data.success === true ||
+        response.ok,
+      message: data.message || "Đã assign shipper thành công",
     };
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return {
       success: false,
-      message: 'Hiện Tại Tất Cả Shipper Đang Bận'
+      message: "Hiện Tại Tất Cả Shipper Đang Bận",
     };
   }
 };
 
-
-export const getChefOrders = async (chefId: number, status?: string): Promise<ChefOrdersApiResponse> => {
-  const params = status ? `?status=${status}` : '';
+export const getChefOrders = async (
+  chefId: number,
+  status?: string
+): Promise<ChefOrdersApiResponse> => {
+  const params = status ? `?status=${status}` : "";
 
   try {
     const response = await fetch(`/api/orders/cheff/view/${chefId}${params}`, {
-      method: 'GET',
-      credentials: 'include',
+      method: "GET",
+      credentials: "include",
     });
 
     if (!response.ok) {
-      const errorBody = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
+      const errorBody = await response
+        .json()
+        .catch(() => ({ error: "Failed to parse error response" }));
       return {
         status: errorBody?.status ?? response.status,
         desc:
@@ -580,7 +622,7 @@ export const getChefOrders = async (chefId: number, status?: string): Promise<Ch
           errorBody?.error ||
           errorBody?.message ||
           errorBody?.details?.error ||
-          'Không thể tải danh sách đơn bếp',
+          "Không thể tải danh sách đơn bếp",
         data: Array.isArray(errorBody?.data) ? errorBody.data : [],
       };
     }
@@ -589,13 +631,27 @@ export const getChefOrders = async (chefId: number, status?: string): Promise<Ch
     return data;
   } catch (error) {
     const apiError = error as Error & {
-      response?: { status?: number; data?: { desc?: string; error?: string; message?: string; data?: ChefOrderResponse[] } };
+      response?: {
+        status?: number;
+        data?: {
+          desc?: string;
+          error?: string;
+          message?: string;
+          data?: ChefOrderResponse[];
+        };
+      };
     };
 
     return {
       status: apiError.response?.status ?? 500,
-      desc: apiError.response?.data?.desc || apiError.response?.data?.error || apiError.message || 'Không thể tải danh sách đơn bếp',
-      data: Array.isArray(apiError.response?.data?.data) ? apiError.response?.data?.data : [],
+      desc:
+        apiError.response?.data?.desc ||
+        apiError.response?.data?.error ||
+        apiError.message ||
+        "Không thể tải danh sách đơn bếp",
+      data: Array.isArray(apiError.response?.data?.data)
+        ? apiError.response?.data?.data
+        : [],
     };
   }
 };
@@ -605,25 +661,30 @@ export interface MarkOrderAsCookedResponse {
   message?: string;
 }
 
-
 export const markOrderAsCooked = async (
   orderId: number,
-  orderItemIds: number[],
+  orderItemIds: number[]
 ): Promise<MarkOrderAsCookedResponse> => {
   try {
     const response = await fetch(`/api/orders/cheff/cooked/${orderId}`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
-      credentials: 'include',
+      credentials: "include",
       body: JSON.stringify({ orderItemIds }),
     });
 
     if (!response.ok) {
-      const errorBody = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
-      const error = new Error(`Failed to mark order as cooked: ${response.status} ${response.statusText}`);
-      (error as Error & { response?: { data: unknown; status: number } }).response = {
+      const errorBody = await response
+        .json()
+        .catch(() => ({ error: "Failed to parse error response" }));
+      const error = new Error(
+        `Failed to mark order as cooked: ${response.status} ${response.statusText}`
+      );
+      (
+        error as Error & { response?: { data: unknown; status: number } }
+      ).response = {
         data: errorBody,
         status: response.status,
       };
@@ -632,30 +693,41 @@ export const markOrderAsCooked = async (
 
     const data = await response.json();
     return {
-      success: data === true || data === 'true' || data.success === true || response.ok,
-      message: data.message || 'Đã đánh dấu đơn hàng là đã nấu xong'
+      success:
+        data === true ||
+        data === "true" ||
+        data.success === true ||
+        response.ok,
+      message: data.message || "Đã đánh dấu đơn hàng là đã nấu xong",
     };
   } catch (error) {
     throw error;
   }
 };
 
-
-export const waiterConfirmOrder = async (request: WaiterConfirmRequest): Promise<void> => {
+export const waiterConfirmOrder = async (
+  request: WaiterConfirmRequest
+): Promise<void> => {
   try {
-    const response = await fetch('/api/orders/waiter/confirm', {
-      method: 'POST',
+    const response = await fetch("/api/orders/waiter/confirm", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
-      credentials: 'include',
+      credentials: "include",
       body: JSON.stringify(request),
     });
 
     if (!response.ok) {
-      const errorBody = await response.json().catch(() => ({ error: 'Failed to confirm order' }));
-      const error = new Error(`Failed to confirm order: ${response.status} ${response.statusText}`);
-      (error as Error & { response?: { data: unknown; status: number } }).response = {
+      const errorBody = await response
+        .json()
+        .catch(() => ({ error: "Failed to confirm order" }));
+      const error = new Error(
+        `Failed to confirm order: ${response.status} ${response.statusText}`
+      );
+      (
+        error as Error & { response?: { data: unknown; status: number } }
+      ).response = {
         data: errorBody,
         status: response.status,
       };
@@ -666,21 +738,29 @@ export const waiterConfirmOrder = async (request: WaiterConfirmRequest): Promise
   }
 };
 
-export const waiterDeliveredOrder = async (request: WaiterDeliveredRequest): Promise<void> => {
+export const waiterDeliveredOrder = async (
+  request: WaiterDeliveredRequest
+): Promise<void> => {
   try {
-    const response = await fetch('/api/orders/waiter/delivered', {
-      method: 'POST',
+    const response = await fetch("/api/orders/waiter/delivered", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
-      credentials: 'include',
+      credentials: "include",
       body: JSON.stringify(request),
     });
 
     if (!response.ok) {
-      const errorBody = await response.json().catch(() => ({ error: 'Failed to mark as delivered' }));
-      const error = new Error(`Failed to mark as delivered: ${response.status} ${response.statusText}`);
-      (error as Error & { response?: { data: unknown; status: number } }).response = {
+      const errorBody = await response
+        .json()
+        .catch(() => ({ error: "Failed to mark as delivered" }));
+      const error = new Error(
+        `Failed to mark as delivered: ${response.status} ${response.statusText}`
+      );
+      (
+        error as Error & { response?: { data: unknown; status: number } }
+      ).response = {
         data: errorBody,
         status: response.status,
       };
@@ -695,6 +775,3 @@ export interface AssignShipperResponse {
   success: boolean;
   message?: string;
 }
-
-
-

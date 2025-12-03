@@ -213,4 +213,15 @@ public class ProductController {
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
 
+    @GetMapping("/detail/{productId}")
+    public ResponseEntity<?> getProductDetail(@PathVariable Integer productId) {
+
+        ProductDTO productDTO = productService.getProductById(productId);
+        ResponseData responseData = new ResponseData();
+        responseData.setData(productDTO);
+        responseData.setStatus(200);
+
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
+
 }
