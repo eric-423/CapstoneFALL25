@@ -87,6 +87,7 @@ import {
   Pencil,
   Check,
   Gift,
+  Coins,
 } from "lucide-react";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -97,10 +98,11 @@ import CheckoutSection from "./components/checkout-section";
 import { CheckoutFormData, checkoutSchema } from "./schema";
 import ControlledDateTimePicker from "@/components/common/date-time-picker";
 import { Promotion, getAvailablePromotions } from "@/apis/promotion.api";
+import { getCustomerDetails } from "@/apis/user.api";
 
 export default function CheckoutPage() {
   useScrollTop();
-
+  const [isUsePoint, setIsUsePoint] = useState(false);
   const queryClient = useQueryClient();
   const { items, getTotalPrice, updateQuantity } = useCart();
   const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
@@ -131,6 +133,8 @@ export default function CheckoutPage() {
   const [selectedPromotion, setSelectedPromotion] = useState<Promotion | null>(
     null
   );
+  const [usedPoint, setUsedPoint] = useState<number>(0);
+  const [pointError, setPointError] = useState<string | null>(null);
 
   useEffect(() => {
     const savedBranch = localStorage.getItem("selectedBranch");
@@ -215,6 +219,19 @@ export default function CheckoutPage() {
     refetchOnMount: true,
     refetchOnWindowFocus: false,
   });
+
+  const { data: customerDetailsResponse, isLoading: isLoadingCustomerDetails } =
+    useQuery({
+      queryKey: ["customer-details", user?.id],
+      queryFn: () => getCustomerDetails(),
+      enabled: Boolean(user?.id),
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+    });
+
+  const customerDetails = customerDetailsResponse?.data;
+  const availablePoints =
+    customerDetails?.point ?? customerDetails?.memberPoint ?? 0;
 
   const primaryAddress = useMemo(() => {
     if (!customerInformations.length) return "";
@@ -417,6 +434,25 @@ export default function CheckoutPage() {
 
   const fulfillmentMethod = form.watch("fulfillmentMethod");
   const isDelivery = fulfillmentMethod === "delivery";
+
+  const maxUsablePoints = useMemo(() => {
+    const orderSubtotal = getTotalPrice();
+    const discountValue = selectedPromotion?.value || 0;
+    const totalBeforePoints =
+      isDelivery && shippingFee !== null
+        ? orderSubtotal + shippingFee - discountValue
+        : orderSubtotal - discountValue;
+    const finalTotal = Math.max(0, totalBeforePoints);
+    const maxByOrderValue = Math.floor(finalTotal / 1000);
+    return Math.min(availablePoints, maxByOrderValue);
+  }, [
+    availablePoints,
+    getTotalPrice,
+    isDelivery,
+    shippingFee,
+    selectedPromotion,
+  ]);
+
   const isCreatingNewAddress =
     isDelivery &&
     (selectedInfoId === "new" || customerInformations.length === 0);
@@ -759,12 +795,13 @@ export default function CheckoutPage() {
       const payload: CreateOrderPayload = {
         customerId: user?.id,
         promotionCode: selectedPromotion?.id || "",
-        discountValue: 0, // Backend sẽ tự tính từ promotionCode
+        discountValue: 0,
         shippingAddress,
         shippingPhoneNumber: data.customerPhone,
         branchId: selectedBranch?.branchId || 1,
         mode: isPickup ? "PICKUP" : "SHIPPING",
         paymentMethodId: data.paymentMethodId || 2,
+        pointUsed: usedPoint > 0 ? usedPoint : undefined,
         orderItemList: items.map((item) => {
           const baseItem = {
             quantity: item.quantity,
@@ -1278,6 +1315,170 @@ export default function CheckoutPage() {
                       </p>
                     )}
                   </CardContent>
+                  <Separator className=" bg-foreground/20" />
+                  <CardContent className="space-y-4 pb-4">
+                    <div className="flex items-center gap-2">
+                      <CheckoutSection
+                        title="Sử dụng điểm tích lũy"
+                        icon={<Coins className="h-5 w-5 text-primary" />}
+                      ></CheckoutSection>
+                    </div>
+                    {isLoadingCustomerDetails ? (
+                      <div className="flex items-center text-sm text-muted-foreground">
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        Đang tải thông tin điểm...
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <Label
+                              htmlFor="used-point"
+                              className="text-sm font-medium text-foreground"
+                            >
+                              Số điểm muốn sử dụng
+                            </Label>
+                            <span className="text-xs text-muted-foreground">
+                              Khả dụng:{" "}
+                              <span className="font-semibold text-primary">
+                                {availablePoints.toLocaleString("vi-VN")} điểm
+                              </span>
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Input
+                              id="used-point"
+                              type="number"
+                              min={0}
+                              max={maxUsablePoints}
+                              value={usedPoint || ""}
+                              onChange={(e) => {
+                                const value = parseInt(e.target.value) || 0;
+                                setPointError(null);
+
+                                if (value < 0) {
+                                  setPointError("Số điểm không được nhỏ hơn 0");
+                                  return;
+                                }
+
+                                if (value > availablePoints) {
+                                  setPointError(
+                                    `Số điểm vượt quá số điểm hiện có (${availablePoints.toLocaleString("vi-VN")} điểm)`
+                                  );
+                                  return;
+                                }
+                                const orderSubtotal = getTotalPrice();
+                                const discountValue =
+                                  selectedPromotion?.value || 0;
+                                const totalBeforePoints =
+                                  isDelivery && shippingFee !== null
+                                    ? orderSubtotal +
+                                      shippingFee -
+                                      discountValue
+                                    : orderSubtotal - discountValue;
+                                const finalTotal = Math.max(
+                                  0,
+                                  totalBeforePoints
+                                );
+                                const maxByOrderValue = Math.floor(
+                                  finalTotal / 1000
+                                );
+                                if (value > maxByOrderValue) {
+                                  setPointError(
+                                    `Số điểm vượt quá tổng tiền thanh toán (tối đa ${maxByOrderValue.toLocaleString("vi-VN")} điểm, tương đương ${finalTotal.toLocaleString("vi-VN")}đ)`
+                                  );
+                                  return;
+                                }
+
+                                setUsedPoint(value);
+                                setIsUsePoint(value > 0);
+                              }}
+                              placeholder="Nhập số điểm muốn sử dụng"
+                              className={cn(
+                                "w-[80%]",
+                                pointError &&
+                                  "border-red-500 focus-visible:ring-red-500"
+                              )}
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                if (maxUsablePoints > 0) {
+                                  setUsedPoint(maxUsablePoints);
+                                  setIsUsePoint(true);
+                                  setPointError(null);
+                                }
+                              }}
+                              disabled={maxUsablePoints === 0}
+                            >
+                              Dùng tất cả
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setUsedPoint(0);
+                                setIsUsePoint(false);
+                                setPointError(null);
+                              }}
+                              disabled={usedPoint === 0}
+                            >
+                              Xóa
+                            </Button>
+                          </div>
+                          {pointError && (
+                            <p className="text-xs text-red-500 mt-1">
+                              {pointError}
+                            </p>
+                          )}
+                          {usedPoint > 0 && !pointError && (
+                            <p className="text-xs text-muted-foreground">
+                              Bạn sẽ sử dụng {usedPoint.toLocaleString("vi-VN")}{" "}
+                              điểm (tương đương{" "}
+                              {(usedPoint * 1000).toLocaleString("vi-VN")}đ).
+                              Còn lại:{" "}
+                              {(availablePoints - usedPoint).toLocaleString(
+                                "vi-VN"
+                              )}{" "}
+                              điểm.
+                            </p>
+                          )}
+                          {availablePoints === 0 && (
+                            <p className="text-xs text-muted-foreground">
+                              Bạn chưa có điểm tích lũy để sử dụng.
+                            </p>
+                          )}
+                          {availablePoints > 0 &&
+                            maxUsablePoints < availablePoints && (
+                              <p className="text-xs text-muted-foreground">
+                                Bạn có thể sử dụng tối đa{" "}
+                                {maxUsablePoints.toLocaleString("vi-VN")} điểm
+                                (giới hạn bởi tổng tiền thanh toán:{" "}
+                                {(() => {
+                                  const orderSubtotal = getTotalPrice();
+                                  const discountValue =
+                                    selectedPromotion?.value || 0;
+                                  const totalBeforePoints =
+                                    isDelivery && shippingFee !== null
+                                      ? orderSubtotal +
+                                        shippingFee -
+                                        discountValue
+                                      : orderSubtotal - discountValue;
+                                  return Math.max(
+                                    0,
+                                    totalBeforePoints
+                                  ).toLocaleString("vi-VN");
+                                })()}
+                                đ).
+                              </p>
+                            )}
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
                 </Card>
               </div>
 
@@ -1547,28 +1748,6 @@ export default function CheckoutPage() {
                   </CardContent>
                 </Card>
 
-                {/* <Card className="p-4 gap-2">
-                  <CardTitle className="m-2 mb-0">
-                    Ghi chú cho đơn hàng
-                  </CardTitle>
-                  <CardContent className="p-0">
-                    <FormField
-                      control={form.control}
-                      name="note"
-                      render={({ field }) => (
-                        <FormItem className="mt-1">
-                          <Textarea
-                            id="note"
-                            placeholder="Nhập ghi chú của bạn ở đây..."
-                            {...field}
-                            className="w-full resize-none h-20"
-                          />
-                        </FormItem>
-                      )}
-                    />
-                  </CardContent>
-                </Card> */}
-
                 <Card>
                   <CardContent className="p-4 py-0 space-y-3">
                     <div className="text-sm text-muted-foreground mt-2 space-y-2">
@@ -1576,6 +1755,14 @@ export default function CheckoutPage() {
                         <span>Tạm tính</span>
                         <span>{orderSubtotal.toLocaleString()}đ</span>
                       </div>
+                      {isUsePoint && (
+                        <div className="flex justify-between">
+                          <span>Ưu đãi thành viên</span>
+                          <span className="text-orange-500">
+                            -{(usedPoint * 1000).toLocaleString()}đ
+                          </span>
+                        </div>
+                      )}
                       {isDelivery && (
                         <div className="flex justify-between">
                           <span>Phí giao hàng</span>
@@ -1606,7 +1793,11 @@ export default function CheckoutPage() {
                     <div className="flex justify-between font-medium pt-1 mt-2">
                       <span>TỔNG CỘNG</span>
                       <span className="text-xl text-primary font-bold">
-                        {totalWithShipping.toLocaleString()}đ
+                        {(
+                          totalWithShipping -
+                          (isUsePoint ? usedPoint * 1000 : 0)
+                        ).toLocaleString()}
+                        đ
                       </span>
                     </div>
                     {isDelivery && errorShippingFee && (
