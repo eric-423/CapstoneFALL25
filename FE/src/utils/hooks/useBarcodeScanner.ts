@@ -154,7 +154,7 @@ export const useBarcodeScanner = (options: UseBarcodeScannerOptions = {}) => {
                         timeoutRef.current = null;
                     }
                 }
-            } 
+            }
             // Handle character input - build barcode string
             else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
                 // Prevent default for single character keys when not in input/textarea
