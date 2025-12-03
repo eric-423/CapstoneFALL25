@@ -3,6 +3,7 @@ package com.capstone.tamtech.capstone.services;
 import com.capstone.tamtech.capstone.dto.LessonDTO;
 import com.capstone.tamtech.capstone.entities.Lessons;
 import com.capstone.tamtech.capstone.entities.Trainings;
+import com.capstone.tamtech.capstone.entities.UserLessonProcess;
 import com.capstone.tamtech.capstone.exception.ResourceNotFoundException;
 import com.capstone.tamtech.capstone.payload.PagedResponse;
 import com.capstone.tamtech.capstone.payload.request.LessonOrderUpdateRequest;
@@ -10,6 +11,7 @@ import com.capstone.tamtech.capstone.payload.request.LessonRequest;
 import com.capstone.tamtech.capstone.payload.request.LessonSearchRequest;
 import com.capstone.tamtech.capstone.repositories.LessonRepository;
 import com.capstone.tamtech.capstone.repositories.TrainingRepository;
+import com.capstone.tamtech.capstone.repositories.UserLessonProcessRepository;
 import com.capstone.tamtech.capstone.services.impl.LessonService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -18,7 +20,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class LessonServiceImpl implements LessonService {
@@ -28,6 +32,9 @@ public class LessonServiceImpl implements LessonService {
 
     @Autowired
     private TrainingRepository trainingRepository;
+
+    @Autowired
+    private UserLessonProcessRepository userLessonProcessRepository;
 
     @Override
     public PagedResponse<LessonDTO> getLessonByTrainingId(int trainingId, LessonSearchRequest searchRequest) {
@@ -192,6 +199,39 @@ public class LessonServiceImpl implements LessonService {
 
         normalizeLessonOrders(trainingId);
         return getLessonsForTraining(trainingId);
+    }
+
+    @Override
+    public Map<String, Object> getMyLessonByTrainingId(int trainingId,
+            int userId) {
+
+        List<Lessons> lessons = lessonRepository.findByTraining_IdOrderByOrderIndexAsc(trainingId);
+        List<LessonDTO> lessonDTOS = lessonRepository.findByTraining_IdOrderByOrderIndexAsc(trainingId)
+                .stream()
+                .map(this::toDTO)
+                .toList();
+
+        lessonDTOS.forEach(lessonDTO -> {
+            UserLessonProcess userLessonProcess = userLessonProcessRepository
+                    .findByUserTraining_IdAndLesson_Id(userId, lessonDTO.getId())
+                    .orElse(null);
+            if (userLessonProcess != null) {
+                lessonDTO.setIsCompleted(userLessonProcess.getIsLearned());
+            } else {
+                lessonDTO.setIsCompleted(false);
+            }
+        });
+
+        long completedLessons = lessonDTOS.stream()
+                .filter(lessonDTO -> Boolean.TRUE.equals(lessonDTO.getIsCompleted()))
+                .count();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("lessons", lessonDTOS);
+        response.put("totalLessons", lessonDTOS.size());
+        response.put("completedLessons", completedLessons);
+
+        return response;
     }
 
     private int resolveOrderIndex(int trainingId, Integer desiredOrder) {

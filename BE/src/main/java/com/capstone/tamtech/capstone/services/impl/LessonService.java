@@ -7,6 +7,7 @@ import com.capstone.tamtech.capstone.payload.request.LessonRequest;
 import com.capstone.tamtech.capstone.payload.request.LessonSearchRequest;
 
 import java.util.List;
+import java.util.Map;
 
 public interface LessonService {
 
@@ -26,4 +27,5 @@ public interface LessonService {
 
     List<LessonDTO> updateLessonOrders(int trainingId, List<LessonOrderUpdateRequest.OrderItem> orders);
 
+    Map<String, Object> getMyLessonByTrainingId(int trainingId, int userId);
 }

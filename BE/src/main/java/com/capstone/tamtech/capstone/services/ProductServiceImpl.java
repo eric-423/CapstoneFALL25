@@ -150,7 +150,9 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(productId).orElseThrow(() ->
                 new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + productId));
 
-        return mapToProductSearchDTO(product, new HashMap<>());
+        ProductSearchDTO productSearchDTO = mapToProductSearchDTO(product, new HashMap<>());
+        productSearchDTO.setInStock(isInStock(product, branchRepository.findById(branchId).get()));
+        return productSearchDTO;
     }
 
     @Override
