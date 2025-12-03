@@ -77,8 +77,15 @@ export async function GET(request: NextRequest) {
         let data;
         try {
             data = JSON.parse(responseText);
-        } catch (parseError) {
-            throw new Error('Invalid JSON response from server');
+        } catch (error) {
+            console.error('Invalid JSON response from server', error);
+            return NextResponse.json(
+                {
+                    error: 'Invalid JSON response from server',
+                    type: 'UnexpectedError'
+                },
+                { status: 500 }
+            );
         }
 
         return NextResponse.json(data);

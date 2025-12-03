@@ -2,12 +2,18 @@ import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 type RouteContext = {
-  params: { id: string };
+  params: Promise<{ id?: string | string[] }>;
+};
+
+const resolveProductId = async (context: RouteContext) => {
+  const resolvedParams = await context.params;
+  const rawId = resolvedParams?.id;
+  return Array.isArray(rawId) ? rawId[0] : rawId;
 };
 
 export async function GET(request: NextRequest, context: RouteContext) {
   try {
-    const { id } = context.params;
+    const id = await resolveProductId(context);
 
     if (!id) {
       return NextResponse.json(
@@ -65,7 +71,13 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = context.params;
+    const id = await resolveProductId(context);
+    if (!id) {
+      return NextResponse.json(
+        { error: "Product ID is required" },
+        { status: 400 }
+      );
+    }
     const body = await request.json();
 
     const response = await fetch(

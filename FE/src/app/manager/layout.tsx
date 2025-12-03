@@ -30,6 +30,7 @@ import {
    CalendarDays,
 } from "lucide-react";
 import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
+import { type ProcessOrderFn } from "@/utils/hooks/useBarcodeScanner";
 
 const MenuItem = memo(
    ({
@@ -195,7 +196,7 @@ export default function ManagerLayout({
       return () => document.removeEventListener("mousedown", handleClickOutside);
    }, [sidebarOpen]);
 
-   const processScannedOrder = useCallback(async (orderId: number) => {
+   const processScannedOrder = useCallback<ProcessOrderFn>(async (orderId: number) => {
       const response = await getBranchOrders();
       const branchOrders = Array.isArray(response?.data) ? response.data : [];
       const order = branchOrders.find((item) => item.id === orderId);
@@ -237,7 +238,7 @@ export default function ManagerLayout({
          const completeResult = await completeOrder(orderId);
          if (!completeResult.success) {
             return {
-               success: false,
+               success: completeResult.success as boolean,
                context: {
                   ...contextBase,
                   action: "complete" as const,
@@ -245,7 +246,7 @@ export default function ManagerLayout({
             };
          }
          return {
-            success: true,
+            success: completeResult.success as boolean,
             context: {
                ...contextBase,
                action: "complete" as const,
