@@ -73,7 +73,7 @@ export default function ProfileInfoSection({
                       </span>
                     </div>
                     <p className="text-2xl font-bold text-[#EC6426] mt-1 text-center lg:text-left">
-                      {user?.memberAssociation?.point?.toLocaleString() || '0'} điểm
+                      {user?.point?.toLocaleString() || "0"} điểm
                     </p>
                   </div>
                 </div>

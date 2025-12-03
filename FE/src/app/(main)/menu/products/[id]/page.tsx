@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { getProductById, Product } from "@/apis/product.api";
+import { getProductById, Product, searchProducts } from "@/apis/product.api";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,6 +13,8 @@ import {
   Flame,
   CheckCircle2,
   XCircle,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
@@ -20,6 +22,7 @@ import { AddToCartDialog } from "@/components/common/add-to-cart/add-to-cart-dia
 import { AddToCartDrawer } from "@/components/common/add-to-cart/add-to-cart-drawer";
 import { useIsMobile } from "@/utils/hooks/use-mobile";
 import { Separator } from "@/components/ui/separator";
+import { ProductCard } from "@/components/common/card/product-card";
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -27,6 +30,7 @@ export default function ProductDetailPage() {
   const productId = Number(params.id);
   const isMobile = useIsMobile();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
 
   const {
     data: product,
@@ -46,6 +50,35 @@ export default function ProductDetailPage() {
     },
     enabled: !!productId && !isNaN(productId),
     retry: 1,
+  });
+
+  const { data: relatedProducts = [], isLoading: isLoadingRelated } = useQuery<
+    Product[]
+  >({
+    queryKey: ["related-products", productId, product?.productType],
+    enabled: !!productId && !isNaN(productId) && !!product,
+    queryFn: async () => {
+      if (!product) return [];
+
+      const res = await searchProducts({
+        branchId: 1,
+        productTypeId: product.productTypeId,
+        isActive: true,
+        minPrice: 0,
+        maxPrice: 500000,
+        page: 0,
+        size: 50,
+        sortBy: "name",
+        sortDirection: "ASC",
+      });
+
+      const list = Array.isArray(res?.content) ? res.content : [];
+
+      return (list as Product[]).filter(
+        (p) =>
+          p.productId !== productId && p.productType === product.productType
+      );
+    },
   });
 
   if (isLoading) {
@@ -79,6 +112,14 @@ export default function ProductDetailPage() {
       </div>
     );
   }
+
+  const itemsPerPage = isMobile ? 2 : 4;
+  const totalPages = Math.ceil(relatedProducts.length / itemsPerPage) || 1;
+  const startIndex = currentPage * itemsPerPage;
+  const visibleProducts = relatedProducts.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
 
   return (
     <div className="min-h-screen bg-[#FFFCF7] py-6 px-4">
@@ -184,7 +225,7 @@ export default function ProductDetailPage() {
               </div>
             </div>
 
-            <div className="mt-auto">
+            <div className="mt-auto mx-auto">
               <Button
                 size="lg"
                 className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold text-base py-4 rounded-full"
@@ -195,6 +236,61 @@ export default function ProductDetailPage() {
               </Button>
             </div>
           </div>
+        </div>
+
+        <div className="mt-10">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">
+            Sản phẩm liên quan
+          </h2>
+          {isLoadingRelated ? (
+            <p className="text-sm text-gray-500">
+              Đang tải sản phẩm liên quan...
+            </p>
+          ) : relatedProducts.length === 0 ? (
+            <p className="text-sm text-gray-500">
+              Hiện chưa có sản phẩm liên quan.
+            </p>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                {totalPages > 1 && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setCurrentPage((page) => Math.max(0, page - 1))
+                    }
+                    disabled={currentPage === 0}
+                    className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#F8A91F] hover:bg-[#EC6426] flex items-center justify-center transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ChevronLeft className="w-5 h-5 md:w-6 md:h-6 text-black" />
+                  </button>
+                )}
+
+                <div className="flex-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {visibleProducts.map((item) => (
+                      <ProductCard key={item.productId} item={item} />
+                    ))}
+                  </div>
+                </div>
+
+                {totalPages > 1 && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setCurrentPage((page) =>
+                        Math.min(totalPages - 1, page + 1)
+                      )
+                    }
+                    disabled={currentPage >= totalPages - 1}
+                    className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#F8A91F] hover:bg-[#EC6426] flex items-center justify-center transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-black" />
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
       {dialogOpen && !isMobile && (

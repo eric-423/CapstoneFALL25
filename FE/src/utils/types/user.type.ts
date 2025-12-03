@@ -29,12 +29,10 @@ export type UserAuthData = {
   id: number;
   phoneNumber: string;
   fullName?: string;
-  // Tên hiển thị (có thể trùng fullName, dùng cho UI)
   name?: string;
   role: string;
-  // Có thể vắng mặt ở một số luồng auth, nên để optional
   memberAssociation?: memberAssociation;
-  // Được sử dụng trong auth hooks nhưng trước đây chưa khai báo trong type
+  point: number;
   isNewUser?: boolean;
 };
 
