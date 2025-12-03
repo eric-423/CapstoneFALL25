@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Warehouse as WarehouseIcon, Plus, Edit2, MapPin, Building, CheckCircle, XCircle, Utensils } from 'lucide-react';
+import { Warehouse as WarehouseIcon, Plus, Edit2, MapPin, Building, CheckCircle, XCircle, Utensils, Package } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -229,7 +229,8 @@ export default function WarehousesPage() {
                                                     variant="outline"
                                                     className="text-[#78A243] border-[#78A243]/30 hover:bg-[#78A243]/10"
                                                 >
-                                                    Xem nguyên liệu
+                                                    <Package className="h-3 w-3 mr-1" />
+                                                    Nguyên liệu
                                                 </Button>
                                                 <Button
                                                     onClick={() => handleViewUtensils(warehouse.id)}
