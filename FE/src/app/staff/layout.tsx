@@ -11,6 +11,7 @@ import {
   assignChefToOrder,
   staffAssignShipperToOrder,
   getBranchOrders,
+  completeOrder,
 } from "@/apis/order.api";
 import Link from "next/link";
 import Image from "next/image";
@@ -203,7 +204,30 @@ export default function StaffLayout({
       };
     }
 
-    if (status === "COOKED") {
+
+
+    if (order.isPickUp && status === "COOKED") {
+      const completeResult = await completeOrder(orderId);
+      if (!completeResult.success) {
+        return {
+          success: false,
+          context: {
+            ...contextBase,
+            action: "complete" as const,
+          },
+        };
+      }
+      return {
+        success: true,
+        context: {
+          ...contextBase,
+          action: "complete" as const,
+        },
+      };
+    }
+
+
+    if (status === "COOKED" && !order.isPickUp && !order.isTable) {
       const assignResult = await staffAssignShipperToOrder(orderId);
       if (!assignResult.success) {
         return {
