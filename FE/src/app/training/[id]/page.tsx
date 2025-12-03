@@ -35,6 +35,7 @@ export default function TrainingDetailPage() {
   const { data: myTrainingsData } = useQuery({
     queryKey: ["my-trainings"],
     queryFn: () => getMyTrainning("ALL"),
+    refetchInterval: 10000,
   });
 
   const trainingId = useMemo(() => {
@@ -69,6 +70,7 @@ export default function TrainingDetailPage() {
     enabled: !!trainingId,
     refetchOnMount: "always",
     refetchOnReconnect: "always",
+    refetchInterval: 5000,
     gcTime: 0,
   });
 
@@ -171,11 +173,11 @@ export default function TrainingDetailPage() {
 
   const training = trainingData?.data as
     | {
-      id: number;
-      name: string;
-      description?: string;
-      point?: number;
-    }
+        id: number;
+        name: string;
+        description?: string;
+        point?: number;
+      }
     | undefined;
 
   const lessons = useMemo<TrainingLesson[]>(() => {
@@ -273,7 +275,10 @@ export default function TrainingDetailPage() {
 
   if (isLoadingTraining || isLoadingLessons) {
     return (
-      <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: "#f8e4d4" }}>
+      <div
+        className="flex items-center justify-center min-h-screen"
+        style={{ backgroundColor: "#f8e4d4" }}
+      >
         <Loader2 className="w-8 h-8 animate-spin text-[#EC6426]" />
       </div>
     );
@@ -347,7 +352,9 @@ export default function TrainingDetailPage() {
             {lessons.length === 0 && !isLoadingLessons ? (
               <div className="text-center py-8 text-gray-500">
                 <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">Không có bài học nào trong khóa học này</p>
+                <p className="text-sm">
+                  Không có bài học nào trong khóa học này
+                </p>
               </div>
             ) : (
               Object.entries(groupedLessons)
@@ -367,8 +374,10 @@ export default function TrainingDetailPage() {
                         className={cn(
                           "w-full rounded-xl border border-[#EC6426]/20 bg-white/50 px-4 py-5 text-left transition-all hover:bg-white hover:border-[#EC6426]/20 cursor-pointer",
                           selectedLessonId &&
-                          moduleLessons.some((l) => l.id === selectedLessonId) &&
-                          "border-[#EC6426]/20 bg-white shadow-sm"
+                            moduleLessons.some(
+                              (l) => l.id === selectedLessonId
+                            ) &&
+                            "border-[#EC6426]/20 bg-white shadow-sm"
                         )}
                       >
                         <div className="flex items-center justify-between w-full">
@@ -419,7 +428,9 @@ export default function TrainingDetailPage() {
                                     ) : (
                                       <div className="h-4 w-4 rounded-full border border-gray-300 flex-shrink-0" />
                                     )}
-                                    <span className="truncate text-left">{lesson.title}</span>
+                                    <span className="truncate text-left">
+                                      {lesson.title}
+                                    </span>
                                   </div>
                                 </Button>
                               );

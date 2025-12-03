@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Gift, Percent, Calendar, Plus } from "lucide-react";
+import { Gift, Calendar, Plus } from "lucide-react";
 import { toast } from "react-toastify";
 import { useBodyScrollLock } from "../../components/useBodyScrollLock";
 import {
@@ -77,8 +77,8 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
   const [errors, setErrors] = useState<Partial<PromotionFormData>>({});
   const mapPromotionType = (type: PromotionType): PromotionTypeOption => {
     return {
-      value: type.name,
-      label: type.name,
+      value: String(type.id), // Dùng id làm value để truyền vào promotion
+      label: type.name, // Hiển thị tên cho người dùng
       color: "[#FFFCF7]",
       promotionTypeId: type.id,
     };
@@ -92,7 +92,7 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
           const types = await getPromotionTypes();
           const mappedTypes = types.map(mapPromotionType);
           setPromotionTypes(mappedTypes);
-        } catch (error) {
+        } catch {
         } finally {
           setIsLoadingTypes(false);
         }
@@ -154,11 +154,9 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
     setIsLoading(true);
 
     try {
-      const selectedType = promotionTypes.find(
-        (t) => t.value === formData.promotionType
-      );
+      const promotionTypeId = Number(formData.promotionType);
 
-      if (!selectedType) {
+      if (!promotionTypeId || isNaN(promotionTypeId)) {
         toast.error("❌ Vui lòng chọn loại khuyến mãi");
         setIsLoading(false);
         return;
@@ -174,7 +172,7 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
         startDate: formData.startDate,
         endDate: formData.endDate,
         status: formData.status,
-        promotionTypeId: selectedType.promotionTypeId,
+        promotionTypeId: promotionTypeId,
       };
 
       await createPromotion(promotionData);
@@ -220,6 +218,16 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
     setErrors({});
   };
 
+  const formatNumber = (value: string): string => {
+    const numericValue = value.replace(/\D/g, "");
+    if (!numericValue) return "";
+    return Number(numericValue).toLocaleString("vi-VN");
+  };
+
+  const parseNumber = (value: string): string => {
+    return value.replace(/\D/g, "");
+  };
+
   const handleInputChange = (
     field: keyof PromotionFormData,
     value: string | boolean
@@ -228,6 +236,14 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
     if (errors[field as keyof typeof errors]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
+  };
+
+  const handleNumberInputChange = (
+    field: keyof PromotionFormData,
+    value: string
+  ) => {
+    const numericValue = parseNumber(value);
+    handleInputChange(field, numericValue);
   };
 
   return (
@@ -259,7 +275,7 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
           <div className="space-y-2">
             <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
               <Gift size={16} className="text-orange-500" />
-              Tên khuyến mãi <span className="text-red-500">*</span>
+              Mã khuyến mãi <span className="text-red-500">*</span>
             </label>
             <Input
               placeholder="Giảm giá mùa hè, Khuyến mãi cuối năm..."
@@ -390,51 +406,15 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
                 Đơn hàng tối thiểu (VNĐ)
               </label>
               <Input
-                type="number"
-                min="0"
-                step="1000"
-                placeholder="100000"
-                value={formData.minimumOrderValue}
-                onChange={(e) =>
-                  handleInputChange("minimumOrderValue", e.target.value)
+                type="text"
+                placeholder="100,000"
+                value={
+                  formData.minimumOrderValue
+                    ? formatNumber(formData.minimumOrderValue)
+                    : ""
                 }
-                className="h-11 border-2 border-gray-200 focus:border-orange-500"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-gray-700">
-                Giảm tối đa (VNĐ)
-              </label>
-              <Input
-                type="number"
-                min="0"
-                step="1000"
-                placeholder="200000"
-                value={formData.maxDiscount}
                 onChange={(e) =>
-                  handleInputChange("maxDiscount", e.target.value)
-                }
-                className="h-11 border-2 border-gray-200 focus:border-orange-500"
-              />
-              <p className="text-xs text-gray-500">
-                Chỉ áp dụng cho giảm phần trăm
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-gray-700">
-                Giới hạn sử dụng
-              </label>
-              <Input
-                type="number"
-                min="1"
-                placeholder="100"
-                value={formData.usageLimit}
-                onChange={(e) =>
-                  handleInputChange("usageLimit", e.target.value)
+                  handleNumberInputChange("minimumOrderValue", e.target.value)
                 }
                 className="h-11 border-2 border-gray-200 focus:border-orange-500"
               />

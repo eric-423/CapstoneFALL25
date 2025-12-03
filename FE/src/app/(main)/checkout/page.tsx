@@ -35,7 +35,6 @@ import useScrollTop from "@/utils/hooks/useScrollTop";
 import { cn } from "@/utils/lib/utils";
 import configs from "@/utils/configs";
 import { setCookie, getToken } from "@/utils/cookies.client";
-import { getReceiveTime } from "@/utils/getReceiveTime";
 import { STORE_INFO } from "@/utils/mockupData";
 import {
   Branch as ApiBranch,
@@ -201,16 +200,8 @@ export default function CheckoutPage() {
       refetchOnWindowFocus: false,
     });
 
-  const promotionsData: Promotion[] = useMemo(
-    () =>
-      promotionsResponseData?.data && Array.isArray(promotionsResponseData.data)
-        ? promotionsResponseData.data
-        : [],
-    [promotionsResponseData]
-  );
-
   const {
-    data: availablePromotions = [],
+    data: availablePromotionsRaw = [],
     isLoading: isLoadingAvailablePromotions,
   } = useQuery({
     queryKey: ["available-promotions", user?.id],
@@ -219,6 +210,38 @@ export default function CheckoutPage() {
     refetchOnMount: true,
     refetchOnWindowFocus: false,
   });
+
+  const availablePromotions = useMemo(() => {
+    if (!Array.isArray(availablePromotionsRaw)) {
+      console.log(
+        "availablePromotionsRaw is not array:",
+        availablePromotionsRaw
+      );
+      return [];
+    }
+
+    console.log("Total promotions from API:", availablePromotionsRaw.length);
+
+    const filtered = availablePromotionsRaw.filter((promotion) => {
+      if (!promotion.status) {
+        console.log("Filtered out (status false):", promotion.name);
+        return false;
+      }
+      if (promotion.userPromotionStatus !== "AVAILABLE") {
+        console.log(
+          "Filtered out (status not AVAILABLE):",
+          promotion.name,
+          promotion.userPromotionStatus
+        );
+        return false;
+      }
+
+      return true;
+    });
+
+    console.log("Filtered promotions count:", filtered.length);
+    return filtered;
+  }, [availablePromotionsRaw]);
 
   const { data: customerDetailsResponse, isLoading: isLoadingCustomerDetails } =
     useQuery({
@@ -361,8 +384,11 @@ export default function CheckoutPage() {
     });
 
   const getDefaultReceiveTime = useCallback(() => {
-    const nextTime = getReceiveTime();
-    return z.date().safeParse(nextTime).success ? nextTime : new Date();
+    const now = new Date();
+    const nextTime = new Date(now.getTime() + 30 * 60 * 1000);
+    return z.date().safeParse(nextTime).success
+      ? nextTime
+      : new Date(now.getTime() + 30 * 60 * 1000);
   }, []);
 
   const form = useForm<CheckoutFormData>({
@@ -435,9 +461,38 @@ export default function CheckoutPage() {
   const fulfillmentMethod = form.watch("fulfillmentMethod");
   const isDelivery = fulfillmentMethod === "delivery";
 
+  const calculateDiscountValue = useCallback(
+    (
+      subtotal: number,
+      promotion: Promotion | null,
+      isDel: boolean,
+      shipFee: number | null
+    ) => {
+      if (!promotion) return 0;
+
+      const promotionType = promotion.promotionTypeName;
+
+      if (promotionType === "Giảm giá theo %") {
+        return Math.round((subtotal * promotion.value) / 100);
+      } else if (promotionType === "Giảm giá cố định") {
+        return promotion.value;
+      } else if (promotionType === "Miễn phí vận chuyển") {
+        return isDel && shipFee !== null ? shipFee : 0;
+      }
+
+      return 0;
+    },
+    []
+  );
+
   const maxUsablePoints = useMemo(() => {
     const orderSubtotal = getTotalPrice();
-    const discountValue = selectedPromotion?.value || 0;
+    const discountValue = calculateDiscountValue(
+      orderSubtotal,
+      selectedPromotion,
+      isDelivery,
+      shippingFee
+    );
     const totalBeforePoints =
       isDelivery && shippingFee !== null
         ? orderSubtotal + shippingFee - discountValue
@@ -451,6 +506,7 @@ export default function CheckoutPage() {
     isDelivery,
     shippingFee,
     selectedPromotion,
+    calculateDiscountValue,
   ]);
 
   const isCreatingNewAddress =
@@ -663,7 +719,6 @@ export default function CheckoutPage() {
     "Chúng tôi chỉ giao hàng trong phạm vi 5km.";
 
   const [errorShippingFee, setErrorShippingFee] = useState<string | null>(null);
-  // lấy tiền shipping
 
   useEffect(() => {
     if (!isDelivery) {
@@ -673,7 +728,10 @@ export default function CheckoutPage() {
       return;
     }
 
-    const customerAddress = deliveryAddressValue?.trim();
+    const customerAddress =
+      typeof deliveryAddressValue === "string"
+        ? deliveryAddressValue.trim()
+        : "";
     const branchAddr = (
       selectedBranch?.address ||
       STORE_INFO.address ||
@@ -862,7 +920,24 @@ export default function CheckoutPage() {
     if (shippingFee !== null) return `${shippingFee.toLocaleString()}đ`;
     return "0đ";
   }, [errorShippingFee, isDelivery, isFetchingShippingFee, shippingFee]);
-  const discountValue = selectedPromotion?.value || 0;
+
+  const discountValue = useMemo(() => {
+    if (!selectedPromotion) return 0;
+
+    const promotionType = selectedPromotion.promotionTypeName;
+
+    if (promotionType === "Giảm giá theo %") {
+      const percentage = selectedPromotion.value;
+      return Math.round((orderSubtotal * percentage) / 100);
+    } else if (promotionType === "Giảm giá cố định") {
+      return selectedPromotion.value;
+    } else if (promotionType === "Miễn phí vận chuyển") {
+      return isDelivery && shippingFee !== null ? shippingFee : 0;
+    }
+
+    return 0;
+  }, [selectedPromotion, orderSubtotal, isDelivery, shippingFee]);
+
   const totalWithShipping =
     isDelivery && shippingFee !== null
       ? orderSubtotal + shippingFee - discountValue
@@ -1072,6 +1147,10 @@ export default function CheckoutPage() {
                                 value={field.value}
                                 onChange={(date) => field.onChange(date)}
                               />
+                              <p className="text-sm text-muted-foreground">
+                                * Thời gian trên chỉ là dự kiến vì thời gian chế
+                                biến còn phụ thuộc nhiều yếu tố khác
+                              </p>
                               {form.getFieldState("receiveTime").error && (
                                 <p className="text-red-500 text-sm">
                                   {
@@ -1517,7 +1596,8 @@ export default function CheckoutPage() {
                         <div className="flex items-start gap-2 text-foreground">
                           <MapPin className="h-4 w-4 text-primary mt-0.5" />
                           <span>
-                            {deliveryAddressValue?.trim()
+                            {typeof deliveryAddressValue === "string" &&
+                            deliveryAddressValue.trim()
                               ? deliveryAddressValue
                               : "Vui lòng nhập địa chỉ giao hàng trong biểu mẫu bên trái."}
                           </span>
@@ -1592,8 +1672,21 @@ export default function CheckoutPage() {
                                   </p>
                                   <div className="flex items-center gap-4 text-xs">
                                     <span className="font-bold text-primary">
-                                      Giảm{" "}
-                                      {promotion.value.toLocaleString("vi-VN")}đ
+                                      {promotion.promotionTypeName ===
+                                      "Giảm giá theo %" ? (
+                                        <>Giảm {promotion.value}%</>
+                                      ) : promotion.promotionTypeName ===
+                                        "Miễn phí vận chuyển" ? (
+                                        <>Miễn phí vận chuyển</>
+                                      ) : (
+                                        <>
+                                          Giảm{" "}
+                                          {promotion.value.toLocaleString(
+                                            "vi-VN"
+                                          )}
+                                          ₫
+                                        </>
+                                      )}
                                     </span>
                                     {promotion.minimumOrderValue > 0 && (
                                       <span className="text-gray-500">
@@ -1778,9 +1871,19 @@ export default function CheckoutPage() {
                       )}
                       {selectedPromotion && discountValue > 0 && (
                         <div className="flex justify-between text-green-600">
-                          <span>Giảm giá ({selectedPromotion.name})</span>
+                          <span>
+                            {selectedPromotion.promotionTypeName ===
+                            "Miễn phí vận chuyển"
+                              ? "Miễn phí vận chuyển"
+                              : `Giảm giá (${selectedPromotion.name})`}
+                          </span>
                           <span className="font-medium">
-                            -{discountValue.toLocaleString("vi-VN")}đ
+                            {selectedPromotion.promotionTypeName ===
+                            "Miễn phí vận chuyển" ? (
+                              <>Miễn phí</>
+                            ) : (
+                              <>-{discountValue.toLocaleString("vi-VN")}₫</>
+                            )}
                           </span>
                         </div>
                       )}

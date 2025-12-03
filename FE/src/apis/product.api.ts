@@ -463,13 +463,36 @@ export const removeProductFromBranch = async (
   return resData.data;
 };
 
-export const getProductById = async (productId: number): Promise<Product> => {
-  const response = await fetch(`/api/products/${productId}`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+export const getProductById = async (
+  productId: number,
+  branchId?: number
+): Promise<Product> => {
+  let finalBranchId = branchId;
+  if (!finalBranchId && typeof window !== "undefined") {
+    try {
+      const stored = localStorage.getItem("selectedBranch");
+      if (stored) {
+        const branch = JSON.parse(stored);
+        finalBranchId = branch?.branchId || 1;
+      } else {
+        finalBranchId = 1;
+      }
+    } catch (e) {
+      finalBranchId = 1;
+    }
+  } else if (!finalBranchId) {
+    finalBranchId = 1;
+  }
+
+  const response = await fetch(
+    `/api/products/${productId}?branchId=${finalBranchId}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));

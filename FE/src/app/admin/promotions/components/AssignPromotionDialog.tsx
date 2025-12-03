@@ -1,7 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { X, UserPlus, Users, Search } from "lucide-react";
+import {
+  X,
+  UserPlus,
+  Users,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -28,14 +35,22 @@ export function AssignPromotionDialog({
   const [searchKeyword, setSearchKeyword] = useState("");
   const [selectedUsers, setSelectedUsers] = useState<Map<number, number>>(
     new Map()
-  ); // userId -> usageCount
+  );
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+  const [pageSize] = useState(10);
+  useEffect(() => {
+    if (open) {
+      setCurrentPage(0);
+    }
+  }, [open]);
 
-  // Fetch customers when dialog opens
   useEffect(() => {
     if (open) {
       fetchCustomers();
     }
-  }, [open]);
+  }, [open, currentPage, searchKeyword]);
 
   const fetchCustomers = async () => {
     try {
@@ -43,8 +58,8 @@ export function AssignPromotionDialog({
       const searchRequest: UserSearchRequest = {
         role: "CUSTOMER",
         status: false,
-        page: 0,
-        size: 1000,
+        page: currentPage,
+        size: pageSize,
         sortBy: "id",
         sortDirection: "ASC",
       };
@@ -54,7 +69,9 @@ export function AssignPromotionDialog({
       }
 
       const response = await getAllUsers(searchRequest);
-      setCustomers(response.data.content);
+      setCustomers(response.data.content || []);
+      setTotalPages(response.data.totalPages || 0);
+      setTotalElements(response.data.totalElements || 0);
     } catch (error) {
       console.error("Failed to fetch customers:", error);
       toast.error("❌ Không thể tải danh sách khách hàng!");
@@ -64,7 +81,14 @@ export function AssignPromotionDialog({
   };
 
   const handleSearch = () => {
+    setCurrentPage(0);
     fetchCustomers();
+  };
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 0 && newPage < totalPages) {
+      setCurrentPage(newPage);
+    }
   };
 
   const toggleUserSelection = (userId: number) => {
@@ -72,7 +96,7 @@ export function AssignPromotionDialog({
     if (newSelectedUsers.has(userId)) {
       newSelectedUsers.delete(userId);
     } else {
-      newSelectedUsers.set(userId, 1); // Default usage count is 1
+      newSelectedUsers.set(userId, 1);
     }
     setSelectedUsers(newSelectedUsers);
   };
@@ -82,6 +106,24 @@ export function AssignPromotionDialog({
     const newSelectedUsers = new Map(selectedUsers);
     newSelectedUsers.set(userId, count);
     setSelectedUsers(newSelectedUsers);
+  };
+
+  const handleSelectAll = () => {
+    const allSelected = customers.every((customer) =>
+      selectedUsers.has(customer.id)
+    );
+
+    if (allSelected) {
+      setSelectedUsers(new Map());
+    } else {
+      const newSelectedUsers = new Map(selectedUsers);
+      customers.forEach((customer) => {
+        if (!newSelectedUsers.has(customer.id)) {
+          newSelectedUsers.set(customer.id, 1);
+        }
+      });
+      setSelectedUsers(newSelectedUsers);
+    }
   };
 
   const handleAssign = async () => {
@@ -123,6 +165,7 @@ export function AssignPromotionDialog({
     setOpen(false);
     setSelectedUsers(new Map());
     setSearchKeyword("");
+    setCurrentPage(0);
   };
 
   return (
@@ -169,9 +212,8 @@ export function AssignPromotionDialog({
               </div>
             </div>
 
-            {/* Search Bar */}
             <div className="p-4 border-b border-gray-200 bg-gray-50 flex-shrink-0">
-              <div className="flex gap-3">
+              <div className="flex gap-3 items-center">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <input
@@ -184,31 +226,39 @@ export function AssignPromotionDialog({
                         handleSearch();
                       }
                     }}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:border-[#78A243] focus:ring-2 focus:ring-[#78A243]/20 outline-none"
+                    className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-lg text-sm focus:border-[#78A243] focus:ring-2 focus:ring-[#78A243]/20 outline-none"
                   />
                 </div>
                 <Button
                   onClick={handleSearch}
                   disabled={loadingCustomers}
-                  className="bg-[#78A243] hover:bg-[#78A243]/90"
+                  className="bg-[#78A243] hover:bg-[#78A243]/90 h-10"
                 >
                   <Search className="h-4 w-4 mr-2" />
                   Tìm
                 </Button>
+                <Button
+                  onClick={handleSelectAll}
+                  variant="outline"
+                  className="border-[#78A243] text-[#78A243] hover:bg-[#78A243] hover:text-white font-semibold h-10"
+                >
+                  {customers.length > 0 &&
+                  customers.every((customer) => selectedUsers.has(customer.id))
+                    ? "Bỏ chọn tất cả"
+                    : "Chọn tất cả"}
+                </Button>
+              </div>
+              <div className="flex items-center gap-3 mt-4">
+                {selectedUsers.size > 0 && (
+                  <p className="text-sm font-semibold text-[#78A243]">
+                    <Users className="inline h-4 w-4 mr-1" />
+                    Đã chọn: {selectedUsers.size} khách hàng
+                  </p>
+                )}
               </div>
             </div>
 
-            {selectedUsers.size > 0 && (
-              <div className="px-4 py-2 bg-[#78A243]/10 border-b border-[#78A243]/20 flex-shrink-0">
-                <p className="text-sm font-semibold text-[#78A243]">
-                  <Users className="inline h-4 w-4 mr-1" />
-                  Đã chọn: {selectedUsers.size} khách hàng
-                </p>
-              </div>
-            )}
-
-            {/* Customer List */}
-            <div className="p-6 space-y-3 overflow-y-auto flex-1">
+            <div className="px-6 space-y-3 overflow-y-auto flex-1">
               {loadingCustomers ? (
                 <div className="text-center py-12">
                   <div className="w-12 h-12 border-4 border-[#78A243]/30 border-t-[#78A243] rounded-full animate-spin mx-auto mb-4"></div>
@@ -361,6 +411,46 @@ export function AssignPromotionDialog({
                 })
               )}
             </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="px-6 py-3 border-t border-gray-200 bg-gray-50 flex items-center justify-between flex-shrink-0">
+                <div className="text-sm text-gray-600">
+                  Trang{" "}
+                  <span className="font-semibold text-[#78A243]">
+                    {currentPage + 1}
+                  </span>{" "}
+                  / {totalPages}
+                  {totalElements > 0 && (
+                    <span className="ml-2 text-gray-500">
+                      (Hiển thị {customers.length} / {totalElements} khách hàng)
+                    </span>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 0 || loadingCustomers}
+                    variant="outline"
+                    size="sm"
+                    className="border-[#78A243]/30 text-[#78A243] hover:bg-[#78A243]/10"
+                  >
+                    <ChevronLeft className="h-4 w-4 mr-1" />
+                    Trước
+                  </Button>
+                  <Button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage >= totalPages - 1 || loadingCustomers}
+                    variant="outline"
+                    size="sm"
+                    className="border-[#78A243]/30 text-[#78A243] hover:bg-[#78A243]/10"
+                  >
+                    Sau
+                    <ChevronRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </div>
+              </div>
+            )}
 
             <div className="p-6 bg-gray-50 border-t border-gray-200 flex gap-3 justify-end flex-shrink-0">
               <Button

@@ -22,15 +22,17 @@ export async function GET(request: NextRequest, context: RouteContext) {
       );
     }
 
+    const { searchParams } = new URL(request.url);
+    const branchId = searchParams.get("branchId") || "1";
+
     const baseUrl =
       process.env.NEXT_PUBLIC_BASE_URL ||
       process.env.NEXT_PUBLIC_API_URL ||
       "https://tam-tac.com/api";
 
-    // Gọi đúng endpoint detail theo backend: /api/products/detail/:id
     const apiUrl = baseUrl.endsWith("/api")
-      ? `${baseUrl}/products/detail/${id}`
-      : `${baseUrl}/api/products/detail/${id}`;
+      ? `${baseUrl}/products/detail/${branchId}/${id}`
+      : `${baseUrl}/api/products/detail/${branchId}/${id}`;
 
     const response = await fetch(apiUrl, {
       method: "GET",
