@@ -27,5 +27,24 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
 
     List<Order> findByWorker_IdAndStatus_NameOrderByCreatedAtDesc(int id, String name);
 
+    @Query("SELECT o FROM Order o WHERE " +
+            "(:branchId IS NULL OR o.branch.id = :branchId) AND " +
+            "(:fromDate IS NULL OR o.createdAt >= :fromDate) AND " +
+            "(:toDate IS NULL OR o.createdAt <= :toDate) AND " +
+            "o.status.name IN ('COMPLETED', 'PAID') " +
+            "ORDER BY o.createdAt DESC")
+    List<Order> findCompletedOrdersByFilters(
+            @Param("branchId") Integer branchId,
+            @Param("fromDate") java.util.Date fromDate,
+            @Param("toDate") java.util.Date toDate);
+
+    @Query("SELECT COUNT(DISTINCT o.customer.id) FROM Order o WHERE " +
+            "(:branchId IS NULL OR o.branch.id = :branchId) AND " +
+            "(:fromDate IS NULL OR o.createdAt >= :fromDate) AND " +
+            "(:toDate IS NULL OR o.createdAt <= :toDate)")
+    Long countDistinctCustomers(
+            @Param("branchId") Integer branchId,
+            @Param("fromDate") java.util.Date fromDate,
+            @Param("toDate") java.util.Date toDate);
 
 }

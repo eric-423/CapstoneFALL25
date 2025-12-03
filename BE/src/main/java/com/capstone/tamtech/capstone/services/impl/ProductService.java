@@ -15,4 +15,6 @@ public interface ProductService {
     ProductDTO updateProduct(int id,ProductCreateRequest productCreateRequest);
 
     PagedResponse<ProductDTO> searchProductForAllBranch(ProductSearchRequest searchRequest);
+
+    ProductDTO getProductById(Integer productId);
 }

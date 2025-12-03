@@ -1,4 +1,4 @@
-import http from '@/utils/http';
+import http from "@/utils/http";
 
 export enum OrderStatus {
     'PROCESSING' = 'Đang chuẩn bị',
@@ -78,7 +78,7 @@ export interface OrderProductResponse {
     isCombo?: boolean;
 }
 
-export type OrderMode = 'PICKUP' | 'DELIVERY';
+export type OrderMode = "PICKUP" | "DELIVERY";
 
 export interface CreateOrderItem {
     productId: number;
@@ -89,15 +89,16 @@ export interface CreateOrderItem {
 }
 
 export interface CreateOrderPayload {
-    customerId?: number;
-    promotionCode?: string;
-    discountValue?: number;
-    shippingAddress?: string;
-    shippingPhoneNumber?: string;
-    orderItemList: CreateOrderItem[];
-    mode: OrderMode | string;
-    branchId: number;
-    paymentMethodId?: number;
+  customerId?: number;
+  promotionCode?: string;
+  discountValue?: number;
+  shippingAddress?: string;
+  shippingPhoneNumber?: string;
+  orderItemList: CreateOrderItem[];
+  mode: OrderMode | string;
+  branchId: number;
+  paymentMethodId?: number;
+  pointUsed?: number;
 }
 
 export interface OrderResponse {
@@ -203,7 +204,6 @@ export interface CustomerOrderDetailApiResponse {
     data: CustomerOrderDetailData;
 }
 
-
 export interface OrderStatusesResponse {
     status: number;
     desc: string;
@@ -278,8 +278,6 @@ export interface ChefOrdersApiResponse {
     data: ChefOrderResponse[];
 }
 
-
-
 export interface WaiterOrderItemRequest {
     productId: number;
     comboId: number;
@@ -300,35 +298,32 @@ export interface WaiterDeliveredRequest {
     orderItems: WaiterOrderItemRequest[];
 }
 
-export const GET_CUSTOMER_ORDER_QUERY_KEY = 'GET_CUSTOMER_ORDER_QUERY_KEY';
-
+export const GET_CUSTOMER_ORDER_QUERY_KEY = "GET_CUSTOMER_ORDER_QUERY_KEY";
 
 //taoj order
 export const createOrderApiRoute = async (payload: CreateOrderPayload) => {
-    const response = await fetch('/api/orders', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(payload),
-    });
+  const response = await fetch("/api/orders", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify(payload),
+  });
 
-    if (!response.ok) {
-        const errorBody = await response.json().catch(() => ({}));
-        throw {
-            response: {
-                data: errorBody,
-                status: response.status,
-            },
-        };
-    }
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw {
+      response: {
+        data: errorBody,
+        status: response.status,
+      },
+    };
+  }
 
-    return response.json();
+  return response.json();
 };
 
-
-
 // export const getCustomerInformation = async (userId: number) => {
 //   const response = await fetch(`/api/customer/infomation?userId=${userId}`, {
 //     method: 'GET',
@@ -365,19 +360,14 @@ export const createOrderApiRoute = async (payload: CreateOrderPayload) => {
 
 //   return response.json();
 // };
-
-
-
-
-
 
 export const getCustomerOrders = async (status?: string) => {
-    const queryParams = status ? `?status=${encodeURIComponent(status)}` : '';
+  const queryParams = status ? `?status=${encodeURIComponent(status)}` : "";
 
-    const response = await fetch(`/api/orders/customer/my-orders${queryParams}`, {
-        method: 'GET',
-        credentials: 'include',
-    });
+  const response = await fetch(`/api/orders/customer/my-orders${queryParams}`, {
+    method: "GET",
+    credentials: "include",
+  });
 
     if (!response.ok) {
         const errorBody = await response.json().catch(() => ({}));
@@ -431,7 +421,6 @@ export const updateDiningTableOrder = async (orderId: number, updateRequest: Upd
     const { data } = await http.put(`/orders/dining-table/update/${orderId}`, updateRequest);
     return data;
 };
-
 
 export const getOrderStatuses = async (): Promise<OrderStatusesResponse> => {
     try {

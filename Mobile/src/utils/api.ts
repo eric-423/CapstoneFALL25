@@ -252,17 +252,22 @@ export const GetProductType = () => {
 
 export const GetProductByProductType = async (
   brandId: number,
-  productTypeId: number
+  productTypeId: number,
+  sortDirection?: "ASC" | "DESC" | null
 ) => {
-  return axios.get(
-    `${BASE_URL}/products/search?branchId=${brandId}&productTypeId=${productTypeId}&isActive=true&minPrice=0&page=0&size=100&sortBy=name&sortDirection=ASC`,
-    {
-      headers: {
-        accept: "application/json",
-        "Content-Type": "application/json",
-      },
-    }
-  );
+  const token = await AsyncStorage.getItem("access_token");
+  const sortBy = sortDirection ? "price" : "name";
+  const sortDir = sortDirection || "ASC";
+
+  const url = `${BASE_URL}/products/search?branchId=${brandId}&productTypeId=${productTypeId}&isActive=true&minPrice=0&maxPrice=500000&page=0&size=100&sortBy=${sortBy}&sortDirection=${sortDir}`;
+
+  return axios.get(url, {
+    headers: {
+      accept: "application/json",
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+  });
 };
 
 export const GetAllProduct = async (branchId: number) => {

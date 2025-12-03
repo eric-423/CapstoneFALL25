@@ -52,6 +52,7 @@ interface IPropsProduct {
   startDate?: string;
   endDate?: string;
   active?: boolean;
+  inStock?: boolean;
 }
 
 interface ModalContextType {
@@ -218,6 +219,7 @@ const CollectionMenu = (props: IProps) => {
                   name: p.productType,
                   productTypeId: p.productTypeId,
                 },
+                inStock: p.inStock,
                 productDescription: p.productDescription,
                 name: p.productName,
                 productId: String(p.productId),
@@ -227,15 +229,43 @@ const CollectionMenu = (props: IProps) => {
                 averageRating: 5,
               })
             );
-            setRestaurants(mapped);
+            const grouped = mapped.reduce((acc, product) => {
+              const typeId = product.ProductType.productTypeId;
+              if (!acc[typeId]) {
+                acc[typeId] = [];
+              }
+              acc[typeId].push(product);
+              return acc;
+            }, {} as Record<number, IPropsProduct[]>);
+            const flattened: IPropsProduct[] = [];
+            Object.keys(grouped)
+              .sort((a, b) => Number(a) - Number(b))
+              .forEach((typeId) => {
+                const products = grouped[Number(typeId)];
+                const sorted = products.sort((a, b) => {
+                  if (sortDirection === "ASC") {
+                    return a.price - b.price;
+                  } else {
+                    return b.price - a.price;
+                  }
+                });
+                flattened.push(...sorted);
+              });
+
+            setRestaurants(flattened);
           } else {
-            const res = await GetProductByProductType(branchId, id || 0);
-            let mapped: IPropsProduct[] = (res?.data?.content || []).map(
+            const res = await GetProductByProductType(
+              branchId,
+              id || 0,
+              sortDirection || null
+            );
+            const mapped: IPropsProduct[] = (res?.data?.content || []).map(
               (p: any) => ({
                 ProductType: {
                   name: p.productType,
                   productTypeId: p.productTypeId,
                 },
+                inStock: p.inStock,
                 productDescription: p.productDescription,
                 name: p.productName,
                 productId: String(p.productId),
@@ -245,15 +275,6 @@ const CollectionMenu = (props: IProps) => {
                 averageRating: 5,
               })
             );
-            if (sortDirection) {
-              mapped = mapped.sort((a, b) => {
-                if (sortDirection === "ASC") {
-                  return a.price - b.price;
-                } else {
-                  return b.price - a.price;
-                }
-              });
-            }
             setRestaurants(mapped);
           }
         }
@@ -363,21 +384,37 @@ const CollectionMenu = (props: IProps) => {
               }) => {
                 const isLastItem = index === restaurants.length - 1;
                 return (
-                  <Pressable>
+                  <Pressable disabled={item.inStock === false}>
                     <View
                       style={[
                         styles.itemContainer,
                         { marginRight: isLastItem ? 10 : 5 },
+                        item.inStock === false &&
+                          styles.itemContainerOutOfStock,
                       ]}
                     >
-                      <Image
-                        style={styles.itemImage}
-                        source={
-                          typeof item.image === "string"
-                            ? { uri: item.image }
-                            : (item.image as any)
-                        }
-                      />
+                      <View style={styles.imageWrapper}>
+                        <Image
+                          style={[
+                            styles.itemImage,
+                            item.inStock === false &&
+                              styles.itemImageOutOfStock,
+                          ]}
+                          source={
+                            typeof item.image === "string"
+                              ? { uri: item.image }
+                              : (item.image as any)
+                          }
+                        />
+                        {item.inStock === false && (
+                          <View style={styles.outOfStockOverlay} />
+                        )}
+                        {item.inStock === false && (
+                          <View style={styles.outOfStockBanner}>
+                            <Text style={styles.outOfStockText}>HẾT HÀNG</Text>
+                          </View>
+                        )}
+                      </View>
                       <View style={styles.ratingContainer}>
                         <Text style={styles.ratingText}>
                           {item.averageRating}
@@ -391,7 +428,11 @@ const CollectionMenu = (props: IProps) => {
                       <View style={styles.itemTextContainer}>
                         <View style={{ height: 50 }}>
                           <Text
-                            style={[styles.itemName]}
+                            style={[
+                              styles.itemName,
+                              item.inStock === false &&
+                                styles.itemNameOutOfStock,
+                            ]}
                             numberOfLines={2}
                             ellipsizeMode="tail"
                           >
@@ -404,7 +445,13 @@ const CollectionMenu = (props: IProps) => {
                             gap: 10,
                           }}
                         >
-                          <Text style={styles.itemPrice}>
+                          <Text
+                            style={[
+                              styles.itemPrice,
+                              item.inStock === false &&
+                                styles.itemPriceOutOfStock,
+                            ]}
+                          >
                             {currencyFormatter(item.price)}
                           </Text>
                           <Text
@@ -418,6 +465,9 @@ const CollectionMenu = (props: IProps) => {
                                 position: "relative",
                                 bottom: -20,
                               },
+                              item.inStock === false && {
+                                opacity: 0.5,
+                              },
                             ]}
                           >
                             {currencyFormatter(item.price - 3000)}
@@ -428,25 +478,32 @@ const CollectionMenu = (props: IProps) => {
                         style={[
                           styles.quantityContainer,
                           { marginHorizontal: 10, marginVertical: 10 },
+                          item.inStock === false &&
+                            styles.quantityContainerDisabled,
                         ]}
                       >
                         <Pressable
                           onPress={() => handleQuantityChange(item, "MINUS")}
                           style={({ pressed }) => ({
                             opacity:
-                              getItemQuantity(item.productId) > 0
+                              getItemQuantity(item.productId) > 0 &&
+                              item.inStock !== false
                                 ? pressed
                                   ? 0.5
                                   : 1
                                 : 0.3,
                           })}
-                          disabled={getItemQuantity(item.productId) === 0}
+                          disabled={
+                            getItemQuantity(item.productId) === 0 ||
+                            item.inStock === false
+                          }
                         >
                           <AntDesign
                             name="minus-circle"
                             size={24}
                             color={
-                              getItemQuantity(item.productId) > 0
+                              getItemQuantity(item.productId) > 0 &&
+                              item.inStock !== false
                                 ? APP_COLOR.BUTTON_YELLOW
                                 : APP_COLOR.BROWN
                             }
@@ -458,13 +515,19 @@ const CollectionMenu = (props: IProps) => {
                         <Pressable
                           onPress={() => handleQuantityChange(item, "PLUS")}
                           style={({ pressed }) => ({
-                            opacity: pressed ? 0.5 : 1,
+                            opacity:
+                              item.inStock === false ? 0.3 : pressed ? 0.5 : 1,
                           })}
+                          disabled={item.inStock === false}
                         >
                           <AntDesign
                             name="plus-circle"
                             size={24}
-                            color={APP_COLOR.BUTTON_YELLOW}
+                            color={
+                              item.inStock === false
+                                ? APP_COLOR.BROWN
+                                : APP_COLOR.BUTTON_YELLOW
+                            }
                           />
                         </Pressable>
                       </View>
@@ -525,7 +588,9 @@ const CollectionMenu = (props: IProps) => {
         </ContentLoader>
       ) : (
         <View style={styles.container}>
-          <Text style={styles.headerText}>{name}</Text>
+          {selectedProductTypeId === null ? null : (
+            <Text style={styles.headerText}>{name}</Text>
+          )}
           <FlatList
             data={restaurants}
             contentContainerStyle={styles.flatListContent}
@@ -560,114 +625,171 @@ const CollectionMenu = (props: IProps) => {
               index: number;
             }) => {
               const isLastItem = index === restaurants.length - 1;
+              const showHeader =
+                selectedProductTypeId === null &&
+                (index === 0 ||
+                  restaurants[index - 1].ProductType.productTypeId !==
+                    item.ProductType.productTypeId);
+
               return (
-                <Pressable>
-                  <View
-                    style={[
-                      styles.itemContainer,
-                      { marginRight: isLastItem ? 10 : 5 },
-                    ]}
-                  >
-                    <Image
-                      style={styles.itemImage}
-                      source={
-                        typeof item.image === "string"
-                          ? { uri: item.image }
-                          : (item.image as any)
-                      }
-                    />
-                    <View style={styles.ratingContainer}>
-                      <Text style={styles.ratingText}>
-                        {item.averageRating}
+                <>
+                  {showHeader && (
+                    <View style={styles.headerContainer}>
+                      <Text style={styles.headerText}>
+                        {item.ProductType.name}
                       </Text>
-                      <AntDesign
-                        name="star"
-                        size={15}
-                        color={APP_COLOR.ORANGE}
-                      />
                     </View>
-                    <View style={styles.itemTextContainer}>
-                      <View style={{ height: 50 }}>
-                        <Text
-                          style={[styles.itemName]}
-                          numberOfLines={2}
-                          ellipsizeMode="tail"
-                        >
-                          {item.name}
-                        </Text>
-                      </View>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          gap: 10,
-                        }}
-                      >
-                        <Text style={styles.itemPrice}>
-                          {currencyFormatter(item.price)}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.itemPrice,
-                            {
-                              textDecorationLine: "line-through",
-                              fontFamily: FONTS.regular,
-                              fontSize: 13,
-                              color: APP_COLOR.BROWN,
-                              position: "relative",
-                              bottom: -20,
-                            },
-                          ]}
-                        >
-                          {currencyFormatter(item.price - 3000)}
-                        </Text>
-                      </View>
-                    </View>
+                  )}
+                  <Pressable disabled={item.inStock === false}>
                     <View
                       style={[
-                        styles.quantityContainer,
-                        { marginHorizontal: 10, marginVertical: 10 },
+                        styles.itemContainer,
+                        { marginRight: isLastItem ? 10 : 5 },
+                        item.inStock === false &&
+                          styles.itemContainerOutOfStock,
                       ]}
                     >
-                      <Pressable
-                        onPress={() => handleQuantityChange(item, "MINUS")}
-                        style={({ pressed }) => ({
-                          opacity:
-                            getItemQuantity(item.productId) > 0
-                              ? pressed
-                                ? 0.5
-                                : 1
-                              : 0.3,
-                        })}
-                        disabled={getItemQuantity(item.productId) === 0}
-                      >
-                        <AntDesign
-                          name="minus-circle"
-                          size={24}
-                          color={
-                            getItemQuantity(item.productId) > 0
-                              ? APP_COLOR.BUTTON_YELLOW
-                              : APP_COLOR.BROWN
+                      {item.inStock === false && (
+                        <View style={styles.outOfStockBanner}>
+                          <Text style={styles.outOfStockText}>HẾT HÀNG</Text>
+                        </View>
+                      )}
+                      <View style={styles.imageWrapper}>
+                        <Image
+                          style={[
+                            styles.itemImage,
+                            item.inStock === false &&
+                              styles.itemImageOutOfStock,
+                          ]}
+                          source={
+                            typeof item.image === "string"
+                              ? { uri: item.image }
+                              : (item.image as any)
                           }
                         />
-                      </Pressable>
-                      <Text style={styles.quantityText}>
-                        {getItemQuantity(item.productId)}
-                      </Text>
-                      <Pressable
-                        onPress={() => handleQuantityChange(item, "PLUS")}
-                        style={({ pressed }) => ({
-                          opacity: pressed ? 0.5 : 1,
-                        })}
-                      >
+                        {item.inStock === false && (
+                          <View style={styles.outOfStockOverlay} />
+                        )}
+                      </View>
+                      <View style={styles.ratingContainer}>
+                        <Text style={styles.ratingText}>
+                          {item.averageRating}
+                        </Text>
                         <AntDesign
-                          name="plus-circle"
-                          size={24}
-                          color={APP_COLOR.BUTTON_YELLOW}
+                          name="star"
+                          size={15}
+                          color={APP_COLOR.ORANGE}
                         />
-                      </Pressable>
+                      </View>
+                      <View style={styles.itemTextContainer}>
+                        <View style={{ height: 50 }}>
+                          <Text
+                            style={[
+                              styles.itemName,
+                              item.inStock === false &&
+                                styles.itemNameOutOfStock,
+                            ]}
+                            numberOfLines={2}
+                            ellipsizeMode="tail"
+                          >
+                            {item.name}
+                          </Text>
+                        </View>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            gap: 10,
+                          }}
+                        >
+                          <Text
+                            style={[
+                              styles.itemPrice,
+                              item.inStock === false &&
+                                styles.itemPriceOutOfStock,
+                            ]}
+                          >
+                            {currencyFormatter(item.price)}
+                          </Text>
+                          <Text
+                            style={[
+                              styles.itemPrice,
+                              {
+                                textDecorationLine: "line-through",
+                                fontFamily: FONTS.regular,
+                                fontSize: 13,
+                                color: APP_COLOR.BROWN,
+                                position: "relative",
+                                bottom: -20,
+                              },
+                              item.inStock === false && {
+                                opacity: 0.5,
+                              },
+                            ]}
+                          >
+                            {currencyFormatter(item.price - 3000)}
+                          </Text>
+                        </View>
+                      </View>
+                      <View
+                        style={[
+                          styles.quantityContainer,
+                          { marginHorizontal: 10, marginVertical: 10 },
+                          item.inStock === false &&
+                            styles.quantityContainerDisabled,
+                        ]}
+                      >
+                        <Pressable
+                          onPress={() => handleQuantityChange(item, "MINUS")}
+                          style={({ pressed }) => ({
+                            opacity:
+                              getItemQuantity(item.productId) > 0 &&
+                              item.inStock !== false
+                                ? pressed
+                                  ? 0.5
+                                  : 1
+                                : 0.3,
+                          })}
+                          disabled={
+                            getItemQuantity(item.productId) === 0 ||
+                            item.inStock === false
+                          }
+                        >
+                          <AntDesign
+                            name="minus-circle"
+                            size={24}
+                            color={
+                              getItemQuantity(item.productId) > 0 &&
+                              item.inStock !== false
+                                ? APP_COLOR.BUTTON_YELLOW
+                                : APP_COLOR.BROWN
+                            }
+                          />
+                        </Pressable>
+                        <Text style={styles.quantityText}>
+                          {getItemQuantity(item.productId)}
+                        </Text>
+                        <Pressable
+                          onPress={() => handleQuantityChange(item, "PLUS")}
+                          style={({ pressed }) => ({
+                            opacity:
+                              item.inStock === false ? 0.3 : pressed ? 0.5 : 1,
+                          })}
+                          disabled={item.inStock === false}
+                        >
+                          <AntDesign
+                            name="plus-circle"
+                            size={24}
+                            color={
+                              item.inStock === false
+                                ? APP_COLOR.BROWN
+                                : APP_COLOR.BUTTON_YELLOW
+                            }
+                          />
+                        </Pressable>
+                      </View>
                     </View>
-                  </View>
-                </Pressable>
+                  </Pressable>
+                </>
               );
             }}
           />
@@ -840,6 +962,58 @@ const styles = StyleSheet.create({
   },
   loader: {
     width: "100%",
+  },
+  imageWrapper: {
+    position: "relative",
+    overflow: "hidden",
+  },
+  itemImageOutOfStock: {
+    opacity: 0.5,
+  },
+  itemContainerOutOfStock: {
+    opacity: 0.8,
+  },
+  outOfStockOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
+    zIndex: 1,
+  },
+  outOfStockBanner: {
+    position: "absolute",
+    top: 30,
+    left: 120,
+    backgroundColor: "#DC2626",
+    paddingVertical: 6,
+    paddingHorizontal: 30,
+    transform: [{ rotate: "-15deg" }],
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 5,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    zIndex: 1000,
+  },
+  outOfStockText: {
+    color: APP_COLOR.WHITE,
+    fontFamily: FONTS.bold,
+    fontSize: 14,
+    letterSpacing: 1,
+  },
+  itemNameOutOfStock: {
+    opacity: 0.6,
+  },
+  itemPriceOutOfStock: {
+    opacity: 0.6,
+  },
+  quantityContainerDisabled: {
+    opacity: 0.5,
   },
 });
 

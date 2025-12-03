@@ -146,6 +146,12 @@ public class OrderController {
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
+    @PutMapping("/staff/pickup/comleted/{orderId}")
+    public ResponseEntity<?> completePickupOrderForStaff(@PathVariable int orderId) {
+        boolean result = orderService.completePickupOrderForStaff(orderId);
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
     @GetMapping("/shipping/fee")
     public ResponseEntity<?> getShippingFee(@RequestParam String customerAddress, @RequestParam String branchAddress)
             throws BadRequestException {
@@ -177,12 +183,6 @@ public class OrderController {
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
 
-    @PutMapping("/customer/pickup/{orderId}")
-    public ResponseEntity<?> customerPickupOrder(@PathVariable int orderId) {
-        ResponseData responseData = new ResponseData();
-        responseData.setData(orderService.customerPickedUpOrder(orderId));
-        return new ResponseEntity<>(responseData, HttpStatus.OK);
-    }
 
     /**
      * Customer endpoint - Get orders of the authenticated customer

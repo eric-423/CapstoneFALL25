@@ -182,6 +182,7 @@ public class SecurityConfig {
                         .hasAnyRole("ADMIN", "MANAGER", "STAFF", "CHEFF", "WAITER")
 
                         .requestMatchers("/api/combos/search").permitAll()
+                        .requestMatchers("/api/products/detail/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/combos/{id}").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/combos").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(HttpMethod.PUT, "/api/combos/{id}").hasAnyRole("ADMIN", "MANAGER")
@@ -279,6 +280,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST,"/api/schedules/**").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(HttpMethod.PUT,"/api/schedules/**").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers("/api/schedules/**").hasAnyRole("ADMIN", "MANAGER", "STAFF", "CHEFF", "WAITER")
+
+                        .requestMatchers("/api/dashboard/**").hasAnyRole("ADMIN", "MANAGER")
                         .anyRequest().authenticated());
 
         return http.build();

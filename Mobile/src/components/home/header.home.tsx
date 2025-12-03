@@ -178,7 +178,7 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
           const branches = res.data?.data || res.data || [];
           const nearbyBranches = branches.filter((branch: any) => {
             if (typeof branch?.distanceInMeters === "number") {
-              return branch.distanceInMeters <= 5000;
+              return branch.distanceInMeters;
             }
             return true;
           });

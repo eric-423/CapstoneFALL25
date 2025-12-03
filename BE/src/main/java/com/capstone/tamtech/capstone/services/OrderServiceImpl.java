@@ -83,6 +83,7 @@ public class OrderServiceImpl implements OrderService {
                 throw new BadRequestException("Insufficient points");
             } else {
                 user.setMemberPoint(user.getMemberPoint() - orderRequest.getPointUsed());
+                order.setPointUsed(orderRequest.getPointUsed());
                 usersRepository.save(user);
             }
         }
@@ -161,10 +162,10 @@ public class OrderServiceImpl implements OrderService {
         order.setDiscountValue(discountValue);
 
         double percentDiscountAmount = 0.0;
-        if (discountPercent != null && discountPercent > 0) {
+        if (discountPercent > 0) {
             percentDiscountAmount = subTotal * ((double) discountPercent / 100.0);
         }
-        double amount = subTotal - discountValue - percentDiscountAmount + order.getShippingFee();
+        double amount = subTotal - discountValue - percentDiscountAmount + order.getShippingFee() - orderRequest.getPointUsed()*1000;
         if (amount < 0) {
             amount = 0;
         }
@@ -248,6 +249,7 @@ public class OrderServiceImpl implements OrderService {
                 throw new BadRequestException("Insufficient points");
             } else {
                 user.setMemberPoint(user.getMemberPoint() - orderRequest.getPointUsed());
+                order.setPointUsed(orderRequest.getPointUsed());
                 usersRepository.save(user);
             }
         }
@@ -309,7 +311,7 @@ public class OrderServiceImpl implements OrderService {
         if (discountPercent != null && discountPercent > 0) {
             percentDiscountAmount = subTotal * ((double) discountPercent / 100.0);
         }
-        double amount = subTotal - discountValue - percentDiscountAmount;
+        double amount = subTotal - discountValue - percentDiscountAmount - orderRequest.getPointUsed()*1000;
         if (amount < 0) {
             amount = 0;
         }
@@ -547,6 +549,10 @@ public class OrderServiceImpl implements OrderService {
         order.setSubTotal(newSubTotal);
         order.setStatus(orderStatusRepository.findByName("COOKING")
                 .orElseThrow(() -> new RuntimeException("OrderStatus CONFIRMED not found")));
+        if(order.getWorker()!=null){
+            assignOrderToCheff(order.getId());
+        }
+        assignOrderToCheff(order.getId());
         inventoryService.consumeMaterialsForOrderItems(order.getOrderItems(), branchId);
         orderRepository.save(order);
         return true;
@@ -810,6 +816,43 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public boolean completePickupOrderForStaff(int orderId) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
+
+        if (order.getPickupTime() != null) {
+            throw new RuntimeException("Order already picked up");
+        }
+
+        boolean isPickup = order.isPickUp();
+        if (!isPickup) {
+            throw new RuntimeException("This order is not a pickup order");
+        }
+
+        order.setPickupTime(new Date());
+        OrderStatus completedStatus = orderStatusRepository.findByName("COMPLETED")
+                .orElseThrow(() -> new RuntimeException("OrderStatus COMPLETED not found"));
+        order.setStatus(completedStatus);
+
+        if (order.getPromotion() != null && order.getCustomer() != null) {
+            promotionService.markPromotionAsUsed(
+                    order.getCustomer().getId(),
+                    order.getPromotion().getId());
+        }
+
+        if (order.getCustomer() != null) {
+            Users customer = order.getCustomer();
+            int pointsEarned = (int) (order.getAmount() / 10000);
+            customer.setMemberPoint(customer.getMemberPoint() + pointsEarned);
+            order.setPointEarned(pointsEarned);
+            usersRepository.save(customer);
+            memberAssociationService.updateMemberAssiociationForCustomer(customer.getId());
+        }
+
+        orderRepository.save(order);
+        return true;
+    }
+
+    @Override
     public double calculateShippingFee(String customerAddress, String branchAddress) throws BadRequestException {
         double shippingFee = 0.0;
         long meters = distanceService.getDistanceInMeters(branchAddress, customerAddress);
@@ -845,7 +888,8 @@ public class OrderServiceImpl implements OrderService {
         }
 
         orderDTO.setAmount(order.getAmount());
-        if (order.getShipper() != null) {
+
+        if (!order.isPickUp() && (order.getIsTable() == null)) {
             orderDTO.setShippingFee(order.getShippingFee());
             if (order.getDeliveryAtt() != null) {
                 orderDTO.setDelivery_at(order.getDeliveryAtt());
@@ -891,6 +935,10 @@ public class OrderServiceImpl implements OrderService {
 
 
         orderDTO.setStatus(order.getStatus().getName());
+
+        orderDTO.setBranchName(
+                order.getBranch() != null ? order.getBranch().getName() : ""
+        );
 
         return orderDTO;
     }
@@ -1014,7 +1062,7 @@ public class OrderServiceImpl implements OrderService {
         order.setDiscountValue(discountValue);
 
         double percentDiscountAmount = 0.0;
-        if (discountPercent != null && discountPercent > 0) {
+        if (discountPercent > 0) {
             percentDiscountAmount = subTotal * ((double) discountPercent / 100.0);
         }
         double amount = subTotal - discountValue - percentDiscountAmount;
@@ -1075,42 +1123,6 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    @Override
-    public boolean customerPickedUpOrder(int orderId) {
-        Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
-
-        if (order.getPickupTime() != null) {
-            throw new RuntimeException("Order already picked up");
-        }
-
-        boolean isPickup = order.isPickUp();
-        if (!isPickup) {
-            throw new RuntimeException("This order is not a pickup order");
-        }
-
-        order.setPickupTime(new Date());
-        OrderStatus completedStatus = orderStatusRepository.findByName("COMPLETED")
-                .orElseThrow(() -> new RuntimeException("OrderStatus COMPLETED not found"));
-        order.setStatus(completedStatus);
-
-        if (order.getPromotion() != null && order.getCustomer() != null) {
-            promotionService.markPromotionAsUsed(
-                    order.getCustomer().getId(),
-                    order.getPromotion().getId());
-        }
-
-        if (order.getCustomer() != null) {
-            Users customer = order.getCustomer();
-            int pointsEarned = (int) (order.getAmount() / 10000);
-            customer.setMemberPoint(customer.getMemberPoint() + pointsEarned);
-            order.setPointEarned(pointsEarned);
-            usersRepository.save(customer);
-            memberAssociationService.updateMemberAssiociationForCustomer(customer.getId());
-        }
-
-        orderRepository.save(order);
-        return true;
-    }
 
     @Override
     public OrderDTO updateOrderForDining(int orderId, DiningTableProductRequest diningTableProductRequest) {

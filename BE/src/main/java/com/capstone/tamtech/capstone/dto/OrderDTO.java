@@ -59,6 +59,8 @@ public class OrderDTO implements Serializable {
 
     private String billPdfUrl;
 
+    private String branchName;
+
 
     @Override
     public String toString() {

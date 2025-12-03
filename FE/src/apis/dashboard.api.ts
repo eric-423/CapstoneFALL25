@@ -23,6 +23,175 @@ export interface TopProductsResponse {
   data: TopProduct[];
 }
 
+// ============ DASHBOARD TABS TYPES ============
+
+export interface DashboardFilterParams {
+  branchId?: number;
+  fromDate?: string;
+  toDate?: string;
+}
+
+// KPI Types
+export interface DashboardKPIItem {
+  label: string;
+  value: number;
+  unit?: string;
+  percentChange: number;
+  trend: 'UP' | 'DOWN' | 'FLAT';
+}
+
+export interface DashboardKPIResponse {
+  status: number;
+  desc: string;
+  data: DashboardKPIItem[];
+}
+
+// Revenue Chart Types
+export interface RevenueChartItem {
+  time: string;
+  revenue: number;
+}
+
+export interface RevenueChartResponse {
+  status: number;
+  desc: string;
+  data: RevenueChartItem[];
+}
+
+// Revenue by Channel Types
+export interface RevenueByChannelItem {
+  channel: string;
+  revenue: number;
+  percentage: number;
+  fill?: string;
+}
+
+export interface RevenueByChannelResponse {
+  status: number;
+  desc: string;
+  data: RevenueByChannelItem[];
+}
+
+// Peak Hours Types
+export interface PeakHoursItem {
+  hour: string;
+  orderCount: number;
+}
+
+export interface PeakHoursResponse {
+  status: number;
+  desc: string;
+  data: PeakHoursItem[];
+}
+
+// Top Selling Products Types
+export interface TopSellingProductItem {
+  productId: number;
+  productName: string;
+  quantitySold: number;
+  totalRevenue: number;
+  image?: string;
+  category?: string;
+}
+
+export interface TopSellingProductsResponse {
+  status: number;
+  desc: string;
+  data: TopSellingProductItem[];
+}
+
+// Product Performance Types
+export interface ProductPerformanceItem {
+  productId: number;
+  productName: string;
+  quantitySold: number;
+  totalRevenue: number;
+}
+
+export interface ProductPerformanceResponse {
+  status: number;
+  desc: string;
+  data: ProductPerformanceItem[];
+}
+
+// Combo Effectiveness Types
+export interface ComboEffectivenessItem {
+  comboName: string;
+  orders: number;
+  revenue: number;
+}
+
+export interface ComboEffectivenessResponse {
+  status: number;
+  desc: string;
+  data: ComboEffectivenessItem[];
+}
+
+// Promotion Effectiveness Types
+export interface PromotionEffectivenessItem {
+  code: string;
+  name?: string;
+  usageCount: number;
+  revenueGenerated: number;
+  discountTotal?: number;
+}
+
+export interface PromotionEffectivenessResponse {
+  status: number;
+  desc: string;
+  data: PromotionEffectivenessItem[];
+}
+
+// Voucher Revenue Types
+export interface VoucherRevenueItem {
+  type: string;
+  revenue: number;
+  fill?: string;
+}
+
+export interface VoucherRevenueResponse {
+  status: number;
+  desc: string;
+  data: VoucherRevenueItem[];
+}
+
+// Kitchen Performance Types
+export interface KitchenPerformanceItem {
+  timeSlot: string;
+  avgPrepMinutes: number;
+}
+
+export interface KitchenPerformanceResponse {
+  status: number;
+  desc: string;
+  data: KitchenPerformanceItem[];
+}
+
+// Staff Performance Types
+export interface StaffPerformanceItem {
+  staffName: string;
+  ordersHandled: number;
+  avgRating?: number;
+}
+
+export interface StaffPerformanceResponse {
+  status: number;
+  desc: string;
+  data: StaffPerformanceItem[];
+}
+
+// Order Flow Types
+export interface OrderFlowItem {
+  stage: string;
+  avgSeconds: number;
+}
+
+export interface OrderFlowResponse {
+  status: number;
+  desc: string;
+  data: OrderFlowItem[];
+}
+
 export interface WeeklyRevenueResponse {
   status: number;
   desc: string | null;
@@ -346,3 +515,124 @@ export const getDashboardUsers = async (page = 0, size = 10): Promise<DashboardU
   });
   return response.data;
 };
+
+// ============ DASHBOARD TABS API CALLS ============
+
+const buildQueryString = (params: DashboardFilterParams): string => {
+  const searchParams = new URLSearchParams();
+  if (params.branchId) searchParams.append('branchId', params.branchId.toString());
+  if (params.fromDate) searchParams.append('fromDate', params.fromDate);
+  if (params.toDate) searchParams.append('toDate', params.toDate);
+  return searchParams.toString();
+};
+
+// Overview APIs
+export const getDashboardKPIs = async (params: DashboardFilterParams = {}): Promise<DashboardKPIResponse> => {
+  const queryString = buildQueryString(params);
+  const url = `/api/dashboard/overview/kpi${queryString ? `?${queryString}` : ''}`;
+  const response = await fetch(url, { credentials: 'include' });
+  if (!response.ok) throw new Error('Failed to fetch KPIs');
+  return response.json();
+};
+
+export const getRevenueChartData = async (params: DashboardFilterParams & { groupBy?: string } = {}): Promise<RevenueChartResponse> => {
+  const searchParams = new URLSearchParams();
+  if (params.branchId) searchParams.append('branchId', params.branchId.toString());
+  if (params.fromDate) searchParams.append('fromDate', params.fromDate);
+  if (params.toDate) searchParams.append('toDate', params.toDate);
+  if (params.groupBy) searchParams.append('groupBy', params.groupBy);
+  const queryString = searchParams.toString();
+  const url = `/api/dashboard/overview/revenue-chart${queryString ? `?${queryString}` : ''}`;
+  const response = await fetch(url, { credentials: 'include' });
+  if (!response.ok) throw new Error('Failed to fetch revenue chart');
+  return response.json();
+};
+
+export const getRevenueByChannel = async (params: DashboardFilterParams = {}): Promise<RevenueByChannelResponse> => {
+  const queryString = buildQueryString(params);
+  const url = `/api/dashboard/overview/revenue-by-channel${queryString ? `?${queryString}` : ''}`;
+  const response = await fetch(url, { credentials: 'include' });
+  if (!response.ok) throw new Error('Failed to fetch revenue by channel');
+  return response.json();
+};
+
+export const getPeakHoursData = async (params: DashboardFilterParams = {}): Promise<PeakHoursResponse> => {
+  const queryString = buildQueryString(params);
+  const url = `/api/dashboard/overview/peak-hours${queryString ? `?${queryString}` : ''}`;
+  const response = await fetch(url, { credentials: 'include' });
+  if (!response.ok) throw new Error('Failed to fetch peak hours');
+  return response.json();
+};
+
+// Products APIs
+export const getTopSellingProducts = async (params: DashboardFilterParams & { limit?: number } = {}): Promise<TopSellingProductsResponse> => {
+  const searchParams = new URLSearchParams();
+  if (params.branchId) searchParams.append('branchId', params.branchId.toString());
+  if (params.fromDate) searchParams.append('fromDate', params.fromDate);
+  if (params.toDate) searchParams.append('toDate', params.toDate);
+  if (params.limit) searchParams.append('limit', params.limit.toString());
+  const queryString = searchParams.toString();
+  const url = `/api/dashboard/products/top-selling${queryString ? `?${queryString}` : ''}`;
+  const response = await fetch(url, { credentials: 'include' });
+  if (!response.ok) throw new Error('Failed to fetch top selling products');
+  return response.json();
+};
+
+export const getProductPerformance = async (params: DashboardFilterParams = {}): Promise<ProductPerformanceResponse> => {
+  const queryString = buildQueryString(params);
+  const url = `/api/dashboard/products/performance${queryString ? `?${queryString}` : ''}`;
+  const response = await fetch(url, { credentials: 'include' });
+  if (!response.ok) throw new Error('Failed to fetch product performance');
+  return response.json();
+};
+
+export const getComboEffectiveness = async (params: DashboardFilterParams = {}): Promise<ComboEffectivenessResponse> => {
+  const queryString = buildQueryString(params);
+  const url = `/api/dashboard/products/combo-effectiveness${queryString ? `?${queryString}` : ''}`;
+  const response = await fetch(url, { credentials: 'include' });
+  if (!response.ok) throw new Error('Failed to fetch combo effectiveness');
+  return response.json();
+};
+
+// Marketing APIs
+export const getPromotionEffectiveness = async (params: DashboardFilterParams = {}): Promise<PromotionEffectivenessResponse> => {
+  const queryString = buildQueryString(params);
+  const url = `/api/dashboard/marketing/promotions${queryString ? `?${queryString}` : ''}`;
+  const response = await fetch(url, { credentials: 'include' });
+  if (!response.ok) throw new Error('Failed to fetch promotion effectiveness');
+  return response.json();
+};
+
+export const getVoucherRevenue = async (params: DashboardFilterParams = {}): Promise<VoucherRevenueResponse> => {
+  const queryString = buildQueryString(params);
+  const url = `/api/dashboard/marketing/vouchers${queryString ? `?${queryString}` : ''}`;
+  const response = await fetch(url, { credentials: 'include' });
+  if (!response.ok) throw new Error('Failed to fetch voucher revenue');
+  return response.json();
+};
+
+// Operations APIs
+export const getKitchenPerformance = async (params: DashboardFilterParams = {}): Promise<KitchenPerformanceResponse> => {
+  const queryString = buildQueryString(params);
+  const url = `/api/dashboard/operations/kitchen-performance${queryString ? `?${queryString}` : ''}`;
+  const response = await fetch(url, { credentials: 'include' });
+  if (!response.ok) throw new Error('Failed to fetch kitchen performance');
+  return response.json();
+};
+
+export const getStaffPerformance = async (params: DashboardFilterParams = {}): Promise<StaffPerformanceResponse> => {
+  const queryString = buildQueryString(params);
+  const url = `/api/dashboard/operations/staff-performance${queryString ? `?${queryString}` : ''}`;
+  const response = await fetch(url, { credentials: 'include' });
+  if (!response.ok) throw new Error('Failed to fetch staff performance');
+  return response.json();
+};
+
+export const getOrderFlow = async (params: DashboardFilterParams = {}): Promise<OrderFlowResponse> => {
+  const queryString = buildQueryString(params);
+  const url = `/api/dashboard/operations/order-flow${queryString ? `?${queryString}` : ''}`;
+  const response = await fetch(url, { credentials: 'include' });
+  if (!response.ok) throw new Error('Failed to fetch order flow');
+  return response.json();
+};
+

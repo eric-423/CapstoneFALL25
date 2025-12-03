@@ -6,11 +6,13 @@ import {
   ScrollView,
   TouchableOpacity,
 } from "react-native";
+import { useEffect, useState } from "react";
 import BannerHome from "@/components/home/banner.home";
 import { APP_COLOR } from "@/utils/constant";
 import { FONTS } from "@/theme/typography";
 import { router, useRouter } from "expo-router";
 import TodayOffersSection from "./today.offers.home";
+import { GetCustomerPromotion } from "@/utils/api";
 const icon = [
   {
     key: 1,
@@ -43,35 +45,12 @@ const icon = [
     targetScreen: "account",
   },
 ];
-const sampleOffers = [
-  {
-    id: "1",
-    imageSource: require("@/assets/icons/com-tam.png"),
-    discountText: "-50% canh",
-    descriptionText: "Dành cho bạn mới",
-    onPress: () => console.log("Offer 1 pressed"),
-  },
-  {
-    id: "2",
-    imageSource: require("@/assets/icons/cua-hang.png"),
-    discountText: "-10% đơn từ 99K",
-    descriptionText: "Đặt hàng online",
-    onPress: () => console.log("Offer 2 pressed"),
-  },
-  {
-    id: "3",
-    imageSource: require("@/assets/icons/qua-tang.png"),
-    discountText: "-30% combo",
-    descriptionText: "Ưu đãi đặc biệt",
-    onPress: () => console.log("Offer 3 pressed"),
-  },
-  {
-    id: "4",
-    imageSource: require("@/assets/icons/don-hang.png"),
-    discountText: "-20% giao hàng",
-    descriptionText: "Miễn phí ship",
-    onPress: () => console.log("Offer 4 pressed"),
-  },
+
+const defaultImages = [
+  require("@/assets/icons/com-tam.png"),
+  require("@/assets/icons/cua-hang.png"),
+  require("@/assets/icons/qua-tang.png"),
+  require("@/assets/icons/don-hang.png"),
 ];
 const IconItem = ({ item }: any) => {
   const router = useRouter();
@@ -90,12 +69,85 @@ const IconItem = ({ item }: any) => {
   );
 };
 const TopListHome = () => {
+  const [offers, setOffers] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPromotions = async () => {
+      try {
+        setIsLoading(true);
+        const response = await GetCustomerPromotion();
+        if (
+          response.data &&
+          response.data.status === 0 &&
+          response.data.data &&
+          Array.isArray(response.data.data)
+        ) {
+          const mappedOffers = response.data.data.map(
+            (promotion: any, index: number) => ({
+              id: String(promotion.id || index),
+              promotionId: promotion.id,
+              imageSource:
+                defaultImages[index % defaultImages.length] ||
+                require("@/assets/icons/qua-tang.png"),
+              discountText: promotion.name || "",
+              descriptionText: promotion.description || "",
+              promotionData: {
+                id: promotion.id,
+                name: promotion.name,
+                code: promotion.name,
+                description: promotion.description,
+                discountAmount: promotion.value || 0,
+                minOrderAmount: promotion.minimumOrderValue || 0,
+                usageCount: promotion.usageCount || 0,
+                maxNumberOfUses: promotion.maxNumberOfUses || 1,
+                isActive: promotion.userPromotionStatus === "AVAILABLE",
+                endDate: promotion.endDate || "",
+                promotionTypeName: promotion.promotionTypeName || "",
+              },
+              onPress: () => {
+                router.navigate({
+                  pathname: "/(user)/voucher/[id]",
+                  params: {
+                    id: String(promotion.id),
+                    name: promotion.name || "",
+                    code: promotion.name || "",
+                    description: promotion.description || "",
+                    discountAmount: String(promotion.value || 0),
+                    minOrderAmount: String(promotion.minimumOrderValue || 0),
+                    usageCount: String(promotion.usageCount || 0),
+                    maxNumberOfUses: String(promotion.maxNumberOfUses || 1),
+                    isActive: String(
+                      promotion.userPromotionStatus === "AVAILABLE"
+                    ),
+                    endDate: promotion.endDate || "",
+                    promotionTypeName: promotion.promotionTypeName || "",
+                  },
+                });
+              },
+            })
+          );
+          setOffers(mappedOffers);
+        } else {
+          setOffers([]);
+        }
+      } catch (error) {
+        console.error("Error fetching promotions:", error);
+        setOffers([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPromotions();
+  }, []);
+
   const topRowData = icon.filter((_, index) => index % 2 === 0);
   const bottomRowData = icon.filter((_, index) => index % 2 !== 0);
   return (
     <View>
       <BannerHome />
-      <TodayOffersSection offers={sampleOffers} />
+      {offers.length > 0 && <TodayOffersSection offers={offers} />}
       <View style={{ paddingHorizontal: 10 }}>
         <View style={styles.header}>
           <Text style={styles.title}>Danh mục</Text>

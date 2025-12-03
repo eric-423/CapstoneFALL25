@@ -182,12 +182,22 @@ public class PdfBillService {
                 .setTextAlignment(TextAlignment.CENTER)
                 .setMarginTop(30));
 
-        byte[] qrCodeBytes = qrCodeService.generateOrderQRCode(order.getId());
-        Image qrCodeImage = new Image(ImageDataFactory.create(qrCodeBytes));
-        qrCodeImage.setHorizontalAlignment(com.itextpdf.layout.properties.HorizontalAlignment.CENTER);
-        qrCodeImage.setWidth(100);
-        qrCodeImage.setHeight(100);
-        document.add(qrCodeImage);
+        try {
+            byte[] qrCodeBytes = qrCodeService.generateOrderQRCode(order.getId());
+            if (qrCodeBytes != null && qrCodeBytes.length > 0) {
+                Image qrCodeImage = new Image(ImageDataFactory.create(qrCodeBytes));
+                qrCodeImage.setHorizontalAlignment(com.itextpdf.layout.properties.HorizontalAlignment.CENTER);
+                qrCodeImage.setWidth(100);
+                qrCodeImage.setHeight(100);
+                document.add(qrCodeImage);
+            } else {
+                System.err.println("QR code bytes is null or empty for order " + order.getId());
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to generate QR code for order " + order.getId() + ": " + e.getMessage());
+            e.printStackTrace();
+            // Continue without QR code - bill will still be generated
+        }
 
         document.add(new Paragraph("Cảm ơn quý khách đã sử dụng dịch vụ!")
                 .setFontSize(12)

@@ -31,6 +31,8 @@ public interface OrderService {
 
     boolean completeOrder(int orderId);
 
+    boolean completePickupOrderForStaff(int orderId);
+
     public double calculateShippingFee(String customerAddress, String branchAddress) throws BadRequestException;
 
     OrderDTO createOrderForDining(OrderRequest orderRequest);
@@ -40,8 +42,6 @@ public interface OrderService {
     Boolean confirmDeliveredOrderItem(WaiterConfirmOrderRequest waiterConfirmOrderRequest);
 
     OrderDTO payDiningTableOrder(DiningTablePaymentRequest paymentRequest) throws BadRequestException;
-
-    boolean customerPickedUpOrder(int orderId);
 
     OrderDTO updateOrderForDining(int orderId, DiningTableProductRequest diningTableProductRequest);
 

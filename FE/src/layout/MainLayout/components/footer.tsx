@@ -60,7 +60,6 @@ const Footer = () => {
                   Về Tấm Tắc
                 </Link>
               </li>
-              <li>Chuyện Cơm Tấm</li>
             </ul>
           </div>
           <div>
@@ -76,7 +75,6 @@ const Footer = () => {
                   Đặt hàng
                 </Link>
               </li>
-              <li>Nhượng quyền</li>
             </ul>
           </div>
           <div>
