@@ -1,91 +1,91 @@
 import http from "@/utils/http";
 
 export enum OrderStatus {
-  "PROCESSING" = "Đang chuẩn bị",
-  "IN_DELIVERY" = "Đang giao hàng",
-  "COMPLETED" = "Đã giao",
-  "VERIFIED" = "Đặt Hàng Thành Công",
-  "CANCELLED" = "Đã hủy",
-  "PAID" = "Đã thanh toán",
-  "UNPAID" = "Chờ Thanh Toán",
+    'PROCESSING' = 'Đang chuẩn bị',
+    'IN_DELIVERY' = 'Đang giao hàng',
+    'COMPLETED' = 'Đã giao',
+    'VERIFIED' = 'Đặt Hàng Thành Công',
+    'CANCELLED' = 'Đã hủy',
+    'PAID' = 'Đã thanh toán',
+    'UNPAID' = 'Chờ Thanh Toán',
 }
 
 export interface OrderProduct {
-  productId: number;
-  quantity: number;
-  note: string;
+    productId: number;
+    quantity: number;
+    note: string;
 }
 
 export interface OrderItemRequest {
-  productId: number;
-  comboId: number;
-  quantity: number;
-  price: number;
-  note: string;
+    productId: number;
+    comboId: number;
+    quantity: number;
+    price: number;
+    note: string;
 }
 
 export interface DiningOrderRequest {
-  customerId: number;
-  promotionCode?: string;
-  discountValue?: number;
-  shippingAddress?: string;
-  shippingPhoneNumber?: string;
-  orderItemList: OrderItemRequest[];
-  mode: "DINING" | "SHIPPING" | "PICKUP";
-  diningTableId: number;
-  branchId: number;
+    customerId: number;
+    promotionCode?: string;
+    discountValue?: number;
+    shippingAddress?: string;
+    shippingPhoneNumber?: string;
+    orderItemList: OrderItemRequest[];
+    mode: 'DINING' | 'SHIPPING' | 'PICKUP';
+    diningTableId: number;
+    branchId: number;
 }
 
 export interface DiningTablePaymentRequest {
-  orderId: number;
-  paymentMethodId: number; // 1 = cash, 2 = transfer
-  promotionCode?: string;
-  discountValue?: number;
+    orderId: number;
+    paymentMethodId: number; // 1 = cash, 2 = transfer
+    promotionCode?: string;
+    discountValue?: number;
 }
 
 export interface UpdateDiningTableOrderRequest {
-  diningTableId: number;
-  orderItems: OrderItemRequest[];
+    diningTableId: number;
+    orderItems: OrderItemRequest[];
 }
 
 export interface ComboItemDTO {
-  productId: number;
-  comboId: number;
-  quantity: number;
-  note: string;
+    productId: number;
+    comboId: number;
+    quantity: number;
+    note: string;
 }
 
 export interface ComboDTO {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  startDate: string;
-  endDate: string;
-  branchId: number;
-  comboItems: ComboItemDTO[];
-  active: boolean;
+    id: number;
+    name: string;
+    description: string;
+    price: number;
+    startDate: string;
+    endDate: string;
+    branchId: number;
+    comboItems: ComboItemDTO[];
+    active: boolean;
 }
 
 export interface OrderProductResponse {
-  productId: number;
-  productName: string;
-  quantity: number;
-  note: string;
-  price: number;
-  feedback?: string;
-  comboDTO?: ComboDTO | null;
-  isCombo?: boolean;
+    productId: number;
+    productName: string;
+    quantity: number;
+    note: string;
+    price: number;
+    feedback?: string;
+    comboDTO?: ComboDTO | null;
+    isCombo?: boolean;
 }
 
 export type OrderMode = "PICKUP" | "DELIVERY";
 
 export interface CreateOrderItem {
-  productId: number;
-  comboId?: number | null;
-  quantity: number;
-  price: number;
-  note?: string;
+    productId: number;
+    comboId?: number | null;
+    quantity: number;
+    price: number;
+    note?: string;
 }
 
 export interface CreateOrderPayload {
@@ -102,200 +102,200 @@ export interface CreateOrderPayload {
 }
 
 export interface OrderResponse {
-  id: number;
-  date: Date;
-  restaurant: string;
-  items: OrderProductResponse[];
-  totalItems: number;
-  subTotal: number;
-  orderStatus: string;
-  paymentStatus: string;
-  customerName: string;
-  customerPhone: string;
-  address?: string | null;
-  branchName?: string;
-  branchAddress?: string;
-  shippingFee?: number;
-  discountValue?: number;
-  amount?: number;
-  promotionCode?: string | null;
-  pointUsed?: number;
-  pointEarned?: number;
-  shipperName?: string | null;
-  waiterName?: string | null;
-  chefName?: string | null;
-  rated?: boolean;
-  pickupTime: string;
-  payment_code?: string;
-  orderDate?: string;
-  paymentTime?: string | null;
-  deliveryAt?: string | null;
-  paymentUrl?: string | null;
-  billPdfUrl?: string | null;
+    id: number;
+    date: Date;
+    restaurant: string;
+    items: OrderProductResponse[];
+    totalItems: number;
+    subTotal: number;
+    orderStatus: string;
+    paymentStatus: string;
+    customerName: string;
+    customerPhone: string;
+    address?: string | null;
+    branchName?: string;
+    branchAddress?: string;
+    shippingFee?: number;
+    discountValue?: number;
+    amount?: number;
+    promotionCode?: string | null;
+    pointUsed?: number;
+    pointEarned?: number;
+    shipperName?: string | null;
+    waiterName?: string | null;
+    chefName?: string | null;
+    rated?: boolean;
+    pickupTime: string;
+    payment_code?: string;
+    orderDate?: string;
+    paymentTime?: string | null;
+    deliveryAt?: string | null;
+    paymentUrl?: string | null;
+    billPdfUrl?: string | null;
 }
 
 export interface CustomerOrderDetailItem {
-  productId: number;
-  productName: string | null;
-  orderId: number;
-  quantity: number;
-  price: number;
-  note?: string | null;
-  feedback?: string | null;
-  feedbackPoint?: number | null;
-  expiredFeedbackTime?: string | null;
-  productImg?: string | null;
-  comboDTO?: ComboDTO | null;
-  isConfirmed?: boolean;
-  isDelivered?: boolean | null;
-  feedBackYet?: boolean;
+    productId: number;
+    productName: string | null;
+    orderId: number;
+    quantity: number;
+    price: number;
+    note?: string | null;
+    feedback?: string | null;
+    feedbackPoint?: number | null;
+    expiredFeedbackTime?: string | null;
+    productImg?: string | null;
+    comboDTO?: ComboDTO | null;
+    isConfirmed?: boolean;
+    isDelivered?: boolean | null;
+    feedBackYet?: boolean;
 }
 
 export interface CustomerOrderDetailCustomerDTO {
-  id: number;
-  fullName: string;
-  email?: string | null;
-  phone?: string | null;
-  address?: string | null;
-  isActive?: boolean | null;
-  dateOfBirth?: string | null;
-  createdAt?: string | null;
-  memberPoint?: number | null;
-  memberRank?: string | null;
+    id: number;
+    fullName: string;
+    email?: string | null;
+    phone?: string | null;
+    address?: string | null;
+    isActive?: boolean | null;
+    dateOfBirth?: string | null;
+    createdAt?: string | null;
+    memberPoint?: number | null;
+    memberRank?: string | null;
 }
 
 export interface CustomerOrderDetailData {
-  id: number;
-  subTotal: number;
-  promotionCode?: string | null;
-  discountValue?: number | null;
-  discountPercent?: number | null;
-  amount: number;
-  shippingFee?: number | null;
-  isPickUp?: boolean;
-  isTable?: boolean;
-  delivery_at?: string | null;
-  deliveryAt?: string | null;
-  orderStatus: string;
-  status?: string;
-  note?: string | null;
-  payment_code?: string | null;
-  address?: string | null;
-  branchName?: string | null;
-  branchAddress?: string | null;
-  phone?: string | null;
-  pointUsed?: number;
-  pointEarned?: number;
-  createdAt?: string | null;
-  orderItems: CustomerOrderDetailItem[];
-  customerDTO?: CustomerOrderDetailCustomerDTO | null;
-  pickupTime?: string | null;
-  customerName?: string | null;
-  paymentUrl?: string | null;
-  billPdfUrl?: string | null;
-  shipperName?: string | null;
-  waiterName?: string | null;
-  chefName?: string | null;
+    id: number;
+    subTotal: number;
+    promotionCode?: string | null;
+    discountValue?: number | null;
+    discountPercent?: number | null;
+    amount: number;
+    shippingFee?: number | null;
+    isPickUp?: boolean;
+    isTable?: boolean;
+    delivery_at?: string | null;
+    deliveryAt?: string | null;
+    orderStatus: string;
+    status?: string;
+    note?: string | null;
+    payment_code?: string | null;
+    address?: string | null;
+    branchName?: string | null;
+    branchAddress?: string | null;
+    phone?: string | null;
+    pointUsed?: number;
+    pointEarned?: number;
+    createdAt?: string | null;
+    orderItems: CustomerOrderDetailItem[];
+    customerDTO?: CustomerOrderDetailCustomerDTO | null;
+    pickupTime?: string | null;
+    customerName?: string | null;
+    paymentUrl?: string | null;
+    billPdfUrl?: string | null;
+    shipperName?: string | null;
+    waiterName?: string | null;
+    chefName?: string | null;
 }
 
 export interface CustomerOrderDetailApiResponse {
-  status: number;
-  desc: string | null;
-  data: CustomerOrderDetailData;
+    status: number;
+    desc: string | null;
+    data: CustomerOrderDetailData;
 }
 
 export interface OrderStatusesResponse {
-  status: number;
-  desc: string;
-  data: string[];
+    status: number;
+    desc: string;
+    data: string[];
 }
 
 export interface BranchOrderResponse {
-  id: number;
-  orderStatus: string;
-  orderDate: string;
-  paymentTime: string | null;
-  deliveryAt: string | null;
-  customerName: string;
-  customerPhone: string;
-  address: string | null;
-  branchName: string;
-  branchAddress: string;
-  subTotal: number;
-  shippingFee: number;
-  discountValue: number;
-  amount: number;
-  promotionCode: string | null;
-  pointUsed: number;
-  pointEarned: number;
-  shipperName: string | null;
-  waiterName: string | null;
-  chefName: string | null;
-  itemCount: number;
-  isPickUp: boolean;
-  isTable: boolean;
-  table: boolean;
-  pickUp: boolean;
+    id: number;
+    orderStatus: string;
+    orderDate: string;
+    paymentTime: string | null;
+    deliveryAt: string | null;
+    customerName: string;
+    customerPhone: string;
+    address: string | null;
+    branchName: string;
+    branchAddress: string;
+    subTotal: number;
+    shippingFee: number;
+    discountValue: number;
+    amount: number;
+    promotionCode: string | null;
+    pointUsed: number;
+    pointEarned: number;
+    shipperName: string | null;
+    waiterName: string | null;
+    chefName: string | null;
+    itemCount: number;
+    isPickUp: boolean;
+    isTable: boolean;
+    table: boolean;
+    pickUp: boolean;
 }
 
 export interface BranchOrdersApiResponse {
-  status: number;
-  desc: string;
-  data: BranchOrderResponse[];
+    status: number;
+    desc: string;
+    data: BranchOrderResponse[];
 }
 
 // Chef Order Interfaces - New structure from API
 export interface ChefOrderItem {
-  orderItemId: number;
-  productId: number;
-  productName: string;
-  orderId: number;
-  quantity: number;
-  price: number;
-  note: string;
-  feedback: string | null;
-  feedbackPoint: number;
-  expiredFeedbackTime: string | null;
-  productImg: string;
-  comboDTO: ComboDTO | null;
-  isConfirmed: boolean;
-  confirmAt: string;
-  isDelivered: boolean | null;
-  deliveredAt: string | null;
-  cookedAt: string | null;
-  isCooked: boolean | null;
-  feedBackYet: boolean;
+    orderItemId: number;
+    productId: number;
+    productName: string;
+    orderId: number;
+    quantity: number;
+    price: number;
+    note: string;
+    feedback: string | null;
+    feedbackPoint: number;
+    expiredFeedbackTime: string | null;
+    productImg: string;
+    comboDTO: ComboDTO | null;
+    isConfirmed: boolean;
+    confirmAt: string;
+    isDelivered: boolean | null;
+    deliveredAt: string | null;
+    cookedAt: string | null;
+    isCooked: boolean | null;
+    feedBackYet: boolean;
 }
 
 export interface ChefOrderResponse {
-  orderId: number;
-  orderItems: ChefOrderItem[];
+    orderId: number;
+    orderItems: ChefOrderItem[];
 }
 
 export interface ChefOrdersApiResponse {
-  status: number;
-  desc: string | null;
-  data: ChefOrderResponse[];
+    status: number;
+    desc: string | null;
+    data: ChefOrderResponse[];
 }
 
 export interface WaiterOrderItemRequest {
-  productId: number;
-  comboId: number;
-  quantity: number;
-  price: number;
-  note: string;
+    productId: number;
+    comboId: number;
+    quantity: number;
+    price: number;
+    note: string;
 }
 
 export interface WaiterConfirmRequest {
-  orderId: number;
-  waiterId: number;
-  orderItems: WaiterOrderItemRequest[];
+    orderId: number;
+    waiterId: number;
+    orderItems: WaiterOrderItemRequest[];
 }
 
 export interface WaiterDeliveredRequest {
-  orderId: number;
-  waiterId: number;
-  orderItems: WaiterOrderItemRequest[];
+    orderId: number;
+    waiterId: number;
+    orderItems: WaiterOrderItemRequest[];
 }
 
 export const GET_CUSTOMER_ORDER_QUERY_KEY = "GET_CUSTOMER_ORDER_QUERY_KEY";
@@ -369,409 +369,326 @@ export const getCustomerOrders = async (status?: string) => {
     credentials: "include",
   });
 
-  if (!response.ok) {
-    const errorBody = await response.json().catch(() => ({}));
-    throw {
-      response: {
-        data: errorBody,
-        status: response.status,
-      },
-    };
-  }
+    if (!response.ok) {
+        const errorBody = await response.json().catch(() => ({}));
+        throw {
+            response: {
+                data: errorBody,
+                status: response.status,
+            },
+        };
+    }
 
-  return response.json();
+    return response.json();
+
 };
 
-export const getCustomerOrderDetail = async (
-  orderId: number
-): Promise<CustomerOrderDetailApiResponse> => {
-  const response = await fetch(`/api/orders/${orderId}`, {
-    method: "GET",
-    credentials: "include",
-  });
+export const getCustomerOrderDetail = async (orderId: number): Promise<CustomerOrderDetailApiResponse> => {
+    const response = await fetch(`/api/orders/${orderId}`, {
+        method: 'GET',
+        credentials: 'include',
+    });
 
-  if (!response.ok) {
-    const errorBody = await response.json().catch(() => ({}));
-    throw {
-      response: {
-        data: errorBody,
-        status: response.status,
-      },
-    };
-  }
+    if (!response.ok) {
+        const errorBody = await response.json().catch(() => ({}));
+        throw {
+            response: {
+                data: errorBody,
+                status: response.status,
+            },
+        };
+    }
 
-  return response.json();
+    return response.json();
 };
 
 export const cancelOrder = async (orderId: number, customerId: number) => {
-  const { data } = await http.put(
-    `/orders/cancel/${orderId}?customerId=${customerId}`
-  );
-  return data;
+    const { data } = await http.put(`/orders/cancel/${orderId}?customerId=${customerId}`);
+    return data;
 };
 
 export const createDiningOrder = async (orderRequest: DiningOrderRequest) => {
-  const { data } = await http.post("/orders/dining-table/create", orderRequest);
-  return data;
+    const { data } = await http.post('/orders/dining-table/create', orderRequest);
+    return data;
 };
 
-export const payDiningTableOrder = async (
-  paymentRequest: DiningTablePaymentRequest
-) => {
-  const { data } = await http.post(
-    "/orders/dining-table/payment",
-    paymentRequest
-  );
-  return data;
+export const payDiningTableOrder = async (paymentRequest: DiningTablePaymentRequest) => {
+    const { data } = await http.post('/orders/dining-table/payment', paymentRequest);
+    return data;
 };
 
-export const updateDiningTableOrder = async (
-  orderId: number,
-  updateRequest: UpdateDiningTableOrderRequest
-) => {
-  const { data } = await http.put(
-    `/orders/dining-table/update/${orderId}`,
-    updateRequest
-  );
-  return data;
+export const updateDiningTableOrder = async (orderId: number, updateRequest: UpdateDiningTableOrderRequest) => {
+    const { data } = await http.put(`/orders/dining-table/update/${orderId}`, updateRequest);
+    return data;
 };
 
 export const getOrderStatuses = async (): Promise<OrderStatusesResponse> => {
-  try {
-    const response = await fetch("/api/orders/statuses", {
-      method: "GET",
-      credentials: "include",
-    });
+    try {
+        const response = await fetch('/api/orders/statuses', {
+            method: 'GET',
+            credentials: 'include',
+        });
 
-    if (!response.ok) {
-      const errorBody = await response
-        .json()
-        .catch(() => ({ error: "Failed to parse error response" }));
-      const error = new Error(
-        `Failed to fetch order statuses: ${response.status} ${response.statusText}`
-      );
-      (
-        error as Error & { response?: { data: unknown; status: number } }
-      ).response = {
-        data: errorBody,
-        status: response.status,
-      };
-      throw error;
+        if (!response.ok) {
+            const errorBody = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
+            const error = new Error(`Failed to fetch order statuses: ${response.status} ${response.statusText}`);
+            (error as Error & { response?: { data: unknown; status: number } }).response = {
+                data: errorBody,
+                status: response.status,
+            };
+            throw error;
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        throw error;
     }
-
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    throw error;
-  }
 };
 
-export const getBranchOrders = async (
-  status?: string
-): Promise<BranchOrdersApiResponse> => {
-  try {
-    const params = status ? `?status=${status}` : "";
-    const response = await fetch(`/api/orders/branch/my-branch${params}`, {
-      method: "GET",
-      credentials: "include",
-    });
+export const getBranchOrders = async (status?: string): Promise<BranchOrdersApiResponse> => {
+    try {
+        const params = status ? `?status=${status}` : '';
+        const response = await fetch(`/api/orders/branch/my-branch${params}`, {
+            method: 'GET',
+            credentials: 'include',
+        });
 
-    if (!response.ok) {
-      const errorBody = await response
-        .json()
-        .catch(() => ({ error: "Failed to parse error response" }));
-      const error = new Error(
-        `Failed to fetch branch orders: ${response.status} ${response.statusText}`
-      );
-      (
-        error as Error & { response?: { data: unknown; status: number } }
-      ).response = {
-        data: errorBody,
-        status: response.status,
-      };
-      throw error;
+        if (!response.ok) {
+            const errorBody = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
+            const error = new Error(`Failed to fetch branch orders: ${response.status} ${response.statusText}`);
+            (error as Error & { response?: { data: unknown; status: number } }).response = {
+                data: errorBody,
+                status: response.status,
+            };
+            throw error;
+        }
+
+        const data = await response.json();
+        return data;
+
+    } catch (error) {
+        throw error;
     }
-
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    throw error;
-  }
 };
 
-export interface AssignChefResponse {
-  success: boolean;
-  message?: string;
-}
 
-export const assignChefToOrder = async (
-  orderId: number
-): Promise<AssignChefResponse> => {
-  try {
-    const url = `/api/orders/staff/assign/cheff/${orderId}`;
 
-    const response = await fetch(url, {
-      method: "PUT",
-      credentials: "include",
-    });
+export const assignChefToOrder = async (orderId: number): Promise<CommonResponse> => {
+    try {
+        const url = `/api/orders/staff/assign/cheff/${orderId}`;
 
-    if (!response.ok) {
-      const errorBody = await response
-        .json()
-        .catch(() => ({ error: "Failed to parse error response" }));
-      const error = new Error(
-        `Failed to assign chef: ${response.status} ${response.statusText}`
-      );
-      (
-        error as Error & { response?: { data: unknown; status: number } }
-      ).response = {
-        data: errorBody,
-        status: response.status,
-      };
-      throw error;
+        const response = await fetch(url, {
+            method: 'PUT',
+            credentials: 'include',
+        });
+
+        if (!response.ok) {
+            const errorBody = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
+            const error = new Error(`Failed to assign chef: ${response.status} ${response.statusText}`);
+            (error as Error & { response?: { data: unknown; status: number } }).response = {
+                data: errorBody,
+                status: response.status,
+            };
+            throw error;
+        }
+
+        const data = await response.json();
+        const success = data === true || data === 'true' || data.success === true;
+        return { success };
+    } catch (error) {
+        throw error;
     }
-
-    const data = await response.json();
-    const success = data === true || data === "true" || data.success === true;
-    return { success };
-  } catch (error) {
-    throw error;
-  }
 };
 
-export const assignShipperToOrder = async (
-  orderId: number
-): Promise<AssignShipperResponse> => {
-  try {
-    const response = await fetch(
-      `/api/orders/manager/assign/shipper/${orderId}`,
-      {
-        method: "PUT",
-        credentials: "include",
-      }
-    );
 
-    const data = await response.json();
-    return {
-      success:
-        data === true ||
-        data === "true" ||
-        data.success === true ||
-        response.ok,
-      message: data.message || "Đã assign shipper thành công",
-    };
-  } catch (error) {
-    console.log(error);
-    return {
-      success: false,
-      message: "Hiện Tại Tất Cả Shipper Đang Bận",
-    };
-  }
-};
 
-export const staffAssignShipperToOrder = async (
-  orderId: number
-): Promise<AssignShipperResponse> => {
-  try {
-    const response = await fetch(
-      `/api/orders/staff/assign/shipper/${orderId}`,
-      {
-        method: "PUT",
-        credentials: "include",
-      }
-    );
+export const assignShipperToOrder = async (orderId: number): Promise<CommonResponse> => {
+    try {
+        const response = await fetch(`/api/orders/manager/assign/shipper/${orderId}`, {
+            method: 'PUT',
+            credentials: 'include',
+        });
 
-    const data = await response.json();
-    return {
-      success:
-        data === true ||
-        data === "true" ||
-        data.success === true ||
-        response.ok,
-      message: data.message || "Đã assign shipper thành công",
-    };
-  } catch (error) {
-    console.log(error);
-    return {
-      success: false,
-      message: "Hiện Tại Tất Cả Shipper Đang Bận",
-    };
-  }
-};
-
-export const getChefOrders = async (
-  chefId: number,
-  status?: string
-): Promise<ChefOrdersApiResponse> => {
-  const params = status ? `?status=${status}` : "";
-
-  try {
-    const response = await fetch(`/api/orders/cheff/view/${chefId}${params}`, {
-      method: "GET",
-      credentials: "include",
-    });
-
-    if (!response.ok) {
-      const errorBody = await response
-        .json()
-        .catch(() => ({ error: "Failed to parse error response" }));
-      return {
-        status: errorBody?.status ?? response.status,
-        desc:
-          errorBody?.desc ||
-          errorBody?.error ||
-          errorBody?.message ||
-          errorBody?.details?.error ||
-          "Không thể tải danh sách đơn bếp",
-        data: Array.isArray(errorBody?.data) ? errorBody.data : [],
-      };
-    }
-
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    const apiError = error as Error & {
-      response?: {
-        status?: number;
-        data?: {
-          desc?: string;
-          error?: string;
-          message?: string;
-          data?: ChefOrderResponse[];
+        const data = await response.json();
+        return {
+            success: data === true || data === 'true' || data.success === true || response.ok,
+            message: data.message || 'Đã assign shipper thành công'
         };
-      };
-    };
-
-    return {
-      status: apiError.response?.status ?? 500,
-      desc:
-        apiError.response?.data?.desc ||
-        apiError.response?.data?.error ||
-        apiError.message ||
-        "Không thể tải danh sách đơn bếp",
-      data: Array.isArray(apiError.response?.data?.data)
-        ? apiError.response?.data?.data
-        : [],
-    };
-  }
+    } catch (error) {
+        console.log(error)
+        return {
+            success: false,
+            message: 'Hiện Tại Tất Cả Shipper Đang Bận'
+        };
+    }
 };
 
-export interface MarkOrderAsCookedResponse {
-  success: boolean;
-  message?: string;
+export const completeOrder = async (orderId: number): Promise<CommonResponse> => {
+    try {
+        const response = await fetch(`/api/orders/pickup/complete/${orderId}`, {
+            method: 'PUT',
+            credentials: 'include',
+        });
+        return {
+            success: response.ok,
+            message: response.statusText
+        };
+    } catch (error) {
+        throw error;
+    }
 }
+
+
+export const staffAssignShipperToOrder = async (orderId: number): Promise<CommonResponse> => {
+    try {
+        const response = await fetch(`/api/orders/staff/assign/shipper/${orderId}`, {
+            method: 'PUT',
+            credentials: 'include',
+        });
+
+        const data = await response.json();
+        return {
+            success: data === true || data === 'true' || data.success === true || response.ok,
+            message: data.message || 'Đã assign shipper thành công'
+        };
+    } catch (error) {
+        console.log(error)
+        return {
+            success: false,
+            message: 'Hiện Tại Tất Cả Shipper Đang Bận'
+        };
+    }
+};
+
+
+export const getChefOrders = async (chefId: number, status?: string): Promise<ChefOrdersApiResponse> => {
+    const params = status ? `?status=${status}` : '';
+
+    try {
+        const response = await fetch(`/api/orders/cheff/view/${chefId}${params}`, {
+            method: 'GET',
+            credentials: 'include',
+        });
+
+        if (!response.ok) {
+            const errorBody = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
+            return {
+                status: errorBody?.status ?? response.status,
+                desc:
+                    errorBody?.desc ||
+                    errorBody?.error ||
+                    errorBody?.message ||
+                    errorBody?.details?.error ||
+                    'Không thể tải danh sách đơn bếp',
+                data: Array.isArray(errorBody?.data) ? errorBody.data : [],
+            };
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        const apiError = error as Error & {
+            response?: { status?: number; data?: { desc?: string; error?: string; message?: string; data?: ChefOrderResponse[] } };
+        };
+
+        return {
+            status: apiError.response?.status ?? 500,
+            desc: apiError.response?.data?.desc || apiError.response?.data?.error || apiError.message || 'Không thể tải danh sách đơn bếp',
+            data: Array.isArray(apiError.response?.data?.data) ? apiError.response?.data?.data : [],
+        };
+    }
+};
+
+
+
 
 export const markOrderAsCooked = async (
-  orderId: number,
-  orderItemIds: number[]
-): Promise<MarkOrderAsCookedResponse> => {
-  try {
-    const response = await fetch(`/api/orders/cheff/cooked/${orderId}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({ orderItemIds }),
-    });
+    orderId: number,
+    orderItemIds: number[],
+): Promise<CommonResponse> => {
+    try {
+        const response = await fetch(`/api/orders/cheff/cooked/${orderId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({ orderItemIds }),
+        });
 
-    if (!response.ok) {
-      const errorBody = await response
-        .json()
-        .catch(() => ({ error: "Failed to parse error response" }));
-      const error = new Error(
-        `Failed to mark order as cooked: ${response.status} ${response.statusText}`
-      );
-      (
-        error as Error & { response?: { data: unknown; status: number } }
-      ).response = {
-        data: errorBody,
-        status: response.status,
-      };
-      throw error;
+        if (!response.ok) {
+            const errorBody = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
+            const error = new Error(`Failed to mark order as cooked: ${response.status} ${response.statusText}`);
+            (error as Error & { response?: { data: unknown; status: number } }).response = {
+                data: errorBody,
+                status: response.status,
+            };
+            throw error;
+        }
+
+        const data = await response.json();
+        return {
+            success: data === true || data === 'true' || data.success === true || response.ok,
+            message: data.message || 'Đã đánh dấu đơn hàng là đã nấu xong'
+        };
+    } catch (error) {
+        throw error;
     }
-
-    const data = await response.json();
-    return {
-      success:
-        data === true ||
-        data === "true" ||
-        data.success === true ||
-        response.ok,
-      message: data.message || "Đã đánh dấu đơn hàng là đã nấu xong",
-    };
-  } catch (error) {
-    throw error;
-  }
 };
 
-export const waiterConfirmOrder = async (
-  request: WaiterConfirmRequest
-): Promise<void> => {
-  try {
-    const response = await fetch("/api/orders/waiter/confirm", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify(request),
-    });
 
-    if (!response.ok) {
-      const errorBody = await response
-        .json()
-        .catch(() => ({ error: "Failed to confirm order" }));
-      const error = new Error(
-        `Failed to confirm order: ${response.status} ${response.statusText}`
-      );
-      (
-        error as Error & { response?: { data: unknown; status: number } }
-      ).response = {
-        data: errorBody,
-        status: response.status,
-      };
-      throw error;
+export const waiterConfirmOrder = async (request: WaiterConfirmRequest): Promise<void> => {
+    try {
+        const response = await fetch('/api/orders/waiter/confirm', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(request),
+        });
+
+        if (!response.ok) {
+            const errorBody = await response.json().catch(() => ({ error: 'Failed to confirm order' }));
+            const error = new Error(`Failed to confirm order: ${response.status} ${response.statusText}`);
+            (error as Error & { response?: { data: unknown; status: number } }).response = {
+                data: errorBody,
+                status: response.status,
+            };
+            throw error;
+        }
+    } catch (error) {
+        throw error;
     }
-  } catch (error) {
-    throw error;
-  }
 };
 
-export const waiterDeliveredOrder = async (
-  request: WaiterDeliveredRequest
-): Promise<void> => {
-  try {
-    const response = await fetch("/api/orders/waiter/delivered", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify(request),
-    });
+export const waiterDeliveredOrder = async (request: WaiterDeliveredRequest): Promise<void> => {
+    try {
+        const response = await fetch('/api/orders/waiter/delivered', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(request),
+        });
 
-    if (!response.ok) {
-      const errorBody = await response
-        .json()
-        .catch(() => ({ error: "Failed to mark as delivered" }));
-      const error = new Error(
-        `Failed to mark as delivered: ${response.status} ${response.statusText}`
-      );
-      (
-        error as Error & { response?: { data: unknown; status: number } }
-      ).response = {
-        data: errorBody,
-        status: response.status,
-      };
-      throw error;
+        if (!response.ok) {
+            const errorBody = await response.json().catch(() => ({ error: 'Failed to mark as delivered' }));
+            const error = new Error(`Failed to mark as delivered: ${response.status} ${response.statusText}`);
+            (error as Error & { response?: { data: unknown; status: number } }).response = {
+                data: errorBody,
+                status: response.status,
+            };
+            throw error;
+        }
+    } catch (error) {
+        throw error;
     }
-  } catch (error) {
-    throw error;
-  }
 };
 
-export interface AssignShipperResponse {
-  success: boolean;
-  message?: string;
+export interface CommonResponse {
+    success: boolean;
+    message?: string;
 }
