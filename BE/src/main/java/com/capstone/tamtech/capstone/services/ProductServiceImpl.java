@@ -109,7 +109,7 @@ public class ProductServiceImpl implements ProductService {
 
             KeyMaterialWarehouse keyMaterialWarehouse = new KeyMaterialWarehouse();
             keyMaterialWarehouse.setMaterialId(materialId);
-            keyMaterialWarehouse.setWarehouseId(branch.getWarehouses().getBranch().getId());
+            keyMaterialWarehouse.setWarehouseId(branch.getWarehouses().getId());
 
             Double availableQuantity = materialWarehouseRepository
                     .findById(keyMaterialWarehouse)
