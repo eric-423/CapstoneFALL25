@@ -148,7 +148,7 @@ public class OrderController {
 
     @PutMapping("/staff/pickup/comleted/{orderId}")
     public ResponseEntity<?> completePickupOrderForStaff(@PathVariable int orderId) {
-        boolean result = orderService.completeOrder(orderId);
+        boolean result = orderService.completePickupOrderForStaff(orderId);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 

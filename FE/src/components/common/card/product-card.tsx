@@ -6,6 +6,7 @@ import { contentOverflow } from "@/utils/contentOverflow";
 import { Star } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { AddToCartDialog } from "../add-to-cart/add-to-cart-dialog";
 import { AddToCartDrawer } from "../add-to-cart/add-to-cart-drawer";
 type ProductCardProps = {
@@ -19,11 +20,20 @@ export const ProductCard = ({
 }: ProductCardProps) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const isMobile = useIsMobile();
+  const router = useRouter();
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest("button")) {
+      return;
+    }
+    router.push(`/menu/products/${item.productId}`);
+  };
 
   return (
     <>
       <Card
-        className={`group p-0 overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow text-center relative ${!item?.inStock ? "opacity-50 pointer-events-none" : ""}`}
+        className={`group p-0 overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow text-center relative cursor-pointer ${!item?.inStock ? "opacity-50 pointer-events-none" : ""}`}
+        onClick={handleCardClick}
       >
         {!item?.inStock && (
           <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none overflow-hidden">
