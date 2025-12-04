@@ -248,14 +248,6 @@ export function AssignPromotionDialog({
                     : "Chọn tất cả"}
                 </Button>
               </div>
-              <div className="flex items-center gap-3 mt-4">
-                {selectedUsers.size > 0 && (
-                  <p className="text-sm font-semibold text-[#78A243]">
-                    <Users className="inline h-4 w-4 mr-1" />
-                    Đã chọn: {selectedUsers.size} khách hàng
-                  </p>
-                )}
-              </div>
             </div>
 
             <div className="px-6 space-y-3 overflow-y-auto flex-1">
@@ -284,10 +276,11 @@ export function AssignPromotionDialog({
                   return (
                     <div
                       key={customer.id}
-                      className={`group relative rounded-xl border transition-all shadow-sm hover:shadow-md ${isSelected
+                      className={`group relative rounded-xl border transition-all shadow-sm hover:shadow-md ${
+                        isSelected
                           ? "border-[#78A243] bg-[#F7FBF2]"
                           : "border-gray-200 bg-white hover:border-gray-300"
-                        }`}
+                      }`}
                     >
                       <div className="flex gap-4 p-4">
                         {/* Cột checkbox + avatar */}

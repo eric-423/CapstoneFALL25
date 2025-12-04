@@ -22,8 +22,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
       );
     }
 
+    const cookieStore = await cookies();
     const { searchParams } = new URL(request.url);
-    const branchId = searchParams.get("branchId") || "1";
+    const branchIdFromCookie = cookieStore.get("branchId")?.value;
+    const branchId = searchParams.get("branchId") || branchIdFromCookie || "1";
 
     const baseUrl =
       process.env.NEXT_PUBLIC_BASE_URL ||

@@ -14,11 +14,23 @@ const getCookieValue = (name: string): string | undefined => {
 const setCookieValue = (name: string, value: string, expires?: Date) => {
   if (typeof window === 'undefined') return;
 
-  let cookie = `${name}=${value}; path=/`;
+  let cookie = `${name}=${value}; path=/; SameSite=Strict`;
+  
+  // Thêm secure flag trong production (chỉ khi dùng HTTPS)
+  if (process.env.NODE_ENV === 'production' && window.location.protocol === 'https:') {
+    cookie += `; Secure`;
+  }
+  
   if (expires) {
     cookie += `; expires=${expires.toUTCString()}`;
   }
+  
   document.cookie = cookie;
+  
+  // Debug: log khi set cookie branchId
+  if (name === 'branchId') {
+    console.log(`[Cookie] Set branchId=${value}`, { cookie, expires });
+  }
 };
 
 const removeCookieValue = (name: string) => {

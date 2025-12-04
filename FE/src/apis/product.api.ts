@@ -1,4 +1,5 @@
 import http from "@/utils/http";
+import { getCookie } from "@/utils/cookies.client";
 
 export const GET_PRODUCT_TYPE_QUERY_KEY = "GET_PRODUCT_TYPE_QUERY_KEY";
 export const GET_PRODUCT_TYPE_STALE_TIME = 1000 * 60 * 30;
@@ -470,14 +471,19 @@ export const getProductById = async (
   let finalBranchId = branchId;
   if (!finalBranchId && typeof window !== "undefined") {
     try {
-      const stored = localStorage.getItem("selectedBranch");
-      if (stored) {
-        const branch = JSON.parse(stored);
-        finalBranchId = branch?.branchId || 1;
+      const branchIdFromCookie = getCookie("branchId");
+      if (branchIdFromCookie) {
+        finalBranchId = parseInt(branchIdFromCookie, 10);
       } else {
-        finalBranchId = 1;
+        const stored = localStorage.getItem("selectedBranch");
+        if (stored) {
+          const branch = JSON.parse(stored);
+          finalBranchId = branch?.branchId || 1;
+        } else {
+          finalBranchId = 1;
+        }
       }
-    } catch (e) {
+    } catch {
       finalBranchId = 1;
     }
   } else if (!finalBranchId) {

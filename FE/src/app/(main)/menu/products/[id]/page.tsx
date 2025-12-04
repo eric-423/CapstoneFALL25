@@ -23,6 +23,7 @@ import { AddToCartDrawer } from "@/components/common/add-to-cart/add-to-cart-dra
 import { useIsMobile } from "@/utils/hooks/use-mobile";
 import { Separator } from "@/components/ui/separator";
 import { ProductCard } from "@/components/common/card/product-card";
+import { getCookie } from "@/utils/cookies.client";
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -60,8 +61,13 @@ export default function ProductDetailPage() {
     queryFn: async () => {
       if (!product) return [];
 
+      const branchIdFromCookie = getCookie("branchId");
+      const branchId = branchIdFromCookie
+        ? parseInt(branchIdFromCookie, 10)
+        : undefined;
+
       const res = await searchProducts({
-        branchId: 1,
+        branchId: branchId || 1,
         productTypeId: product.productTypeId,
         isActive: true,
         minPrice: 0,
@@ -239,7 +245,7 @@ export default function ProductDetailPage() {
         </div>
 
         <div className="mt-10">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl font-bold text-gray-900 mb-6">
             Sản phẩm liên quan
           </h2>
           {isLoadingRelated ? (

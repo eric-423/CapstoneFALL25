@@ -646,6 +646,9 @@ export default function CheckoutPage() {
 
   const handleBranchSelect = useCallback((branch: Branch) => {
     setSelectedBranch(branch);
+    const expiresDate = new Date();
+    expiresDate.setFullYear(expiresDate.getFullYear() + 1);
+    setCookie("branchId", branch.branchId.toString(), expiresDate);
   }, []);
 
   const handleBranchChange = useCallback(
