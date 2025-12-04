@@ -11,6 +11,8 @@ import {
     Search,
     X,
     Filter,
+    Settings,
+    Upload,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,6 +33,8 @@ import {
 } from '@/components/ui/dialog';
 import { ScheduleTable } from '@/components/common/schedule/ScheduleTable';
 import { ScheduleFormDialog } from '@/components/common/schedule/ScheduleFormDialog';
+import { ShiftManagementDialog } from '@/components/common/schedule/ShiftManagementDialog';
+import { ImportScheduleDialog } from '@/components/common/schedule/ImportScheduleDialog';
 import {
     getSchedules,
     createSchedule,
@@ -62,7 +66,6 @@ export function ScheduleManagement({
 }: ScheduleManagementProps) {
     const [schedules, setSchedules] = useState<Schedule[]>([]);
     const [users, setUsers] = useState<Array<{ id: number; name: string }>>([]);
-    const [loading, setLoading] = useState(true);
     const [currentWeek, setCurrentWeek] = useState(new Date());
 
     // Dialog states
@@ -72,18 +75,17 @@ export function ScheduleManagement({
     const [selectedUserId, setSelectedUserId] = useState<number | undefined>();
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [scheduleToDelete, setScheduleToDelete] = useState<Schedule | null>(null);
-    const [deleteLoading, setDeleteLoading] = useState(false);
+    const [showShiftDialog, setShowShiftDialog] = useState(false);
+    const [showImportDialog, setShowImportDialog] = useState(false);
 
     // Filter states
     const [searchName, setSearchName] = useState('');
     const [filterShift, setFilterShift] = useState<string>('all');
 
-    useBodyScrollLock(showFormDialog || deleteDialogOpen);
+    useBodyScrollLock(showFormDialog || deleteDialogOpen || showShiftDialog || showImportDialog);
 
-    // Fetch schedules
     const fetchSchedules = useCallback(async () => {
         try {
-            setLoading(true);
             const response = await getSchedules();
 
             const data = (response as unknown as { data: Schedule[] }).data;
@@ -92,12 +94,9 @@ export function ScheduleManagement({
             console.error('Failed to fetch schedules:', error);
             toast.error('Không thể tải danh sách lịch trình');
             setSchedules([]);
-        } finally {
-            setLoading(false);
         }
     }, []);
 
-    // Fetch users
     const fetchUsers = useCallback(async () => {
         try {
             const searchRequest: UserSearchRequest = {
@@ -123,7 +122,6 @@ export function ScheduleManagement({
         fetchUsers();
     }, [fetchSchedules, fetchUsers]);
 
-    // Check if currentWeek is the actual current week
     const isCurrentWeek = () => {
         const today = new Date();
         const todayDay = today.getDay();
@@ -139,7 +137,6 @@ export function ScheduleManagement({
         return todayMonday.getTime() === currentMonday.getTime();
     };
 
-    // Handle week navigation
     const goToPreviousWeek = () => {
         const newDate = new Date(currentWeek);
         newDate.setDate(newDate.getDate() - 7);
@@ -156,12 +153,27 @@ export function ScheduleManagement({
         setCurrentWeek(new Date());
     };
 
-    // Handle form submission
     const handleSubmit = async (data: CreateScheduleData | UpdateScheduleData) => {
         try {
             if (editingSchedule) {
+                setSchedules(prev => prev.map(s => 
+                    s.id === editingSchedule.id 
+                        ? { ...s, ...data as UpdateScheduleData, name: (data as UpdateScheduleData).name || s.name }
+                        : s
+                ));
                 await updateSchedule(editingSchedule.id, data as UpdateScheduleData);
             } else {
+                const tempSchedule: Schedule = {
+                    id: Date.now(),
+                    userId: (data as CreateScheduleData).userId,
+                    userName: users.find(u => u.id === (data as CreateScheduleData).userId)?.name || '',
+                    name: (data as CreateScheduleData).name,
+                    description: (data as CreateScheduleData).description || null,
+                    date: (data as CreateScheduleData).date,
+                    startTime: (data as CreateScheduleData).startTime || null,
+                    endTime: (data as CreateScheduleData).endTime || null,
+                };
+                setSchedules(prev => [...prev, tempSchedule]);
                 await createSchedule(data as CreateScheduleData);
             }
             await fetchSchedules();
@@ -169,45 +181,41 @@ export function ScheduleManagement({
             setSelectedDate(undefined);
             setSelectedUserId(undefined);
         } catch (error) {
+            await fetchSchedules();
             console.error('Failed to save schedule:', error);
             throw error;
         }
     };
 
-    // Handle delete
     const handleDeleteRequest = (schedule: Schedule) => {
         setScheduleToDelete(schedule);
         setDeleteDialogOpen(true);
     };
 
     const handleCloseDeleteDialog = () => {
-        if (deleteLoading) return;
         setDeleteDialogOpen(false);
         setScheduleToDelete(null);
     };
 
     const handleConfirmDelete = async () => {
         if (!scheduleToDelete) return;
+        const scheduleId = scheduleToDelete.id;
         try {
-            setDeleteLoading(true);
-            await deleteSchedule(scheduleToDelete.id);
-            toast.success('Xóa lịch trình thành công!');
-            await fetchSchedules();
+            setSchedules(prev => prev.filter(s => s.id !== scheduleId));
             setDeleteDialogOpen(false);
             setScheduleToDelete(null);
+            
+            await deleteSchedule(scheduleId);
+            toast.success('Xóa lịch trình thành công!');
+            await fetchSchedules();
         } catch (error) {
+            await fetchSchedules();
             console.error('Failed to delete schedule:', error);
             toast.error('Không thể xóa lịch trình');
-        } finally {
-            setDeleteLoading(false);
         }
     };
 
-    // Handle edit/view
     const handleEdit = (schedule: Schedule) => {
-        // Cho phép mở dialog để xem hoặc chỉnh sửa
-        // ScheduleFormDialog sẽ tự xử lý chế độ chỉ xem cho lịch trình quá khứ
-
         const normalizedDate = schedule.date ? new Date(schedule.date) : undefined;
         if (normalizedDate) {
             normalizedDate.setHours(12, 0, 0, 0);
@@ -219,7 +227,6 @@ export function ScheduleManagement({
         setShowFormDialog(true);
     };
 
-    // Handle cell click (create new schedule for that date)
     const handleCellClick = (date: Date) => {
         const normalizedDate = new Date(date);
         normalizedDate.setHours(12, 0, 0, 0);
@@ -230,7 +237,6 @@ export function ScheduleManagement({
         setShowFormDialog(true);
     };
 
-    // Handle create new
     const handleCreateNew = () => {
         setEditingSchedule(null);
         setSelectedDate(undefined);
@@ -238,7 +244,6 @@ export function ScheduleManagement({
         setShowFormDialog(true);
     };
 
-    // Calculate week range
     const getWeekRange = () => {
         const monday = new Date(currentWeek);
         const day = monday.getDay();
@@ -263,13 +268,10 @@ export function ScheduleManagement({
 
     const weekRange = getWeekRange();
 
-    // Calculate stats cho tuần đang xem (bảo vệ khi schedules có thể bị undefined do response lỗi)
     const safeSchedules = useMemo(() => (Array.isArray(schedules) ? schedules : []), [schedules]);
 
-    // Filter schedules based on search and shift filter
     const filteredSchedules = useMemo(() => {
         return safeSchedules.filter((schedule) => {
-            // Filter by name
             if (searchName.trim()) {
                 const searchLower = searchName.toLowerCase().trim();
                 const nameMatch = schedule.userName?.toLowerCase().includes(searchLower) ||
@@ -277,7 +279,6 @@ export function ScheduleManagement({
                 if (!nameMatch) return false;
             }
 
-            // Filter by shift
             if (filterShift !== 'all' && schedule.startTime) {
                 const startHour = parseInt(schedule.startTime.split(':')[0] || '0');
                 const endHour = schedule.endTime ? parseInt(schedule.endTime.split(':')[0] || '0') : startHour;
@@ -321,7 +322,6 @@ export function ScheduleManagement({
         return scheduleDate >= monday && scheduleDate <= sunday;
     }).length;
 
-    // Calculate upcoming schedules (today and future within current week)
     const upcomingSchedules = safeSchedules.filter((schedule) => {
         if (!schedule.date) return false;
         const scheduleDate = new Date(schedule.date);
@@ -330,7 +330,6 @@ export function ScheduleManagement({
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        // Get current week's Sunday
         const monday = new Date(currentWeek);
         const day = monday.getDay();
         const diff = monday.getDate() - day + (day === 0 ? -6 : 1);
@@ -350,20 +349,41 @@ export function ScheduleManagement({
                 description="Quản lý lịch trình làm việc của nhân viên"
                 icon={Calendar}
                 actions={
-                    <Button
-                        onClick={handleCreateNew}
-                        className="bg-[#78A243] hover:bg-[#78A243]/90 w-full sm:w-auto"
-                        size="sm"
-                    >
-                        <Plus className="w-4 h-4 sm:mr-2" />
-                        <span className="hidden sm:inline">Tạo lịch trình</span>
-                        <span className="sm:hidden">Tạo mới</span>
-                    </Button>
+                    <div className="flex gap-2 w-full sm:w-auto">
+                        <Button
+                            onClick={() => setShowShiftDialog(true)}
+                            variant="outline"
+                            className="border-[#78A243] text-[#78A243] hover:bg-[#78A243]/10 w-full sm:w-auto"
+                            size="sm"
+                        >
+                            <Settings className="w-4 h-4 sm:mr-2" />
+                            <span className="hidden sm:inline">Quản lý ca</span>
+                            <span className="sm:hidden">Ca</span>
+                        </Button>
+                        <Button
+                            onClick={() => setShowImportDialog(true)}
+                            variant="outline"
+                            className="border-blue-600 text-blue-600 hover:bg-blue-50 w-full sm:w-auto"
+                            size="sm"
+                        >
+                            <Upload className="w-4 h-4 sm:mr-2" />
+                            <span className="hidden sm:inline">Import Excel</span>
+                            <span className="sm:hidden">Import</span>
+                        </Button>
+                        <Button
+                            onClick={handleCreateNew}
+                            className="bg-[#78A243] hover:bg-[#78A243]/90 w-full sm:w-auto"
+                            size="sm"
+                        >
+                            <Plus className="w-4 h-4 sm:mr-2" />
+                            <span className="hidden sm:inline">Tạo lịch trình</span>
+                            <span className="sm:hidden">Tạo mới</span>
+                        </Button>
+                    </div>
                 }
             />
 
             <div className="flex flex-col lg:flex-row gap-4 mb-4">
-                {/* Stats Cards */}
                 <div className="flex gap-4 flex-shrink-0">
                     <div className="min-w-[200px]">
                         <AdminCard
@@ -384,9 +404,7 @@ export function ScheduleManagement({
                     )}
                 </div>
 
-                {/* Filters */}
                 <div className="flex-1 flex items-center justify-end gap-3">
-                    {/* Search by name */}
                     <div className="relative flex-1 max-w-xs">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <Input
@@ -397,16 +415,17 @@ export function ScheduleManagement({
                             className="pl-9 pr-8 h-10 border-gray-200 focus:border-[#78A243] focus:ring-[#78A243]/20"
                         />
                         {searchName && (
-                            <button
+                            <Button
+                                variant="ghost"
+                                size="icon"
                                 onClick={() => setSearchName('')}
                                 className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded"
                             >
                                 <X className="w-3.5 h-3.5 text-gray-400" />
-                            </button>
+                            </Button>
                         )}
                     </div>
 
-                    {/* Filter by shift */}
                     <Select value={filterShift} onValueChange={setFilterShift}>
                         <SelectTrigger className="w-[140px] h-10 border-gray-200 focus:border-[#78A243] focus:ring-[#78A243]/20">
                             <Filter className="w-4 h-4 mr-2 text-gray-400" />
@@ -435,7 +454,6 @@ export function ScheduleManagement({
                         </SelectContent>
                     </Select>
 
-                    {/* Clear filters button */}
                     {hasActiveFilters && (
                         <Button
                             variant="ghost"
@@ -450,7 +468,6 @@ export function ScheduleManagement({
                 </div>
             </div>
 
-            {/* Week Navigation - Compact Filter Style */}
             <div className="flex items-center justify-between gap-2 mb-4 px-1">
                 <Button
                     variant="outline"
@@ -492,35 +509,24 @@ export function ScheduleManagement({
                 </Button>
             </div>
 
-            {/* Schedule Table */}
-            {loading ? (
-                <div className="rounded-xl p-8 bg-white border border-gray-200 text-center mb-6">
-                    <div className="flex flex-col items-center gap-3">
-                        <div className="w-8 h-8 border-2 border-gray-200 border-t-[#78A243] rounded-full animate-spin"></div>
-                        <p className="text-gray-500 font-medium">Đang tải lịch trình...</p>
+            <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 mb-6">
+                {hasActiveFilters && (
+                    <div className="mb-3 px-1 flex items-center gap-2 text-sm text-gray-500">
+                        <span>Đang hiển thị {filteredSchedules.length} / {safeSchedules.length} lịch trình</span>
+                        {filteredSchedules.length === 0 && (
+                            <span className="text-amber-600">- Không tìm thấy kết quả phù hợp</span>
+                        )}
                     </div>
-                </div>
-            ) : (
-                <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 mb-6">
-                    {hasActiveFilters && (
-                        <div className="mb-3 px-1 flex items-center gap-2 text-sm text-gray-500">
-                            <span>Đang hiển thị {filteredSchedules.length} / {safeSchedules.length} lịch trình</span>
-                            {filteredSchedules.length === 0 && (
-                                <span className="text-amber-600">- Không tìm thấy kết quả phù hợp</span>
-                            )}
-                        </div>
-                    )}
-                    <ScheduleTable
-                        schedules={filteredSchedules}
-                        currentWeek={currentWeek}
-                        onEdit={handleEdit}
-                        onDelete={handleDeleteRequest}
-                        onCellClick={handleCellClick}
-                    />
-                </div>
-            )}
+                )}
+                <ScheduleTable
+                    schedules={filteredSchedules}
+                    currentWeek={currentWeek}
+                    onEdit={handleEdit}
+                    onDelete={handleDeleteRequest}
+                    onCellClick={handleCellClick}
+                />
+            </div>
 
-            {/* Form Dialog */}
             <ScheduleFormDialog
                 open={showFormDialog}
                 onOpenChange={(open) => {
@@ -580,15 +586,27 @@ export function ScheduleManagement({
                         )}
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={handleCloseDeleteDialog} disabled={deleteLoading}>
+                        <Button variant="outline" onClick={handleCloseDeleteDialog}>
                             Hủy
                         </Button>
-                        <Button variant="destructive" onClick={handleConfirmDelete} disabled={deleteLoading}>
-                            {deleteLoading ? 'Đang xóa...' : 'Xóa'}
+                        <Button variant="destructive" onClick={handleConfirmDelete}>
+                            Xóa
                         </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            <ShiftManagementDialog
+                open={showShiftDialog}
+                onOpenChange={setShowShiftDialog}
+            />
+
+            <ImportScheduleDialog
+                open={showImportDialog}
+                onOpenChange={setShowImportDialog}
+                users={users}
+                onSuccess={fetchSchedules}
+            />
         </AdminPageLayout>
     );
 }

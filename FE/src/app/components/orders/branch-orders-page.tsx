@@ -218,7 +218,7 @@ export function BranchOrdersPage({ variant }: BranchOrdersPageProps) {
             try {
                 const blob = await downloadInvoiceBlob(order.id);
                 await printBlobInBrowser(blob);
-                if (order.orderStatus === 'IM_PROCESS') await fetchAssignToChef(order.id);
+                if (order.orderStatus === 'IN_PROCESS') await fetchAssignToChef(order.id);
 
 
             } catch {
