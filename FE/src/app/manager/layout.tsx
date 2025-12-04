@@ -29,10 +29,8 @@ import {
    BookOpen,
    DollarSign,
    CalendarDays,
-   CalendarDays,
    ChevronLeft,
    ChevronRight,
-   Users,
 } from "lucide-react";
 import { type ProcessOrderFn } from "@/utils/hooks/useBarcodeScanner";
 
@@ -139,15 +137,15 @@ export default function ManagerLayout({
    const [sidebarOpen, setSidebarOpen] = useState(false);
    const [isCollapsed, setIsCollapsed] = useState(false);
 
-   useEffect(() => {
-      document.documentElement.style.overflow = "hidden";
-      document.body.style.overflow = "hidden";
+   // useEffect(() => {
+   //    document.documentElement.style.overflow = "hidden";
+   //    document.body.style.overflow = "hidden";
 
-      return () => {
-         document.documentElement.style.overflow = "";
-         document.body.style.overflow = "";
-      };
-   }, []);
+   //    return () => {
+   //       document.documentElement.style.overflow = "";
+   //       document.body.style.overflow = "";
+   //    };
+   // }, []);
 
    const menuItems = useMemo(
       () => [
