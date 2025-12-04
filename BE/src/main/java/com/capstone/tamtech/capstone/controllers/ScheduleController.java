@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -54,6 +55,16 @@ public class ScheduleController {
         responseData.setStatus(201);
         responseData.setDesc("Schedule created successfully");
         return new ResponseEntity<>(responseData, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/import")
+    public ResponseEntity<?> importSchedules(@RequestParam("file") MultipartFile file) {
+        List<ScheduleDTO> schedules = scheduleService.importSchedules(file);
+        ResponseData responseData = new ResponseData();
+        responseData.setStatus(200);
+        responseData.setData(schedules);
+        responseData.setDesc("Imported " + schedules.size() + " schedule(s) successfully");
+        return ResponseEntity.ok(responseData);
     }
 
     @PutMapping("/{id}")

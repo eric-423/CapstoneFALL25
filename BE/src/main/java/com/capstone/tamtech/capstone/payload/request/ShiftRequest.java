@@ -5,17 +5,17 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.sql.Time;
-import java.util.Date;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ScheduleRequest {
-    private Integer userId;
-    private Integer shiftId;
+public class ShiftRequest {
     private String name;
     private String description;
-    private Date date;
     private Time startTime;
     private Time endTime;
+    private Integer branchId;
+    private Boolean isActive;
 }
+
+

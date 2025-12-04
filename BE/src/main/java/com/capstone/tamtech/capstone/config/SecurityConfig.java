@@ -129,6 +129,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/units/{id}").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(HttpMethod.DELETE, "/api/units/{id}").hasAnyRole("ADMIN", "MANAGER")
 
+                        .requestMatchers(HttpMethod.GET, "/api/shifts")
+                        .hasAnyRole("MANAGER", "ADMIN", "STAFF", "CHEFF", "WAITER", "SHIPPER")
+                        .requestMatchers(HttpMethod.GET, "/api/shifts/{id}")
+                        .hasAnyRole("MANAGER", "ADMIN", "STAFF", "CHEFF", "WAITER", "SHIPPER")
+                        .requestMatchers(HttpMethod.POST, "/api/shifts").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.PUT, "/api/shifts/{id}").hasAnyRole("ADMIN", "MANAGER")
+
                         .requestMatchers(HttpMethod.GET, "/api/cooking-methods")
                         .hasAnyRole("MANAGER", "ADMIN", "CHEFF", "WAITER")
                         .requestMatchers(HttpMethod.GET, "/api/cooking-methods/**")
