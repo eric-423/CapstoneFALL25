@@ -26,19 +26,19 @@ public class ScheduleServiceImpl implements ScheduleService {
     @Override
     public ScheduleDTO createSchedule(ScheduleRequest request) {
         Schedule schedule = new Schedule();
-        
+
         if (request.getUserId() != null) {
             Users user = usersRepository.findById(request.getUserId())
                     .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + request.getUserId()));
             schedule.setUser(user);
         }
-        
+
         schedule.setName(request.getName());
         schedule.setDescription(request.getDescription());
         schedule.setDate(request.getDate());
         schedule.setStartTime(request.getStartTime());
         schedule.setEndTime(request.getEndTime());
-        
+
         scheduleRepository.save(schedule);
         return mapToDTO(schedule);
     }
@@ -47,19 +47,19 @@ public class ScheduleServiceImpl implements ScheduleService {
     public ScheduleDTO updateSchedule(int id, ScheduleRequest request) {
         Schedule schedule = scheduleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Schedule not found with id: " + id));
-        
+
         if (request.getUserId() != null) {
             Users user = usersRepository.findById(request.getUserId())
                     .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + request.getUserId()));
             schedule.setUser(user);
         }
-        
+
         schedule.setName(request.getName());
         schedule.setDescription(request.getDescription());
         schedule.setDate(request.getDate());
         schedule.setStartTime(request.getStartTime());
         schedule.setEndTime(request.getEndTime());
-        
+
         scheduleRepository.save(schedule);
         return mapToDTO(schedule);
     }
@@ -72,8 +72,13 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     @Override
-    public List<ScheduleDTO> getAllSchedules() {
-        List<Schedule> schedules = scheduleRepository.findAll();
+    public List<ScheduleDTO> getAllSchedules(Integer branchId) {
+        List<Schedule> schedules;
+        if (branchId != null) {
+            schedules = scheduleRepository.findByBranchId(branchId);
+        } else {
+            schedules = scheduleRepository.findAll();
+        }
         return schedules.stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
@@ -104,14 +109,12 @@ public class ScheduleServiceImpl implements ScheduleService {
         dto.setDate(schedule.getDate());
         dto.setStartTime(schedule.getStartTime());
         dto.setEndTime(schedule.getEndTime());
-        
+
         if (schedule.getUser() != null) {
             dto.setUserId(schedule.getUser().getId());
             dto.setUserName(schedule.getUser().getFullName());
         }
-        
+
         return dto;
     }
 }
-
-
