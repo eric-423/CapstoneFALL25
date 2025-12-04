@@ -723,6 +723,7 @@ export default function StaffTablesPage() {
           <Card className="relative p-6 max-w-md w-full bg-white border-0 shadow-2xl rounded-2xl max-h-full overflow-y-auto">
             {/* Close Button */}
             <button
+              aria-label="Đóng"
               onClick={closeQRModal}
               className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-lg transition-colors"
             >
@@ -813,6 +814,7 @@ export default function StaffTablesPage() {
           <Card className="relative p-6 max-w-2xl w-full bg-white border-0 shadow-2xl rounded-2xl max-h-[90vh] overflow-y-auto">
             {/* Close Button */}
             <button
+              aria-label="Đóng"
               onClick={closeActionModal}
               className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-lg transition-colors z-10"
             >
@@ -1049,6 +1051,7 @@ export default function StaffTablesPage() {
               </div>
               <button
                 onClick={() => setNotification(null)}
+                aria-label="Đóng"
                 className="flex-shrink-0 hover:opacity-70"
               >
                 <X
@@ -1067,6 +1070,7 @@ export default function StaffTablesPage() {
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/15 backdrop-blur-[1px] p-4">
           <Card className="relative p-6 max-w-md w-full bg-white border-0 shadow-2xl rounded-2xl">
             <button
+              aria-label="Đóng"
               onClick={() => {
                 setShowPaymentMethodModal(false);
                 setSelectedPaymentMethod(null);

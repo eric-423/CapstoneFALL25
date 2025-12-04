@@ -59,8 +59,8 @@ export function TrainingSearchAndFilter({
               variant={selectedStatus === status.value ? "default" : "outline"}
               size="sm"
               className={`whitespace-nowrap transition-all ${selectedStatus === status.value
-                  ? "bg-[#78A243] text-white hover:bg-[#78A243]/90"
-                  : "border-[#78A243]/30 text-[#2D1E1A] hover:bg-[#78A243]/10"
+                ? "bg-[#78A243] text-white hover:bg-[#78A243]/90"
+                : "border-[#78A243]/30 text-[#2D1E1A] hover:bg-[#78A243]/10"
                 }`}
             >
               {status.label}

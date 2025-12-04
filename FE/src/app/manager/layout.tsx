@@ -27,6 +27,8 @@ import {
    X,
    Warehouse,
    BookOpen,
+   DollarSign,
+   CalendarDays,
    CalendarDays,
    ChevronLeft,
    ChevronRight,
@@ -137,13 +139,31 @@ export default function ManagerLayout({
    const [sidebarOpen, setSidebarOpen] = useState(false);
    const [isCollapsed, setIsCollapsed] = useState(false);
 
+   useEffect(() => {
+      document.documentElement.style.overflow = "hidden";
+      document.body.style.overflow = "hidden";
+
+      return () => {
+         document.documentElement.style.overflow = "";
+         document.body.style.overflow = "";
+      };
+   }, []);
+
    const menuItems = useMemo(
       () => [
-         { href: "/manager/dashboard", label: "Dashboard", icon: LayoutDashboard },
-         { href: "/manager/users", label: "Nhân viên", icon: Users },
+         { href: "/manager/dashboard", label: "Tổng quan", icon: LayoutDashboard },
          { href: "/manager/orders", label: "Đơn hàng", icon: ShoppingBag },
-         { href: "/manager/schedule", label: "Lịch làm việc", icon: CalendarDays },
-         { href: "/manager/warehouses", label: "Kho", icon: Warehouse },
+         {
+            href: "/manager/schedule",
+            label: "Lịch làm việc",
+            icon: CalendarDays,
+         },
+         {
+            href: "/manager/warehouses",
+            label: "Kho & Nguyên liệu",
+            icon: Warehouse,
+         },
+         { href: "/manager/finance", label: "Tài chính", icon: DollarSign },
       ],
       []
    );
