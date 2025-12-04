@@ -18,11 +18,11 @@ import {
 } from "@/apis/trainning.api";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/utils/lib/utils";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 export default function TrainingDetailPage() {
   const params = useParams();
-  const userTrainingId = Number(params.id);
+  const paramsId = Number(params.id);
   const queryClient = useQueryClient();
   const [selectedLessonId, setSelectedLessonId] = useState<number | null>(null);
   const [expandedModules, setExpandedModules] = useState<Set<number>>(
@@ -30,6 +30,8 @@ export default function TrainingDetailPage() {
   );
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [isVideoCompleted, setIsVideoCompleted] = useState(false);
+  const [isVideoSeeking, setIsVideoSeeking] = useState(false);
+  const wasPlayingBeforeSeek = useRef<boolean>(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const { data: myTrainingsData } = useQuery({
@@ -38,13 +40,27 @@ export default function TrainingDetailPage() {
     refetchInterval: 10000,
   });
 
+  const userTrainingId = useMemo(() => {
+    if (!myTrainingsData?.data || !Array.isArray(myTrainingsData.data)) {
+      return paramsId;
+    }
+    const userTraining = myTrainingsData.data.find(
+      (item: { userTrainingId?: number; id?: number; trainingId?: number }) =>
+        item.userTrainingId === paramsId || item.id === paramsId
+    );
+    if (userTraining) {
+      return userTraining.userTrainingId ?? userTraining.id ?? paramsId;
+    }
+    return paramsId;
+  }, [myTrainingsData, paramsId]);
+
   const trainingId = useMemo(() => {
     if (!myTrainingsData?.data || !Array.isArray(myTrainingsData.data)) {
       return null;
     }
     const userTraining = myTrainingsData.data.find(
-      (item: { userTrainingId?: number; trainingId?: number }) =>
-        item.userTrainingId === userTrainingId
+      (item: { userTrainingId?: number; id?: number; trainingId?: number }) =>
+        item.userTrainingId === userTrainingId || item.id === userTrainingId
     );
     return userTraining?.trainingId || null;
   }, [myTrainingsData, userTrainingId]);
@@ -181,12 +197,10 @@ export default function TrainingDetailPage() {
     | undefined;
 
   const lessons = useMemo<TrainingLesson[]>(() => {
-    if (!lessonsData?.data?.content) {
-      console.log("📚 No lessons data found:", lessonsData);
+    if (!lessonsData?.data?.lessons) {
       return [];
     }
-    console.log("📚 Lessons loaded:", lessonsData.data.content);
-    return lessonsData.data.content;
+    return lessonsData.data.lessons;
   }, [lessonsData]);
 
   const isLessonCompleted = (lessonId: number): boolean => {
@@ -202,7 +216,6 @@ export default function TrainingDetailPage() {
     const groups: Record<number, TrainingLesson[]> = {};
 
     if (lessons.length === 0) {
-      console.log("⚠️ No lessons to group");
       return groups;
     }
 
@@ -213,18 +226,22 @@ export default function TrainingDetailPage() {
   }, [lessons]);
 
   const completedLessonsCount = useMemo(() => {
+    if (lessonsData?.data?.completedLessons !== undefined) {
+      return lessonsData.data.completedLessons;
+    }
     return lessons.filter((lesson) => {
       const lessonWithStatus = lesson as TrainingLesson & {
         isCompleted?: boolean;
       };
       return lessonWithStatus.isCompleted === true;
     }).length;
-  }, [lessons]);
+  }, [lessons, lessonsData?.data?.completedLessons]);
 
   const courseProgress = useMemo(() => {
-    if (lessons.length === 0) return 0;
-    return Math.round((completedLessonsCount / lessons.length) * 100);
-  }, [completedLessonsCount, lessons.length]);
+    const total = lessonsData?.data?.totalLessons ?? lessons.length;
+    if (total === 0) return 0;
+    return Math.round((completedLessonsCount / total) * 100);
+  }, [completedLessonsCount, lessons.length, lessonsData?.data?.totalLessons]);
 
   const currentLesson = useMemo(() => {
     if (!selectedLessonId) return null;
@@ -286,22 +303,22 @@ export default function TrainingDetailPage() {
 
   if (!training) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <p className="text-lg font-semibold">Không tìm thấy khóa học</p>
-        </div>
+      <div
+        className="flex items-center justify-center min-h-screen"
+        style={{ backgroundColor: "#f8e4d4" }}
+      >
+        <Loader2 className="w-8 h-8 animate-spin text-[#EC6426]" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#f8e4d4" }}>
+    <div className="min-h-screen bg-[#FFFCF7]">
       <section className="border-b border-gray-200 bg-white">
         <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
           <div className="mb-3">
             <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-1">
-              Learning Program
+              Nội dung học
             </p>
             <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">
               {training.name}
@@ -338,7 +355,7 @@ export default function TrainingDetailPage() {
         </div>
       </section>
 
-      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[320px_1fr] lg:px-8">
+      <div className="ml-2 grid max-w-8xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[320px_1fr] lg:px-8 bg-[#FFFCF7] h-100vh">
         <aside className="rounded-2xl border border-gray-200 bg-white shadow-sm">
           <div className="border-b border-gray-200 px-6 py-4">
             <p className="text-xs font-semibold uppercase tracking-wide text-gray-600">
@@ -368,42 +385,8 @@ export default function TrainingDetailPage() {
 
                   return (
                     <div key={moduleNumber} className="mb-3">
-                      <button
-                        type="button"
-                        onClick={() => toggleModule(moduleNumber)}
-                        className={cn(
-                          "w-full rounded-xl border border-[#EC6426]/20 bg-white/50 px-4 py-5 text-left transition-all hover:bg-white hover:border-[#EC6426]/20 cursor-pointer",
-                          selectedLessonId &&
-                            moduleLessons.some(
-                              (l) => l.id === selectedLessonId
-                            ) &&
-                            "border-[#EC6426]/20 bg-white shadow-sm"
-                        )}
-                      >
-                        <div className="flex items-center justify-between w-full">
-                          <div className="flex items-center gap-3 flex-1 min-w-0">
-                            {allCompleted ? (
-                              <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
-                            ) : (
-                              <div className="h-4 w-4 rounded-full border border-gray-300 flex-shrink-0" />
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-semibold text-gray-900 truncate">
-                                Module {moduleNumber}
-                              </p>
-                              <p className="text-xs text-gray-500 mt-0.5">
-                                {moduleLessons.length} bài học
-                              </p>
-                            </div>
-                          </div>
-                          <span className="text-xs font-medium uppercase text-gray-400 ml-2 flex-shrink-0">
-                            {isExpanded ? "Thu gọn" : "Xem thêm"}
-                          </span>
-                        </div>
-                      </button>
-
                       {isExpanded && (
-                        <div className="mt-2 space-y-1.5 pl-3">
+                        <div>
                           {moduleLessons
                             .sort((a, b) => a.orderIndex - b.orderIndex)
                             .map((lesson) => {
@@ -416,7 +399,7 @@ export default function TrainingDetailPage() {
                                   variant="ghost"
                                   onClick={() => setSelectedLessonId(lesson.id)}
                                   className={cn(
-                                    "w-full rounded-lg px-3 py-2 text-left text-sm transition-all justify-start",
+                                    "w-full rounded-lg px-3 py-2 text-left text-sm transition-all justify-start mt-2",
                                     isSelected
                                       ? "bg-white shadow-sm border border-[#EC6426]/40 text-[#EC6426] font-medium"
                                       : "bg-white/50 hover:bg-white hover:border hover:border-[#EC6426]/20 text-gray-700 border border-transparent"
@@ -529,7 +512,7 @@ export default function TrainingDetailPage() {
                   </div>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-4 h-[54vh]">
                   {videoUrl ? (
                     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-black">
                       <div className="aspect-video w-full">
@@ -538,10 +521,83 @@ export default function TrainingDetailPage() {
                           src={videoUrl}
                           controls
                           autoPlay
+                          preload="auto"
+                          playsInline
                           className="h-full w-full"
                           onEnded={() => {
                             setIsVideoCompleted(true);
                           }}
+                          onSeeking={() => {
+                            setIsVideoSeeking(true);
+                            if (videoRef.current) {
+                              wasPlayingBeforeSeek.current =
+                                !videoRef.current.paused;
+                            }
+                          }}
+                          onSeeked={async () => {
+                            setIsVideoSeeking(false);
+
+                            if (
+                              videoRef.current &&
+                              wasPlayingBeforeSeek.current
+                            ) {
+                              try {
+                                await videoRef.current.play();
+                              } catch (error) {
+                                console.error(
+                                  "Error playing video after seek:",
+                                  error
+                                );
+
+                                setTimeout(async () => {
+                                  if (
+                                    videoRef.current &&
+                                    wasPlayingBeforeSeek.current
+                                  ) {
+                                    try {
+                                      await videoRef.current.play();
+                                    } catch (err) {
+                                      console.error("Retry play failed:", err);
+                                    }
+                                  }
+                                }, 200);
+                              }
+                            }
+                            wasPlayingBeforeSeek.current = false;
+                          }}
+                          onLoadedData={() => {
+                            if (
+                              videoRef.current &&
+                              !isVideoSeeking &&
+                              videoRef.current.paused
+                            ) {
+                              videoRef.current.play().catch((error) => {
+                                console.error(
+                                  "Error playing video after load:",
+                                  error
+                                );
+                              });
+                            }
+                          }}
+                          onCanPlay={() => {
+                            if (
+                              videoRef.current &&
+                              !isVideoSeeking &&
+                              videoRef.current.paused
+                            ) {
+                              videoRef.current.play().catch((error) => {
+                                console.error(
+                                  "Error playing video when ready:",
+                                  error
+                                );
+                              });
+                            }
+                          }}
+                          onWaiting={() => {}}
+                          onPlaying={() => {
+                            setIsVideoSeeking(false);
+                          }}
+                          onPause={() => {}}
                           key={selectedLessonId}
                         >
                           Trình duyệt của bạn không hỗ trợ video tag.
@@ -554,11 +610,14 @@ export default function TrainingDetailPage() {
                       )}
                     </div>
                   ) : (
-                    <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-6 text-center">
-                      <PlayCircle className="mx-auto h-10 w-10 text-gray-400" />
-                      <p className="mt-3 text-sm text-gray-600">
-                        Video sẽ xuất hiện tại đây sau khi bạn bắt đầu bài học.
-                      </p>
+                    <div className="overflow-hidden rounded-2xl border border-dashed border-gray-300 bg-gray-50">
+                      <div className="aspect-video w-full flex flex-col items-center justify-center p-6 h-[54vh]">
+                        <PlayCircle className="h-10 w-10 text-gray-400" />
+                        <p className="mt-3 text-sm text-gray-600">
+                          Video sẽ xuất hiện tại đây sau khi bạn bắt đầu bài
+                          học.
+                        </p>
+                      </div>
                     </div>
                   )}
                 </div>

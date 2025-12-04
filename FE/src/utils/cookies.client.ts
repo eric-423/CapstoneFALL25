@@ -1,40 +1,39 @@
-import config from '@/utils/configs';
+import config from "@/utils/configs";
 
 const getCookieValue = (name: string): string | undefined => {
-  if (typeof window === 'undefined') return undefined;
+  if (typeof window === "undefined") return undefined;
 
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
   if (parts.length === 2) {
-    return parts.pop()?.split(';').shift();
+    return parts.pop()?.split(";").shift();
   }
   return undefined;
 };
 
 const setCookieValue = (name: string, value: string, expires?: Date) => {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
 
   let cookie = `${name}=${value}; path=/; SameSite=Strict`;
-  
-  // Thêm secure flag trong production (chỉ khi dùng HTTPS)
-  if (process.env.NODE_ENV === 'production' && window.location.protocol === 'https:') {
+  if (
+    process.env.NODE_ENV === "production" &&
+    window.location.protocol === "https:"
+  ) {
     cookie += `; Secure`;
   }
-  
+
   if (expires) {
     cookie += `; expires=${expires.toUTCString()}`;
   }
-  
+
   document.cookie = cookie;
-  
-  // Debug: log khi set cookie branchId
-  if (name === 'branchId') {
+  if (name === "branchId") {
     console.log(`[Cookie] Set branchId=${value}`, { cookie, expires });
   }
 };
 
 const removeCookieValue = (name: string) => {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
   document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
 };
 
@@ -51,15 +50,15 @@ export const removeCookie = (name: string) => {
 };
 
 export const getToken = (): string | undefined => {
-  return getCookieValue('token');
+  return getCookieValue("token");
 };
 
 export const setToken = (token: string, expires?: Date) => {
-  setCookieValue('token', token, expires);
+  setCookieValue("token", token, expires);
 };
 
 export const removeToken = () => {
-  removeCookieValue('token');
+  removeCookieValue("token");
 };
 
 export const getAccessToken = (): string | undefined => {
@@ -67,7 +66,11 @@ export const getAccessToken = (): string | undefined => {
 };
 
 export const setAccessToken = (token: string) => {
-  setCookieValue(config.cookies.accessToken, token, new Date(new Date().setMinutes(new Date().getMinutes() + 20)));
+  setCookieValue(
+    config.cookies.accessToken,
+    token,
+    new Date(new Date().setMinutes(new Date().getMinutes() + 20))
+  );
 };
 
 export const removeAccessToken = () => {
@@ -87,26 +90,25 @@ export const removeRefreshToken = () => {
 };
 
 export const setUserRole = (role: string) => {
-  setCookieValue('userRole', role);
+  setCookieValue("userRole", role);
 };
 
 export const getUserRole = (): string | undefined => {
-  return getCookieValue('userRole');
+  return getCookieValue("userRole");
 };
 
 export const removeUserRole = () => {
-  removeCookieValue('userRole');
+  removeCookieValue("userRole");
 };
 
 export const setAuthToken = (token: string) => {
-  setCookieValue('token', token);
+  setCookieValue("token", token);
 };
 
 export const getAuthToken = (): string | undefined => {
-  return getCookieValue('token');
+  return getCookieValue("token");
 };
 
 export const removeAuthToken = () => {
-  removeCookieValue('token');
+  removeCookieValue("token");
 };
-
