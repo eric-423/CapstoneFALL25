@@ -40,30 +40,55 @@ export default function TrainingDetailPage() {
     refetchInterval: 10000,
   });
 
+  const trainingId = useMemo(() => {
+    if (!myTrainingsData?.data || !Array.isArray(myTrainingsData.data)) {
+      // Fallback: coi paramsId chính là trainingId
+      return paramsId || null;
+    }
+
+    const userTraining = myTrainingsData.data.find(
+      (item: { userTrainingId?: number; id?: number; trainingId?: number }) =>
+        item.userTrainingId === paramsId ||
+        item.id === paramsId ||
+        item.trainingId === paramsId
+    );
+
+    // Nếu tìm được thì dùng trainingId từ API, nếu không thì fallback paramsId
+    return userTraining?.trainingId ?? paramsId ?? null;
+  }, [myTrainingsData, paramsId]);
+
   const userTrainingId = useMemo(() => {
     if (!myTrainingsData?.data || !Array.isArray(myTrainingsData.data)) {
       return paramsId;
     }
-    const userTraining = myTrainingsData.data.find(
-      (item: { userTrainingId?: number; id?: number; trainingId?: number }) =>
-        item.userTrainingId === paramsId || item.id === paramsId
-    );
-    if (userTraining) {
-      return userTraining.userTrainingId ?? userTraining.id ?? paramsId;
-    }
-    return paramsId;
-  }, [myTrainingsData, paramsId]);
 
-  const trainingId = useMemo(() => {
-    if (!myTrainingsData?.data || !Array.isArray(myTrainingsData.data)) {
-      return null;
-    }
-    const userTraining = myTrainingsData.data.find(
+    // Ưu tiên tìm theo trainingId đã resolve
+    const byTrainingId = myTrainingsData.data.find(
       (item: { userTrainingId?: number; id?: number; trainingId?: number }) =>
-        item.userTrainingId === userTrainingId || item.id === userTrainingId
+        item.trainingId === trainingId
     );
-    return userTraining?.trainingId || null;
-  }, [myTrainingsData, userTrainingId]);
+
+    if (byTrainingId) {
+      return (
+        byTrainingId.userTrainingId ??
+        byTrainingId.id ??
+        byTrainingId.trainingId ??
+        paramsId
+      );
+    }
+
+    // Fallback: tìm theo paramsId (giống logic Chef/Staff khi paramsId chính là trainingId)
+    const byParam = myTrainingsData.data.find(
+      (item: { userTrainingId?: number; id?: number; trainingId?: number }) =>
+        item.userTrainingId === paramsId ||
+        item.id === paramsId ||
+        item.trainingId === paramsId
+    );
+
+    return (
+      byParam?.userTrainingId ?? byParam?.id ?? byParam?.trainingId ?? paramsId
+    );
+  }, [myTrainingsData, trainingId, paramsId]);
 
   const { data: trainingData, isLoading: isLoadingTraining } = useQuery({
     queryKey: ["training", trainingId],

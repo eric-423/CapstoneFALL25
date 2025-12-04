@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import {
     AlertCircle,
     BookOpenCheck,
@@ -42,16 +43,17 @@ const STATUS_CONFIG: Record<
 };
 
 interface TrainingCardData {
-    id: number;
-    name: string;
-    description: string;
-    point: number;
-    totalLessons: number;
-    completedLessons: number;
-    progress: number;
-    status: string;
-    thumbnail?: string;
-    lastUpdated?: string;
+  id: number;
+  userTrainingId: number;
+  name: string;
+  description: string;
+  point: number;
+  totalLessons: number;
+  completedLessons: number;
+  progress: number;
+  status: string;
+  thumbnail?: string;
+  lastUpdated?: string;
 }
 
 const STATUS_TABS: { label: string; value: TrainingStatusFilter }[] = [
@@ -187,6 +189,10 @@ const normalizeTraining = (item: Record<string, unknown>): TrainingCardData => {
 
     return {
         id,
+        // Ưu tiên userTrainingId, nếu không có thì fallback sang id/trainingId (cho staff/chef)
+        userTrainingId: toNumber(
+            item.userTrainingId ?? item.userIdTraining ?? item.id ?? item.trainingId ?? 0
+        ),
         name:
             (typeof item.name === "string" && item.name) ||
             (typeof item.trainingName === "string" && item.trainingName) ||
@@ -223,6 +229,8 @@ interface CourseCardProps {
 }
 
 const CourseCard = ({ course }: CourseCardProps) => {
+    const router = useRouter();
+
     const statusInfo =
         STATUS_CONFIG[course.status as keyof typeof STATUS_CONFIG] ?? {
             label: "Trạng thái khác",
@@ -299,16 +307,19 @@ const CourseCard = ({ course }: CourseCardProps) => {
                         ></div>
                     </div>
                 </div>
-                <Button className="w-full bg-gradient-to-r from-[#3B82F6] to-[#2563EB] hover:from-[#2563EB] hover:to-[#3B82F6] text-white font-semibold py-3 rounded-xl shadow-lg transition-all duration-300">
+                <Button
+                    className="w-full bg-gradient-to-r from-[#3B82F6] to-[#2563EB] hover:from-[#2563EB] hover:to-[#3B82F6] text-white font-semibold py-3 rounded-xl shadow-lg transition-all duration-300"
+                    onClick={() => router.push(`/training/${course.userTrainingId}`)}
+                >
                     <BookOpenCheck className="w-4 h-4 mr-2" />
-                    Tiếp tục học
+                    Vào bài học
                 </Button>
             </div>
         </article>
     );
 };
 
-export default function ManagerTrainingCoursesPage() {
+export default function StaffTrainingCoursesPage() {
     const [statusFilter, setStatusFilter] = useState<TrainingStatusFilter>("ALL");
 
     const { data, isLoading, isFetching, error, refetch } =
