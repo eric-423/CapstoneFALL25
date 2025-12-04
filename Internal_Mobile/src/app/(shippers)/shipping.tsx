@@ -3,10 +3,8 @@ import StaffHeader from "@/components/staffComponent/staffHeader";
 import { APP_COLOR, APP_FONT } from "@/constants/Colors";
 import { useCurrentApp } from "@/context/app.context";
 import { StyleSheet, View } from "react-native";
-
 const ShippingOrder = () => {
   const { appState } = useCurrentApp();
-
   return (
     <View style={styles.container}>
       <StaffHeader

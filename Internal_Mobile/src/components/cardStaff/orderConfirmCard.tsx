@@ -214,9 +214,19 @@ const OrderCard = (props: IConfirmOrder) => {
         const response = await getShippingOrders(appState.token);
         if (response.status === 0 && response.data) {
           setOrders(response.data);
+        } else {
+          console.warn("Unexpected response format:", response);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching orders:", error);
+        if (error?.response?.status === 400) {
+          console.error("Bad Request (400):", error.response.data);
+        } else if (error?.response?.status === 401) {
+          console.error("Unauthorized (401): Token may be invalid");
+        } else if (error?.response?.status === 403) {
+          console.error("Forbidden (403): No permission to access orders");
+        }
+        setOrders([]);
       } finally {
         setLoading(false);
       }

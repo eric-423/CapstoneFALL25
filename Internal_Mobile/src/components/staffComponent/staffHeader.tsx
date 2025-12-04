@@ -52,13 +52,13 @@ const StaffHeader = (props: IStaff) => {
             color={APP_COLOR.BROWN}
           />
           <Text style={styles.text}>
-            {props.staffName ? props.staffName : "Lê Minh Duy"}
+            {props.staffName ? props.staffName : ""}
           </Text>
         </View>
         <View style={styles.infoContent}>
           <FontAwesome5 name="store" size={20} color={APP_COLOR.BROWN} />
-          <Text style={styles.text}>
-            {props.staffCounter ? props.staffCounter : "NVH Sinh Viên"}
+          <Text style={[styles.text, { width: "80%" }]}>
+            {props.staffCounter ? props.staffCounter : ""}
           </Text>
         </View>
       </View>

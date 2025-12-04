@@ -5,7 +5,7 @@ import ShareInput from "@/components/btnComponent/shareInput";
 import { APP_COLOR, APP_FONT } from "@/constants/Colors";
 import { useCurrentApp } from "@/context/app.context";
 import { typography } from "@/themes/typography";
-import { LoginShipper } from "@/utils/api";
+import { LoginShipper, SendOTP } from "@/utils/api";
 import { StaffSignInSchema } from "@/utils/validate.schema";
 import { router } from "expo-router";
 import { Formik } from "formik";
@@ -24,36 +24,115 @@ const WelcomePage = () => {
   const { setAppState } = useCurrentApp();
   const [loading, setLoading] = useState<boolean>(false);
   const [fogotPasword, setFogotPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const handleLogin = async (
     email: string,
     password: string,
     resetForm: any
   ) => {
+    setError(null);
     setLoading(true);
     try {
       const response = await LoginShipper(email, password);
-      if (response) {
-        setAppState(response);
-        router.navigate("/(shippers)");
-      } else {
-        Toast.show("Lỗi khi đăng nhập. Vui lòng thử lại.", {
+      if (!response) {
+        const errorMessage = "Đăng nhập không thành công. Vui lòng thử lại.";
+        setError(errorMessage);
+        setFogotPassword(true);
+        Toast.show(errorMessage, {
           duration: Toast.durations.LONG,
           textColor: "white",
           backgroundColor: APP_COLOR.CANCEL,
           opacity: 1,
         });
+        return;
       }
+
+      const userInfo = response?.userInfo;
+      const isVerified =
+        response?.isVerified ??
+        userInfo?.isVerified ??
+        userInfo?.verified ??
+        userInfo?.emailVerified ??
+        userInfo?.isEmailVerified ??
+        userInfo?.isActive ??
+        true;
+
+      if (!isVerified) {
+        try {
+          await SendOTP("email", userInfo?.email ?? email, response.token);
+        } catch (otpError) {
+          console.error("Gửi OTP thất bại:", otpError);
+        }
+        Toast.show("Tài khoản chưa xác thực. Vui lòng kiểm tra email OTP.", {
+          duration: Toast.durations.LONG,
+          textColor: "white",
+          backgroundColor: APP_COLOR.ORANGE,
+          opacity: 1,
+          position: -35,
+        });
+        router.replace({
+          pathname: "/(auth)/verify",
+          params: {
+            identifier: userInfo?.email ?? email,
+            channel: "email",
+            password,
+            tempToken: response.token,
+          },
+        });
+        return;
+      }
+
+      setAppState(response);
+      router.replace("/(shippers)");
     } catch (error) {
       console.log("Lỗi khi đăng nhập", error);
-      Toast.show("Lỗi khi đăng nhập. Vui lòng thử lại.", {
-        duration: Toast.durations.LONG,
-        textColor: "white",
-        backgroundColor: APP_COLOR.ORANGE,
-        opacity: 1,
-        position: -50,
-      });
-      setFogotPassword(true);
+      const errorMessage =
+        (error as any)?.response?.data?.message ||
+        (error as any)?.message ||
+        "Đăng nhập thất bại. Vui lòng thử lại.";
+
+      const normalizedMsg = (errorMessage || "").toLowerCase();
+      const isVerifyError =
+        normalizedMsg.includes("chưa được xác thực") ||
+        normalizedMsg.includes("xác thực email") ||
+        normalizedMsg.includes("verify email") ||
+        normalizedMsg.includes("verify your account");
+
+      if (isVerifyError) {
+        try {
+          await SendOTP("email", email);
+          Toast.show("Đã gửi mã OTP xác thực. Vui lòng kiểm tra email.", {
+            duration: Toast.durations.LONG,
+            textColor: "white",
+            backgroundColor: APP_COLOR.ORANGE,
+            opacity: 1,
+          });
+        } catch (otpError) {
+          console.error("Không thể gửi OTP xác thực:", otpError);
+        }
+
+        router.replace({
+          pathname: "/(auth)/verify",
+          params: {
+            identifier: email,
+            channel: "email",
+            password,
+          },
+        });
+      } else {
+        setError(errorMessage);
+        setFogotPassword(true);
+        Toast.show(errorMessage, {
+          duration: Toast.durations.LONG,
+          textColor: "white",
+          backgroundColor: APP_COLOR.ORANGE,
+          opacity: 1,
+          position: -50,
+        });
+      }
+
       resetForm();
+    } finally {
       setLoading(false);
     }
   };
@@ -99,6 +178,20 @@ const WelcomePage = () => {
             <Text style={styles.headerText}>
               Đăng nhập bằng email được cấp!
             </Text>
+            {error && (
+              <Text
+                style={{
+                  color: APP_COLOR.CANCEL,
+                  fontSize: 14,
+                  fontFamily: APP_FONT.SEMIBOLD,
+                  textAlign: "center",
+                  marginTop: 8,
+                  marginHorizontal: 16,
+                }}
+              >
+                {error}
+              </Text>
+            )}
             <View style={styles.welcomeBtn}>
               <Formik
                 validationSchema={StaffSignInSchema}
