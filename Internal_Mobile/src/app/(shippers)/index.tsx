@@ -1,6 +1,7 @@
 import StaffHeader from "@/components/staffComponent/staffHeader";
 import { APP_COLOR, APP_FONT } from "@/constants/Colors";
 import { useCurrentApp } from "@/context/app.context";
+import { checkInAttendance, checkOutAttendance } from "@/utils/api";
 import { GOOGLE_API_KEY } from "@/utils/constant";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import * as Location from "expo-location";
@@ -16,6 +17,7 @@ import {
   View,
 } from "react-native";
 import MapView, { Marker, PROVIDER_GOOGLE, Region } from "react-native-maps";
+import Toast from "react-native-root-toast";
 
 interface LocationData {
   latitude: number;
@@ -28,6 +30,9 @@ const AttendanceScreen = () => {
   const [address, setAddress] = useState<string>("Đang tải địa chỉ...");
   const [loading, setLoading] = useState(true);
   const [checkInTime, setCheckInTime] = useState<string | null>(null);
+  const [checkInDate, setCheckInDate] = useState<string | null>(null);
+  const [attendanceData, setAttendanceData] = useState<any | null>(null);
+  const [isCheckedIn, setIsCheckedIn] = useState(false);
   const [region, setRegion] = useState<Region | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -99,16 +104,103 @@ const AttendanceScreen = () => {
     }
   };
 
-  const handleCheckIn = () => {
-    const now = new Date();
-    const timeString = now.toLocaleTimeString("vi-VN", {
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: true,
-    });
-    setCheckInTime(timeString);
-    Alert.alert("Thành công", "Đã chấm công vào lúc " + timeString);
+  const handleCheckIn = async () => {
+    if (!appState?.token) {
+      Toast.show("Vui lòng đăng nhập lại", {
+        duration: Toast.durations.SHORT,
+        textColor: "white",
+        backgroundColor: APP_COLOR.CANCEL,
+        opacity: 1,
+      });
+      return;
+    }
+
+    try {
+      if (isCheckedIn) {
+        const response = await checkOutAttendance(appState.token);
+        if (response?.status === 0) {
+          setCheckInTime(null);
+          setCheckInDate(null);
+          setAttendanceData(null);
+          setIsCheckedIn(false);
+
+          Toast.show(response.desc || "Kết thúc ca làm thành công", {
+            duration: Toast.durations.LONG,
+            textColor: "white",
+            backgroundColor: APP_COLOR.ORANGE,
+            opacity: 1,
+          });
+        } else {
+          Toast.show(response?.desc || "Kết thúc ca làm thất bại", {
+            duration: Toast.durations.LONG,
+            textColor: "white",
+            backgroundColor: APP_COLOR.CANCEL,
+            opacity: 1,
+          });
+        }
+      } else {
+        // Check-in
+        const response = await checkInAttendance(appState.token);
+        if (response?.status === 0 && response?.data) {
+          const checkInDateTime = new Date(response.data.checkIn);
+          const timeString = checkInDateTime.toLocaleTimeString("vi-VN", {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: true,
+          });
+
+          setCheckInTime(timeString);
+          setCheckInDate(response.data.workDate);
+          setAttendanceData(response.data);
+          setIsCheckedIn(true);
+
+          Toast.show(response.desc || "Check-in thành công", {
+            duration: Toast.durations.LONG,
+            textColor: "white",
+            backgroundColor: APP_COLOR.ORANGE,
+            opacity: 1,
+          });
+        } else {
+          Toast.show(response?.desc || "Check-in thất bại", {
+            duration: Toast.durations.LONG,
+            textColor: "white",
+            backgroundColor: APP_COLOR.CANCEL,
+            opacity: 1,
+          });
+        }
+      }
+    } catch (error: any) {
+      console.error("Error:", error);
+      console.error("Error response:", error?.response?.data);
+      console.error("Error status:", error?.response?.status);
+
+      let errorMessage = `Không thể ${
+        isCheckedIn ? "kết thúc" : "bắt đầu"
+      } ca làm. Vui lòng thử lại.`;
+
+      if (error?.response?.status === 400) {
+        errorMessage =
+          error?.response?.data?.desc ||
+          error?.response?.data?.message ||
+          "Yêu cầu không hợp lệ. Vui lòng kiểm tra lại.";
+      } else if (error?.response?.status === 401) {
+        errorMessage = "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.";
+      } else if (error?.response?.status === 403) {
+        errorMessage = "Bạn không có quyền thực hiện thao tác này.";
+      } else if (error?.response?.data?.desc) {
+        errorMessage = error.response.data.desc;
+      } else if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+
+      Toast.show(errorMessage, {
+        duration: Toast.durations.LONG,
+        textColor: "white",
+        backgroundColor: APP_COLOR.CANCEL,
+        opacity: 1,
+      });
+    }
   };
 
   const formatDate = (date: Date) => {
@@ -192,7 +284,16 @@ const AttendanceScreen = () => {
 
         {activeTab === "today" ? (
           <View style={styles.contentCard}>
-            <Text style={styles.dateText}>{formatDate(currentTime)}</Text>
+            <Text style={styles.dateText}>
+              {checkInDate
+                ? `Ngày check-in: ${checkInDate}`
+                : formatDate(currentTime)}
+            </Text>
+            {checkInTime && (
+              <Text style={styles.checkInTimeText}>
+                Thời gian check-in: {checkInTime}
+              </Text>
+            )}
             <View style={styles.timeSection}>
               <Text style={styles.timeLabel}>Thời gian bắt đầu</Text>
               <View style={styles.timeDisplay}>
@@ -277,14 +378,22 @@ const AttendanceScreen = () => {
                 </Text>
               </View>
             )}
-            <Pressable style={styles.checkInButton} onPress={handleCheckIn}>
+            <Pressable
+              style={[
+                styles.checkInButton,
+                isCheckedIn && styles.checkOutButton,
+              ]}
+              onPress={handleCheckIn}
+            >
               <AntDesign
-                name="checkcircle"
+                name={isCheckedIn ? "closecircle" : "checkcircle"}
                 size={32}
                 color={APP_COLOR.WHITE}
                 style={styles.checkInIcon}
               />
-              <Text style={styles.checkInText}>Check In</Text>
+              <Text style={styles.checkInText}>
+                {isCheckedIn ? "Kết thúc ca làm" : "Bắt đầu ca làm"}
+              </Text>
             </Pressable>
             <View style={styles.actionIcons}>
               <Pressable style={styles.actionIcon}>
@@ -364,6 +473,12 @@ const styles = StyleSheet.create({
     fontFamily: APP_FONT.SEMIBOLD,
     fontSize: 16,
     color: APP_COLOR.BROWN,
+    marginBottom: 10,
+  },
+  checkInTimeText: {
+    fontFamily: APP_FONT.REGULAR,
+    fontSize: 14,
+    color: APP_COLOR.ORANGE,
     marginBottom: 20,
   },
   timeSection: {
@@ -470,12 +585,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     flexDirection: "row",
     gap: 10,
-    marginBottom: 20,
+    marginVertical: 20,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
     elevation: 5,
+  },
+  checkOutButton: {
+    backgroundColor: APP_COLOR.CANCEL,
   },
   checkInIcon: {
     marginTop: -2,

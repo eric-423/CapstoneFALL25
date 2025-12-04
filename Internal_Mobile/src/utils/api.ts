@@ -83,3 +83,91 @@ export const confirmOrder = async (token: string, orderId: number) => {
   );
   return response.data;
 };
+
+const buildAuthHeaders = (token?: string) => {
+  const headers: Record<string, string> = {
+    accept: "application/json",
+    "Content-Type": "application/json",
+  };
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+  return headers;
+};
+
+export const SendOTP = async (
+  channel: string,
+  indentifier: string,
+  token?: string
+) => {
+  return axios.post(
+    `${BASE_URL}/auth/otp/send`,
+    {
+      channel,
+      indentifier,
+    },
+    {
+      headers: buildAuthHeaders(token),
+    }
+  );
+};
+
+export const TTLOtp = async (
+  channel: string,
+  identifier: string,
+  token?: string
+) => {
+  return axios.get(
+    `${BASE_URL}/auth/otp/ttl?channel=${channel}&identifier=${identifier}`,
+    {
+      headers: buildAuthHeaders(token),
+    }
+  );
+};
+
+export const VeryfyOTP = async (
+  channel: string,
+  identifier: string,
+  inputOtp: string,
+  token?: string
+) => {
+  return axios.post(
+    `${BASE_URL}/auth/otp/verify`,
+    {
+      channel,
+      identifier,
+      inputOtp,
+    },
+    {
+      headers: buildAuthHeaders(token),
+    }
+  );
+};
+
+export const checkInAttendance = async (token: string) => {
+  const response = await axios.post(
+    `${BASE_URL}/attendance/check-in`,
+    {},
+    {
+      headers: {
+        accept: "*/*",
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  return response.data;
+};
+
+export const checkOutAttendance = async (token: string) => {
+  const response = await axios.post(
+    `${BASE_URL}/attendance/check-out`,
+    {},
+    {
+      headers: {
+        accept: "*/*",
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  return response.data;
+};
