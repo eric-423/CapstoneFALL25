@@ -71,7 +71,7 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
   const [errors, setErrors] = useState<Partial<PromotionFormData>>({});
   const mapPromotionType = (type: PromotionType): PromotionTypeOption => {
     return {
-      value: type.name,
+      value: String(type.id),
       label: type.name,
       color: "[#FFFCF7]",
       promotionTypeId: type.id,
@@ -86,7 +86,7 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
           const types = await getPromotionTypes();
           const mappedTypes = types.map(mapPromotionType);
           setPromotionTypes(mappedTypes);
-        } catch (error) {
+        } catch {
         } finally {
           setIsLoadingTypes(false);
         }
@@ -142,9 +142,7 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
     setIsLoading(true);
 
     try {
-      const selectedType = promotionTypes.find(
-        (t) => t.value === formData.promotionType
-      );
+      const promotionTypeId = Number(formData.promotionType);
 
       if (!selectedType) {
         toast.error("Vui lòng chọn loại khuyến mãi");
@@ -162,7 +160,7 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
         startDate: formData.startDate,
         endDate: formData.endDate,
         status: formData.status,
-        promotionTypeId: selectedType.promotionTypeId,
+        promotionTypeId: promotionTypeId,
       };
 
       await createPromotion(promotionData);
@@ -173,17 +171,17 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
       console.error("Error creating promotion:", error);
       const errorMessage =
         error &&
-          typeof error === "object" &&
-          "response" in error &&
-          error.response &&
-          typeof error.response === "object" &&
-          "data" in error.response &&
-          error.response.data &&
-          typeof error.response.data === "object" &&
-          ("message" in error.response.data || "error" in error.response.data)
+        typeof error === "object" &&
+        "response" in error &&
+        error.response &&
+        typeof error.response === "object" &&
+        "data" in error.response &&
+        error.response.data &&
+        typeof error.response.data === "object" &&
+        ("message" in error.response.data || "error" in error.response.data)
           ? (error.response.data as { message?: string; error?: string })
-            .message ||
-          (error.response.data as { message?: string; error?: string }).error
+              .message ||
+            (error.response.data as { message?: string; error?: string }).error
           : "Có lỗi xảy ra khi tạo khuyến mãi";
       toast.error(`${errorMessage || "Có lỗi xảy ra khi tạo khuyến mãi"}`);
     } finally {
@@ -205,6 +203,16 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
     setErrors({});
   };
 
+  const formatNumber = (value: string): string => {
+    const numericValue = value.replace(/\D/g, "");
+    if (!numericValue) return "";
+    return Number(numericValue).toLocaleString("vi-VN");
+  };
+
+  const parseNumber = (value: string): string => {
+    return value.replace(/\D/g, "");
+  };
+
   const handleInputChange = (
     field: keyof PromotionFormData,
     value: string | boolean
@@ -213,6 +221,14 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
     if (errors[field as keyof typeof errors]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
+  };
+
+  const handleNumberInputChange = (
+    field: keyof PromotionFormData,
+    value: string
+  ) => {
+    const numericValue = parseNumber(value);
+    handleInputChange(field, numericValue);
   };
 
   return (
@@ -242,9 +258,9 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
 
         <form onSubmit={handleSubmit} className="space-y-5 mt-4">
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-[#2D1E1A] flex items-center gap-2">
-              <Gift size={16} className="text-[#78A243]" />
-              Tên khuyến mãi <span className="text-red-500">*</span>
+            <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <Gift size={16} className="text-orange-500" />
+              Mã khuyến mãi <span className="text-red-500">*</span>
             </label>
             <Input
               placeholder="Giảm giá mùa hè, Khuyến mãi cuối năm..."
@@ -335,14 +351,14 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
                 <button
                   type="button"
                   onClick={() => handleInputChange("status", !formData.status)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#78A243] focus:ring-offset-2 ${formData.status
-                    ? "bg-[#78A243]"
-                    : "bg-gray-300"
-                    }`}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#78A243] focus:ring-offset-2 ${
+                    formData.status ? "bg-[#78A243]" : "bg-gray-300"
+                  }`}
                 >
                   <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-lg transition-transform ${formData.status ? "translate-x-6" : "translate-x-1"
-                      }`}
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-lg transition-transform ${
+                      formData.status ? "translate-x-6" : "translate-x-1"
+                    }`}
                   />
                 </button>
               </div>
@@ -373,23 +389,25 @@ export function AddPromotionDialog({ onSuccess }: AddPromotionDialogProps) {
                 Đơn hàng tối thiểu (VNĐ)
               </label>
               <Input
-                type="number"
-                min="0"
-                step="1000"
-                placeholder="100000"
-                value={formData.minimumOrderValue}
-                onChange={(e) =>
-                  handleInputChange("minimumOrderValue", e.target.value)
+                type="text"
+                placeholder="100,000"
+                value={
+                  formData.minimumOrderValue
+                    ? formatNumber(formData.minimumOrderValue)
+                    : ""
                 }
-                className="h-11 border-2 border-gray-200 focus:border-[#78A243]"
+                onChange={(e) =>
+                  handleNumberInputChange("minimumOrderValue", e.target.value)
+                }
+                className="h-11 border-2 border-gray-200 focus:border-orange-500"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-[#2D1E1A] flex items-center gap-2">
-                <Calendar size={16} className="text-[#78A243]" />
+              <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                <Calendar size={16} className="text-orange-500" />
                 Ngày bắt đầu <span className="text-red-500">*</span>
               </label>
               <Input

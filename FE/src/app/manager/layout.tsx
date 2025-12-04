@@ -10,6 +10,7 @@ import {
    type BarcodeProcessContext,
 } from "@/utils/hooks/useBarcodeScanner";
 import {
+   assignChefToOrder,
    assignShipperToOrder,
    completeOrder,
    getBranchOrders,
@@ -184,47 +185,58 @@ export default function ManagerLayout({
       return () => document.removeEventListener("mousedown", handleClickOutside);
    }, [sidebarOpen]);
 
-   const processScannedOrder = useCallback<ProcessOrderFn>(async (orderId: number) => {
-      const response = await getBranchOrders();
-      const branchOrders = Array.isArray(response?.data) ? response.data : [];
-      const order = branchOrders.find((item) => item.id === orderId);
+   const processScannedOrder = useCallback<ProcessOrderFn>(
+      async (orderId: number) => {
+         const response = await getBranchOrders();
+         const branchOrders = Array.isArray(response?.data) ? response.data : [];
+         const order = branchOrders.find((item) => item.id === orderId);
 
-      if (!order) {
-         throw new Error(
-            `Không tìm thấy đơn hàng #${orderId} trong chi nhánh của bạn.`
-         );
-      }
+         if (!order) {
+            throw new Error(
+               `Không tìm thấy đơn hàng #${orderId} trong chi nhánh của bạn.`
+            );
+         }
 
-      const status = (order.orderStatus || "").toUpperCase();
-      const contextBase: BarcodeProcessContext = { status };
-      const isPickup = order.isPickUp || order.pickUp;
-      const isTable = order.table || order.isTable;
-
-      // if (["IN_PROCESS", "PROCESSING"].includes(status)) {
-      //   const assignResult = await assignChefToOrder(orderId);
-      //   if (!assignResult.success) {
-      //     return {
-      //       success: false,
-      //       context: {
-      //         ...contextBase,
-      //         action: "assign-chef" as const,
-      //         message: "Không thể chuyển đơn cho bếp. Vui lòng thử lại.",
-      //       },
-      //     };
-      //   }
-      //   return {
-      //     success: true,
-      //     context: {
-      //       ...contextBase,
-      //       action: "assign-chef" as const,
-      //     },
-      //   };
-      // }
+         const status = (order.orderStatus || "").toUpperCase();
+         const contextBase: BarcodeProcessContext = { status };
+         const isPickup = order.isPickUp || order.pickUp;
+         const isTable = order.table || order.isTable;
 
 
-      if (isPickup && status === "COOKED") {
-         const completeResult = await completeOrder(orderId);
-         if (!completeResult.success) {
+         if (status === 'IN_PROCESS') {
+            const assignChef = await assignChefToOrder(orderId);
+            if (!assignChef.success) {
+               return {
+                  success: false,
+                  context: {
+                     ...contextBase,
+                     action: "assign-chef" as const,
+                     message: "Không thể chuyển đơn cho bếp. Vui lòng thử lại.",
+                  },
+               };
+            }
+            return {
+               success: assignChef.success as boolean,
+               context: {
+                  ...contextBase,
+                  action: "assign-chef" as const,
+               },
+            };
+         }
+
+
+         if (isPickup && status === "COOKED") {
+            const completeResult = await completeOrder(orderId);
+            if (!completeResult.success) {
+               return {
+                  success: completeResult.success as boolean,
+                  context: {
+                     ...contextBase,
+                     action: "complete" as const,
+                     message: "Không thể hoàn thành đơn hàng. Vui lòng thử lại.",
+                  },
+               };
+            }
             return {
                success: completeResult.success as boolean,
                context: {
@@ -233,46 +245,39 @@ export default function ManagerLayout({
                },
             };
          }
-         return {
-            success: completeResult.success as boolean,
-            context: {
-               ...contextBase,
-               action: "complete" as const,
-            },
-         };
-      }
 
-
-      if (status === "COOKED" && !isTable && !isPickup) {
-         const assignResult = await assignShipperToOrder(orderId);
-         if (!assignResult.success) {
+         if (status === "COOKED" && !isTable && !isPickup) {
+            const assignResult = await assignShipperToOrder(orderId);
+            if (!assignResult.success) {
+               return {
+                  success: false,
+                  context: {
+                     ...contextBase,
+                     action: "assign-shipper" as const,
+                     message: "Không thể giao đơn cho shipper. Vui lòng thử lại.",
+                  },
+               };
+            }
             return {
-               success: false,
+               success: true,
                context: {
                   ...contextBase,
                   action: "assign-shipper" as const,
-                  message: "Không thể giao đơn cho shipper. Vui lòng thử lại.",
                },
             };
          }
+
          return {
-            success: true,
+            success: false,
             context: {
                ...contextBase,
-               action: "assign-shipper" as const,
+               action: "no-action" as const,
+               message: `Đơn #${orderId} đang ở trạng thái ${status || "khác"}, không thể xử lý.`,
             },
          };
-      }
-
-      return {
-         success: false,
-         context: {
-            ...contextBase,
-            action: "no-action" as const,
-            message: `Đơn #${orderId} đang ở trạng thái ${status || "khác"}, không thể xử lý.`,
-         },
-      };
-   }, []);
+      },
+      []
+   );
 
    const handleBarcodeSuccess = useCallback(
       (orderId: number, context?: BarcodeProcessContext) => {

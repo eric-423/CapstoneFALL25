@@ -25,6 +25,7 @@ import {
   NearbyBranch,
 } from "@/apis/branch.api";
 import { useAuth } from "@/utils/hooks";
+import { setCookie } from "@/utils/cookies.client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -237,6 +238,9 @@ export default function MenuPage() {
         setSelectedBranch(foundBranch);
         if (typeof window !== "undefined") {
           localStorage.setItem("selectedBranch", JSON.stringify(foundBranch));
+          const expiresDate = new Date();
+          expiresDate.setFullYear(expiresDate.getFullYear() + 1);
+          setCookie("branchId", foundBranch.branchId.toString(), expiresDate);
         }
         return;
       }
@@ -249,6 +253,9 @@ export default function MenuPage() {
           const branch = JSON.parse(stored) as Branch;
           if (displayBranches.some((b) => b.branchId === branch.branchId)) {
             setSelectedBranch(branch);
+            const expiresDate = new Date();
+            expiresDate.setFullYear(expiresDate.getFullYear() + 1);
+            setCookie("branchId", branch.branchId.toString(), expiresDate);
             return;
           }
         } catch (e) {
@@ -267,6 +274,9 @@ export default function MenuPage() {
       const firstBranch = displayBranches[0];
       if (typeof window !== "undefined") {
         localStorage.setItem("selectedBranch", JSON.stringify(firstBranch));
+        const expiresDate = new Date();
+        expiresDate.setFullYear(expiresDate.getFullYear() + 1);
+        setCookie("branchId", firstBranch.branchId.toString(), expiresDate);
       }
       return firstBranch;
     });
@@ -276,6 +286,9 @@ export default function MenuPage() {
     const handleBranchChange = (event: CustomEvent) => {
       const branch = event.detail as Branch;
       setSelectedBranch(branch);
+      const expiresDate = new Date();
+      expiresDate.setFullYear(expiresDate.getFullYear() + 1);
+      setCookie("branchId", branch.branchId.toString(), expiresDate);
       resetAndRefetch();
     };
 

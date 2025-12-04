@@ -74,7 +74,7 @@ export const ProductCard = ({
             ))}
           </div>
 
-          <p className="text-gray-600 text-sm mb-4 leading-relaxed">
+          <p className="text-gray-600 text-sm mb-4 leading-relaxed line-clamp-1">
             {contentOverflow(item.productDescription, descriptionOverflow)}
           </p>
 

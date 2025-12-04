@@ -1,10 +1,16 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
-import type { UserAuthData } from '@/utils/types/user.type';
-import { removeToken, removeAccessToken, removeRefreshToken, removeUserRole, removeAuthToken } from '@/utils/cookies.client';
+import type { UserAuthData } from "@/utils/types/user.type";
+import {
+  removeToken,
+  removeAccessToken,
+  removeRefreshToken,
+  removeUserRole,
+  removeAuthToken,
+} from "@/utils/cookies.client";
 
 type AuthState = {
   user: UserAuthData | null;
@@ -24,37 +30,41 @@ const useAuthState = () => {
 
   const getRoleBasedRoute = useCallback((role: string): string => {
     switch (role.toUpperCase()) {
-      case 'ADMIN':
-        return '/admin';
-      case 'MANAGER':
-      case 'BRANCH_MANAGER':
-        return '/manager';
-      case 'STAFF':
-        return '/staff/orders';
-      case 'CHEFF':
-        return '/chef';
-      case 'STAFF':
-      case 'WAITER':
-        return '/staff/tables';
-      case 'SHIPPER':
-        return '/shipper';
-      case 'CUSTOMER':
-        return '/';
+      case "ADMIN":
+        return "/admin";
+      case "MANAGER":
+      case "BRANCH_MANAGER":
+        return "/manager";
+      case "STAFF":
+        return "/staff/orders";
+      case "CHEFF":
+        return "/chef";
+      case "STAFF":
+      case "WAITER":
+        return "/staff/tables";
+      case "SHIPPER":
+        return "/shipper";
+      case "CUSTOMER":
+        return "/";
       default:
-        return '/';
+        return "/";
     }
   }, []);
 
   const fetchCurrentUser = useCallback(async () => {
     try {
-      const response = await fetch('/api/auth/me', {
-        method: 'GET',
-        credentials: 'include',
+      const response = await fetch("/api/auth/me", {
+        method: "GET",
+        credentials: "include",
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.log('[useAuth] /api/auth/me failed:', response.status, errorData);
+        console.log(
+          "[useAuth] /api/auth/me failed:",
+          response.status,
+          errorData
+        );
 
         setAuthState({
           user: null,
@@ -72,6 +82,7 @@ const useAuthState = () => {
         fullName: data.fullName,
         role: data.role,
         isNewUser: data.isNewUser,
+        point: data.point,
       };
 
       setAuthState({
@@ -80,7 +91,7 @@ const useAuthState = () => {
         isInitialized: true,
       });
     } catch (error) {
-      console.error('[useAuth] Failed to fetch current user:', error);
+      console.error("[useAuth] Failed to fetch current user:", error);
       setAuthState({
         user: null,
         isAuthenticated: false,
@@ -97,7 +108,11 @@ const useAuthState = () => {
   }, [authState.isInitialized, fetchCurrentUser]);
 
   useEffect(() => {
-    if (!authState.isInitialized || !authState.isAuthenticated || !authState.user) {
+    if (
+      !authState.isInitialized ||
+      !authState.isAuthenticated ||
+      !authState.user
+    ) {
       return;
     }
 
@@ -109,51 +124,75 @@ const useAuthState = () => {
       return;
     }
 
-    const publicRoutes = ['/login', '/register', '/about', '/menu'];
+    const publicRoutes = ["/login", "/register", "/about", "/menu"];
     const allowedRoutes = [
-      '/profile',
-      '/checkout',
-      '/payment-success',
-      '/payment-failed',
-      '/order-table',
-      '/my-orders',
+      "/profile",
+      "/checkout",
+      "/payment-success",
+      "/payment-failed",
+      "/order-table",
+      "/my-orders",
+      "/training",
     ];
 
     const roleBasedRoutes: Record<string, string[]> = {
-      ADMIN: ['/admin'],
-      MANAGER: ['/admin', '/manager'],
-      BRANCH_MANAGER: ['/admin', '/manager'],
-      STAFF: ['/staff'],
-      CHEFF: ['/chef'],
-      WAITER: ['/staff'],
-      SHIPPER: ['/shipper'],
-      CUSTOMER: ['/'],
+      ADMIN: ["/admin"],
+      MANAGER: ["/admin", "/manager"],
+      BRANCH_MANAGER: ["/admin", "/manager"],
+      STAFF: ["/staff"],
+      CHEFF: ["/chef"],
+      WAITER: ["/staff"],
+      SHIPPER: ["/shipper"],
+      CUSTOMER: ["/"],
     };
 
-    const isPublicRoute = publicRoutes.some(route => currentPath === route || currentPath.startsWith(route));
-    const isAllowedRoute = allowedRoutes.some(route => currentPath.startsWith(route));
+    const isPublicRoute = publicRoutes.some(
+      (route) => currentPath === route || currentPath.startsWith(route)
+    );
+    const isAllowedRoute = allowedRoutes.some((route) =>
+      currentPath.startsWith(route)
+    );
     const roleRoutes = roleBasedRoutes[userRole] || [];
-    const isRoleRoute = roleRoutes.some(route => currentPath.startsWith(route));
+    const isRoleRoute = roleRoutes.some((route) =>
+      currentPath.startsWith(route)
+    );
 
     if (isPublicRoute || isAllowedRoute || isRoleRoute) {
       return;
     }
 
-    if (currentPath !== expectedRoute && !currentPath.startsWith(expectedRoute)) {
+    if (
+      currentPath !== expectedRoute &&
+      !currentPath.startsWith(expectedRoute)
+    ) {
       const timer = setTimeout(() => {
         router.replace(expectedRoute);
       }, 100);
 
       return () => clearTimeout(timer);
     }
-  }, [authState.isInitialized, authState.isAuthenticated, authState.user, getRoleBasedRoute, router]);
+  }, [
+    authState.isInitialized,
+    authState.isAuthenticated,
+    authState.user,
+    getRoleBasedRoute,
+    router,
+  ]);
 
   const logout = useCallback(async () => {
-
     const currentRole = authState.user?.role?.toUpperCase();
-    const employeeRoles = ['ADMIN', 'MANAGER', 'BRANCH_MANAGER', 'STAFF', 'CHEF', 'CHEFF', 'WAITER', 'SHIPPER'];
+    const employeeRoles = [
+      "ADMIN",
+      "MANAGER",
+      "BRANCH_MANAGER",
+      "STAFF",
+      "CHEF",
+      "CHEFF",
+      "WAITER",
+      "SHIPPER",
+    ];
     const isEmployee = currentRole && employeeRoles.includes(currentRole);
-    const redirectPath = isEmployee ? '/inside/login' : '/login';
+    const redirectPath = isEmployee ? "/inside/login" : "/login";
 
     const externalUserId = authState.user?.id
       ? authState.user.id.toString()
@@ -161,28 +200,29 @@ const useAuthState = () => {
 
     try {
       if (externalUserId) {
-        await fetch('/api/dify/reset', {
-          method: 'POST',
+        await fetch("/api/dify/reset", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({ externalUserId }),
         });
       }
     } catch (error) {
-      console.warn('[useAuth] Failed to reset Dify conversation on logout:', error);
+      console.warn(
+        "[useAuth] Failed to reset Dify conversation on logout:",
+        error
+      );
     }
 
     try {
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
       });
-
     } catch (error) {
-      console.error('[useAuth] Logout API failed:', error);
+      console.error("[useAuth] Logout API failed:", error);
     }
-
 
     try {
       removeToken();
@@ -201,41 +241,40 @@ const useAuthState = () => {
         }
       }
     } catch (error) {
-      console.error('[useAuth] Failed to clear cookies during logout:', error);
+      console.error("[useAuth] Failed to clear cookies during logout:", error);
     }
-
-    // Clear localStorage và sessionStorage
     try {
-      // Lưu lại một số giá trị cần thiết trước khi clear (nếu có)
-      const insideRememberedEmail = localStorage.getItem('insideRememberedEmail');
-      const insideRememberMe = localStorage.getItem('insideRememberMe');
+      const insideRememberedEmail = localStorage.getItem(
+        "insideRememberedEmail"
+      );
+      const insideRememberMe = localStorage.getItem("insideRememberMe");
 
       localStorage.clear();
-
-      // Khôi phục lại giá trị cần thiết (nếu có)
-      if (insideRememberedEmail && insideRememberMe === 'true') {
-        localStorage.setItem('insideRememberedEmail', insideRememberedEmail);
-        localStorage.setItem('insideRememberMe', 'true');
+      if (insideRememberedEmail && insideRememberMe === "true") {
+        localStorage.setItem("insideRememberedEmail", insideRememberedEmail);
+        localStorage.setItem("insideRememberMe", "true");
       }
     } catch (error) {
-      console.error('[useAuth] Failed to clear localStorage during logout:', error);
+      console.error(
+        "[useAuth] Failed to clear localStorage during logout:",
+        error
+      );
     }
 
     try {
       sessionStorage.clear();
     } catch (error) {
-      console.error('[useAuth] Failed to clear sessionStorage during logout:', error);
+      console.error(
+        "[useAuth] Failed to clear sessionStorage during logout:",
+        error
+      );
     }
-
-    // Reset auth state
     setAuthState({
       user: null,
       isAuthenticated: false,
       isInitialized: true,
     });
-
-    // Sử dụng window.location.href để đảm bảo reload hoàn toàn và clear tất cả state
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       window.location.href = redirectPath;
     } else {
       router.push(redirectPath);
@@ -247,7 +286,7 @@ const useAuthState = () => {
       fetchCurrentUser();
 
       const searchParams = new URLSearchParams(window.location.search);
-      const callbackUrl = searchParams.get('callbackUrl');
+      const callbackUrl = searchParams.get("callbackUrl");
 
       if (callbackUrl) {
         router.push(callbackUrl);
@@ -255,36 +294,36 @@ const useAuthState = () => {
       }
 
       switch (userRole.toUpperCase()) {
-        case 'ADMIN':
-          router.push('/admin');
+        case "ADMIN":
+          router.push("/admin");
           break;
-        case 'MANAGER':
-        case 'BRANCH_MANAGER':
-          router.push('/manager');
+        case "MANAGER":
+        case "BRANCH_MANAGER":
+          router.push("/manager");
           break;
-        case 'STAFF':
-        case 'Staff':
-          router.push('/staff/orders');
+        case "STAFF":
+        case "Staff":
+          router.push("/staff/orders");
           break;
-        case 'CHEFF':
-          router.push('/chef');
+        case "CHEFF":
+          router.push("/chef");
           break;
-        case 'STAFF':
-        case 'WAITER':
-          router.push('/staff/tables');
+        case "STAFF":
+        case "WAITER":
+          router.push("/staff/tables");
           break;
-        case 'SHIPPER':
-          router.push('/shipper');
+        case "SHIPPER":
+          router.push("/shipper");
           break;
-        case 'CUSTOMER':
-          router.push('/');
+        case "CUSTOMER":
+          router.push("/");
           break;
         default:
-          router.push('/');
+          router.push("/");
           break;
       }
     },
-    [fetchCurrentUser, router],
+    [fetchCurrentUser, router]
   );
 
   return useMemo(
@@ -296,9 +335,15 @@ const useAuthState = () => {
       redirectAfterLogin,
       refresh: fetchCurrentUser,
     }),
-    [authState.user, authState.isAuthenticated, authState.isInitialized, logout, redirectAfterLogin, fetchCurrentUser],
+    [
+      authState.user,
+      authState.isAuthenticated,
+      authState.isInitialized,
+      logout,
+      redirectAfterLogin,
+      fetchCurrentUser,
+    ]
   );
 };
 
 export default useAuthState;
-

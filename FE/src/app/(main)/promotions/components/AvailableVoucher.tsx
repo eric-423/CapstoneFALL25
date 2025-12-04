@@ -56,7 +56,7 @@ export default function AvailableVoucher({
     }
 
     return (
-      <Badge variant="outline">
+      <Badge variant="outline" className="bg-gray-500/50 text-white">
         <Tag className="h-3 w-3 mr-1" />
         {promotion.userPromotionStatus || "Khả dụng"}
       </Badge>
@@ -101,7 +101,6 @@ export default function AvailableVoucher({
             </CardHeader>
 
             <CardContent className="space-y-3 relative z-10 px-4 pb-4">
-              {/* Value display */}
               <div className="bg-gradient-to-r from-[#EC6426]/10 to-[#F8A91F]/10 rounded-lg p-3 border border-[#EC6426]/20">
                 <div className="flex items-center gap-1.5 mb-2">
                   <Percent className="h-4 w-4 text-[#EC6426]" />
@@ -126,8 +125,6 @@ export default function AvailableVoucher({
                   </div>
                 )}
               </div>
-
-              {/* Date information */}
               <div className="grid grid-cols-2 gap-2">
                 <div className="bg-gray-50 rounded-md p-2 border border-gray-200">
                   <div className="flex items-center gap-1.5 mb-0.5">
@@ -172,8 +169,6 @@ export default function AvailableVoucher({
                   </span>
                 </div>
               )}
-
-              {/* Promotion type and usage info */}
               <div className="flex items-center justify-between pt-2 border-t border-gray-200">
                 {promotion.promotionTypeName && (
                   <Badge
