@@ -110,6 +110,7 @@
     "@testing-library/jest-dom": "^6.1.4",
     "@testing-library/react": "^16.0.0",
     "@testing-library/user-event": "^14.5.1",
+    "@types/exceljs": "^0.5.3",
     "@types/jest": "^29.5.8",
     "@types/node": "^22.13.10",
     "@types/react": "^19.1.3",

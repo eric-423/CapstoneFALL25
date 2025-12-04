@@ -37,18 +37,18 @@ export default function WarehouseMaterialsPage({ params }: WarehouseMaterialsPag
     const [searchKeyword, setSearchKeyword] = useState('');
     const [typeFilter, setTypeFilter] = useState('');
 
-    // Hide main page scrollbar when any dialog is open
-    useEffect(() => {
-        const isAnyDialogOpen = showAddDialog || showEditDialog || showImportDialog;
-        if (isAnyDialogOpen) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = '';
-        }
-        return () => {
-            document.body.style.overflow = '';
-        };
-    }, [showAddDialog, showEditDialog, showImportDialog]);
+    // // Hide main page scrollbar when any dialog is open
+    // useEffect(() => {
+    //     const isAnyDialogOpen = showAddDialog || showEditDialog || showImportDialog;
+    //     if (isAnyDialogOpen) {
+    //         document.body.style.overflow = 'hidden';
+    //     } else {
+    //         document.body.style.overflow = '';
+    //     }
+    //     return () => {
+    //         document.body.style.overflow = '';
+    //     };
+    // }, [showAddDialog, showEditDialog, showImportDialog]);
 
     useEffect(() => {
         params.then(p => {
