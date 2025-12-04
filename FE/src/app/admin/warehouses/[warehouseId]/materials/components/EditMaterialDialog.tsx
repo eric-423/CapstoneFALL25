@@ -80,7 +80,7 @@ export function EditMaterialDialog({
     const stockPercentage = (parseFloat(quantity) / parseFloat(threshold)) * 100;
 
     return (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/15 backdrop-blur-[1px] z-50 flex items-center justify-center p-4">
             <Card className="w-full max-w-md bg-white shadow-2xl rounded-2xl overflow-hidden py-0">
                 {/* Header */}
                 <div className="bg-[#78A243] p-6">

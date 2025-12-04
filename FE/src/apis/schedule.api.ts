@@ -85,8 +85,8 @@ export const updateSchedule = async (
   });
 
   const responseText = await response.text();
-  let errorData: any = {};
-  
+  let errorData: { message?: string; desc?: string; error?: string } = {};
+
   try {
     errorData = JSON.parse(responseText);
   } catch {
@@ -101,9 +101,9 @@ export const updateSchedule = async (
       payload: data
     });
     throw new Error(
-      errorData.desc || 
-      errorData.message || 
-      errorData.error || 
+      errorData.desc ||
+      errorData.message ||
+      errorData.error ||
       `Failed to update schedule: ${response.status} ${response.statusText}`
     );
   }

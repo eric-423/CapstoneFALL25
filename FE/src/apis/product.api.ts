@@ -200,8 +200,14 @@ export const getProduct = async (
   }
 
   // Use fetch to call the Next.js API route (Proxy)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const queryString = new URLSearchParams(params as any).toString();
+  // Build a string-only query object so we don't need to cast to any
+  const queryStringParams: Record<string, string> = {};
+  Object.entries(params).forEach(([k, v]) => {
+    if (v !== undefined && v !== null) {
+      queryStringParams[k] = String(v);
+    }
+  });
+  const queryString = new URLSearchParams(queryStringParams).toString();
   const response = await fetch(`/api/products/search?${queryString}`, {
     method: "GET",
     headers: {
@@ -348,7 +354,14 @@ export const getAllBranchProducts = async (
   if (maxPrice !== undefined) queryParams.maxPrice = maxPrice;
   if (sortBy) queryParams.sortBy = sortBy;
   if (sortDirection) queryParams.sortDirection = sortDirection;
-  const queryString = new URLSearchParams(queryParams as any).toString();
+  // Build a string-only query object to avoid casting to any
+  const stringQueryParams: Record<string, string> = {};
+  Object.entries(queryParams).forEach(([k, v]) => {
+    if (v !== undefined && v !== null) {
+      stringQueryParams[k] = String(v);
+    }
+  });
+  const queryString = new URLSearchParams(stringQueryParams).toString();
   const response = await fetch(
     `/api/products/all-branch/search?${queryString}`,
     {
@@ -384,7 +397,7 @@ export interface ProductCreateRequest {
 }
 
 export const createProduct = async (data: ProductCreateRequest) => {
-  const response = await fetch("/api/products", {
+  const response = await fetch("/api/products/create", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

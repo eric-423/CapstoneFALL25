@@ -4,7 +4,6 @@ import { createOrderApiRoute, CreateOrderPayload } from "@/apis/order.api";
 import {
   getCustomerInformation,
   saveCustomerInformation,
-  getMyPromotion,
 } from "@/apis/user.api";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { Button } from "@/components/ui/button";
@@ -32,6 +31,7 @@ import { useCart } from "@/utils/contexts/cart/CartContext";
 import { useAuth } from "@/utils/hooks";
 import { QuantitySelector } from "@/components/common/quantity-selector";
 import useScrollTop from "@/utils/hooks/useScrollTop";
+import { toast } from 'react-toastify';
 import { cn } from "@/utils/lib/utils";
 import configs from "@/utils/configs";
 import { setCookie, getToken } from "@/utils/cookies.client";
@@ -181,24 +181,15 @@ export default function CheckoutPage() {
     () =>
       Array.isArray(customerInformationData)
         ? customerInformationData.map((info: CustomerInformationResponse) => ({
-            informationId: info.informationId,
-            fullName: info.fullName,
-            address: info.address,
-            phone: info.phone,
-            isDefault: info.isDefault,
-          }))
+          informationId: info.informationId,
+          fullName: info.fullName,
+          address: info.address,
+          phone: info.phone,
+          isDefault: info.isDefault,
+        }))
         : [],
     [customerInformationData]
   );
-
-  const { data: promotionsResponseData, isLoading: isLoadingPromotions } =
-    useQuery({
-      queryKey: ["customer-promotions", user?.id],
-      queryFn: () => getMyPromotion(),
-      enabled: Boolean(user?.id),
-      refetchOnMount: false,
-      refetchOnWindowFocus: false,
-    });
 
   const {
     data: availablePromotionsRaw = [],
@@ -284,14 +275,14 @@ export default function CheckoutPage() {
     () =>
       Array.isArray(branchesData)
         ? branchesData.map(
-            (branch): Branch => ({
-              branchId: branch.id,
-              branchName: branch.name,
-              address: branch.address ?? "",
-              phone: branch.phone ?? "",
-              isActive: branch.active,
-            })
-          )
+          (branch): Branch => ({
+            branchId: branch.id,
+            branchName: branch.name,
+            address: branch.address ?? "",
+            phone: branch.phone ?? "",
+            isActive: branch.active,
+          })
+        )
         : [],
     [branchesData]
   );
@@ -300,15 +291,15 @@ export default function CheckoutPage() {
     () =>
       Array.isArray(nearbyBranchesData)
         ? nearbyBranchesData.map(
-            (branch): Branch => ({
-              branchId: branch.branchId,
-              branchName: branch.name,
-              address: branch.address ?? "",
-              phone: branch.phoneNumber ?? "",
-              isActive: true,
-              distanceText: branch.distanceText,
-            })
-          )
+          (branch): Branch => ({
+            branchId: branch.branchId,
+            branchName: branch.name,
+            address: branch.address ?? "",
+            phone: branch.phoneNumber ?? "",
+            isActive: true,
+            distanceText: branch.distanceText,
+          })
+        )
         : [],
     [nearbyBranchesData]
   );
@@ -677,6 +668,7 @@ export default function CheckoutPage() {
         const errorMessage =
           (error as { response?: { data?: { desc?: string } } })?.response?.data
             ?.desc || "Không thể lưu địa chỉ. Vui lòng thử lại.";
+        toast.error(errorMessage);
       },
     });
 
@@ -1191,7 +1183,7 @@ export default function CheckoutPage() {
                                           type="button"
                                           variant={
                                             selectedInfoId ===
-                                            info.informationId
+                                              info.informationId
                                               ? "default"
                                               : "outline"
                                           }
@@ -1455,8 +1447,8 @@ export default function CheckoutPage() {
                                 const totalBeforePoints =
                                   isDelivery && shippingFee !== null
                                     ? orderSubtotal +
-                                      shippingFee -
-                                      discountValue
+                                    shippingFee -
+                                    discountValue
                                     : orderSubtotal - discountValue;
                                 const finalTotal = Math.max(
                                   0,
@@ -1479,7 +1471,7 @@ export default function CheckoutPage() {
                               className={cn(
                                 "w-[80%]",
                                 pointError &&
-                                  "border-red-500 focus-visible:ring-red-500"
+                                "border-red-500 focus-visible:ring-red-500"
                               )}
                             />
                             <Button
@@ -1546,8 +1538,8 @@ export default function CheckoutPage() {
                                   const totalBeforePoints =
                                     isDelivery && shippingFee !== null
                                       ? orderSubtotal +
-                                        shippingFee -
-                                        discountValue
+                                      shippingFee -
+                                      discountValue
                                       : orderSubtotal - discountValue;
                                   return Math.max(
                                     0,
@@ -1600,7 +1592,7 @@ export default function CheckoutPage() {
                           <MapPin className="h-4 w-4 text-primary mt-0.5" />
                           <span>
                             {typeof deliveryAddressValue === "string" &&
-                            deliveryAddressValue.trim()
+                              deliveryAddressValue.trim()
                               ? deliveryAddressValue
                               : "Vui lòng nhập địa chỉ giao hàng trong biểu mẫu bên trái."}
                           </span>
@@ -1676,7 +1668,7 @@ export default function CheckoutPage() {
                                   <div className="flex items-center gap-4 text-xs">
                                     <span className="font-bold text-primary">
                                       {promotion.promotionTypeName ===
-                                      "Giảm giá theo %" ? (
+                                        "Giảm giá theo %" ? (
                                         <>Giảm {promotion.value}%</>
                                       ) : promotion.promotionTypeName ===
                                         "Miễn phí vận chuyển" ? (
@@ -1876,13 +1868,13 @@ export default function CheckoutPage() {
                         <div className="flex justify-between text-green-600">
                           <span>
                             {selectedPromotion.promotionTypeName ===
-                            "Miễn phí vận chuyển"
+                              "Miễn phí vận chuyển"
                               ? "Miễn phí vận chuyển"
                               : `Giảm giá (${selectedPromotion.name})`}
                           </span>
                           <span className="font-medium">
                             {selectedPromotion.promotionTypeName ===
-                            "Miễn phí vận chuyển" ? (
+                              "Miễn phí vận chuyển" ? (
                               <>Miễn phí</>
                             ) : (
                               <>-{discountValue.toLocaleString("vi-VN")}₫</>

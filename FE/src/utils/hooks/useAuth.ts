@@ -46,6 +46,7 @@ const useAuth = () => {
           phoneNumber: decodedData.p ?? '',
           role: decodedData.r ?? 'CUSTOMER',
           isNewUser: getCookie(configs.cookies.isNew) === 'true',
+          point: typeof (decodedData as Record<string, unknown>).point === 'number' ? (decodedData as Record<string, unknown>).point as number : 0,
         };
 
         setAuthState((prev) => ({
@@ -113,6 +114,7 @@ const useAuth = () => {
           phoneNumber: decodedToken.p ?? '',
           role: decodedToken.r ?? 'CUSTOMER',
           isNewUser: getCookie(configs.cookies.isNew) === 'true',
+          point: typeof (decodedToken as Record<string, unknown>).point === 'number' ? (decodedToken as Record<string, unknown>).point as number : 0,
         };
 
         setAuthState((prev) => ({

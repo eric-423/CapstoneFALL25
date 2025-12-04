@@ -1,7 +1,6 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
-import { TrendingUp } from "lucide-react";
 import {
   XAxis,
   YAxis,

@@ -9,7 +9,7 @@ import { AdminPageLayout, AdminPageHeader } from '../components/AdminPageLayout'
 import { getNutrients, deleteNutrient, type Nutrient, type NutrientSearchParams } from '@/apis/nutrient.api';
 import { NutrientFormDialog } from './components/NutrientFormDialog';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
-import { FilterDropdown } from '../components/FilterDropdown';
+import { FilterDropdown } from '@/components/common/FilterDropdown';
 
 export default function NutrientsPage() {
     const [nutrients, setNutrients] = useState<Nutrient[]>([]);
@@ -24,7 +24,7 @@ export default function NutrientsPage() {
 
     // Filter states
     const [searchKeyword, setSearchKeyword] = useState('');
-    const [sortDirection, setSortDirection] = useState<'ASC' | 'DESC'>('ASC');
+    const [sortDirection] = useState<'ASC' | 'DESC'>('ASC');
 
     // Dialog states
     const [showFormDialog, setShowFormDialog] = useState(false);

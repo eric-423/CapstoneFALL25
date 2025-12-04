@@ -6,7 +6,6 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChevronDown, Check } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -30,7 +29,6 @@ interface FilterDropdownProps {
 
 export function FilterDropdown({
     label,
-    title: _title,
     items,
     value,
     onChange,

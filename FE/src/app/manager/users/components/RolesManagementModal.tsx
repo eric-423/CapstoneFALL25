@@ -74,7 +74,7 @@ export function RolesManagementModal({ open, onOpenChange, onRoleUpdated }: Role
             setRoles(data);
         } catch (error) {
             console.error('Failed to fetch roles:', error);
-            toast.error('❌ Không thể tải danh sách vai trò!');
+            toast.error('Không thể tải danh sách vai trò!');
         } finally {
             setLoading(false);
         }
@@ -88,7 +88,7 @@ export function RolesManagementModal({ open, onOpenChange, onRoleUpdated }: Role
 
     const handleCreate = async () => {
         if (!newRoleName.trim()) {
-            toast.warning('⚠️ Vui lòng nhập tên vai trò!');
+            toast.warning('Vui lòng nhập tên vai trò!');
             return;
         }
 
@@ -97,7 +97,7 @@ export function RolesManagementModal({ open, onOpenChange, onRoleUpdated }: Role
                 name: newRoleName.trim().toUpperCase(),
                 internal: newRoleIsInternal
             });
-            toast.success('✅ Tạo vai trò thành công!');
+            toast.success('Tạo vai trò thành công!');
             setNewRoleName('');
             setNewRoleIsInternal(false);
             setIsCreating(false);
@@ -105,13 +105,13 @@ export function RolesManagementModal({ open, onOpenChange, onRoleUpdated }: Role
             onRoleUpdated?.();
         } catch (error) {
             console.error('Failed to create role:', error);
-            toast.error('❌ Không thể tạo vai trò!');
+            toast.error('Không thể tạo vai trò!');
         }
     };
 
     const handleUpdate = async (roleId: number) => {
         if (!editingName.trim()) {
-            toast.warning('⚠️ Vui lòng nhập tên vai trò!');
+            toast.warning('Vui lòng nhập tên vai trò!');
             return;
         }
 
@@ -120,7 +120,7 @@ export function RolesManagementModal({ open, onOpenChange, onRoleUpdated }: Role
                 name: editingName.trim().toUpperCase(),
                 internal: editingIsInternal
             });
-            toast.success('✅ Cập nhật vai trò thành công!');
+            toast.success('Cập nhật vai trò thành công!');
             setEditingId(null);
             setEditingName('');
             setEditingIsInternal(false);
@@ -128,7 +128,7 @@ export function RolesManagementModal({ open, onOpenChange, onRoleUpdated }: Role
             onRoleUpdated?.();
         } catch (error) {
             console.error('Failed to update role:', error);
-            toast.error('❌ Không thể cập nhật vai trò!');
+            toast.error('Không thể cập nhật vai trò!');
         }
     };
 
@@ -147,7 +147,7 @@ export function RolesManagementModal({ open, onOpenChange, onRoleUpdated }: Role
     if (!open) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/15 backdrop-blur-[1px] z-50 flex items-center justify-center p-4">
             <div className="w-full max-w-6xl bg-white shadow-2xl rounded-2xl overflow-hidden max-h-[90vh] flex flex-col">
                 {/* Header */}
                 <div className="bg-gradient-to-r from-[#78A243] to-[#DA7339] p-6">

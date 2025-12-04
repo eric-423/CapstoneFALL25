@@ -1,19 +1,25 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Calendar as CalendarIcon, Loader2, LayoutDashboard } from "lucide-react";
+import { Calendar as CalendarIcon, Loader2, LayoutDashboard, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { FilterDropdown } from '@/app/admin/components/FilterDropdown';
 import { BranchesLoader } from '@/app/admin/components/BranchesLoader';
-import { useAdminContext } from "@/utils/contexts/AdminContext";
 import { DateRange } from "react-day-picker";
 import { AdminPageLayout, AdminPageHeader } from '../components/AdminPageLayout';
+import { useAdminContext } from '@/utils/contexts/AdminContext';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 // API Imports
 import {
@@ -62,8 +68,8 @@ import StaffPerformanceChart from './components/operations/StaffPerformanceChart
 import OrderFlowChart from './components/operations/OrderFlowChart';
 
 export default function DashboardTabsPage() {
-    // Global Filters State
     const { branches } = useAdminContext();
+
     const [selectedBranch, setSelectedBranch] = useState<string>("all");
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
         from: new Date(new Date().setMonth(new Date().getMonth() - 1)),
@@ -119,7 +125,17 @@ export default function DashboardTabsPage() {
             params.fromDate = format(dateRange.from, 'yyyy-MM-dd');
         }
         if (dateRange?.to) {
-            params.toDate = format(dateRange.to, 'yyyy-MM-dd');
+            // If start date equals end date, add 1 day to end date for API call
+            const fromDateStr = dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : '';
+            const toDateStr = format(dateRange.to, 'yyyy-MM-dd');
+
+            if (fromDateStr === toDateStr) {
+                const nextDay = new Date(dateRange.to);
+                nextDay.setDate(nextDay.getDate() + 1);
+                params.toDate = format(nextDay, 'yyyy-MM-dd');
+            } else {
+                params.toDate = toDateStr;
+            }
         }
         return params;
     }, [selectedBranch, dateRange]);
@@ -140,8 +156,6 @@ export default function DashboardTabsPage() {
         } finally {
             setLoading(prev => ({ ...prev, kpis: false }));
         }
-
-        // Fetch Revenue Chart - now handled separately by fetchRevenueChart
 
         // Fetch Channel Revenue
         setLoading(prev => ({ ...prev, channelRevenue: true }));
@@ -175,7 +189,7 @@ export default function DashboardTabsPage() {
     }, [buildFilterParams]);
 
     // Fetch Revenue Chart Data (separate function for groupBy changes)
-    const fetchRevenueChart = useCallback(async (groupBy: 'day' | 'week' | 'month' = revenueGroupBy) => {
+    const fetchRevenueChart = useCallback(async (groupBy: 'day' | 'week' | 'month') => {
         const params = buildFilterParams();
         setLoading(prev => ({ ...prev, revenueChart: true }));
         try {
@@ -188,13 +202,27 @@ export default function DashboardTabsPage() {
         } finally {
             setLoading(prev => ({ ...prev, revenueChart: false }));
         }
-    }, [buildFilterParams, revenueGroupBy]);
+    }, [buildFilterParams]);
 
-    // Handle groupBy change for revenue chart
+    // Handle groupBy change for revenue chart - stable reference
     const handleRevenueGroupByChange = useCallback((groupBy: 'day' | 'week' | 'month') => {
         setRevenueGroupBy(groupBy);
-        fetchRevenueChart(groupBy);
-    }, [fetchRevenueChart]);
+        // Directly call API without depending on fetchRevenueChart to avoid reference changes
+        const params = buildFilterParams();
+        setLoading(prev => ({ ...prev, revenueChart: true }));
+        getRevenueChartData({ ...params, groupBy })
+            .then(response => {
+                if (response.data) {
+                    setRevenueData(response.data);
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching revenue chart:', error);
+            })
+            .finally(() => {
+                setLoading(prev => ({ ...prev, revenueChart: false }));
+            });
+    }, [buildFilterParams]);
 
     // Fetch Products Data
     const fetchProductsData = useCallback(async () => {
@@ -323,10 +351,11 @@ export default function DashboardTabsPage() {
     useEffect(() => {
         // Always fetch overview data (default tab)
         fetchOverviewData();
-        fetchRevenueChart();
+        fetchRevenueChart(revenueGroupBy);
 
         // Reset fetched tabs when filters change, keeping only overview
         setFetchedTabs(new Set(['overview']));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fetchOverviewData, fetchRevenueChart]);
 
     // Fetch data when tab changes
@@ -364,7 +393,11 @@ export default function DashboardTabsPage() {
         setDateRange(range);
     };
 
-    const isAnyLoading = Object.values(loading).some(v => v);
+    // Memoize loading indicator to prevent unnecessary re-renders
+    // Only show global loading for initial loads, not for individual chart updates
+    const isInitialLoading = useMemo(() => {
+        return loading.kpis || loading.channelRevenue || loading.peakHours;
+    }, [loading.kpis, loading.channelRevenue, loading.peakHours]);
 
     // Check if date range is exactly 1 day (same from and to date)
     const isSingleDay = dateRange?.from && dateRange?.to &&
@@ -379,8 +412,8 @@ export default function DashboardTabsPage() {
                 icon={LayoutDashboard}
                 actions={
                     <div className="flex flex-wrap items-center gap-3">
-                        {/* Loading indicator */}
-                        {isAnyLoading && (
+                        {/* Loading indicator - only for initial data, not for revenue chart updates */}
+                        {isInitialLoading && (
                             <div className="flex items-center gap-2 text-[#2D1E1A]/60">
                                 <Loader2 className="h-4 w-4 animate-spin text-[#78A243]" />
                                 <span className="text-sm font-medium">Đang tải...</span>
@@ -388,17 +421,26 @@ export default function DashboardTabsPage() {
                         )}
 
                         {/* Branch Filter */}
-                        <FilterDropdown
-                            label="Chi nhánh"
-                            items={[
-                                { value: "all", label: "Toàn hệ thống" },
-                                ...branches.map((b: any) => ({ value: b.id.toString(), label: b.name }))
-                            ]}
-                            value={selectedBranch}
-                            onChange={handleBranchChange}
-                            showAllOption={false}
-                            className="w-[200px]"
-                        />
+                        <Select value={selectedBranch} onValueChange={handleBranchChange}>
+                            <SelectTrigger className="w-[200px] bg-white/80 border-[#78A243]/30 hover:bg-white hover:border-[#78A243]">
+                                <Building2 className="mr-2 h-4 w-4 text-[#78A243]" />
+                                <SelectValue placeholder="Chọn chi nhánh" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-white border-[#78A243]/20 shadow-lg rounded-xl">
+                                <SelectItem value="all" className="hover:bg-[#78A243]/10">
+                                    Tất cả chi nhánh
+                                </SelectItem>
+                                {branches.map((branch) => (
+                                    <SelectItem
+                                        key={branch.id}
+                                        value={branch.id.toString()}
+                                        className="hover:bg-[#78A243]/10"
+                                    >
+                                        {branch.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
 
                         {/* Date Range Picker */}
                         <Popover>
@@ -438,6 +480,7 @@ export default function DashboardTabsPage() {
                                     numberOfMonths={2}
                                     initialFocus
                                     className="p-3"
+                                    disabled={{ after: new Date() }}
                                 />
                                 <div className="p-3 border-t border-[#78A243]/20 flex gap-2 bg-[#EBD187]/10">
                                     <Button

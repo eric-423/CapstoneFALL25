@@ -1,10 +1,7 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function PUT(
-    request: NextRequest,
-    { params }: { params: Promise<{ branchId: string }> }
-) {
+export async function POST(request: NextRequest) {
     try {
         const cookieStore = await cookies();
         const token = cookieStore.get('token')?.value;
@@ -13,27 +10,29 @@ export async function PUT(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { branchId } = await params;
         const body = await request.json();
-
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/branches/${branchId}`, {
-            method: 'PUT',
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/products/create`, {
+            method: 'POST',
             headers: {
-                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify(body),
         });
 
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            return NextResponse.json(errorData, { status: response.status });
+            const errorBody = await response.text();
+            console.error('Backend error:', errorBody);
+            return NextResponse.json(
+                { error: errorBody || 'Failed to create product' },
+                { status: response.status }
+            );
         }
 
         const data = await response.json();
         return NextResponse.json(data);
     } catch (error) {
-        console.error('Update branch error:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        console.error('Error creating product:', error);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

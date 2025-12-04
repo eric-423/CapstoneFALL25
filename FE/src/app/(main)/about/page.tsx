@@ -14,25 +14,14 @@ import futureValue from "@/assets/images/futureValue.png";
 import { motion } from "framer-motion";
 import { Eye } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
 
 import StyledHeading from "@/components/common/styled-heading";
 
 export default function AboutPage() {
   const isMobile = useIsMobile();
 
-  const [isScrolled, setIsScrolled] = useState(false);
-
   useScrollTop();
 
-  useEffect(() => {
-    const onScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   return (
     <div className="min-h-screen flex bg-[#FFFCF7]">

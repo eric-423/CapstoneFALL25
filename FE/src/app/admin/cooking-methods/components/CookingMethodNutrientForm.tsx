@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'react-toastify';
-import { Loader2, Plus, Trash2, Save, X, ChefHat, Edit2 } from 'lucide-react';
+import { Loader2, Trash2, Save, X, ChefHat, Edit2 } from 'lucide-react';
 import {
     Dialog,
     DialogContent,

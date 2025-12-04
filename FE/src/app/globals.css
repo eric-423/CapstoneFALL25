@@ -434,14 +434,12 @@
   }
 
   .gradient-animation {
-    background: linear-gradient(
-      90deg,
-      rgba(255, 140, 66, 0.1) 0%,
-      rgba(255, 200, 87, 0.2) 25%,
-      rgba(255, 140, 66, 0.1) 50%,
-      rgba(255, 200, 87, 0.2) 75%,
-      rgba(255, 140, 66, 0.1) 100%
-    );
+    background: linear-gradient(90deg,
+        rgba(255, 140, 66, 0.1) 0%,
+        rgba(255, 200, 87, 0.2) 25%,
+        rgba(255, 140, 66, 0.1) 50%,
+        rgba(255, 200, 87, 0.2) 75%,
+        rgba(255, 140, 66, 0.1) 100%);
     background-size: 200% 100%;
     animation: gradientShift 3s ease infinite;
   }
@@ -463,4 +461,17 @@
     right: 20px !important;
     z-index: 9999 !important;
   }
+}
+
+/* Hide scrollbar utility class */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+  /* Chrome, Safari, Opera */
 }

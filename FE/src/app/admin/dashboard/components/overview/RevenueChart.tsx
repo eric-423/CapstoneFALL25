@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from 'react';
+import React, { useMemo, memo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { RevenueChartItem } from '@/apis/dashboard.api';
 import { Loader2, Inbox } from 'lucide-react';
@@ -25,7 +25,7 @@ interface RevenueChartProps {
     isLoading?: boolean;
 }
 
-export default function RevenueChart({ data, groupBy, onGroupByChange, isLoading }: RevenueChartProps) {
+function RevenueChart({ data, groupBy, onGroupByChange, isLoading }: RevenueChartProps) {
     const hasData = data && data.length > 0 && data.some(d => d.revenue > 0);
 
     // Format X-axis label based on groupBy type
@@ -97,7 +97,6 @@ export default function RevenueChart({ data, groupBy, onGroupByChange, isLoading
                 </div>
                 {/* Chart-level Control */}
                 <div className="flex items-center gap-2">
-                    {isLoading && <Loader2 className="h-4 w-4 animate-spin text-[#78A243]" />}
                     <select
                         className="bg-white/80 border border-[#78A243]/30 text-sm rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-[#78A243] focus:ring-1 focus:ring-[#78A243]/20 text-[#2D1E1A] font-medium"
                         value={groupBy}
@@ -178,3 +177,5 @@ export default function RevenueChart({ data, groupBy, onGroupByChange, isLoading
         </Card>
     );
 }
+
+export default memo(RevenueChart);
