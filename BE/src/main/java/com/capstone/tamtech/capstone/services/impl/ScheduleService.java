@@ -12,7 +12,7 @@ public interface ScheduleService {
 
     ScheduleDTO getScheduleById(int id);
 
-    List<ScheduleDTO> getAllSchedules();
+    List<ScheduleDTO> getAllSchedules(Integer branchId);
 
     List<ScheduleDTO> getSchedulesByUserId(int userId);
 

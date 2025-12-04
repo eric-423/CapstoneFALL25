@@ -20,4 +20,7 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Integer> {
 
     @Query("SELECT s FROM Schedule s WHERE s.user.id = :userId AND s.date = :date")
     List<Schedule> findByUserIdAndDate(@Param("userId") int userId, @Param("date") Date date);
+
+    @Query("SELECT s FROM Schedule s JOIN RoleHistory rh ON s.user.id = rh.user.id WHERE rh.isActive = true AND (:branchId IS NULL OR rh.branch.id = :branchId)")
+    List<Schedule> findByBranchId(@Param("branchId") Integer branchId);
 }

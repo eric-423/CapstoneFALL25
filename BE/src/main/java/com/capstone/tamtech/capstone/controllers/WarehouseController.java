@@ -60,6 +60,24 @@ public class WarehouseController {
         }
     }
 
+    @Operation(summary = "Lấy thông tin kho theo branchId", description = "Trả về thông tin kho của một chi nhánh")
+    @GetMapping("/branch/{branchId}")
+    public ResponseEntity<?> getWarehouseByBranchId(
+            @Parameter(description = "ID của chi nhánh", required = true) @PathVariable int branchId) {
+        try {
+            WarehouseDTO warehouse = warehouseService.getWarehouseByBranchId(branchId);
+
+            ResponseData responseData = new ResponseData();
+            responseData.setData(warehouse);
+            responseData.setDesc("Warehouse retrieved successfully");
+            return new ResponseEntity<>(responseData, HttpStatus.OK);
+        } catch (Exception e) {
+            ResponseData responseData = new ResponseData();
+            responseData.setDesc("Error: " + e.getMessage());
+            return new ResponseEntity<>(responseData, HttpStatus.BAD_REQUEST);
+        }
+    }
+
     @Operation(summary = "Lấy danh sách vật liệu trong kho", description = "Trả về danh sách tất cả vật liệu và số lượng trong kho")
     @GetMapping("/{warehouseId}/materials")
     public ResponseEntity<?> getMaterialsInWarehouse(
