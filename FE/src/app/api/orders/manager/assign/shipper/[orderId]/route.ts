@@ -20,7 +20,7 @@ export async function PUT(
         }
 
         const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
-        const url = `${baseUrl}/orders/manager/assign/shipper/${orderId}`;
+        const url = `${baseUrl}/orders/staff/assign/shipper/${orderId}`;
 
         const response = await fetch(url, {
             method: 'PUT',

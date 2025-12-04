@@ -139,16 +139,6 @@ export default function ManagerLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  useEffect(() => {
-    document.documentElement.style.overflow = "hidden";
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      document.documentElement.style.overflow = "";
-      document.body.style.overflow = "";
-    };
-  }, []);
-
   const menuItems = useMemo(
     () => [
       { href: "/manager/dashboard", label: "Tổng quan", icon: LayoutDashboard },

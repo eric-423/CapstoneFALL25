@@ -218,7 +218,8 @@ export function BranchOrdersPage({ variant }: BranchOrdersPageProps) {
             try {
                 const blob = await downloadInvoiceBlob(order.id);
                 await printBlobInBrowser(blob);
-                await fetchAssignToChef(order.id);
+                if (order.orderStatus === 'IM_PROCESS') await fetchAssignToChef(order.id);
+
 
             } catch {
                 toast.error("Lỗi in hóa đơn. Vui lòng thử lại.");
@@ -485,7 +486,7 @@ export function BranchOrdersPage({ variant }: BranchOrdersPageProps) {
     return (
         <>
             <div
-                className={`bg-white -mb-6 -mr-4 sm:-mr-4 ml-4 ${montserrat.className}`}
+                className={`${montserrat.className}`}
             >
                 <AdminPageLayout>
                     <AdminPageHeader
@@ -505,21 +506,18 @@ export function BranchOrdersPage({ variant }: BranchOrdersPageProps) {
                             value={stats.inProcess}
                             icon={Clock}
                             className="border-yellow-200"
-                            iconClassName="from-yellow-400 to-yellow-600"
                         />
                         <AdminStatsCard
                             title="Hoàn thành"
                             value={stats.completed}
                             icon={CheckCircle}
                             className="border-green-200"
-                            iconClassName="from-green-400 to-green-600"
                         />
                         <AdminStatsCard
                             title="Tổng doanh thu"
                             value={`${(stats.totalRevenue / 1000000).toFixed(1)}M`}
                             icon={DollarSign}
                             className="border-[#F8A91F]/20"
-                            iconClassName="from-[#EC6426] to-[#F8A91F]"
                         />
                     </AdminStatsGrid>
 

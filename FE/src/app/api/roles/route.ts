@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
 // GET: Lấy danh sách tất cả roles
-export async function GET(request: NextRequest) {
+export async function GET() {
     try {
         const cookieStore = await cookies();
         const accessToken = cookieStore.get('access_token')?.value || cookieStore.get('token')?.value;

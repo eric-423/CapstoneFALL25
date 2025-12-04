@@ -545,7 +545,7 @@ export const completeCustomerOrder = async (orderId: number): Promise<CommonResp
             method: 'PUT',
             credentials: 'include',
         });
-        
+
         if (!response.ok) {
             const errorBody = await response.json().catch(() => ({ error: 'Failed to complete order' }));
             return {
@@ -553,7 +553,7 @@ export const completeCustomerOrder = async (orderId: number): Promise<CommonResp
                 message: errorBody.message || errorBody.error || 'Không thể hoàn tất đơn hàng'
             };
         }
-        
+
         return {
             success: true,
             message: 'Đã xác nhận nhận hàng thành công'

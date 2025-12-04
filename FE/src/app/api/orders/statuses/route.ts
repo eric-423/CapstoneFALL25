@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://tam-tac.com';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
     try {
         const cookieStore = await cookies();
         const token = cookieStore.get('token')?.value;
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
 
         const responseText = await response.text();
         console.log('✅ Response text:', responseText.substring(0, 200));
-        
+
         let data;
         try {
             data = JSON.parse(responseText);

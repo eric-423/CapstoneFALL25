@@ -18,7 +18,7 @@ interface LogEntry {
   level: LogLevelType;
   message: string;
   timestamp: string;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
   userId?: string;
   requestId?: string;
 }
@@ -29,20 +29,20 @@ class Logger {
 
   private formatLog(entry: LogEntry): string {
     const { level, message, timestamp, context, userId, requestId } = entry;
-    
+
     let logString = `[${timestamp}] [${level.toUpperCase()}] ${message}`;
-    
+
     if (userId) logString += ` [USER:${userId}]`;
     if (requestId) logString += ` [REQ:${requestId}]`;
-    
+
     if (context && Object.keys(context).length > 0) {
       logString += ` [CONTEXT:${JSON.stringify(context)}]`;
     }
-    
+
     return logString;
   }
 
-  private log(level: LogLevelType, message: string, context?: Record<string, any>) {
+  private log(level: LogLevelType, message: string, context?: Record<string, unknown>) {
     const entry: LogEntry = {
       level,
       message,
@@ -77,19 +77,19 @@ class Logger {
     }
   }
 
-  error(message: string, context?: Record<string, any>) {
+  error(message: string, context?: Record<string, unknown>) {
     this.log(LOG_LEVELS.ERROR, message, context);
   }
 
-  warn(message: string, context?: Record<string, any>) {
+  warn(message: string, context?: Record<string, unknown>) {
     this.log(LOG_LEVELS.WARN, message, context);
   }
 
-  info(message: string, context?: Record<string, any>) {
+  info(message: string, context?: Record<string, unknown>) {
     this.log(LOG_LEVELS.INFO, message, context);
   }
 
-  debug(message: string, context?: Record<string, any>) {
+  debug(message: string, context?: Record<string, unknown>) {
     this.log(LOG_LEVELS.DEBUG, message, context);
   }
 
@@ -105,7 +105,7 @@ class Logger {
   }
 
   // User action logging
-  logUserAction(action: string, userId: string, details?: Record<string, any>) {
+  logUserAction(action: string, userId: string, details?: Record<string, unknown>) {
     this.info('User Action', {
       action,
       userId,
@@ -114,7 +114,7 @@ class Logger {
   }
 
   // Error logging with context
-  logError(error: Error, context?: Record<string, any>) {
+  logError(error: Error, context?: Record<string, unknown>) {
     this.error(error.message, {
       stack: error.stack,
       name: error.name,

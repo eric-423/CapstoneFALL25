@@ -129,6 +129,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/units/{id}").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(HttpMethod.DELETE, "/api/units/{id}").hasAnyRole("ADMIN", "MANAGER")
 
+                        .requestMatchers(HttpMethod.GET, "/api/shifts")
+                        .hasAnyRole("MANAGER", "ADMIN", "STAFF", "CHEFF", "WAITER", "SHIPPER")
+                        .requestMatchers(HttpMethod.GET, "/api/shifts/{id}")
+                        .hasAnyRole("MANAGER", "ADMIN", "STAFF", "CHEFF", "WAITER", "SHIPPER")
+                        .requestMatchers(HttpMethod.POST, "/api/shifts").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.PUT, "/api/shifts/{id}").hasAnyRole("ADMIN", "MANAGER")
+
                         .requestMatchers(HttpMethod.GET, "/api/cooking-methods")
                         .hasAnyRole("MANAGER", "ADMIN", "CHEFF", "WAITER")
                         .requestMatchers(HttpMethod.GET, "/api/cooking-methods/**")
@@ -258,12 +265,15 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/orders/*/bill/regenerate")
                         .hasAnyRole("ADMIN", "MANAGER")
 
+                        .requestMatchers(HttpMethod.GET, "/api/roles").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers("/api/roles/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/roles/{roleId}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/roles/{roleId}").hasRole("ADMIN")
 
                         .requestMatchers(HttpMethod.GET, "/api/users/statistics").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(HttpMethod.GET, "/api/users/**").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.PUT, "/api/users/{userId}").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.PUT, "/api/users/{userId}/ban").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
                         .requestMatchers("/api/role-histories/update/test/role-names").permitAll()
                         .requestMatchers("/api/role-histories/**").hasRole("ADMIN")

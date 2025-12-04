@@ -114,7 +114,7 @@ export default function ForgotPasswordForm() {
                         setLoading(false);
                     }
                 };
-                
+
                 triggerForgotPassword();
             }
         }
@@ -219,12 +219,12 @@ export default function ForgotPasswordForm() {
             // Call forgot-password API again to resend OTP
             await forgotPassword(phoneNumber);
             setOtp('');
-            
+
             // Get countdown time
             try {
                 const timeResendResponse = await getTimeResendOtp('zalo', phoneNumber);
                 setCountdown(timeResendResponse.data.ttl || 60);
-            } catch (error) {
+            } catch {
                 setCountdown(60); // Default 60 seconds
             }
 
@@ -303,9 +303,8 @@ export default function ForgotPasswordForm() {
                                             {...registerPhone('phone')}
                                             type="tel"
                                             placeholder="Số điện thoại"
-                                            className={`rounded-lg border ${
-                                                phoneErrors.phone ? 'border-red-500' : 'border-gray-300'
-                                            } focus:border-[#FF6B35] focus:ring-[#FF6B35]`}
+                                            className={`rounded-lg border ${phoneErrors.phone ? 'border-red-500' : 'border-gray-300'
+                                                } focus:border-[#FF6B35] focus:ring-[#FF6B35]`}
                                         />
                                         {phoneErrors.phone && (
                                             <p className="mt-1 text-sm text-red-600">{phoneErrors.phone.message}</p>
@@ -354,9 +353,8 @@ export default function ForgotPasswordForm() {
                                     </p>
                                     {otpFeedback && (
                                         <p
-                                            className={`text-sm font-medium ${
-                                                otpFeedback.type === 'error' ? 'text-red-600' : 'text-green-600'
-                                            } mb-4`}
+                                            className={`text-sm font-medium ${otpFeedback.type === 'error' ? 'text-red-600' : 'text-green-600'
+                                                } mb-4`}
                                         >
                                             {otpFeedback.text}
                                         </p>
@@ -456,9 +454,8 @@ export default function ForgotPasswordForm() {
                                                 })}
                                                 type={showPassword ? 'text' : 'password'}
                                                 placeholder="Mật khẩu mới"
-                                                className={`rounded-lg border ${
-                                                    passwordErrors.password ? 'border-red-500' : 'border-gray-300'
-                                                } focus:border-[#FF6B35] focus:ring-[#FF6B35]`}
+                                                className={`rounded-lg border ${passwordErrors.password ? 'border-red-500' : 'border-gray-300'
+                                                    } focus:border-[#FF6B35] focus:ring-[#FF6B35]`}
                                             />
                                             <button
                                                 type="button"
@@ -483,9 +480,8 @@ export default function ForgotPasswordForm() {
                                                 })}
                                                 type={showConfirmPassword ? 'text' : 'password'}
                                                 placeholder="Xác nhận mật khẩu mới"
-                                                className={`rounded-lg border ${
-                                                    passwordErrors.confirmPassword ? 'border-red-500' : 'border-gray-300'
-                                                } focus:border-[#FF6B35] focus:ring-[#FF6B35]`}
+                                                className={`rounded-lg border ${passwordErrors.confirmPassword ? 'border-red-500' : 'border-gray-300'
+                                                    } focus:border-[#FF6B35] focus:ring-[#FF6B35]`}
                                             />
                                             <button
                                                 type="button"

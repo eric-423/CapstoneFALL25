@@ -33,6 +33,7 @@ export async function PUT(
         const data = await response.json();
         return NextResponse.json(data);
     } catch (error) {
+        console.error('Update branch error:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

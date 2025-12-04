@@ -1,13 +1,12 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
+import { X, Calendar, Loader2, CheckCircle, Eye } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,7 +21,6 @@ import {
 } from '@/components/ui/select';
 import { Schedule, CreateScheduleData, UpdateScheduleData } from '@/apis/schedule.api';
 import { toast } from 'react-toastify';
-import { useBodyScrollLock } from '@/components/common/useBodyScrollLock';
 
 interface ScheduleFormDialogProps {
   open: boolean;
@@ -67,7 +65,30 @@ export function ScheduleFormDialog({
   });
 
   const [loading, setLoading] = useState(false);
-  useBodyScrollLock(open);
+
+  // Check if viewing a past schedule (read-only mode)
+  const isViewOnly = useMemo(() => {
+    if (!schedule?.date) return false;
+
+    const scheduleDate = new Date(schedule.date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    scheduleDate.setHours(0, 0, 0, 0);
+
+    // Nếu ngày đã qua
+    if (scheduleDate < today) return true;
+
+    // Nếu là hôm nay, kiểm tra thời gian kết thúc
+    if (scheduleDate.getTime() === today.getTime() && schedule.endTime) {
+      const [hours, minutes] = schedule.endTime.split(':');
+      const endTime = new Date();
+      endTime.setHours(parseInt(hours || '0'), parseInt(minutes || '0'), 0, 0);
+      const now = new Date();
+      if (now > endTime) return true;
+    }
+
+    return false;
+  }, [schedule]);
 
   useEffect(() => {
     if (open) {
@@ -88,6 +109,12 @@ export function ScheduleFormDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Không cho submit nếu đang ở chế độ xem
+    if (isViewOnly) {
+      onOpenChange(false);
+      return;
+    }
 
     if (!formData.userId) {
       toast.error('Vui lòng chọn nhân viên');
@@ -119,7 +146,7 @@ export function ScheduleFormDialog({
     selectedDateObj.setHours(0, 0, 0, 0);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     if (selectedDateObj < today) {
       toast.error('Ngày lịch trình không được trước ngày hôm nay');
       return;
@@ -127,10 +154,10 @@ export function ScheduleFormDialog({
 
     try {
       setLoading(true);
-      
+
       // Đảm bảo userId luôn có khi update
       const userId = schedule ? (schedule.userId || formData.userId) : formData.userId;
-      
+
       const payload = {
         userId: userId,
         name: formData.name,
@@ -146,176 +173,230 @@ export function ScheduleFormDialog({
         schedule ? 'Cập nhật lịch trình thành công!' : 'Tạo lịch trình thành công!'
       );
       onOpenChange(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error submitting schedule:', error);
-      const errorMessage = error?.message || 'Có lỗi xảy ra khi lưu lịch trình';
+      const errorMessage = error instanceof Error ? error.message : String(error) || 'Có lỗi xảy ra khi lưu lịch trình';
       toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
+  // Xác định tiêu đề dialog
+  const getDialogTitle = () => {
+    if (isViewOnly) return 'Chi tiết lịch trình';
+    if (schedule) return 'Chỉnh sửa lịch trình';
+    return 'Tạo lịch trình mới';
+  };
+
+  // Xác định màu header
+  const getHeaderColor = () => {
+    if (isViewOnly) return 'bg-gray-500';
+    return 'bg-[#78A243]';
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] sm:max-w-[550px] max-h-[90vh] overflow-y-auto mx-2 sm:mx-auto">
-        <DialogHeader>
-          <DialogTitle className="text-lg sm:text-xl">
-            {schedule ? 'Chỉnh sửa lịch trình' : 'Tạo lịch trình mới'}
-          </DialogTitle>
-          <DialogDescription className="text-xs sm:text-sm">
-            {schedule
-              ? 'Cập nhật thông tin lịch trình làm việc cho nhân viên'
-              : 'Điền thông tin để tạo lịch trình làm việc mới cho nhân viên'}
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-[500px] max-h-[95vh] overflow-y-auto flex flex-col p-0 gap-0 bg-white border border-gray-200 rounded-xl [&>button]:hidden">
+        {/* Header */}
+        <div className={`${getHeaderColor()} p-4 flex items-center justify-between shrink-0 rounded-t-xl`}>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-white/15 rounded-lg flex items-center justify-center">
+              {isViewOnly ? (
+                <Eye className="h-5 w-5 text-white" />
+              ) : (
+                <Calendar className="h-5 w-5 text-white" />
+              )}
+            </div>
+            <div>
+              <DialogTitle className="text-xl font-bold text-white">
+                {getDialogTitle()}
+              </DialogTitle>
+              {isViewOnly && (
+                <p className="text-white/70 text-sm mt-0.5">Lịch trình đã qua - chỉ xem</p>
+              )}
+            </div>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => onOpenChange(false)}
+            disabled={loading}
+            className="border-white/30 bg-white/10 hover:bg-white/20 text-white hover:text-white h-8 w-8 p-0"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5 mt-3 sm:mt-4">
-          {/* Nhân viên */}
-          <div className="space-y-2">
-            <Label htmlFor="userId" className="text-xs sm:text-sm font-semibold">
-              Nhân viên <span className="text-red-500">*</span>
-            </Label>
-            <Select
-              value={formData.userId ? formData.userId.toString() : ''}
-              onValueChange={(value) =>
-                setFormData({ ...formData, userId: parseInt(value) })
-              }
-              disabled={!!schedule}
-            >
-              <SelectTrigger className="w-full text-sm">
-                <SelectValue placeholder="Chọn nhân viên" />
-              </SelectTrigger>
-              <SelectContent 
-                className="z-[102] max-h-[300px] !fixed" 
-                position="popper"
-                sideOffset={4}
+        <form onSubmit={handleSubmit} className="flex flex-col flex-grow overflow-hidden">
+          <div className="flex-grow overflow-y-auto p-6 bg-gray-50/50 space-y-4">
+            {/* Nhân viên */}
+            <div className="space-y-2">
+              <Label htmlFor="userId" className="font-semibold text-gray-800">
+                Nhân viên {!isViewOnly && <span className="text-red-500">*</span>}
+              </Label>
+              <Select
+                value={formData.userId ? formData.userId.toString() : ''}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, userId: parseInt(value) })
+                }
+                disabled={!!schedule || loading || isViewOnly}
               >
-                {users.map((user) => (
-                  <SelectItem key={user.id} value={user.id.toString()}>
-                    {user.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {!!schedule && (
-              <p className="text-[10px] sm:text-xs text-gray-500 mt-1">
-                Không thể thay đổi nhân viên sau khi tạo lịch trình
-              </p>
+                <SelectTrigger className="w-full focus:border-[#78A243] focus:ring-[#78A243]/20">
+                  <SelectValue placeholder="Chọn nhân viên" />
+                </SelectTrigger>
+                <SelectContent
+                  className="z-[102] max-h-[300px]"
+                  position="popper"
+                  sideOffset={4}
+                >
+                  {users.map((user) => (
+                    <SelectItem key={user.id} value={user.id.toString()}>
+                      {user.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {!!schedule && !isViewOnly && (
+                <p className="text-xs text-gray-500">
+                  Không thể thay đổi nhân viên sau khi tạo lịch trình
+                </p>
+              )}
+            </div>
+
+            {/* Tên lịch trình */}
+            <div className="space-y-2">
+              <Label htmlFor="name" className="font-semibold text-gray-800">
+                Tên lịch trình {!isViewOnly && <span className="text-red-500">*</span>}
+              </Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="Ví dụ: Ca sáng, Ca chiều, Ca tối..."
+                required={!isViewOnly}
+                disabled={loading || isViewOnly}
+                className="focus:border-[#78A243] focus:ring-[#78A243]/20"
+              />
+            </div>
+
+            {/* Ngày */}
+            <div className="space-y-2">
+              <Label htmlFor="date" className="font-semibold text-gray-800">
+                Ngày {!isViewOnly && <span className="text-red-500">*</span>}
+              </Label>
+              <Input
+                id="date"
+                type="date"
+                value={formData.date}
+                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                min={new Date().toISOString().split('T')[0]}
+                required={!isViewOnly}
+                disabled={loading || isViewOnly}
+                className="focus:border-[#78A243] focus:ring-[#78A243]/20"
+              />
+            </div>
+
+            {/* Thời gian */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="startTime" className="font-semibold text-gray-800">
+                  Giờ bắt đầu {!isViewOnly && <span className="text-red-500">*</span>}
+                </Label>
+                <Input
+                  id="startTime"
+                  type="time"
+                  value={formData.startTime}
+                  onChange={(e) =>
+                    setFormData({ ...formData, startTime: e.target.value })
+                  }
+                  required={!isViewOnly}
+                  disabled={loading || isViewOnly}
+                  className="focus:border-[#78A243] focus:ring-[#78A243]/20"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="endTime" className="font-semibold text-gray-800">
+                  Giờ kết thúc {!isViewOnly && <span className="text-red-500">*</span>}
+                </Label>
+                <Input
+                  id="endTime"
+                  type="time"
+                  value={formData.endTime}
+                  onChange={(e) =>
+                    setFormData({ ...formData, endTime: e.target.value })
+                  }
+                  required={!isViewOnly}
+                  disabled={loading || isViewOnly}
+                  className="focus:border-[#78A243] focus:ring-[#78A243]/20"
+                />
+              </div>
+            </div>
+
+            {/* Mô tả */}
+            <div className="space-y-2">
+              <Label htmlFor="description" className="font-semibold text-gray-800">
+                Mô tả {!isViewOnly && <span className="text-gray-400 text-xs">(tùy chọn)</span>}
+              </Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
+                placeholder={isViewOnly ? 'Không có mô tả' : 'Nhập mô tả chi tiết về lịch trình (nếu có)...'}
+                rows={3}
+                disabled={loading || isViewOnly}
+                className="focus:border-[#78A243] focus:ring-[#78A243]/20"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="p-4 border-t border-gray-200 bg-gray-50 shrink-0 rounded-b-xl flex gap-3 justify-end">
+            {isViewOnly ? (
+              <Button
+                type="button"
+                onClick={() => onOpenChange(false)}
+                className="px-5 py-2.5 bg-gray-500 hover:bg-gray-600 text-white font-semibold"
+              >
+                Đóng
+              </Button>
+            ) : (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => onOpenChange(false)}
+                  disabled={loading}
+                  className="px-5 py-2.5 border-2 border-gray-300 hover:bg-gray-100 font-semibold"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Hủy
+                </Button>
+                <Button
+                  type="submit"
+                  className="px-5 py-2.5 bg-[#78A243] hover:bg-[#78A243]/90 text-white font-semibold"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Đang lưu...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      {schedule ? 'Cập nhật' : 'Tạo mới'}
+                    </>
+                  )}
+                </Button>
+              </>
             )}
-          </div>
-
-          {/* Tên lịch trình */}
-          <div className="space-y-2">
-            <Label htmlFor="name" className="text-xs sm:text-sm font-semibold">
-              Tên lịch trình <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="Ví dụ: Ca sáng, Ca chiều, Ca tối..."
-              required
-              className="w-full text-sm"
-            />
-          </div>
-
-          {/* Ngày */}
-          <div className="space-y-2">
-            <Label htmlFor="date" className="text-xs sm:text-sm font-semibold">
-              Ngày <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="date"
-              type="date"
-              value={formData.date}
-              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-              min={new Date().toISOString().split('T')[0]}
-              required
-              className="w-full text-sm"
-            />
-          </div>
-
-          {/* Thời gian */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="startTime" className="text-xs sm:text-sm font-semibold">
-                Giờ bắt đầu <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="startTime"
-                type="time"
-                value={formData.startTime}
-                onChange={(e) =>
-                  setFormData({ ...formData, startTime: e.target.value })
-                }
-                required
-                className="w-full text-sm"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="endTime" className="text-xs sm:text-sm font-semibold">
-                Giờ kết thúc <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="endTime"
-                type="time"
-                value={formData.endTime}
-                onChange={(e) =>
-                  setFormData({ ...formData, endTime: e.target.value })
-                }
-                required
-                className="w-full text-sm"
-              />
-            </div>
-          </div>
-
-          {/* Mô tả */}
-          <div className="space-y-2">
-            <Label htmlFor="description" className="text-xs sm:text-sm font-semibold">
-              Mô tả <span className="text-gray-400 text-[10px] sm:text-xs">(tùy chọn)</span>
-            </Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
-              placeholder="Nhập mô tả chi tiết về lịch trình (nếu có)..."
-              rows={3}
-              className="w-full text-sm"
-            />
-          </div>
-
-          <DialogFooter className="gap-2 pt-3 sm:pt-4 flex-col sm:flex-row">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={loading}
-              className="flex-1 sm:flex-initial w-full sm:w-auto order-2 sm:order-1"
-            >
-              Hủy
-            </Button>
-            <Button 
-              type="submit" 
-              disabled={loading}
-              className="bg-[#EC6426] hover:bg-[#EC6426]/90 flex-1 sm:flex-initial w-full sm:w-auto order-1 sm:order-2"
-            >
-              {loading ? 'Đang lưu...' : schedule ? 'Cập nhật' : 'Tạo mới'}
-            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
   );
 }
-
-
-
-
-
-
-
-
-

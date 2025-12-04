@@ -67,10 +67,7 @@ export interface PaginatedCookingUtensilResponse {
 
 // ==================== Utensil Type API ====================
 
-export async function getUtensilTypes(includeDeleted: boolean = false): Promise<UtensilType[]> {
-    // Note: Backend doesn't support includeDeleted for UtensilTypes based on controller analysis, 
-    // but keeping the parameter for now if needed or if search request supports it implicitly.
-    // The controller takes UtensilTypeSearchRequest.
+export async function getUtensilTypes(): Promise<UtensilType[]> {
     const response = await fetch(
         `/api/utensils-types`,
         {

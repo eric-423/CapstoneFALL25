@@ -59,23 +59,22 @@ export function ScheduleCard({
   return (
     <Card
       className={cn(
-        'p-2 sm:p-3 border transition-all duration-200 relative group',
+        'p-2 sm:p-3 border transition-all duration-200 relative group cursor-pointer',
         isPast
-          ? 'bg-gray-100 border-gray-300 opacity-70 cursor-not-allowed'
-          : 'bg-gradient-to-br from-white to-orange-50/40 border-orange-200 hover:border-orange-400 hover:shadow-lg cursor-pointer',
+          ? 'bg-gray-50 border-gray-200 hover:border-gray-300'
+          : 'bg-white border-gray-200 hover:border-[#78A243]',
         className
       )}
       onClick={(e) => {
         e.stopPropagation();
-        if (!isPast) {
-          onEdit?.(schedule);
-        }
+        // Cho phép xem cả lịch trình quá khứ
+        onEdit?.(schedule);
       }}
     >
       {/* Badge chỉnh sửa khi hover - chỉ hiển thị nếu không phải quá khứ */}
       {!isPast && (
         <div className="absolute bottom-1.5 sm:bottom-2 right-1.5 sm:right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-          <div className="bg-orange-500 text-white rounded-full p-0.5 sm:p-1">
+          <div className="bg-[#78A243] text-white rounded-full p-0.5 sm:p-1">
             <Edit2 className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
           </div>
         </div>
@@ -87,16 +86,16 @@ export function ScheduleCard({
           <div className='flex items-center gap-1.5 sm:gap-2'>
             <div className={cn(
               "w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center flex-shrink-0",
-              isPast ? "bg-gray-200" : "bg-orange-100"
+              isPast ? "bg-gray-200" : "bg-[#78A243]/20"
             )}>
               <User className={cn(
                 "w-3 h-3 sm:w-3.5 sm:h-3.5",
-                isPast ? "text-gray-500" : "text-orange-600"
+                isPast ? "text-gray-500" : "text-[#78A243]"
               )} />
             </div>
             <h4 className={cn(
               "font-bold text-xs sm:text-sm truncate",
-              isPast ? "text-gray-500" : "text-gray-900"
+              isPast ? "text-gray-500" : "text-[#2D1E1A]"
             )}>
               {schedule.userName}
             </h4>
@@ -105,11 +104,11 @@ export function ScheduleCard({
           {/* Tên lịch trình */}
           <div className={cn(
             "rounded-md px-1.5 sm:px-2 py-0.5 sm:py-1",
-            isPast ? "bg-gray-200" : "bg-orange-100/50"
+            isPast ? "bg-gray-100" : "bg-[#78A243]/10"
           )}>
             <p className={cn(
               "text-[10px] sm:text-xs font-semibold truncate",
-              isPast ? "text-gray-600" : "text-orange-900"
+              isPast ? "text-gray-600" : "text-[#78A243]"
             )}>
               {schedule.name}
             </p>
@@ -119,7 +118,7 @@ export function ScheduleCard({
           {(schedule.startTime || schedule.endTime) && (
             <div className={cn(
               "flex items-center gap-1 text-[10px] sm:text-xs rounded-md px-1.5 sm:px-2 py-0.5 sm:py-1",
-              isPast ? "bg-gray-200 text-gray-600" : "text-gray-700 bg-gray-50"
+              isPast ? "bg-gray-100 text-gray-600" : "text-gray-700 bg-gray-100"
             )}>
               <Clock className={cn(
                 "w-2.5 h-2.5 sm:w-3 sm:h-3 flex-shrink-0",
@@ -135,7 +134,7 @@ export function ScheduleCard({
           {schedule.description && (
             <p className={cn(
               "text-[10px] sm:text-xs mt-0.5 sm:mt-1 line-clamp-2 leading-relaxed hidden sm:block",
-              isPast ? "text-gray-500" : "text-gray-600"
+              isPast ? "text-gray-500" : "text-[#2D1E1A]/60"
             )}>
               {schedule.description}
             </p>

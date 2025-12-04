@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { memo } from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { RevenueByChannelItem } from '@/apis/dashboard.api';
 import { Loader2, Inbox } from 'lucide-react';
@@ -21,7 +21,7 @@ interface SalesByChannelChartProps {
     isLoading?: boolean;
 }
 
-export default function SalesByChannelChart({ data, isLoading }: SalesByChannelChartProps) {
+function SalesByChannelChart({ data, isLoading }: SalesByChannelChartProps) {
     const totalRevenue = data.reduce((acc, curr) => acc + curr.revenue, 0);
     const hasData = data && data.length > 0 && totalRevenue > 0;
 
@@ -113,3 +113,5 @@ export default function SalesByChannelChart({ data, isLoading }: SalesByChannelC
         </Card>
     );
 }
+
+export default memo(SalesByChannelChart);

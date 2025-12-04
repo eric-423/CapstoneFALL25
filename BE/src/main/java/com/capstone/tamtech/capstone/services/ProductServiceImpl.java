@@ -172,6 +172,9 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Không tìm thấy loại sản phẩm với ID: " + productCreateRequest.getTypeId())));
 
+        productRepository.save(product);
+        productRepository.flush();
+
         for (RecipesRequest request : productCreateRequest.getRecipesRequests()) {
             Material material = materialRepository.findById(request.getMaterialId())
                     .orElseThrow(() -> new ResourceNotFoundException(
@@ -193,7 +196,6 @@ public class ProductServiceImpl implements ProductService {
 
             productRecipesRepository.save(productRecipes);
 
-            product.getProductRecipes().add(productRecipes);
             productRecipesList.add(productRecipes);
         }
 

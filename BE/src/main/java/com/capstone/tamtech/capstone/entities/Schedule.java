@@ -23,6 +23,11 @@ public class Schedule {
     @JoinColumn(name = "user_id")
     private Users user;
 
+    @ManyToOne(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE,
+            CascadeType.REFRESH, CascadeType.DETACH })
+    @JoinColumn(name = "shift_id")
+    private Shift shift;
+
     @Column(name = "name")
     private String name;
 
