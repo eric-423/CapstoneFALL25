@@ -1,45 +1,79 @@
 "use client";
 
 import { AdminGuard } from "@/components/guards";
-import { Gift, CheckCircle, XCircle, Search, X, Users } from "lucide-react";
+import {
+  Gift,
+  CheckCircle,
+  XCircle,
+  ChevronLeft,
+  ChevronRight,
+  Search,
+  X,
+  Users,
+} from "lucide-react";
 import { AddPromotionDialog } from "./components/AddPromotionDialog";
 import { PromotionCard } from "./components/PromotionCard";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { toast } from "react-toastify";
 import {
   getAllPromotions,
   togglePromotionStatus,
   type Promotion,
+  type PromotionsPageResponse,
 } from "@/apis/promotion.api";
 import {
   AdminPageLayout,
   AdminPageHeader,
 } from "../components/AdminPageLayout";
 import { AdminCard } from "../components/AdminCard";
-import { FilterDropdown } from "../components/FilterDropdown";
 import { Button } from "@/components/ui/button";
+import { FilterDropdown } from "../components/FilterDropdown";
 
 export default function PromotionsPage() {
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchKeyword, setSearchKeyword] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+  const [pageSize] = useState(12);
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
 
-  const fetchPromotions = async () => {
+  const fetchPromotions = useCallback(async () => {
     try {
       setIsLoading(true);
-      const data = await getAllPromotions();
-      setPromotions(data);
+      const result = await getAllPromotions({
+        page: currentPage,
+        size: pageSize,
+        sortBy: "createdAt",
+        sortDirection: "DESC",
+      });
+
+      if (result && typeof result === "object" && "content" in result) {
+        const pageResponse = result as PromotionsPageResponse;
+        setPromotions(pageResponse.content || []);
+        setTotalPages(pageResponse.totalPages || 0);
+        setTotalElements(pageResponse.totalElements || 0);
+      } else if (Array.isArray(result)) {
+        setPromotions(result);
+        setTotalPages(Math.ceil(result.length / pageSize));
+        setTotalElements(result.length);
+      } else {
+        setPromotions([]);
+        setTotalPages(0);
+        setTotalElements(0);
+      }
     } catch (error) {
       console.error("Error fetching promotions:", error);
+      toast.error("❌ Không thể tải danh sách khuyến mãi!");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentPage, pageSize]);
 
   useEffect(() => {
     fetchPromotions();
-  }, []);
+  }, [fetchPromotions]);
 
   const handleToggleStatus = async (
     promotionCode: string,
@@ -57,25 +91,62 @@ export default function PromotionsPage() {
     }
   };
 
-  const activePromotions = promotions.filter((p) => p.status);
-  const totalUsage = promotions.reduce((sum, p) => sum + p.usageCount, 0);
+  const [allPromotionsForStats, setAllPromotionsForStats] = useState<
+    Promotion[]
+  >([]);
 
-  // Filter promotions
-  const filteredPromotions = promotions.filter(promo => {
-    const matchesKeyword = !searchKeyword ||
+  useEffect(() => {
+    const fetchAllForStats = async () => {
+      try {
+        const result = await getAllPromotions({ page: 0, size: 1000 });
+        if (result && typeof result === "object" && "content" in result) {
+          setAllPromotionsForStats(
+            (result as PromotionsPageResponse).content || []
+          );
+        } else if (Array.isArray(result)) {
+          setAllPromotionsForStats(result);
+        }
+      } catch (error) {
+        console.error("Error fetching all promotions for stats:", error);
+      }
+    };
+    fetchAllForStats();
+  }, []);
+
+  const activePromotions = useMemo(
+    () => allPromotionsForStats.filter((p) => p.status),
+    [allPromotionsForStats]
+  );
+  const totalUsage = useMemo(
+    () =>
+      allPromotionsForStats.reduce((sum, p) => sum + (p.usageCount || 0), 0),
+    [allPromotionsForStats]
+  );
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 0 && newPage < totalPages) {
+      setCurrentPage(newPage);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const filteredPromotions = promotions.filter((promo) => {
+    const matchesKeyword =
+      !searchKeyword ||
       promo.name.toLowerCase().includes(searchKeyword.toLowerCase()) ||
       promo.description.toLowerCase().includes(searchKeyword.toLowerCase());
 
-    const matchesStatus = !statusFilter ||
-      (statusFilter === 'active' && promo.status) ||
-      (statusFilter === 'inactive' && !promo.status);
+    const matchesStatus =
+      !statusFilter ||
+      (statusFilter === "active" && promo.status) ||
+      (statusFilter === "inactive" && !promo.status);
 
     return matchesKeyword && matchesStatus;
   });
 
   const handleClearFilters = () => {
-    setSearchKeyword('');
-    setStatusFilter('');
+    setSearchKeyword("");
+    setStatusFilter("");
   };
 
   return (
@@ -87,8 +158,12 @@ export default function PromotionsPage() {
           actions={<AddPromotionDialog onSuccess={fetchPromotions} />}
         />
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <AdminCard title="Tổng khuyến mãi" value={promotions.length} icon={Gift} subtitle="Trong hệ thống" />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <AdminCard
+            title="Tổng KM"
+            value={allPromotionsForStats.length}
+            icon={Gift}
+          />
           <AdminCard
             title="Đang hoạt động"
             value={activePromotions.length}
@@ -96,12 +171,17 @@ export default function PromotionsPage() {
             subtitle="Có thể sử dụng"
           />
           <AdminCard
-            title="Đã tắt"
-            value={promotions.length - activePromotions.length}
+            title="Kết thúc"
+            value={allPromotionsForStats.length - activePromotions.length}
             icon={XCircle}
             subtitle="Tạm ngừng"
           />
-          <AdminCard title="Tổng lượt dùng" value={totalUsage} icon={Users} subtitle="Đã sử dụng" />
+          <AdminCard
+            title="Tổng lượt dùng"
+            value={totalUsage}
+            icon={Users}
+            subtitle="Đã sử dụng"
+          />
         </div>
 
         {/* Filters */}
@@ -124,17 +204,13 @@ export default function PromotionsPage() {
               onChange={(value) => setStatusFilter(value)}
               items={[
                 { value: "active", label: "Đang hoạt động" },
-                { value: "inactive", label: "Đã tắt" }
+                { value: "inactive", label: "Đã tắt" },
               ]}
               className="w-[180px]"
             />
 
             {(searchKeyword || statusFilter) && (
-              <Button
-                onClick={handleClearFilters}
-                variant="ghost"
-                size="sm"
-              >
+              <Button onClick={handleClearFilters} variant="ghost" size="sm">
                 <X className="h-4 w-4 mr-1" />
                 Xóa lọc
               </Button>
@@ -153,16 +229,57 @@ export default function PromotionsPage() {
             <p className="font-semibold">Không tìm thấy khuyến mãi nào</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredPromotions.map((promo) => (
-              <PromotionCard
-                key={promo.id}
-                promotion={promo}
-                onToggleStatus={handleToggleStatus}
-                onSuccess={fetchPromotions}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              {filteredPromotions.map((promo) => (
+                <PromotionCard
+                  key={promo.id}
+                  promotion={promo}
+                  onToggleStatus={handleToggleStatus}
+                  onSuccess={fetchPromotions}
+                />
+              ))}
+            </div>
+            {totalPages > 1 && (
+              <div className="mt-6 px-4 py-3 border-t border-gray-200 bg-gray-50 rounded-lg flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  Trang{" "}
+                  <span className="font-semibold text-[#78A243]">
+                    {currentPage + 1}
+                  </span>{" "}
+                  / {totalPages}
+                  {totalElements > 0 && (
+                    <span className="ml-2 text-gray-500">
+                      (Hiển thị {filteredPromotions.length} / {totalElements}{" "}
+                      khuyến mãi)
+                    </span>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 0 || isLoading}
+                    variant="outline"
+                    size="sm"
+                    className="border-[#78A243]/30 text-[#78A243] hover:bg-[#78A243]/10"
+                  >
+                    <ChevronLeft className="h-4 w-4 mr-1" />
+                    Trước
+                  </Button>
+                  <Button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage >= totalPages - 1 || isLoading}
+                    variant="outline"
+                    size="sm"
+                    className="border-[#78A243]/30 text-[#78A243] hover:bg-[#78A243]/10"
+                  >
+                    Sau
+                    <ChevronRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </AdminPageLayout>
     </AdminGuard>

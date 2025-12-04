@@ -16,6 +16,7 @@ import {
   GET_BRANCHES_STALE_TIME,
   getBranches,
 } from "@/apis/branch.api";
+import { setCookie } from "@/utils/cookies.client";
 
 type Branch = {
   branchId: number;
@@ -66,6 +67,9 @@ export function BranchDropdown() {
         const branch = JSON.parse(stored) as Branch;
         if (branches.some((b) => b.branchId === branch.branchId)) {
           setSelectedBranch(branch);
+          const expiresDate = new Date();
+          expiresDate.setFullYear(expiresDate.getFullYear() + 1);
+          setCookie("branchId", branch.branchId.toString(), expiresDate);
           initializedRef.current = true;
           return;
         }
@@ -77,6 +81,9 @@ export function BranchDropdown() {
     const firstBranch = branches[0];
     setSelectedBranch(firstBranch);
     localStorage.setItem("selectedBranch", JSON.stringify(firstBranch));
+    const expiresDate = new Date();
+    expiresDate.setFullYear(expiresDate.getFullYear() + 1);
+    setCookie("branchId", firstBranch.branchId.toString(), expiresDate);
     initializedRef.current = true;
   }, [branches]);
 
@@ -86,6 +93,9 @@ export function BranchDropdown() {
     const handleBranchChange = (event: CustomEvent) => {
       const branch = event.detail as Branch;
       setSelectedBranch(branch);
+      const expiresDate = new Date();
+      expiresDate.setFullYear(expiresDate.getFullYear() + 1);
+      setCookie("branchId", branch.branchId.toString(), expiresDate);
     };
 
     const handleStorageChange = () => {
@@ -118,6 +128,9 @@ export function BranchDropdown() {
   const handleBranchClick = (branch: Branch) => {
     setSelectedBranch(branch);
     localStorage.setItem("selectedBranch", JSON.stringify(branch));
+    const expiresDate = new Date();
+    expiresDate.setFullYear(expiresDate.getFullYear() + 1);
+    setCookie("branchId", branch.branchId.toString(), expiresDate);
     setOpen(false);
 
     if (typeof window !== "undefined") {
