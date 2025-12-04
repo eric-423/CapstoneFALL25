@@ -4,14 +4,15 @@ import { Button } from "@/components/ui/button";
 import { useAuthContext } from "@/utils/contexts/AuthContext";
 import { AdminProvider } from "@/utils/contexts/AdminContext";
 import {
+  ProcessOrderFn,
   useBarcodeScanner,
   type BarcodeProcessContext,
 } from "@/utils/hooks/useBarcodeScanner";
 import {
   assignChefToOrder,
-  staffAssignShipperToOrder,
   getBranchOrders,
   completeOrder,
+  assignShipperToOrder,
 } from "@/apis/order.api";
 import Link from "next/link";
 import Image from "next/image";
@@ -123,19 +124,26 @@ export default function StaffLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { logout } = useAuthContext();
+  const { logout, user } = useAuthContext();
   const pathname = usePathname();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const menuItems = useMemo(
-    () => [
+  const menuItems = useMemo(() => {
+    const items = [
       { href: "/staff/orders", label: "Đơn hàng", icon: ShoppingBag },
       { href: "/staff/tables", label: "Bàn ăn", icon: Table },
-    ],
-    []
-  );
+    ] as const;
+
+    const role = user?.role?.toUpperCase();
+
+    if (role === "WAITER") {
+      return items.filter((item) => item.href !== "/staff/orders");
+    }
+
+    return items;
+  }, [user?.role]);
 
   const activeIndex = useMemo(() => {
     const index = menuItems.findIndex((item) => pathname === item.href);
@@ -169,94 +177,99 @@ export default function StaffLayout({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [sidebarOpen]);
 
-  const processScannedOrder = useCallback(async (orderId: number) => {
-    const response = await getBranchOrders();
-    const branchOrders = Array.isArray(response?.data) ? response.data : [];
-    const order = branchOrders.find((item) => item.id === orderId);
+  const processScannedOrder = useCallback<ProcessOrderFn>(
+    async (orderId: number) => {
+      const response = await getBranchOrders();
+      const branchOrders = Array.isArray(response?.data) ? response.data : [];
+      const order = branchOrders.find((item) => item.id === orderId);
 
-    if (!order) {
-      throw new Error(
-        `Không tìm thấy đơn hàng #${orderId} trong chi nhánh của bạn.`
-      );
-    }
+      if (!order) {
+        throw new Error(
+          `Không tìm thấy đơn hàng #${orderId} trong chi nhánh của bạn.`
+        );
+      }
 
-    const status = (order.orderStatus || "").toUpperCase();
-    const contextBase: BarcodeProcessContext = { status };
+      const status = (order.orderStatus || "").toUpperCase();
+      const contextBase: BarcodeProcessContext = { status };
+      const isPickup = order.isPickUp || order.pickUp;
+      const isTable = order.table || order.isTable;
 
-    if (["IN_PROCESS", "PROCESSING"].includes(status)) {
-      const assignResult = await assignChefToOrder(orderId);
-      if (!assignResult.success) {
+
+      if (status === 'IN_PROCESS') {
+        const assignChef = await assignChefToOrder(orderId);
+        if (!assignChef.success) {
+          return {
+            success: false,
+            context: {
+              ...contextBase,
+              action: "assign-chef" as const,
+              message: "Không thể chuyển đơn cho bếp. Vui lòng thử lại.",
+            },
+          };
+        }
         return {
-          success: false,
+          success: assignChef.success as boolean,
           context: {
             ...contextBase,
             action: "assign-chef" as const,
-            message: "Không thể chuyển đơn cho bếp. Vui lòng thử lại.",
           },
         };
       }
-      return {
-        success: true,
-        context: {
-          ...contextBase,
-          action: "assign-chef" as const,
-        },
-      };
-    }
 
 
-
-    if (order.isPickUp && status === "COOKED") {
-      const completeResult = await completeOrder(orderId);
-      if (!completeResult.success) {
+      if (isPickup && status === "COOKED") {
+        const completeResult = await completeOrder(orderId);
+        if (!completeResult.success) {
+          return {
+            success: completeResult.success as boolean,
+            context: {
+              ...contextBase,
+              action: "complete" as const,
+              message: "Không thể hoàn thành đơn hàng. Vui lòng thử lại.",
+            },
+          };
+        }
         return {
-          success: false,
+          success: completeResult.success as boolean,
           context: {
             ...contextBase,
             action: "complete" as const,
           },
         };
       }
-      return {
-        success: true,
-        context: {
-          ...contextBase,
-          action: "complete" as const,
-        },
-      };
-    }
 
-
-    if (status === "COOKED" && !order.isPickUp && !order.isTable) {
-      const assignResult = await staffAssignShipperToOrder(orderId);
-      if (!assignResult.success) {
+      if (status === "COOKED" && !isTable && !isPickup) {
+        const assignResult = await assignShipperToOrder(orderId);
+        if (!assignResult.success) {
+          return {
+            success: false,
+            context: {
+              ...contextBase,
+              action: "assign-shipper" as const,
+              message: "Không thể giao đơn cho shipper. Vui lòng thử lại.",
+            },
+          };
+        }
         return {
-          success: false,
+          success: true,
           context: {
             ...contextBase,
             action: "assign-shipper" as const,
-            message: "Không thể giao đơn cho shipper. Vui lòng thử lại.",
           },
         };
       }
+
       return {
-        success: true,
+        success: false,
         context: {
           ...contextBase,
-          action: "assign-shipper" as const,
+          action: "no-action" as const,
+          message: `Đơn #${orderId} đang ở trạng thái ${status || "khác"}, không thể xử lý.`,
         },
       };
-    }
-
-    return {
-      success: false,
-      context: {
-        ...contextBase,
-        action: "no-action" as const,
-        message: `Đơn #${orderId} đang ở trạng thái ${status || "khác"}, không thể xử lý.`,
-      },
-    };
-  }, []);
+    },
+    []
+  );
 
   const handleBarcodeSuccess = useCallback(
     (orderId: number, context?: BarcodeProcessContext) => {
@@ -354,7 +367,7 @@ export default function StaffLayout({
               {!isCollapsed && (
                 <div className="relative z-10 flex-1 min-w-0 transition-opacity duration-150">
                   <p className="text-[15px] text-white/100 font-semibold tracking-widest uppercase">
-                    Staff Panel
+                    {user?.role?.toUpperCase() === "WAITER" ? "Waiter Panel" : "Staff Panel"}
                   </p>
                 </div>
               )}
