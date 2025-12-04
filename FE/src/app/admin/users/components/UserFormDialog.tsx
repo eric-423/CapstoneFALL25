@@ -61,7 +61,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSuccess }: UserForm
             setRoles(data);
         } catch (error) {
             console.error('Failed to load roles:', error);
-            toast.error('❌ Không thể tải danh sách vai trò!');
+            toast.error('Không thể tải danh sách vai trò!');
         } finally {
             setLoadingRoles(false);
         }
@@ -119,21 +119,21 @@ export function UserFormDialog({ open, onOpenChange, user, onSuccess }: UserForm
     const handleSubmit = async () => {
         // Validation
         if (!fullName.trim() || !email.trim() || !phoneNumber.trim() || !dateOfBirth) {
-            toast.warning('⚠️ Vui lòng điền đầy đủ thông tin bắt buộc!');
+            toast.warning('Vui lòng điền đầy đủ thông tin bắt buộc!');
             return;
         }
 
         // Validate phone number (exactly 10 digits)
         const phoneRegex = /^[0-9]{10}$/;
         if (!phoneRegex.test(phoneNumber.trim())) {
-            toast.warning('⚠️ Số điện thoại phải có đúng 10 chữ số!');
+            toast.warning('Số điện thoại phải có đúng 10 chữ số!');
             return;
         }
 
         // Validate email format
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email.trim())) {
-            toast.warning('⚠️ Email không hợp lệ!');
+            toast.warning('Email không hợp lệ!');
             return;
         }
 
@@ -142,35 +142,35 @@ export function UserFormDialog({ open, onOpenChange, user, onSuccess }: UserForm
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         if (selectedDate > today) {
-            toast.warning('⚠️ Ngày sinh không được sau ngày hôm nay!');
+            toast.warning('Ngày sinh không được sau ngày hôm nay!');
             return;
         }
 
         // Validate age (at least 16 years old)
         const age = today.getFullYear() - selectedDate.getFullYear();
         if (age < 16 || (age === 16 && today < new Date(selectedDate.setFullYear(selectedDate.getFullYear() + 16)))) {
-            toast.warning('⚠️ Người dùng phải từ 16 tuổi trở lên!');
+            toast.warning('Người dùng phải từ 16 tuổi trở lên!');
             return;
         }
 
         if (!user && !password) {
-            toast.warning('⚠️ Vui lòng nhập mật khẩu!');
+            toast.warning('Vui lòng nhập mật khẩu!');
             return;
         }
 
         // Validate password length
         if (password && password.length < 6) {
-            toast.warning('⚠️ Mật khẩu phải có ít nhất 6 ký tự!');
+            toast.warning('Mật khẩu phải có ít nhất 6 ký tự!');
             return;
         }
 
         if (!selectedRoleId) {
-            toast.warning('⚠️ Vui lòng chọn vai trò!');
+            toast.warning('Vui lòng chọn vai trò!');
             return;
         }
 
         if (showBranchField && !selectedBranchId) {
-            toast.warning('⚠️ Vui lòng chọn chi nhánh cho vai trò này!');
+            toast.warning('Vui lòng chọn chi nhánh cho vai trò này!');
             return;
         }
 
@@ -210,7 +210,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSuccess }: UserForm
                     });
                 }
 
-                toast.success('✅ Cập nhật người dùng thành công!');
+                toast.success('Cập nhật người dùng thành công!');
             } else {
                 // Create user
                 const createData: CreateUserRequest = {
@@ -236,14 +236,14 @@ export function UserFormDialog({ open, onOpenChange, user, onSuccess }: UserForm
                     startDate: new Date().toISOString(),
                 });
 
-                toast.success('✅ Tạo người dùng mới thành công!');
+                toast.success('Tạo người dùng mới thành công!');
             }
 
             onSuccess();
             onOpenChange(false);
         } catch (error) {
             console.error('Failed to save user:', error);
-            toast.error('❌ Không thể lưu thông tin người dùng. Vui lòng thử lại!');
+            toast.error('Không thể lưu thông tin người dùng. Vui lòng thử lại!');
         } finally {
             setLoading(false);
         }
@@ -270,10 +270,10 @@ export function UserFormDialog({ open, onOpenChange, user, onSuccess }: UserForm
                         </div>
                     </div>
                     <Button
-                        variant="ghost"
-                        size="icon"
+                        variant="outline"
+                        size="sm"
                         onClick={() => onOpenChange(false)}
-                        className="h-8 w-8 rounded-full border border-white/30 bg-white/10 hover:bg-white/20 text-white hover:text-white"
+                        className="border-white/30 bg-white/10 hover:bg-white/20 text-white hover:text-white h-8 w-8 p-0"
                     >
                         <X className="h-4 w-4" />
                     </Button>

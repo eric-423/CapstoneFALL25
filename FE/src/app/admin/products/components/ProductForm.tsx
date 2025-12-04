@@ -5,7 +5,7 @@ import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'react-toastify';
-import { X, Save, Loader2, Upload, Image as ImageIcon, Plus, ChefHat } from 'lucide-react';
+import { X, Loader2, Image as ImageIcon, Plus, ChefHat, CheckCircle } from 'lucide-react';
 import {
     DndContext,
     closestCenter,
@@ -16,7 +16,6 @@ import {
     DragEndEvent,
 } from '@dnd-kit/core';
 import {
-    arrayMove,
     SortableContext,
     sortableKeyboardCoordinates,
     verticalListSortingStrategy,
@@ -36,7 +35,6 @@ import {
 import {
     Dialog,
     DialogContent,
-    DialogHeader,
     DialogTitle,
     DialogFooter,
 } from '@/components/ui/dialog';
@@ -96,7 +94,6 @@ export function ProductForm({ open, onOpenChange, product, onSuccess }: ProductF
         handleSubmit,
         reset,
         setValue,
-        watch,
         control,
         formState: { errors },
     } = useForm<ProductFormData>({
@@ -278,15 +275,27 @@ export function ProductForm({ open, onOpenChange, product, onSuccess }: ProductF
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[1000px] max-h-[95vh] overflow-y-auto flex flex-col p-0 gap-0 bg-white border-0 shadow-2xl">
+            <DialogContent className="sm:max-w-[1000px] max-h-[95vh] overflow-y-auto flex flex-col p-0 gap-0 bg-white border-0 shadow-2xl rounded-2xl [&>button]:hidden">
                 {/* Header */}
-                <div className="bg-[#78A243] p-6 shrink-0">
-                    <DialogTitle className="flex items-center gap-3 text-xl text-white">
-                        <div className="bg-white/20 p-2 rounded-lg">
-                            {product ? <ChefHat className="h-6 w-6 text-white" /> : <Plus className="h-6 w-6 text-white" />}
+                <div className="bg-[#78A243] p-5 flex items-center justify-between shrink-0 rounded-t-2xl">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
+                            {product ? <ChefHat className="h-5 w-5 text-white" /> : <Plus className="h-5 w-5 text-white" />}
                         </div>
-                        {product ? 'Cập nhật sản phẩm' : 'Thêm sản phẩm mới'}
-                    </DialogTitle>
+                        <DialogTitle className="text-xl font-bold text-white">
+                            {product ? 'Cập nhật sản phẩm' : 'Thêm sản phẩm mới'}
+                        </DialogTitle>
+                    </div>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onOpenChange(false)}
+                        disabled={loading}
+                        className="border-white/30 bg-white/10 hover:bg-white/20 text-white hover:text-white h-8 w-8 p-0"
+                    >
+                        <X className="h-4 w-4" />
+                    </Button>
                 </div>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col flex-grow overflow-hidden">
@@ -458,19 +467,20 @@ export function ProductForm({ open, onOpenChange, product, onSuccess }: ProductF
                         </div>
                     </div>
 
-                    <DialogFooter className="p-6 border-t border-gray-100 bg-white shrink-0">
+                    <DialogFooter className="p-4 border-t border-gray-200 bg-gray-50 shrink-0 rounded-b-2xl flex gap-3 justify-end">
                         <Button
                             type="button"
                             variant="outline"
                             onClick={() => onOpenChange(false)}
                             disabled={loading}
-                            className="mr-2 border-[#78A243]/30 text-[#78A243] hover:bg-[#78A243]/10"
+                            className="px-5 py-2.5 border-2 border-gray-300 hover:bg-gray-100 font-semibold"
                         >
-                            Hủy bỏ
+                            <X className="h-4 w-4 mr-2" />
+                            Hủy
                         </Button>
                         <Button
                             type="submit"
-                            className="bg-[#78A243] hover:bg-[#78A243]/90 text-white shadow-md"
+                            className="px-5 py-2.5 bg-[#78A243] hover:bg-[#78A243]/90 text-white shadow-lg hover:shadow-xl transition-all font-semibold"
                             disabled={loading}
                         >
                             {loading ? (
@@ -480,8 +490,8 @@ export function ProductForm({ open, onOpenChange, product, onSuccess }: ProductF
                                 </>
                             ) : (
                                 <>
-                                    <Save className="mr-2 h-4 w-4" />
-                                    Lưu sản phẩm
+                                    <CheckCircle className="h-4 w-4 mr-2" />
+                                    {product ? 'Cập nhật' : 'Tạo mới'}
                                 </>
                             )}
                         </Button>

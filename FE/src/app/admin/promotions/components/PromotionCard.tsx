@@ -2,15 +2,19 @@
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Gift,
   Power,
+  PowerOff,
   CheckCircle,
   XCircle,
   Percent,
   Tag,
   Calendar,
   Users as UsersIcon,
+  Truck,
+  DollarSign,
 } from "lucide-react";
 import { type Promotion } from "@/apis/promotion.api";
 import { AssignPromotionDialog } from "./AssignPromotionDialog";
@@ -28,151 +32,157 @@ export function PromotionCard({
 }: PromotionCardProps) {
   const percentage = Math.min((promo.usageCount / 100) * 100, 100);
 
+  // Get icon based on promotion type
+  const getPromotionTypeIcon = () => {
+    if (promo.promotionTypeName.includes("%")) {
+      return <Percent size={14} className="text-[#78A243]" strokeWidth={2} />;
+    } else if (promo.promotionTypeName.includes("vận chuyển")) {
+      return <Truck size={14} className="text-[#78A243]" strokeWidth={2} />;
+    }
+    return <DollarSign size={14} className="text-[#78A243]" strokeWidth={2} />;
+  };
+
+  // Format value based on promotion type
+  const getFormattedValue = () => {
+    if (promo.promotionTypeName.includes("%")) {
+      return `${promo.value}%`;
+    } else if (promo.promotionTypeName.includes("vận chuyển")) {
+      return "Miễn phí";
+    }
+    return `${promo.value.toLocaleString()}đ`;
+  };
+
   return (
-    <Card className="relative overflow-hidden p-5 bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 rounded-xl group">
+    <Card className="relative overflow-hidden p-5 bg-white border-2 border-[#78A243]/20 shadow-sm hover:shadow-md hover:border-[#78A243]/40 transition-all duration-300 rounded-xl group">
       {/* Header */}
-      <div className="flex justify-between items-start mb-1">
+      <div className="flex justify-between items-start mb-3">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-[#FFFCF7] rounded-lg flex items-center justify-center border border-gray-200 group-hover:border-gray-300 transition-all">
-              <Gift size={18} className="text-gray-700" strokeWidth={2} />
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-[#78A243]/20 rounded-lg flex items-center justify-center">
+              <Gift size={18} className="text-[#78A243]" strokeWidth={2} />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-base font-bold text-gray-900 group-hover:text-gray-700 transition-colors truncate">
+              <h3 className="text-base font-bold text-[#2D1E1A] group-hover:text-[#78A243] transition-colors truncate">
                 {promo.name}
               </h3>
-              <div className="flex items-center gap-1.5 mt-1">
-                <Tag size={10} className="text-gray-400" strokeWidth={2} />
-                <span className="text-xs font-mono font-medium text-gray-500 bg-[#FFFCF7] px-2 py-0.5 rounded border border-gray-200">
-                  {promo.id.substring(0, 8)}
-                </span>
-              </div>
+              <p className="text-xs text-[#2D1E1A]/60 truncate mt-0.5">
+                {promo.description}
+              </p>
             </div>
           </div>
         </div>
-        <span
-          className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg font-semibold border shrink-0 ${
-            promo.status
-              ? "bg-[#FFFCF7] text-gray-700 border-gray-300"
-              : "bg-white text-gray-500 border-gray-200"
-          }`}
-        >
+        <Badge className={`shrink-0 ml-2 ${promo.status
+          ? "bg-green-100 text-green-700 border-green-300"
+          : "bg-red-100 text-red-700 border-red-300"
+          }`}>
           {promo.status ? (
-            <CheckCircle
-              size={12}
-              strokeWidth={2.5}
-              className="text-green-600"
-            />
+            <>
+              <CheckCircle size={12} className="mr-1" />
+              Hoạt động
+            </>
           ) : (
-            <XCircle size={12} strokeWidth={2.5} className="text-gray-400" />
+            <>
+              <XCircle size={12} className="mr-1" />
+              Đã tắt
+            </>
           )}
-          {promo.status ? "Hoạt động" : "Tắt"}
-        </span>
+        </Badge>
       </div>
 
-      <div className=" space-y-3 mb-1 p-4 bg-[#FFFCF7] rounded-lg border border-gray-100">
-        <div className="grid grid-cols-12 gap-3">
-          <div className="col-span-5 flex items-center gap-3">
-            <div className="w-8 h-8 bg-white rounded-md flex items-center justify-center border border-gray-200 flex-shrink-0">
-              <Percent size={14} className="text-gray-700" strokeWidth={2} />
+      <div className="space-y-3 p-4 bg-gradient-to-r from-[#78A243]/5 to-[#EBD187]/10 rounded-lg border border-[#78A243]/10">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-white rounded-md flex items-center justify-center border border-[#78A243]/20 flex-shrink-0">
+              {getPromotionTypeIcon()}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-gray-500 font-medium uppercase tracking-wide mb-0.5">
-                Giảm giá
+              <p className="text-xs text-[#2D1E1A]/60 font-medium">
+                {promo.promotionTypeName}
               </p>
-              <p className="text-sm font-bold text-gray-900 truncate">
-                {promo.promotionTypeName.includes("%")
-                  ? `${promo.value}%`
-                  : `${promo.value.toLocaleString()}đ`}
+              <p className="text-sm font-bold text-[#2D1E1A] truncate">
+                {getFormattedValue()}
               </p>
             </div>
           </div>
-          <div className="col-span-7 flex items-center gap-3">
-            <div className="w-8 h-8 bg-white rounded-md flex items-center justify-center border border-gray-200 flex-shrink-0">
-              <Calendar size={14} className="text-gray-700" strokeWidth={2} />
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-white rounded-md flex items-center justify-center border border-[#78A243]/20 flex-shrink-0">
+              <Tag size={14} className="text-[#78A243]" strokeWidth={2} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-gray-500 font-medium uppercase tracking-wide mb-0.5">
-                Thời gian
+              <p className="text-xs text-[#2D1E1A]/60 font-medium">
+                Đơn tối thiểu
               </p>
-              <p className="text-sm font-bold text-gray-900 truncate">
-                {new Date(promo.startDate).toLocaleDateString("vi-VN", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                })}{" "}
-                -{" "}
-              </p>
-              <p className="text-sm font-bold text-gray-900 truncate">
-                {new Date(promo.endDate).toLocaleDateString("vi-VN", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                })}
+              <p className="text-sm font-bold text-[#2D1E1A] truncate">
+                {promo.minimumOrderValue.toLocaleString()}đ
               </p>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-white rounded-md flex items-center justify-center border border-gray-200 flex-shrink-0">
-            <Tag size={14} className="text-gray-700" strokeWidth={2} />
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-white rounded-md flex items-center justify-center border border-[#78A243]/20 flex-shrink-0">
+            <Calendar size={14} className="text-[#78A243]" strokeWidth={2} />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs text-gray-500 font-medium uppercase tracking-wide mb-0.5">
-              Đơn tối thiểu
+            <p className="text-xs text-[#2D1E1A]/60 font-medium">
+              Thời gian
             </p>
-            <p className="text-sm font-bold text-gray-900 truncate">
-              {promo.minimumOrderValue.toLocaleString()}đ
+            <p className="text-sm font-bold text-[#2D1E1A]">
+              {new Date(promo.startDate).toLocaleDateString("vi-VN")} - {new Date(promo.endDate).toLocaleDateString("vi-VN")}
             </p>
           </div>
         </div>
 
-        <div className="flex items-start gap-3">
-          <div className="w-8 h-8 bg-white rounded-md flex items-center justify-center border border-gray-200 flex-shrink-0">
-            <UsersIcon size={14} className="text-gray-700" strokeWidth={2} />
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-white rounded-md flex items-center justify-center border border-[#78A243]/20 flex-shrink-0">
+            <UsersIcon size={14} className="text-[#78A243]" strokeWidth={2} />
           </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-1.5">
-              <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">
+          <div className="flex-1">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-xs text-[#2D1E1A]/60 font-medium">
                 Đã sử dụng
               </p>
-              <span className="text-xs font-bold text-gray-900">
+              <span className="text-xs font-bold text-[#2D1E1A]">
                 {promo.usageCount} lượt
               </span>
             </div>
-            <div className="relative h-2 bg-white rounded-full overflow-hidden border border-gray-200">
+            <div className="relative h-2 bg-white rounded-full overflow-hidden border border-[#78A243]/20">
               <div
-                className="absolute top-0 left-0 h-full bg-gray-300 rounded-full transition-all duration-1000 ease-out"
+                className="absolute top-0 left-0 h-full bg-[#78A243] rounded-full transition-all duration-1000 ease-out"
                 style={{ width: `${percentage}%` }}
               />
             </div>
-            <p className="text-xs text-gray-500 mt-1 font-medium">
-              {promo.usageCount > 0 ? "Đang sử dụng" : "Chưa sử dụng"}
-            </p>
           </div>
         </div>
       </div>
 
-      <div className="flex gap-2 pt-3 border-t border-gray-100">
+      <div className="flex gap-2 pt-3 mt-3 border-t border-[#78A243]/10">
         <AssignPromotionDialog
           promotionCode={promo.id}
           promotionName={promo.name}
           onSuccess={onSuccess}
         />
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onToggleStatus(promo.id, promo.status)}
-          className={`flex-1 border font-semibold rounded-lg transition-all duration-300 py-2 text-xs ${
-            promo.status
-              ? "border-red-300 text-red-600 bg-white hover:bg-red-50 hover:border-red-400"
-              : "border-brown text-brown bg-white hover:bg-[#FFFCF7] hover:border-gray-400"
-          }`}
-        >
-          <Power size={12} className="mr-1.5" strokeWidth={2.5} />
-          {promo.status ? "Tắt" : "Bật"}
-        </Button>
+        {promo.status ? (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onToggleStatus(promo.id, promo.status)}
+            className="flex-1 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+          >
+            <PowerOff size={14} className="mr-1.5" />
+            Tắt
+          </Button>
+        ) : (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onToggleStatus(promo.id, promo.status)}
+            className="flex-1 text-green-600 border-green-200 hover:bg-green-50 hover:border-green-300"
+          >
+            <Power size={14} className="mr-1.5" />
+            Bật
+          </Button>
+        )}
       </div>
     </Card>
   );

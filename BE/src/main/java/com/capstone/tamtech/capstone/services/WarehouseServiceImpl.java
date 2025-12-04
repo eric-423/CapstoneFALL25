@@ -51,6 +51,15 @@ public class WarehouseServiceImpl implements WarehouseService {
     }
 
     @Override
+    public WarehouseDTO getWarehouseByBranchId(int branchId) {
+        List<Warehouse> warehouses = warehouseRepository.findByBranch_Id(branchId);
+        if (warehouses.isEmpty()) {
+            throw new ResourceNotFoundException("Warehouse not found for branch id: " + branchId);
+        }
+        return toDTO(warehouses.get(0));
+    }
+
+    @Override
     public List<MaterialWarehouseDTO> getMaterialsInWarehouse(int warehouseId) {
         Warehouse warehouse = warehouseRepository.findById(warehouseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Warehouse not found"));
@@ -179,7 +188,7 @@ public class WarehouseServiceImpl implements WarehouseService {
     public List<MaterialWarehouseDTO> updateMaterialWarehouse(int warehouseId, AddMaterialToWarehouseRequest request) {
 
         List<MaterialWarehouseDTO> results = new ArrayList<>();
-        for(AddMaterialToWarehouseRequest.MaterialItem item : request.getMaterials()){
+        for (AddMaterialToWarehouseRequest.MaterialItem item : request.getMaterials()) {
 
             KeyMaterialWarehouse key = new KeyMaterialWarehouse(item.getMaterialId(), warehouseId);
 
@@ -197,7 +206,6 @@ public class WarehouseServiceImpl implements WarehouseService {
 
         return results;
     }
-
 
     private WarehouseDTO toDTO(Warehouse warehouse) {
         WarehouseDTO dto = new WarehouseDTO();

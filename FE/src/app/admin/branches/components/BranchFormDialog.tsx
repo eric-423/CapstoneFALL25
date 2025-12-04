@@ -79,7 +79,7 @@ export function BranchFormDialog({ open, onOpenChange, branch, onSuccess }: Bran
         );
 
         if (duplicateBranch) {
-            toast.error(`❌ Địa chỉ này đã được sử dụng bởi chi nhánh khác (ID: ${duplicateBranch.id})!`);
+            toast.error(`Địa chỉ này đã được sử dụng bởi chi nhánh khác (ID: ${duplicateBranch.id})!`);
             return;
         }
 
@@ -89,7 +89,7 @@ export function BranchFormDialog({ open, onOpenChange, branch, onSuccess }: Bran
         );
 
         if (duplicateWarehouse) {
-            toast.error(`❌ Địa chỉ này đã được sử dụng bởi kho (ID: ${duplicateWarehouse.id})!`);
+            toast.error(`Địa chỉ này đã được sử dụng bởi kho (ID: ${duplicateWarehouse.id})!`);
             return;
         }
 

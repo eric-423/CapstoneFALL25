@@ -19,9 +19,9 @@ public class ScheduleController {
     private ScheduleService scheduleService;
 
     @GetMapping
-    public ResponseEntity<?> getAllSchedules() {
+    public ResponseEntity<?> getAllSchedules(@RequestParam(required = false) Integer branchId) {
         ResponseData responseData = new ResponseData();
-        List<ScheduleDTO> schedules = scheduleService.getAllSchedules();
+        List<ScheduleDTO> schedules = scheduleService.getAllSchedules(branchId);
         responseData.setData(schedules);
         responseData.setStatus(200);
         responseData.setDesc("Retrieved " + schedules.size() + " schedule(s) successfully");

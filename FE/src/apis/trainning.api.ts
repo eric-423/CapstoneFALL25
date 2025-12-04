@@ -35,6 +35,7 @@ export interface TrainingLesson {
   orderIndex: number;
   trainingId: number;
   isActive: boolean;
+  isCompleted?: boolean;
 }
 
 export interface PaginatedLessonsResponse {
@@ -52,6 +53,16 @@ export interface TrainingLessonsResponse {
   status: number;
   desc: string | null;
   data: PaginatedLessonsResponse;
+}
+
+export interface MyTrainingLessonsResponse {
+  status: number;
+  desc: string | null;
+  data: {
+    completedLessons: number;
+    totalLessons: number;
+    lessons: TrainingLesson[];
+  };
 }
 
 export interface LessonDetailResponse {
@@ -344,7 +355,7 @@ export const getTrainingLessons = async (
 export const getMyTrainingLessons = async (
   trainingId: number,
   params?: GetMyTrainingLessonsParams
-): Promise<TrainingLessonsResponse> => {
+): Promise<MyTrainingLessonsResponse> => {
   const searchParams = new URLSearchParams();
 
   if (params) {

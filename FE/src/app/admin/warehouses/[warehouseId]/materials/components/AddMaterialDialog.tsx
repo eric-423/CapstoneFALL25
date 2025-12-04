@@ -67,7 +67,7 @@ export function AddMaterialDialog({
 
     const handleRemoveRow = (index: number) => {
         if (materials.length === 1) {
-            toast.error('❌ Phải có ít nhất 1 nguyên liệu!');
+            toast.error('Phải có ít nhất 1 nguyên liệu!');
             return;
         }
         setMaterials(materials.filter((_, i) => i !== index));
@@ -85,19 +85,19 @@ export function AddMaterialDialog({
         // Validate
         for (const material of materials) {
             if (!material.materialId || !material.quantity || !material.threshold) {
-                toast.error('❌ Vui lòng điền đầy đủ thông tin!');
+                toast.error('Vui lòng điền đầy đủ thông tin!');
                 return;
             }
 
             const quantity = parseFloat(material.quantity);
             if (isNaN(quantity) || quantity <= 0) {
-                toast.error('❌ Số lượng phải lớn hơn 0!');
+                toast.error('Số lượng phải lớn hơn 0!');
                 return;
             }
 
             const threshold = parseFloat(material.threshold);
             if (isNaN(threshold) || threshold <= 0) {
-                toast.error('❌ Ngưỡng cảnh báo phải lớn hơn 0!');
+                toast.error('Ngưỡng cảnh báo phải lớn hơn 0!');
                 return;
             }
         }
@@ -105,7 +105,7 @@ export function AddMaterialDialog({
         // Check duplicates
         const materialIds = materials.map(m => m.materialId);
         if (new Set(materialIds).size !== materialIds.length) {
-            toast.error('❌ Không được chọn trùng nguyên liệu!');
+            toast.error('Không được chọn trùng nguyên liệu!');
             return;
         }
 
@@ -120,13 +120,13 @@ export function AddMaterialDialog({
                 }))
             });
 
-            toast.success('✅ Thêm nguyên liệu vào kho thành công!');
+            toast.success('Thêm nguyên liệu vào kho thành công!');
             onSuccess();
             onOpenChange(false);
             setMaterials([{ materialId: '', quantity: '', threshold: '' }]);
         } catch (error) {
             console.error('Failed to add materials:', error);
-            toast.error('❌ Không thể thêm nguyên liệu vào kho!');
+            toast.error('Không thể thêm nguyên liệu vào kho!');
         } finally {
             setLoading(false);
         }
@@ -282,7 +282,7 @@ export function AddMaterialDialog({
                                     );
 
                                     if (remainingMaterials.length === 0) {
-                                        toast.info('⚠️ Đã chọn hết tất cả nguyên liệu!');
+                                        toast.info('Đã chọn hết tất cả nguyên liệu!');
                                         return;
                                     }
 
@@ -303,7 +303,7 @@ export function AddMaterialDialog({
                                         setMaterials([...materials, ...newRows]);
                                     }
 
-                                    toast.success(`✅ Đã thêm ${newRows.length} nguyên liệu!`);
+                                    toast.success(`Đã thêm ${newRows.length} nguyên liệu!`);
                                 }}
                                 variant="outline"
                                 className="flex-1 border-2 border-dashed border-[#EC6426]/30 hover:border-[#EC6426] hover:bg-[#EC6426]/10 text-[#EC6426]"

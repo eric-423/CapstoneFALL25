@@ -109,7 +109,7 @@ public class ProductServiceImpl implements ProductService {
 
             KeyMaterialWarehouse keyMaterialWarehouse = new KeyMaterialWarehouse();
             keyMaterialWarehouse.setMaterialId(materialId);
-            keyMaterialWarehouse.setWarehouseId(branch.getWarehouses().getBranch().getId());
+            keyMaterialWarehouse.setWarehouseId(branch.getWarehouses().getId());
 
             Double availableQuantity = materialWarehouseRepository
                     .findById(keyMaterialWarehouse)
@@ -146,11 +146,13 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ProductDTO getProductById(Integer productId) {
+    public ProductSearchDTO getProductById(Integer productId, Integer branchId) {
         Product product = productRepository.findById(productId).orElseThrow(() ->
                 new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + productId));
 
-        return toDTO(product);
+        ProductSearchDTO productSearchDTO = mapToProductSearchDTO(product, new HashMap<>());
+        productSearchDTO.setInStock(isInStock(product, branchRepository.findById(branchId).get()));
+        return productSearchDTO;
     }
 
     @Override
@@ -169,6 +171,9 @@ public class ProductServiceImpl implements ProductService {
         product.setProductType(productTypeRepository.findById(productCreateRequest.getTypeId())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Không tìm thấy loại sản phẩm với ID: " + productCreateRequest.getTypeId())));
+
+        productRepository.save(product);
+        productRepository.flush();
 
         for (RecipesRequest request : productCreateRequest.getRecipesRequests()) {
             Material material = materialRepository.findById(request.getMaterialId())
@@ -191,7 +196,6 @@ public class ProductServiceImpl implements ProductService {
 
             productRecipesRepository.save(productRecipes);
 
-            product.getProductRecipes().add(productRecipes);
             productRecipesList.add(productRecipes);
         }
 
@@ -291,7 +295,7 @@ public class ProductServiceImpl implements ProductService {
         String sortBy = mapSortField(searchRequest.getSortBy());
 
         Sort sort = Sort.by(Sort.Direction.fromString(
-                searchRequest.getSortDirection() != null ? searchRequest.getSortDirection() : "ASC"),
+                        searchRequest.getSortDirection() != null ? searchRequest.getSortDirection() : "ASC"),
                 sortBy);
 
         return PageRequest.of(page, size, sort);

@@ -61,6 +61,8 @@ public class OrderDTO implements Serializable {
 
     private String branchName;
 
+    private String branchAddress;
+
 
     @Override
     public String toString() {

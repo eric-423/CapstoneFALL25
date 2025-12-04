@@ -32,10 +32,11 @@ jest.mock('next/headers', () => ({
 jest.mock('next/image', () => ({
   __esModule: true,
   default: (props) => {
+    const { alt = '', ...rest } = props || {};
     // eslint-disable-next-line @next/next/no-img-element
-    return <img {...props} />
+    return <img alt={alt} {...rest} />;
   },
-}))
+}));
 
 // Mock environment variables
 process.env.NEXT_PUBLIC_BASE_URL = 'http://localhost:3000'

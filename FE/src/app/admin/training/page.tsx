@@ -5,14 +5,6 @@ import { GraduationCap } from "lucide-react";
 import { toast } from "react-toastify";
 
 import { AdminGuard } from "@/components/guards";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { deleteTraining } from "@/apis/trainning.api";
 import { TrainingCourse, StaffRole } from "@/utils/types/training.type";
 import { AddTrainingDialog } from "@/app/admin/training/components/AddTrainingDialog";
@@ -29,19 +21,19 @@ import {
 } from "./components";
 import { useTrainingData } from "./components/hook/useTrainingData";
 import { useBodyScrollLock } from "../components/useBodyScrollLock";
+import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 
 export default function TrainingPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
-  const [deleteDialog, setDeleteDialog] = useState<{
+  const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
     training: TrainingCourse | null;
-    isDeleting: boolean;
   }>({
     open: false,
     training: null,
-    isDeleting: false,
   });
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [shouldRefetch, setShouldRefetch] = useState(false);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedTrainingId, setSelectedTrainingId] = useState<number | null>(
@@ -57,7 +49,7 @@ export default function TrainingPage() {
   const [selectedCourse, setSelectedCourse] = useState<TrainingCourse | null>(
     null
   );
-  useBodyScrollLock(detailDialogOpen || assignUserDialog.open || deleteDialog.open);
+  useBodyScrollLock(detailDialogOpen || assignUserDialog.open || confirmDialog.open);
 
   const {
     filteredCourses: allFilteredCourses,
@@ -113,29 +105,27 @@ export default function TrainingPage() {
   };
 
   const openDeleteDialog = (training: TrainingCourse) => {
-    setDeleteDialog({
+    setConfirmDialog({
       open: true,
       training,
-      isDeleting: false,
     });
   };
 
   const closeDeleteDialog = () => {
-    setDeleteDialog({
+    setConfirmDialog({
       open: false,
       training: null,
-      isDeleting: false,
     });
   };
 
   const handleConfirmDelete = async () => {
-    if (!deleteDialog.training || deleteDialog.isDeleting) {
+    if (!confirmDialog.training || deleteLoading) {
       return;
     }
 
     try {
-      setDeleteDialog((prev) => ({ ...prev, isDeleting: true }));
-      const payload = await deleteTraining(deleteDialog.training.id);
+      setDeleteLoading(true);
+      const payload = await deleteTraining(confirmDialog.training.id);
       const message =
         payload &&
           typeof payload === "object" &&
@@ -143,7 +133,7 @@ export default function TrainingPage() {
           typeof payload.desc === "string"
           ? payload.desc
           : "Xoá khóa đào tạo thành công";
-      toast.success(message, { toastId: `delete-training-${deleteDialog.training.id}` });
+      toast.success(message, { toastId: `delete-training-${confirmDialog.training.id}` });
       setShouldRefetch(true);
       refetch();
       closeDeleteDialog();
@@ -157,8 +147,9 @@ export default function TrainingPage() {
         serverDesc ||
         (error instanceof Error ? error.message : "Xoá khóa đào tạo thất bại");
       console.error(message);
-      toast.error(message, { toastId: `delete-training-error-${deleteDialog.training.id}` });
-      setDeleteDialog((prev) => ({ ...prev, isDeleting: false }));
+      toast.error(message, { toastId: `delete-training-error-${confirmDialog.training.id}` });
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -245,44 +236,17 @@ export default function TrainingPage() {
           }}
         />
 
-        <Dialog
-          open={deleteDialog.open}
-          onOpenChange={(open: boolean) => (open ? null : closeDeleteDialog())}
-        >
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Xoá khóa đào tạo</DialogTitle>
-              <DialogDescription>
-                Bạn có chắc chắn muốn xoá khóa{" "}
-                <span className="font-semibold text-primary">
-                  {deleteDialog.training?.name ?? ""}
-                </span>
-                ? Hành động này không thể hoàn tác.
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="flex justify-end gap-2 pt-4">
-              <Button
-                variant="outline"
-                onClick={closeDeleteDialog}
-                disabled={deleteDialog.isDeleting}
-              >
-                Huỷ
-              </Button>
-              <Button
-                onClick={handleConfirmDelete}
-                disabled={deleteDialog.isDeleting}
-                className="bg-red-500 hover:bg-red-600 text-white"
-              >
-                {deleteDialog.isDeleting ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  "Xoá ngay"
-                )}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <ConfirmDialog
+          open={confirmDialog.open}
+          onOpenChange={(open) => !open && closeDeleteDialog()}
+          title="Xoá khóa đào tạo"
+          content={`Bạn có chắc chắn muốn xoá khóa "${confirmDialog.training?.name ?? ""}"? Hành động này không thể hoàn tác.`}
+          confirmText="Xoá ngay"
+          cancelText="Huỷ"
+          onConfirm={handleConfirmDelete}
+          loading={deleteLoading}
+          variant="destructive"
+        />
 
         <AssignUserDialog
           open={assignUserDialog.open}

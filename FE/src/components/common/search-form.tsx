@@ -29,6 +29,7 @@ import {
   GET_PRODUCT_TYPE_STALE_TIME,
   ProductType,
 } from "@/apis/product.api";
+import { setCookie } from "@/utils/cookies.client";
 
 interface SearchFormProps {
   className?: string;
@@ -116,7 +117,10 @@ export function SearchForm({ className }: SearchFormProps) {
         };
         localStorage.setItem("selectedBranch", JSON.stringify(branchToStore));
 
-        // Dispatch event để BranchDropdown cập nhật ngay lập tức
+        const expiresDate = new Date();
+        expiresDate.setFullYear(expiresDate.getFullYear() + 1);
+        setCookie("branchId", branchData.id.toString(), expiresDate);
+
         if (typeof window !== "undefined") {
           window.dispatchEvent(
             new CustomEvent("branchChanged", { detail: branchToStore })
@@ -126,8 +130,6 @@ export function SearchForm({ className }: SearchFormProps) {
     },
     [branchesData]
   );
-
-  // Set branch mặc định khi có dữ liệu
   useEffect(() => {
     if (branchesData.length > 0 && !selectedBranch) {
       const firstActiveBranch = branchesData.find((branch) => branch.active);
@@ -139,13 +141,11 @@ export function SearchForm({ className }: SearchFormProps) {
     }
   }, [branchesData, selectedBranch, saveBranchToStorage]);
 
-  // Handler khi chọn chi nhánh
   const handleBranchChange = (value: string) => {
     setSelectedBranch(value);
     saveBranchToStorage(value);
   };
 
-  // Merge branches với distanceText từ nearby branches
   const branchesWithDistance = useMemo(() => {
     if (!selectedLocation || nearbyBranchesData.length === 0) {
       return branchesData.map((branch) => ({
@@ -254,7 +254,6 @@ export function SearchForm({ className }: SearchFormProps) {
           <div className="h-5 mt-1"></div>
         </div>
 
-        {/* Location Selection */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
             <MapPin className="w-4 h-4 text-orange-500" />
@@ -293,7 +292,6 @@ export function SearchForm({ className }: SearchFormProps) {
           <div className="h-5 mt-1"></div>
         </div>
 
-        {/* Search Button */}
         <div className="space-y-2">
           <div className="h-6"></div>
           <Button

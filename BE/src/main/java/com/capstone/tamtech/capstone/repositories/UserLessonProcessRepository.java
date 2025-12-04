@@ -15,4 +15,8 @@ public interface UserLessonProcessRepository extends JpaRepository<UserLessonPro
     List<UserLessonProcess> findByUserTraining_Id(int userTrainingId);
 
     long countByUserTraining_IdAndIsLearnedTrue(int userTrainingId);
+
+    Optional<UserLessonProcess> findByUserTraining_User_IdAndLesson_Id(int id, int id1);
+
+
 }

@@ -1,14 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Users, UserPlus } from "lucide-react";
+import { Users, UserPlus, X, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
@@ -138,90 +136,89 @@ export function AssignUserDialog({
 
   return (
     <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Thêm học viên vào khóa đào tạo</DialogTitle>
-          <DialogDescription>
-            {training && (
-              <span>
-                Chọn học viên cho khóa: <strong>{training.name}</strong>
-                {training.assignedRoles &&
-                  training.assignedRoles.length > 0 && (
-                    <span className="ml-2">
-                      (Vai trò:{" "}
-                      {training.assignedRoles
-                        .map((role) => getRoleText(role))
-                        .join(", ")}
-                      )
-                    </span>
-                  )}
-              </span>
-            )}
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto p-0 gap-0 bg-white border-0 shadow-2xl rounded-2xl [&>button]:hidden">
+        {/* Header */}
+        <div className="bg-[#78A243] p-5 flex items-center justify-between rounded-t-2xl">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
+              <UserPlus className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <DialogTitle className="text-xl font-bold text-white">
+                Thêm học viên vào khóa đào tạo
+              </DialogTitle>
+              {training && (
+                <p className="text-sm text-white/80 mt-0.5">
+                  Khóa: <strong>{training.name}</strong>
+                  {training.assignedRoles &&
+                    training.assignedRoles.length > 0 && (
+                      <span className="ml-2">
+                        ({training.assignedRoles
+                          .map((role) => getRoleText(role))
+                          .join(", ")})
+                      </span>
+                    )}
+                </p>
+              )}
+            </div>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onClose}
+            disabled={loading}
+            className="border-white/30 bg-white/10 hover:bg-white/20 text-white hover:text-white h-8 w-8 p-0"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
 
-        {loadingUsers ? (
-          <div className="flex items-center justify-center py-10">
-            <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin mr-3" />
-            <span className="text-gray-600">Đang tải danh sách học viên...</span>
-          </div>
-        ) : !availableUsers || availableUsers.length === 0 ? (
-          <div className="text-center py-10 text-gray-500">
-            <Users size={48} className="mx-auto mb-3 text-gray-400" />
-            <p>
-              Không tìm thấy học viên phù hợp với vai trò của khóa đào tạo này.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="max-h-[400px] overflow-y-auto rounded-lg p-4 space-y-2">
-              {(availableUsers || []).map((userItem) => {
-                type UserWithData = {
-                  data?: {
-                    id: number;
+        <div className="p-6">
+          {loadingUsers ? (
+            <div className="flex items-center justify-center py-10">
+              <div className="w-5 h-5 border-2 border-[#78A243] border-t-transparent rounded-full animate-spin mr-3" />
+              <span className="text-gray-600">Đang tải danh sách học viên...</span>
+            </div>
+          ) : !availableUsers || availableUsers.length === 0 ? (
+            <div className="text-center py-10 text-gray-500">
+              <Users size={48} className="mx-auto mb-3 text-gray-400" />
+              <p>
+                Không tìm thấy học viên phù hợp với vai trò của khóa đào tạo này.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="max-h-[400px] overflow-y-auto rounded-lg p-4 space-y-2 bg-gray-50">
+                {(availableUsers || []).map((userItem) => {
+                  type UserWithData = {
+                    data?: {
+                      id: number;
+                      fullName?: string;
+                      email?: string;
+                      phone?: string;
+                    };
+                    id?: number;
                     fullName?: string;
                     email?: string;
                     phone?: string;
                   };
-                  id?: number;
-                  fullName?: string;
-                  email?: string;
-                  phone?: string;
-                };
-                const user = userItem as UserWithData;
-                const userId = user?.data?.id || user?.id;
-                if (!userId) return null;
+                  const user = userItem as UserWithData;
+                  const userId = user?.data?.id || user?.id;
+                  if (!userId) return null;
 
-                const isSelected = selectedUserIds.has(userId);
-                const fullName =
-                  user?.data?.fullName ||
-                  user?.fullName ||
-                  `User #${userId}`;
-                const email = user?.data?.email || user?.email || "";
-                const phone = user?.data?.phone || user?.phone || "";
+                  const isSelected = selectedUserIds.has(userId);
+                  const fullName =
+                    user?.data?.fullName ||
+                    user?.fullName ||
+                    `User #${userId}`;
+                  const email = user?.data?.email || user?.email || "";
+                  const phone = user?.data?.phone || user?.phone || "";
 
-                return (
-                  <div
-                    key={userId}
-                    onClick={() => {
-                      const newSelected = new Set(selectedUserIds);
-                      if (isSelected) {
-                        newSelected.delete(userId);
-                      } else {
-                        newSelected.add(userId);
-                      }
-                      setSelectedUserIds(newSelected);
-                    }}
-                    className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                      isSelected
-                        ? "border-orange-500 bg-orange-50"
-                        : "border-brown-200 hover:border-orange-300 hover:bg-brown-50"
-                    }`}
-                  >
-                    <Input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={() => {
+                  return (
+                    <div
+                      key={userId}
+                      onClick={() => {
                         const newSelected = new Set(selectedUserIds);
                         if (isSelected) {
                           newSelected.delete(userId);
@@ -230,64 +227,85 @@ export function AssignUserDialog({
                         }
                         setSelectedUserIds(newSelected);
                       }}
-                      className="w-5 h-5 border-radius-10 text-orange-500 border-orange-300 rounded focus:ring-orange-500 focus:ring-2 focus:border-radius-10 cursor-pointer accent-orange-500"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-gray-900 truncate">
-                        {fullName}
-                      </p>
-                      <p className="text-sm text-gray-600 truncate">
-                        {email} {phone && `• ${phone}`}
-                      </p>
+                      className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all bg-white ${isSelected
+                          ? "border-[#78A243] bg-[#78A243]/5"
+                          : "border-gray-200 hover:border-[#78A243]/50 hover:bg-[#78A243]/5"
+                        }`}
+                    >
+                      <Input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => {
+                          const newSelected = new Set(selectedUserIds);
+                          if (isSelected) {
+                            newSelected.delete(userId);
+                          } else {
+                            newSelected.add(userId);
+                          }
+                          setSelectedUserIds(newSelected);
+                        }}
+                        className="w-5 h-5 text-[#78A243] border-[#78A243]/30 rounded focus:ring-[#78A243] focus:ring-2 cursor-pointer accent-[#78A243]"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-[#2D1E1A] truncate">
+                          {fullName}
+                        </p>
+                        <p className="text-sm text-gray-600 truncate">
+                          {email} {phone && `• ${phone}`}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
 
-            <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-              <p className="text-sm text-gray-600">
-                Đã chọn:{" "}
-                <strong className="text-orange-600">
-                  {selectedUserIds.size}
-                </strong>{" "}
-                học viên
-              </p>
-              <div className="flex gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={onClose}
-                  disabled={loading}
-                >
-                  Hủy
-                </Button>
-                <Button
-                  type="button"
-                  onClick={handleAssign}
-                  disabled={loading || selectedUserIds.size === 0}
-                  className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white"
-                >
-                  {loading ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                      Đang thêm...
-                    </>
-                  ) : (
-                    <>
-                      <UserPlus size={18} className="mr-2" />
-                      Thêm{" "}
-                      {selectedUserIds.size > 0
-                        ? `${selectedUserIds.size} `
-                        : ""}
-                      học viên
-                    </>
-                  )}
-                </Button>
+              {/* Footer */}
+              <div className="bg-gray-50 border-t border-gray-200 -mx-6 -mb-6 mt-6 p-4 flex items-center justify-between rounded-b-2xl">
+                <p className="text-sm text-gray-600">
+                  Đã chọn:{" "}
+                  <strong className="text-[#78A243]">
+                    {selectedUserIds.size}
+                  </strong>{" "}
+                  học viên
+                </p>
+                <div className="flex gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={onClose}
+                    disabled={loading}
+                    className="px-5 py-2.5 border-2 border-gray-300 hover:bg-gray-100 font-semibold"
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Hủy
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={handleAssign}
+                    disabled={loading || selectedUserIds.size === 0}
+                    className="px-5 py-2.5 bg-[#78A243] hover:bg-[#78A243]/90 text-white shadow-lg hover:shadow-xl transition-all font-semibold"
+                  >
+                    {loading ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                        Đang thêm...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Thêm{" "}
+                        {selectedUserIds.size > 0
+                          ? `${selectedUserIds.size} `
+                          : ""}
+                        học viên
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );

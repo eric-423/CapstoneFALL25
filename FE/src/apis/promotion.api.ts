@@ -88,8 +88,36 @@ export async function getPromotionTypes() {
   return [] as PromotionType[];
 }
 
-export async function getAllPromotions() {
-  const response = await fetch("/api/promotions/all", {
+export interface GetAllPromotionsParams {
+  page?: number;
+  size?: number;
+  sortBy?: string;
+  sortDirection?: "ASC" | "DESC";
+}
+
+export interface PromotionsPageResponse {
+  content: Promotion[];
+  totalElements: number;
+  totalPages: number;
+  page: number;
+  size: number;
+}
+
+export async function getAllPromotions(
+  params: GetAllPromotionsParams = {}
+): Promise<PromotionsPageResponse | Promotion[]> {
+  const { page, size, sortBy, sortDirection } = params;
+
+  const queryParams: Record<string, string> = {};
+  if (page !== undefined) queryParams.page = String(page);
+  if (size !== undefined) queryParams.size = String(size);
+  if (sortBy) queryParams.sortBy = sortBy;
+  if (sortDirection) queryParams.sortDirection = sortDirection;
+
+  const queryString = new URLSearchParams(queryParams).toString();
+  const url = `/api/promotions/all${queryString ? `?${queryString}` : ""}`;
+
+  const response = await fetch(url, {
     method: "GET",
     credentials: "include",
   });
@@ -105,7 +133,22 @@ export async function getAllPromotions() {
   }
 
   const result = await response.json();
-  return result.data as Promotion[];
+
+  // Nếu có pagination info, trả về object với pagination
+  if (
+    result.data &&
+    typeof result.data === "object" &&
+    "content" in result.data
+  ) {
+    return result.data as PromotionsPageResponse;
+  }
+
+  // Nếu không có pagination, trả về array (backward compatible)
+  if (Array.isArray(result.data)) {
+    return result.data as Promotion[];
+  }
+
+  return [] as Promotion[];
 }
 
 /**

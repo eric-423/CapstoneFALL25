@@ -161,6 +161,7 @@ public class PromotionServiceImpl implements PromotionService {
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
             Date now = new Date();
+            System.out.println(now);
 
             if (promotion.getStartDate() != null && !promotion.getStartDate().isEmpty()) {
                 Date startDate = sdf.parse(promotion.getStartDate());

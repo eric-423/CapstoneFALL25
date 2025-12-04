@@ -49,14 +49,14 @@ export function NutrientFormDialog({ open, onOpenChange, nutrient, onSuccess }: 
         e.preventDefault();
 
         if (!formData.name.trim() || !formData.code.trim() || !formData.unit.trim()) {
-            toast.error('❌ Vui lòng điền đầy đủ thông tin!');
+            toast.error('Vui lòng điền đầy đủ thông tin!');
             return;
         }
 
         const energyPerUnit = parseFloat(formData.energyPerUnit);
 
         if (isNaN(energyPerUnit) || energyPerUnit < 0) {
-            toast.error('❌ Năng lượng không hợp lệ!');
+            toast.error('Năng lượng không hợp lệ!');
             return;
         }
 
@@ -72,17 +72,17 @@ export function NutrientFormDialog({ open, onOpenChange, nutrient, onSuccess }: 
 
             if (nutrient) {
                 await updateNutrient(nutrient.id, requestData);
-                toast.success('✅ Cập nhật dinh dưỡng thành công!');
+                toast.success('Cập nhật dinh dưỡng thành công!');
             } else {
                 await createNutrient(requestData);
-                toast.success('✅ Thêm dinh dưỡng thành công!');
+                toast.success('Thêm dinh dưỡng thành công!');
             }
 
             onSuccess();
             onOpenChange(false);
         } catch (error) {
             console.error('Failed to save nutrient:', error);
-            toast.error('❌ Không thể lưu dinh dưỡng!');
+            toast.error('Không thể lưu dinh dưỡng!');
         } finally {
             setLoading(false);
         }

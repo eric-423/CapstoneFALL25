@@ -52,7 +52,7 @@ export default function NutrientsPage() {
             setTotalPages(response.totalPages);
         } catch (error) {
             console.error('Failed to fetch nutrients:', error);
-            toast.error('❌ Không thể tải danh sách dinh dưỡng!');
+            toast.error('Không thể tải danh sách dinh dưỡng!');
         } finally {
             setLoading(false);
         }
@@ -83,13 +83,13 @@ export default function NutrientsPage() {
         try {
             setActionLoading(true);
             await deleteNutrient(deletingNutrient.id);
-            toast.success(`✅ Đã xóa dinh dưỡng "${deletingNutrient.name}"!`);
+            toast.success(`Đã xóa dinh dưỡng "${deletingNutrient.name}"!`);
             await fetchNutrients();
             setShowConfirmDialog(false);
             setDeletingNutrient(null);
         } catch (error) {
             console.error('Failed to delete nutrient:', error);
-            toast.error('❌ Không thể xóa dinh dưỡng!');
+            toast.error('Không thể xóa dinh dưỡng!');
         } finally {
             setActionLoading(false);
         }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
     Users,
     Plus,
@@ -42,6 +42,7 @@ export default function UsersManagementPage() {
 
     // Filter states
     const [searchKeyword, setSearchKeyword] = useState('');
+    const [debouncedSearchKeyword, setDebouncedSearchKeyword] = useState('');
     const [roleFilter, setRoleFilter] = useState<string>('');
     const [statusFilter, setStatusFilter] = useState<string>('');
     const [currentPage, setCurrentPage] = useState(0);
@@ -66,6 +67,16 @@ export default function UsersManagementPage() {
         banned: 0,
         verified: 0
     });
+
+    // Debounce search keyword - chỉ trigger API sau 500ms không nhập
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearchKeyword(searchKeyword);
+            setCurrentPage(0);
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [searchKeyword]);
 
     // Fetch branches and roles
     useEffect(() => {
@@ -96,7 +107,7 @@ export default function UsersManagementPage() {
             };
 
             // Add filters if they exist
-            if (searchKeyword) searchRequest.keyword = searchKeyword;
+            if (debouncedSearchKeyword) searchRequest.keyword = debouncedSearchKeyword;
             if (roleFilter) searchRequest.role = roleFilter;
             if (statusFilter) searchRequest.status = statusFilter === 'active';
 
@@ -122,11 +133,11 @@ export default function UsersManagementPage() {
             });
         } catch (error) {
             console.error('Failed to fetch users:', error);
-            toast.error('❌ Không thể tải danh sách người dùng!');
+            toast.error('Không thể tải danh sách người dùng!');
         } finally {
             setLoading(false);
         }
-    }, [currentPage, pageSize, sortBy, sortDirection, searchKeyword, roleFilter, statusFilter]);
+    }, [currentPage, pageSize, sortBy, sortDirection, debouncedSearchKeyword, roleFilter, statusFilter]);
 
     useEffect(() => {
         fetchUsers();
@@ -175,6 +186,7 @@ export default function UsersManagementPage() {
     // Clear all filters
     const handleClearFilters = () => {
         setSearchKeyword('');
+        setDebouncedSearchKeyword('');
         setRoleFilter('');
         setStatusFilter('');
         setCurrentPage(0);
@@ -219,25 +231,25 @@ export default function UsersManagementPage() {
                     title="Tổng người dùng"
                     value={stats.total}
                     icon={Users}
-                    subtitle={searchKeyword || roleFilter || statusFilter ? "Kết quả tìm kiếm" : "Tài khoản trong hệ thống"}
+                    subtitle={debouncedSearchKeyword || roleFilter || statusFilter ? "Kết quả tìm kiếm" : "Tài khoản trong hệ thống"}
                 />
                 <AdminCard
                     title="Đang hoạt động"
                     value={stats.active}
                     icon={UserCheck}
-                    subtitle={searchKeyword || roleFilter || statusFilter ? "Trong kết quả" : "Tài khoản có thể đăng nhập"}
+                    subtitle={debouncedSearchKeyword || roleFilter || statusFilter ? "Trong kết quả" : "Tài khoản có thể đăng nhập"}
                 />
                 <AdminCard
                     title="Đã khóa"
                     value={stats.banned}
                     icon={Ban}
-                    subtitle={searchKeyword || roleFilter || statusFilter ? "Trong kết quả" : "Tài khoản bị vô hiệu hóa"}
+                    subtitle={debouncedSearchKeyword || roleFilter || statusFilter ? "Trong kết quả" : "Tài khoản bị vô hiệu hóa"}
                 />
                 <AdminCard
                     title="Đã xác thực"
                     value={stats.verified}
                     icon={ShieldCheck}
-                    subtitle={searchKeyword || roleFilter || statusFilter ? "Trong kết quả" : "Xác thực Email hoặc SĐT"}
+                    subtitle={debouncedSearchKeyword || roleFilter || statusFilter ? "Trong kết quả" : "Xác thực Email hoặc SĐT"}
                 />
             </div>
 
@@ -252,12 +264,14 @@ export default function UsersManagementPage() {
                             type="text"
                             placeholder="Tìm kiếm người dùng..."
                             value={searchKeyword}
-                            onChange={(e) => {
-                                setSearchKeyword(e.target.value);
-                                setCurrentPage(0);
-                            }}
-                            className="w-full max-w-[200px] pl-10 pr-4 py-2 border bg-white/80 border-[#78A243]/30 rounded-lg text-sm focus:border-[#78A243] focus:ring-1 focus:ring-[#78A243]/20 outline-none"
+                            onChange={(e) => setSearchKeyword(e.target.value)}
+                            className="w-full max-w-[200px] pl-10 pr-4 py-2 border bg-white/80 border-[#78A243]/30 rounded-lg text-sm focus:border-[#78A243] focus:ring-1 focus:ring-[#78A243]/20 outline-none transition-colors"
                         />
+                        {searchKeyword && searchKeyword !== debouncedSearchKeyword && (
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                <div className="w-4 h-4 border-2 border-[#78A243]/40 border-t-[#78A243] rounded-full animate-spin"></div>
+                            </div>
+                        )}
                     </div>
                     <FilterDropdown
                         label="Chọn vai trò"
@@ -291,6 +305,7 @@ export default function UsersManagementPage() {
                             onClick={handleClearFilters}
                             variant="ghost"
                             size="sm"
+                            className="text-[#2D1E1A]/70 hover:text-[#2D1E1A] hover:bg-[#EBD187]/30"
                         >
                             <X className="h-4 w-4 mr-1" />
                             Xóa lọc

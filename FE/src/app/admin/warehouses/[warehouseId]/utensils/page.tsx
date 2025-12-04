@@ -48,7 +48,7 @@ export default function WarehouseUtensilsPage({ params }: WarehouseUtensilsPageP
             setUtensilTypes(types);
         } catch (error) {
             console.error('Failed to fetch data:', error);
-            toast.error('❌ Không thể tải dữ liệu!');
+            toast.error('Không thể tải dữ liệu!');
         } finally {
             setLoading(false);
         }

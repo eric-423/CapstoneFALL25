@@ -3,6 +3,7 @@ package com.capstone.tamtech.capstone.entities;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
@@ -12,6 +13,7 @@ import java.util.Date;
 @AllArgsConstructor
 @Table(name = "product_recipes")
 @Data
+@EqualsAndHashCode(exclude = { "product", "material", "cookingMethod" })
 public class ProductRecipes {
 
     @Id
