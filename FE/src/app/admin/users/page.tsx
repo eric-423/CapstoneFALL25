@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     Users,
     Plus,
@@ -27,7 +27,7 @@ import { getRoles, type Role } from '@/apis/role.api';
 import { UserFormDialog } from './components/UserFormDialog';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { RolesManagementModal } from './components/RolesManagementModal';
-import { FilterDropdown } from '../components/FilterDropdown';
+import { FilterDropdown } from '@/components/common/FilterDropdown';
 import Link from 'next/link';
 import useAuth from '@/utils/hooks/useAuth';
 
@@ -46,9 +46,9 @@ export default function UsersManagementPage() {
     const [roleFilter, setRoleFilter] = useState<string>('');
     const [statusFilter, setStatusFilter] = useState<string>('');
     const [currentPage, setCurrentPage] = useState(0);
-    const [pageSize, setPageSize] = useState(10);
-    const [sortBy, setSortBy] = useState('id');
-    const [sortDirection, setSortDirection] = useState<'ASC' | 'DESC'>('ASC');
+    const [pageSize] = useState(10);
+    const [sortBy] = useState('id');
+    const [sortDirection] = useState<'ASC' | 'DESC'>('ASC');
 
     // Dialog states
     const [showDialog, setShowDialog] = useState(false);

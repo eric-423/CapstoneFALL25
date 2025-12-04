@@ -57,6 +57,17 @@ export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboF
         }
     };
 
+    const resetForm = React.useCallback(() => {
+        setName('');
+        setDescription('');
+        setPrice('');
+        setStartDate('');
+        setEndDate('');
+        setIsActive(true);
+        setBranchId(branches.length > 0 ? branches[0].id : null);
+        setComboItems([]);
+    }, [branches]);
+
     // Initialize form
     useEffect(() => {
         if (open) {
@@ -75,7 +86,7 @@ export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboF
                 resetForm();
             }
         }
-    }, [open, combo]);
+    }, [open, combo, resetForm]);
 
     useEffect(() => {
         if (branchId) {
@@ -83,16 +94,6 @@ export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboF
         }
     }, [branchId]);
 
-    const resetForm = () => {
-        setName('');
-        setDescription('');
-        setPrice('');
-        setStartDate('');
-        setEndDate('');
-        setIsActive(true);
-        setBranchId(branches.length > 0 ? branches[0].id : null);
-        setComboItems([]);
-    };
 
     const handleAddItem = () => {
         if (products.length === 0) return;
@@ -110,8 +111,15 @@ export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboF
 
     const handleItemChange = (index: number, field: keyof ComboItem, value: string | number) => {
         const newItems = [...comboItems];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        newItems[index] = { ...newItems[index], [field]: value } as any;
+        const current: ComboItem = { ...newItems[index] };
+        if (field === 'productId') {
+            current.productId = Number(value);
+        } else if (field === 'quantity') {
+            current.quantity = Number(value);
+        } else if (field === 'note') {
+            current.note = String(value);
+        }
+        newItems[index] = current;
         setComboItems(newItems);
     };
 
@@ -157,7 +165,7 @@ export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboF
     if (!open) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+        <div className="fixed inset-0 bg-black/15 backdrop-blur-[1px] z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
             <Card className="w-full max-w-5xl max-h-[90vh] overflow-hidden bg-white shadow-2xl rounded-2xl border-0 py-0">
                 {/* Header */}
                 <div className="sticky top-0 bg-[#78A243] p-6 flex items-center justify-between z-10 shadow-lg">

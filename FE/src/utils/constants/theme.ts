@@ -337,7 +337,7 @@ export const TYPOGRAPHY = {
   },
 } as const;
 
-export default {
+const THEME = {
   COLORS,
   COMPONENT_COLORS,
   GRADIENTS,
@@ -347,4 +347,6 @@ export default {
   TRANSITIONS,
   Z_INDEX,
   TYPOGRAPHY,
-};
+} as const;
+
+export default THEME;

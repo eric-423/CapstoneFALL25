@@ -19,7 +19,6 @@ export default function TopProducts({ data, isLoading }: TopProductsProps) {
                     <h3 className="text-lg font-semibold text-[#2D1E1A]">Top Món Bán Chạy</h3>
                     {isLoading && <Loader2 className="h-4 w-4 animate-spin text-[#78A243]" />}
                 </div>
-                <button className="text-sm text-[#78A243] hover:text-[#78A243]/80 font-medium">Xem tất cả</button>
             </div>
 
             <div className="space-y-3 overflow-y-auto flex-1 min-h-0 pr-2 scrollbar-thin scrollbar-thumb-[#78A243]/20 scrollbar-track-transparent">

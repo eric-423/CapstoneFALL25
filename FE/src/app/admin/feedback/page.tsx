@@ -48,21 +48,18 @@ export default function FeedbackPage() {
                         title="Tổng phản hồi"
                         value={MOCK_FEEDBACK.length}
                         icon={MessageSquare}
-                        iconClassName="from-blue-500 to-cyan-500"
                     />
                     <AdminStatsCard
                         title="Chờ xử lý"
                         value={MOCK_FEEDBACK.filter(f => f.status === 'PENDING').length}
                         icon={Clock}
                         className="border-yellow-200"
-                        iconClassName="from-yellow-500 to-orange-500"
                     />
                     <AdminStatsCard
                         title="Đã xử lý"
                         value={MOCK_FEEDBACK.filter(f => f.status === 'RESOLVED').length}
                         icon={CheckCircle}
                         className="border-green-200"
-                        iconClassName="from-green-500 to-emerald-500"
                     />
                 </div>
 

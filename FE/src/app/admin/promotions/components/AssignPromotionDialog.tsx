@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   X,
   UserPlus,
@@ -46,13 +46,7 @@ export function AssignPromotionDialog({
     }
   }, [open]);
 
-  useEffect(() => {
-    if (open) {
-      fetchCustomers();
-    }
-  }, [open, currentPage, searchKeyword]);
-
-  const fetchCustomers = async () => {
+  const fetchCustomers = useCallback(async () => {
     try {
       setLoadingCustomers(true);
       const searchRequest: UserSearchRequest = {
@@ -78,11 +72,16 @@ export function AssignPromotionDialog({
     } finally {
       setLoadingCustomers(false);
     }
-  };
+  }, [currentPage, pageSize, searchKeyword]);
+
+  useEffect(() => {
+    if (open) {
+      fetchCustomers();
+    }
+  }, [open, currentPage, searchKeyword, fetchCustomers]);
 
   const handleSearch = () => {
     setCurrentPage(0);
-    fetchCustomers();
   };
 
   const handlePageChange = (newPage: number) => {
@@ -178,7 +177,7 @@ export function AssignPromotionDialog({
       </Button>
 
       {open && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+        <div className="fixed inset-0 bg-black/15 backdrop-blur-[1px] z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
           <Card className="w-full max-w-4xl bg-white shadow-2xl rounded-2xl border-2 border-[#78A243]/20 overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
             <div className="p-6 border-b-2 border-gray-100 bg-gradient-to-r from-[#78A243]/5 to-transparent flex-shrink-0">
               <div className="flex items-start gap-4">
@@ -241,7 +240,7 @@ export function AssignPromotionDialog({
                   className="border-[#78A243] text-[#78A243] hover:bg-[#78A243] hover:text-white font-semibold h-10"
                 >
                   {customers.length > 0 &&
-                  customers.every((customer) => selectedUsers.has(customer.id))
+                    customers.every((customer) => selectedUsers.has(customer.id))
                     ? "Bỏ chọn tất cả"
                     : "Chọn tất cả"}
                 </Button>
@@ -274,11 +273,10 @@ export function AssignPromotionDialog({
                   return (
                     <div
                       key={customer.id}
-                      className={`group relative rounded-xl border transition-all shadow-sm hover:shadow-md ${
-                        isSelected
-                          ? "border-[#78A243] bg-[#F7FBF2]"
-                          : "border-gray-200 bg-white hover:border-gray-300"
-                      }`}
+                      className={`group relative rounded-xl border transition-all shadow-sm hover:shadow-md ${isSelected
+                        ? "border-[#78A243] bg-[#F7FBF2]"
+                        : "border-gray-200 bg-white hover:border-gray-300"
+                        }`}
                     >
                       <div className="flex gap-4 p-4">
                         <div className="flex flex-col items-center gap-2 pt-1">

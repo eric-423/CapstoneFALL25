@@ -6,10 +6,7 @@ import useScrollTop from "@/utils/hooks/useScrollTop";
 import useGetProductSearch from "@/utils/hooks/useGetProductSearch";
 import useGetComboSearch from "@/utils/hooks/useGetComboSearch";
 import {
-  GET_TOP_SELLING_QUERY_KEY,
-  Product,
   ProductType,
-  getTopSellingProducts,
   getProductType,
   GET_PRODUCT_TYPE_QUERY_KEY,
   GET_PRODUCT_TYPE_STALE_TIME,
@@ -211,13 +208,6 @@ export default function MenuPage() {
   const resetAndRefetch = useCallback(async () => {
     await Promise.all([resetAndRefetchProducts(), resetAndRefetchCombos()]);
   }, [resetAndRefetchProducts, resetAndRefetchCombos]);
-
-  const { data: topSellingData } = useQuery({
-    queryKey: [GET_TOP_SELLING_QUERY_KEY, selectedBranch?.branchId],
-    queryFn: () => getTopSellingProducts(selectedBranch?.branchId || 1, 1),
-    enabled: Boolean(selectedBranch?.branchId),
-    refetchOnWindowFocus: false,
-  });
 
   const isLoadingBranches =
     isLoadingBranchesData ||

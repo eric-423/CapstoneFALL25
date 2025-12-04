@@ -48,6 +48,7 @@ export interface CurrentOrder {
 }
 
 export interface OrderItem {
+    orderItemId: number;
     productId: number;
     productName: string;
     orderId: number;
@@ -75,7 +76,11 @@ export interface OrderItem {
         active: boolean;
     } | null;
     isConfirmed: boolean;
+    confirmAt: string | null;
     isDelivered: boolean;
+    deliveredAt: string | null;
+    cookedAt: string | null;
+    isCooked: boolean;
     feedBackYet: boolean;
 }
 

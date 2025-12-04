@@ -1,14 +1,26 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
     Calendar,
     Plus,
     ChevronLeft,
     ChevronRight,
     Clock,
+    CalendarCheck,
+    Search,
+    X,
+    Filter,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import {
     Dialog,
     DialogContent,
@@ -35,6 +47,7 @@ import type {
     AdminPageLayoutProps,
     AdminPageHeaderProps,
 } from '@/app/admin/components/AdminPageLayout';
+import { AdminCard } from '@/app/admin/components/AdminCard';
 
 interface ScheduleManagementProps {
     AdminPageLayout: React.ComponentType<AdminPageLayoutProps>;
@@ -60,8 +73,10 @@ export function ScheduleManagement({
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [scheduleToDelete, setScheduleToDelete] = useState<Schedule | null>(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
-    const [flagShowCurrentWeekButton, setFlagShowCurrentWeekButton] = useState(false);
-    const [flagRightCurrentWeekButton, setFlagRightCurrentWeekButton] = useState(false);
+
+    // Filter states
+    const [searchName, setSearchName] = useState('');
+    const [filterShift, setFilterShift] = useState<string>('all');
 
     useBodyScrollLock(showFormDialog || deleteDialogOpen);
 
@@ -108,25 +123,37 @@ export function ScheduleManagement({
         fetchUsers();
     }, [fetchSchedules, fetchUsers]);
 
+    // Check if currentWeek is the actual current week
+    const isCurrentWeek = () => {
+        const today = new Date();
+        const todayDay = today.getDay();
+        const todayMonday = new Date(today);
+        todayMonday.setDate(today.getDate() - todayDay + (todayDay === 0 ? -6 : 1));
+        todayMonday.setHours(0, 0, 0, 0);
+
+        const currentMonday = new Date(currentWeek);
+        const currentDay = currentMonday.getDay();
+        currentMonday.setDate(currentMonday.getDate() - currentDay + (currentDay === 0 ? -6 : 1));
+        currentMonday.setHours(0, 0, 0, 0);
+
+        return todayMonday.getTime() === currentMonday.getTime();
+    };
+
     // Handle week navigation
     const goToPreviousWeek = () => {
         const newDate = new Date(currentWeek);
         newDate.setDate(newDate.getDate() - 7);
         setCurrentWeek(newDate);
-        setFlagRightCurrentWeekButton(true);
     };
 
     const goToNextWeek = () => {
         const newDate = new Date(currentWeek);
         newDate.setDate(newDate.getDate() + 7);
         setCurrentWeek(newDate);
-        setFlagShowCurrentWeekButton(true);
     };
 
     const goToCurrentWeek = () => {
         setCurrentWeek(new Date());
-        setFlagShowCurrentWeekButton(false);
-        setFlagRightCurrentWeekButton(false);
     };
 
     // Handle form submission
@@ -176,33 +203,10 @@ export function ScheduleManagement({
         }
     };
 
-    // Handle edit
+    // Handle edit/view
     const handleEdit = (schedule: Schedule) => {
-        // Kiểm tra xem schedule có phải là quá khứ không
-        if (schedule.date) {
-            const scheduleDate = new Date(schedule.date);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            scheduleDate.setHours(0, 0, 0, 0);
-
-            // Nếu ngày đã qua
-            if (scheduleDate < today) {
-                toast.error('Không thể chỉnh sửa lịch trình đã qua');
-                return;
-            }
-
-            // Nếu là hôm nay, kiểm tra thời gian kết thúc
-            if (scheduleDate.getTime() === today.getTime() && schedule.endTime) {
-                const [hours, minutes] = schedule.endTime.split(':');
-                const endTime = new Date();
-                endTime.setHours(parseInt(hours || '0'), parseInt(minutes || '0'), 0, 0);
-                const now = new Date();
-                if (now > endTime) {
-                    toast.error('Không thể chỉnh sửa ca đã kết thúc');
-                    return;
-                }
-            }
-        }
+        // Cho phép mở dialog để xem hoặc chỉnh sửa
+        // ScheduleFormDialog sẽ tự xử lý chế độ chỉ xem cho lịch trình quá khứ
 
         const normalizedDate = schedule.date ? new Date(schedule.date) : undefined;
         if (normalizedDate) {
@@ -259,10 +263,50 @@ export function ScheduleManagement({
 
     const weekRange = getWeekRange();
 
-    // Calculate stats (bảo vệ khi schedules có thể bị undefined do response lỗi)
-    const safeSchedules = Array.isArray(schedules) ? schedules : [];
-    const totalSchedules = safeSchedules.length;
-    const thisWeekSchedules = safeSchedules.filter((schedule) => {
+    // Calculate stats cho tuần đang xem (bảo vệ khi schedules có thể bị undefined do response lỗi)
+    const safeSchedules = useMemo(() => (Array.isArray(schedules) ? schedules : []), [schedules]);
+
+    // Filter schedules based on search and shift filter
+    const filteredSchedules = useMemo(() => {
+        return safeSchedules.filter((schedule) => {
+            // Filter by name
+            if (searchName.trim()) {
+                const searchLower = searchName.toLowerCase().trim();
+                const nameMatch = schedule.userName?.toLowerCase().includes(searchLower) ||
+                    schedule.name?.toLowerCase().includes(searchLower);
+                if (!nameMatch) return false;
+            }
+
+            // Filter by shift
+            if (filterShift !== 'all' && schedule.startTime) {
+                const startHour = parseInt(schedule.startTime.split(':')[0] || '0');
+                const endHour = schedule.endTime ? parseInt(schedule.endTime.split(':')[0] || '0') : startHour;
+
+                switch (filterShift) {
+                    case 'morning':
+                        if (startHour >= 12) return false;
+                        break;
+                    case 'afternoon':
+                        if (startHour >= 17 || endHour <= 12) return false;
+                        break;
+                    case 'evening':
+                        if (endHour < 17 && startHour < 17) return false;
+                        break;
+                }
+            }
+
+            return true;
+        });
+    }, [safeSchedules, searchName, filterShift]);
+
+    const hasActiveFilters = searchName.trim() !== '' || filterShift !== 'all';
+
+    const clearFilters = () => {
+        setSearchName('');
+        setFilterShift('all');
+    };
+
+    const currentWeekSchedules = safeSchedules.filter((schedule) => {
         if (!schedule.date) return false;
         const scheduleDate = new Date(schedule.date);
         const monday = new Date(currentWeek);
@@ -277,6 +321,28 @@ export function ScheduleManagement({
         return scheduleDate >= monday && scheduleDate <= sunday;
     }).length;
 
+    // Calculate upcoming schedules (today and future within current week)
+    const upcomingSchedules = safeSchedules.filter((schedule) => {
+        if (!schedule.date) return false;
+        const scheduleDate = new Date(schedule.date);
+        scheduleDate.setHours(0, 0, 0, 0);
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Get current week's Sunday
+        const monday = new Date(currentWeek);
+        const day = monday.getDay();
+        const diff = monday.getDate() - day + (day === 0 ? -6 : 1);
+        monday.setDate(diff);
+        monday.setHours(0, 0, 0, 0);
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+        sunday.setHours(23, 59, 59, 999);
+
+        return scheduleDate >= today && scheduleDate <= sunday;
+    }).length;
+
     return (
         <AdminPageLayout>
             <AdminPageHeader
@@ -286,7 +352,7 @@ export function ScheduleManagement({
                 actions={
                     <Button
                         onClick={handleCreateNew}
-                        className="bg-[#EC6426] hover:bg-[#EC6426]/90 w-full sm:w-auto"
+                        className="bg-[#78A243] hover:bg-[#78A243]/90 w-full sm:w-auto"
                         size="sm"
                     >
                         <Plus className="w-4 h-4 sm:mr-2" />
@@ -296,96 +362,156 @@ export function ScheduleManagement({
                 }
             />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
-                <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-200">
-                    <div className="flex items-center justify-between">
-                        <div className="flex-1 min-w-0">
-                            <p className="text-xs sm:text-sm text-gray-600 mb-1">Tổng lịch trình</p>
-                            <p className="text-xl sm:text-2xl font-bold text-gray-900">{totalSchedules}</p>
-                        </div>
-                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-orange-100 rounded-xl flex items-center justify-center flex-shrink-0 ml-2">
-                            <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
-                        </div>
+            <div className="flex flex-col lg:flex-row gap-4 mb-4">
+                {/* Stats Cards */}
+                <div className="flex gap-4 flex-shrink-0">
+                    <div className="min-w-[200px]">
+                        <AdminCard
+                            title={isCurrentWeek() ? 'Lịch trình tuần này' : `Tuần ${weekRange.start} - ${weekRange.end}`}
+                            value={currentWeekSchedules}
+                            icon={isCurrentWeek() ? Clock : Calendar}
+                        />
                     </div>
+                    {isCurrentWeek() && (
+                        <div className="min-w-[200px]">
+                            <AdminCard
+                                title="Lịch trình sắp tới"
+                                value={upcomingSchedules}
+                                icon={CalendarCheck}
+                                subtitle="Từ hôm nay đến cuối tuần"
+                            />
+                        </div>
+                    )}
                 </div>
 
-                <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-200">
-                    <div className="flex items-center justify-between">
-                        <div className="flex-1 min-w-0">
-                            <p className="text-xs sm:text-sm text-gray-600 mb-1">Lịch trình tuần này</p>
-                            <p className="text-xl sm:text-2xl font-bold text-gray-900">{thisWeekSchedules}</p>
-                        </div>
-                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 ml-2">
-                            <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Week Navigation */}
-            <div className="bg-white rounded-xl p-3 sm:p-5 shadow-sm border border-gray-200 mb-4 sm:mb-6">
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
-                    {/* Left: Previous Week Button */}
-                    <div className="flex items-center gap-2 order-2 sm:order-1 w-full sm:w-auto justify-center sm:justify-start">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={goToPreviousWeek}
-                            className="flex items-center gap-1 sm:gap-2 hover:bg-orange-50 hover:border-orange-300 flex-1 sm:flex-initial"
-                        >
-                            <ChevronLeft className="w-4 h-4" />
-                            <span className="hidden sm:inline">Tuần trước</span>
-                            <span className="sm:hidden text-xs">Trước</span>
-                        </Button>
-                    </div>
-
-                    {/* Center: Current Week Display */}
-                    <div className="flex flex-col items-center gap-2 order-1 sm:order-2 flex-1 w-full sm:w-auto">
-                        <div className="text-center">
-                            <p className="text-base sm:text-lg font-bold text-gray-900">
-                                {weekRange.start} - {weekRange.end}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-0.5 sm:mt-1">Tuần hiện tại</p>
-                        </div>
-
-                        {(flagShowCurrentWeekButton || flagRightCurrentWeekButton) && (
-                            <Button
-                                variant="default"
-                                size="sm"
-                                onClick={goToCurrentWeek}
-                                className="bg-[#EC6426] hover:bg-[#EC6426]/90 text-white text-xs px-3 sm:px-4"
+                {/* Filters */}
+                <div className="flex-1 flex items-center justify-end gap-3">
+                    {/* Search by name */}
+                    <div className="relative flex-1 max-w-xs">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Input
+                            type="text"
+                            placeholder="Tìm theo tên nhân viên..."
+                            value={searchName}
+                            onChange={(e) => setSearchName(e.target.value)}
+                            className="pl-9 pr-8 h-10 border-gray-200 focus:border-[#78A243] focus:ring-[#78A243]/20"
+                        />
+                        {searchName && (
+                            <button
+                                onClick={() => setSearchName('')}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded"
                             >
-                                <span className="hidden sm:inline">Hiện Tại</span>
-                                <span className="sm:hidden">Hôm nay</span>
-                            </Button>
+                                <X className="w-3.5 h-3.5 text-gray-400" />
+                            </button>
                         )}
                     </div>
 
-                    {/* Right: Next Week Button */}
-                    <div className="flex items-center gap-2 order-3 w-full sm:w-auto justify-center sm:justify-end">
+                    {/* Filter by shift */}
+                    <Select value={filterShift} onValueChange={setFilterShift}>
+                        <SelectTrigger className="w-[140px] h-10 border-gray-200 focus:border-[#78A243] focus:ring-[#78A243]/20">
+                            <Filter className="w-4 h-4 mr-2 text-gray-400" />
+                            <SelectValue placeholder="Ca làm" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Tất cả ca</SelectItem>
+                            <SelectItem value="morning">
+                                <span className="flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                                    Ca sáng
+                                </span>
+                            </SelectItem>
+                            <SelectItem value="afternoon">
+                                <span className="flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-sky-500"></span>
+                                    Ca chiều
+                                </span>
+                            </SelectItem>
+                            <SelectItem value="evening">
+                                <span className="flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-violet-500"></span>
+                                    Ca tối
+                                </span>
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+
+                    {/* Clear filters button */}
+                    {hasActiveFilters && (
                         <Button
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
-                            onClick={goToNextWeek}
-                            className="flex items-center gap-1 sm:gap-2 hover:bg-orange-50 hover:border-orange-300 flex-1 sm:flex-initial"
+                            onClick={clearFilters}
+                            className="h-10 px-3 text-gray-500 hover:text-gray-700 hover:bg-gray-100"
                         >
-                            <span className="hidden sm:inline">Tuần sau</span>
-                            <span className="sm:hidden text-xs">Sau</span>
-                            <ChevronRight className="w-4 h-4" />
+                            <X className="w-4 h-4 mr-1" />
+                            Xóa lọc
                         </Button>
-                    </div>
+                    )}
                 </div>
+            </div>
+
+            {/* Week Navigation - Compact Filter Style */}
+            <div className="flex items-center justify-between gap-2 mb-4 px-1">
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={goToPreviousWeek}
+                    className="h-8 px-2 sm:px-3 border-[#78A243]/30 hover:bg-[#78A243]/10 hover:border-[#78A243] text-[#2D1E1A]"
+                >
+                    <ChevronLeft className="w-4 h-4" />
+                    <span className="hidden sm:inline ml-1">Trước</span>
+                </Button>
+
+                <div className="flex items-center gap-2">
+                    <div className="text-center">
+                        <span className="text-sm sm:text-base font-semibold text-[#2D1E1A]">
+                            {weekRange.start} - {weekRange.end}
+                        </span>
+                    </div>
+
+                    {!isCurrentWeek() && (
+                        <Button
+                            variant="default"
+                            size="sm"
+                            onClick={goToCurrentWeek}
+                            className="h-7 bg-[#78A243] hover:bg-[#78A243]/90 text-white text-xs px-2"
+                        >
+                            Hôm nay
+                        </Button>
+                    )}
+                </div>
+
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={goToNextWeek}
+                    className="h-8 px-2 sm:px-3 border-[#78A243]/30 hover:bg-[#78A243]/10 hover:border-[#78A243] text-[#2D1E1A]"
+                >
+                    <span className="hidden sm:inline mr-1">Sau</span>
+                    <ChevronRight className="w-4 h-4" />
+                </Button>
             </div>
 
             {/* Schedule Table */}
             {loading ? (
-                <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200 text-center">
-                    <p className="text-gray-500">Đang tải lịch trình...</p>
+                <div className="rounded-xl p-8 bg-white border border-gray-200 text-center mb-6">
+                    <div className="flex flex-col items-center gap-3">
+                        <div className="w-8 h-8 border-2 border-gray-200 border-t-[#78A243] rounded-full animate-spin"></div>
+                        <p className="text-gray-500 font-medium">Đang tải lịch trình...</p>
+                    </div>
                 </div>
             ) : (
-                <div className="bg-white rounded-xl p-2 sm:p-6 shadow-sm border border-gray-200 overflow-hidden">
+                <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 mb-6">
+                    {hasActiveFilters && (
+                        <div className="mb-3 px-1 flex items-center gap-2 text-sm text-gray-500">
+                            <span>Đang hiển thị {filteredSchedules.length} / {safeSchedules.length} lịch trình</span>
+                            {filteredSchedules.length === 0 && (
+                                <span className="text-amber-600">- Không tìm thấy kết quả phù hợp</span>
+                            )}
+                        </div>
+                    )}
                     <ScheduleTable
-                        schedules={schedules}
+                        schedules={filteredSchedules}
                         currentWeek={currentWeek}
                         onEdit={handleEdit}
                         onDelete={handleDeleteRequest}

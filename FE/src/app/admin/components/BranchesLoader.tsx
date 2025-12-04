@@ -3,7 +3,7 @@ import { useAdminContext } from '@/utils/contexts/AdminContext';
 import { getBranches } from '@/apis/branch.api';
 
 export function BranchesLoader() {
-    const { setBranches, setSelectedBranch } = useAdminContext();
+    const { setBranches } = useAdminContext();
 
     useEffect(() => {
         const fetchBranches = async () => {

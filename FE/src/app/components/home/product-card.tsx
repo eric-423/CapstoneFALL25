@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Star } from "lucide-react";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -16,10 +15,8 @@ type ProductCardProps = {
 };
 
 export function ProductCard({
-  id,
   title,
   description,
-  price,
   rating,
   image,
   index,

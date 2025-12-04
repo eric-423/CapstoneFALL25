@@ -1,14 +1,6 @@
 // Web Vitals and Analytics
 import { getCLS, getFID, getFCP, getLCP, getTTFB, type Metric } from 'web-vitals';
 
-interface AnalyticsEvent {
-  name: string;
-  value: number;
-  id: string;
-  delta: number;
-  navigationType?: string;
-}
-
 class Analytics {
   private isProduction = process.env.NODE_ENV === 'production';
   private isDevelopment = process.env.NODE_ENV === 'development';
@@ -20,10 +12,10 @@ class Analytics {
 
     // Web Vitals
     this.trackWebVitals();
-    
+
     // Page views
     this.trackPageViews();
-    
+
     // User interactions
     this.trackUserInteractions();
   }
@@ -80,7 +72,7 @@ class Analytics {
     }
   };
 
-  trackEvent(eventName: string, properties?: Record<string, any>) {
+  trackEvent(eventName: string, properties?: Record<string, unknown>) {
     if (this.isDevelopment) {
       console.log('Event:', eventName, properties);
     }
@@ -91,7 +83,7 @@ class Analytics {
     }
   }
 
-  trackUserAction(action: string, userId?: string, details?: Record<string, any>) {
+  trackUserAction(action: string, userId?: string, details?: Record<string, unknown>) {
     this.trackEvent('user_action', {
       action,
       userId,
@@ -101,7 +93,7 @@ class Analytics {
     });
   }
 
-  trackError(error: Error, context?: Record<string, any>) {
+  trackError(error: Error, context?: Record<string, unknown>) {
     this.trackEvent('error', {
       message: error.message,
       stack: error.stack,

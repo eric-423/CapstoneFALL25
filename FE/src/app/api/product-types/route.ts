@@ -1,8 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
     try {
-        // Forward to external API (public endpoint, no auth required)
         const response = await fetch(
             `${process.env.NEXT_PUBLIC_BASE_URL}/product-types`,
             {

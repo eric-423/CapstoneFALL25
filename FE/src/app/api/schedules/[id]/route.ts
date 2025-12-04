@@ -48,12 +48,20 @@ export async function PUT(
       responseText: responseText.substring(0, 200)
     });
 
-    let parsedData: any = {};
-    
+    interface ParsedData {
+      status?: number;
+      desc?: string;
+      message?: string;
+      error?: unknown;
+      [key: string]: unknown;
+    }
+
+    let parsedData: ParsedData = {};
+
     try {
-      parsedData = responseText ? JSON.parse(responseText) : {};
+      parsedData = responseText ? (JSON.parse(responseText) as ParsedData) : {};
     } catch (e) {
-      console.error('Failed to parse response:', responseText);
+      console.error('Failed to parse response:', responseText, e);
       return NextResponse.json(
         {
           status: 500,
@@ -76,7 +84,7 @@ export async function PUT(
       parsedData,
       body
     });
-    
+
     return NextResponse.json(
       {
         status: response.status || parsedData.status || 500,

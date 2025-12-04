@@ -24,7 +24,7 @@ import { AdminCard } from '../components/AdminCard';
 import { getBranchStatistics, activateBranch, deactivateBranch, type BranchStatistics, type BranchDetail } from '@/apis/branch.api';
 import { BranchFormDialog } from './components/BranchFormDialog';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
-import { FilterDropdown } from '../components/FilterDropdown';
+import { FilterDropdown } from '@/components/common/FilterDropdown';
 
 export default function BranchesManagementPage() {
     const [statistics, setStatistics] = useState<BranchStatistics | null>(null);

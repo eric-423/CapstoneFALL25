@@ -103,7 +103,6 @@ export default function StaffTablesPage() {
   };
 
   useEffect(() => {
-    // Get role from cookie
     const role = document.cookie
       .split("; ")
       .find((row) => row.startsWith("role="))
@@ -112,8 +111,7 @@ export default function StaffTablesPage() {
 
     fetchTables();
 
-    // Auto refresh every 30 seconds
-    const interval = setInterval(() => fetchTables(true), 30000);
+    const interval = setInterval(() => fetchTables(true), 10000);
     return () => clearInterval(interval);
   }, []);
 
@@ -132,15 +130,28 @@ export default function StaffTablesPage() {
     setQrCodeUrl(qrUrl);
   };
 
-  const downloadQRCode = () => {
+  const downloadQRCode = async () => {
     if (!selectedTableForQR || !qrCodeUrl) return;
 
-    const link = document.createElement("a");
-    link.href = qrCodeUrl;
-    link.download = `QR-${selectedTableForQR.name.replace(/\s+/g, "-")}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+      // Fetch the image as blob to avoid cross-origin issues
+      const response = await fetch(qrCodeUrl);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = `QR-${selectedTableForQR.name.replace(/\s+/g, "-")}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Clean up blob URL
+      URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error("Error downloading QR code:", error);
+      showNotification("Không thể tải QR code. Vui lòng thử lại.", "error");
+    }
   };
 
   const closeQRModal = () => {
@@ -588,14 +599,18 @@ export default function StaffTablesPage() {
                       : "bg-white border-gray-200 hover:border-[#EC6426]/30 hover:shadow-md"
                       }`}
                   >
-                    {/* Table Status Indicator */}
+                    {/* Table Status and QR - Top Right */}
                     <div className="absolute top-2 right-2">
-                      <div
-                        className={`w-3 h-3 rounded-full ${hasOrder
-                          ? "bg-orange-500 animate-pulse"
-                          : "bg-gray-300"
-                          }`}
-                      ></div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          generateQRCode(table);
+                        }}
+                        title={`QR - ${table.name}`}
+                        className="w-8 h-8 rounded-full bg-white/90 border border-[#EC6426] text-[#EC6426] flex items-center justify-center hover:bg-[#EC6426] hover:text-white transition-colors shadow-sm"
+                      >
+                        <QrCode size={14} />
+                      </button>
                     </div>
 
                     <div className="flex-grow">
@@ -669,18 +684,7 @@ export default function StaffTablesPage() {
 
                     {/* Action Buttons */}
                     <div className="flex flex-wrap gap-2 mt-auto">
-                      <Button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          generateQRCode(table);
-                        }}
-                        variant="outline"
-                        size="sm"
-                        className="flex-1 min-w-[60px] text-xs h-8 border-2 border-[#EC6426] text-[#EC6426] hover:bg-[#EC6426] hover:text-white"
-                      >
-                        <QrCode size={14} className="mr-1" />
-                        QR
-                      </Button>
+                      {/* QR button moved to top-right */}
                       {hasOrder && (
                         <Button
                           onClick={(e) => {
@@ -715,7 +719,7 @@ export default function StaffTablesPage() {
 
       {/* QR Code Modal */}
       {selectedTableForQR && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/15 backdrop-blur-[1px] p-4">
           <Card className="relative p-6 max-w-md w-full bg-white border-0 shadow-2xl rounded-2xl max-h-full overflow-y-auto">
             {/* Close Button */}
             <button
@@ -806,7 +810,7 @@ export default function StaffTablesPage() {
 
       {/* Waiter Action Modal */}
       {selectedTableForAction && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/15 backdrop-blur-[1px] p-4">
           <Card className="relative p-6 max-w-2xl w-full bg-white border-0 shadow-2xl rounded-2xl max-h-[90vh] overflow-y-auto">
             {/* Close Button */}
             <button
@@ -901,10 +905,15 @@ export default function StaffTablesPage() {
                             <HandPlatter size={12} className="mr-1" />
                             Đã phục vụ
                           </Badge>
+                        ) : item.isCooked ? (
+                          <Badge className="text-xs px-3 py-1 bg-green-100 text-green-700 border-green-300">
+                            <CheckCircle size={12} className="mr-1" />
+                            Đã chuẩn bị món
+                          </Badge>
                         ) : item.isConfirmed ? (
                           <Badge className="text-xs px-3 py-1 bg-yellow-100 text-yellow-700 border-yellow-300">
                             <ChefHat size={12} className="mr-1" />
-                            Đã xác nhận
+                            Đang chế biến
                           </Badge>
                         ) : (
                           <Badge className="text-xs px-3 py-1 bg-orange-100 text-orange-700 border-orange-300">
@@ -932,7 +941,7 @@ export default function StaffTablesPage() {
                                 {isExcluded ? "Hoàn tác" : "Loại bỏ"}
                               </Button>
                             )}
-                            {item.isConfirmed && (
+                            {item.isConfirmed && item.isCooked && (
                               <Button
                                 onClick={() =>
                                   handleDeliverSingleItem(item, index)
@@ -1058,7 +1067,7 @@ export default function StaffTablesPage() {
       )}
 
       {showPaymentMethodModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/15 backdrop-blur-[1px] p-4">
           <Card className="relative p-6 max-w-md w-full bg-white border-0 shadow-2xl rounded-2xl">
             <button
               aria-label="Đóng"
