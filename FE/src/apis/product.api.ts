@@ -383,7 +383,7 @@ export interface ProductCreateRequest {
 }
 
 export const createProduct = async (data: ProductCreateRequest) => {
-  const response = await fetch("/api/products", {
+  const response = await fetch("/api/products/create", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

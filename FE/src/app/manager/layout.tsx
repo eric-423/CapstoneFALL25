@@ -28,8 +28,10 @@ import {
    BookOpen,
    DollarSign,
    CalendarDays,
+   ChevronLeft,
+   ChevronRight,
+   Users,
 } from "lucide-react";
-import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 import { type ProcessOrderFn } from "@/utils/hooks/useBarcodeScanner";
 
 const MenuItem = memo(
@@ -135,31 +137,13 @@ export default function ManagerLayout({
    const [sidebarOpen, setSidebarOpen] = useState(false);
    const [isCollapsed, setIsCollapsed] = useState(false);
 
-   useEffect(() => {
-      document.documentElement.style.overflow = "hidden";
-      document.body.style.overflow = "hidden";
-
-      return () => {
-         document.documentElement.style.overflow = "";
-         document.body.style.overflow = "";
-      };
-   }, []);
-
    const menuItems = useMemo(
       () => [
          { href: "/manager/dashboard", label: "Dashboard", icon: LayoutDashboard },
+         { href: "/manager/users", label: "Nhân viên", icon: Users },
          { href: "/manager/orders", label: "Đơn hàng", icon: ShoppingBag },
-         {
-            href: "/manager/schedule",
-            label: "Lịch làm việc",
-            icon: CalendarDays,
-         },
-         {
-            href: "/manager/warehouses",
-            label: "Kho & Nguyên liệu",
-            icon: Warehouse,
-         },
-         { href: "/manager/finance", label: "Tài chính", icon: DollarSign },
+         { href: "/manager/schedule", label: "Lịch làm việc", icon: CalendarDays },
+         { href: "/manager/warehouses", label: "Kho", icon: Warehouse },
       ],
       []
    );
@@ -172,6 +156,10 @@ export default function ManagerLayout({
    const handleLogout = useCallback(() => {
       logout();
    }, [logout]);
+
+   const toggleSidebar = useCallback(() => {
+      setIsCollapsed(prev => !prev);
+   }, []);
 
    useEffect(() => {
       setSidebarOpen(false);
@@ -350,19 +338,19 @@ export default function ManagerLayout({
 
    return (
       <AdminProvider>
-         <div className="h-screen bg-[#EFE6DB] overflow-hidden">
-            <div className="flex relative h-full">
+         <div className="min-h-screen bg-[#EFE6DB]">
+            <div className="flex relative">
                {sidebarOpen && (
                   <div
-                     className="fixed inset-0 bg-black/50 z-40 lg:hidden transition-opacity"
+                     className="fixed inset-0 bg-black/15 z-40 lg:hidden transition-opacity"
                      onClick={() => setSidebarOpen(false)}
                   />
                )}
 
                <aside
                   className={`
-                        fixed top-0 left-0 h-screen z-50 overflow-hidden
-                        ${isCollapsed ? "w-20" : "w-64 lg:w-72 xl:w-72"}
+                        fixed top-0 left-0 h-screen z-50 lg:z-40
+                        ${isCollapsed ? "w-20" : "w-64 lg:w-56 xl:w-64"}
                         bg-gradient-to-b from-[#EC6426] via-[#EC6426]/95 to-[#EC6426]/90
                         shadow-xl lg:shadow-none
                         flex flex-col
@@ -370,49 +358,49 @@ export default function ManagerLayout({
                         ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
                     `}
                >
-                  <div className="relative p-2 border-b border-white/20 flex-shrink-0 flex items-center overflow-hidden">
+                  <div className={`relative p-2 border-b border-white/20 flex-shrink-0 flex items-center overflow-hidden z-20 bg-gradient-to-b from-[#EC6426] to-[#EC6426] ${isCollapsed ? "justify-center" : ""}`}>
                      <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent"></div>
                      <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#F8A91F]/20 rounded-full blur-3xl"></div>
                      <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
 
-                     <div className="relative z-10 flex-shrink-0">
-                        <Image src={logo.src} alt="logo" width={100} height={100} />
+                     <div className={`relative z-10 flex-shrink-0 transition-all duration-200 ${isCollapsed ? "mx-auto" : ""}`}>
+                        <Image src={logo.src} alt="logo" width={isCollapsed ? 60 : 100} height={isCollapsed ? 60 : 100} className="transition-all duration-200" style={{ height: 'auto' }} />
                      </div>
 
                      {!isCollapsed && (
-                        <div className="relative z-10 flex-1 min-w-0 text-center transition-opacity duration-150">
-                           <h2 className="font-bold text-base sm:text-lg lg:text-xl text-white drop-shadow-md">
-                              Manager
-                           </h2>
+                        <div className="relative z-10 flex-1 min-w-0 transition-opacity duration-150">
+                           <p className="text-[15px] text-white/100 font-semibold tracking-widest uppercase">
+                              Manager Panel
+                           </p>
                         </div>
                      )}
 
-                     <div className="relative z-10 flex items-center gap-2">
-                        <button
-                           onClick={() => setIsCollapsed((prev) => !prev)}
-                           className="hidden lg:flex p-2 hover:bg-white/10 rounded-lg transition-colors"
-                           aria-label={
-                              isCollapsed ? "Mở rộng sidebar" : "Thu gọn sidebar"
-                           }
-                        >
-                           {isCollapsed ? (
-                              <MenuUnfoldOutlined className="w-4 h-4 text-white" />
-                           ) : (
-                              <MenuFoldOutlined className="w-4 h-4 text-white" />
-                           )}
-                        </button>
-                        <button
-                           onClick={() => setSidebarOpen(false)}
-                           className="lg:hidden p-2 hover:bg-white/10 rounded-lg transition-colors"
-                           aria-label="Close sidebar"
-                        >
-                           <X className="w-5 h-5 text-white" />
-                        </button>
-                     </div>
+                     <button
+                        onClick={() => setSidebarOpen(false)}
+                        className="lg:hidden absolute top-4 right-4 p-2 hover:bg-white/10 rounded-lg transition-colors z-20"
+                        aria-label="Close sidebar"
+                     >
+                        <X className="w-5 h-5 text-white" />
+                     </button>
                   </div>
 
-                  <nav className="flex-1 overflow-hidden p-3 sm:p-4">
-                     <div className="space-y-1.5 relative">
+                  {/* Toggle Collapse Button */}
+                  <div className="hidden lg:flex justify-center -mt-4 relative z-30">
+                     <button
+                        onClick={toggleSidebar}
+                        className="absolute -right-4 top-0 w-8 h-8 bg-[#EC6426] border-2 border-white/30 rounded-full flex items-center justify-center shadow-lg hover:bg-[#d55a22] hover:border-white/50 transition-all duration-200 group"
+                        aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+                     >
+                        {isCollapsed ? (
+                           <ChevronRight className="w-4 h-4 text-white group-hover:scale-110 transition-transform" />
+                        ) : (
+                           <ChevronLeft className="w-4 h-4 text-white group-hover:scale-110 transition-transform" />
+                        )}
+                     </button>
+                  </div>
+
+                  <nav className="flex-1 overflow-y-auto p-3 sm:p-4 pt-10 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
+                     <div className="space-y-1.5 relative mt-4">
                         {!isCollapsed && (
                            <div
                               className="absolute left-[9.5px] w-3 h-3 rounded-full bg-[#F8A91F] shadow-[0_0_12px_rgba(248,169,31,0.8)] border-2 border-white z-20 pointer-events-none transition-all duration-200 ease-out"
@@ -435,10 +423,10 @@ export default function ManagerLayout({
                      </div>
                   </nav>
 
-                  <div className="p-3 sm:p-4 flex-shrink-0 border-t border-white/20 bg-[#EC6426]">
+                  <div className="p-3 sm:p-4 flex-shrink-0 border-t border-white/20">
                      <Button
-                        className={`w-full ${isCollapsed ? "justify-center px-2" : "justify-start gap-3"
-                           } hover:bg-[#EC6426]/90 text-white font-semibold transition-all duration-200 hover:shadow-xl py-2.5 sm:py-3 mb-2`}
+                        variant="outline"
+                        className={`w-full ${isCollapsed ? "justify-center px-2" : "justify-start gap-3"} border-2 border-white/30 bg-white/10 hover:bg-white/20 hover:border-white/50 text-white font-semibold transition-all duration-200 shadow-lg hover:shadow-xl py-2.5 sm:py-3 mb-2`}
                         onClick={() => router.push("/manager/training-courses")}
                         title={isCollapsed ? "Khóa học của tôi" : undefined}
                      >
@@ -450,8 +438,8 @@ export default function ManagerLayout({
                         )}
                      </Button>
                      <Button
-                        className={`w-full ${isCollapsed ? "justify-center px-2" : "justify-start gap-3"
-                           } hover:bg-[#EC6426]/90 text-white font-semibold transition-all duration-200 hover:shadow-xl py-2.5 sm:py-3`}
+                        variant="outline"
+                        className={`w-full ${isCollapsed ? "justify-center px-2" : "justify-start gap-3"} border-2 border-white/30 bg-white/10 hover:bg-white/20 hover:border-white/50 text-white font-semibold transition-all duration-200 shadow-lg hover:shadow-xl py-2.5 sm:py-3`}
                         onClick={handleLogout}
                         title={isCollapsed ? "Đăng xuất" : undefined}
                      >
@@ -463,16 +451,10 @@ export default function ManagerLayout({
                         )}
                      </Button>
                   </div>
-
-                  <div className="p-3 sm:p-4 bg-black/10 backdrop-blur border-t border-white/20 flex-shrink-0">
-                     <p className="text-xs text-center text-white/70 font-medium">
-                        © 2025 Tâm Tắc Restaurant
-                     </p>
-                  </div>
                </aside>
 
                <main
-                  className={`flex-1 w-full bg-[#EFE6DB] min-w-0 transition-[margin] duration-200 ease-out h-screen overflow-y-auto ${isCollapsed ? "lg:ml-12" : "lg:ml-56 xl:ml-64"
+                  className={`flex-1 w-full bg-[#EFE6DB] min-w-0 transition-[margin] duration-200 ease-out will-change-[margin] ${isCollapsed ? "lg:ml-20" : "lg:ml-56 xl:ml-64"
                      }`}
                >
                   <div className="lg:hidden sticky top-0 z-30 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 shadow-sm">
@@ -489,7 +471,7 @@ export default function ManagerLayout({
                         </h1>
                      </div>
                   </div>
-                  <div className="bg-white p-4 sm:p-6 max-w-full overflow-x-hidden">
+                  <div className="p-4 sm:p-6 max-w-full overflow-x-hidden">
                      {children}
                   </div>
                </main>

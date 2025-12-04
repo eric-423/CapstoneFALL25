@@ -24,7 +24,7 @@ import { AdminCard } from '../components/AdminCard';
 import { searchCombos, deleteCombo, getComboById, type Combo, type ComboSearchParams, type ComboDetail } from '@/apis/combo.api';
 import { useAdminContext } from '@/utils/contexts/AdminContext';
 import { ComboFormDialog } from './components/ComboFormDialog';
-import { FilterDropdown } from '../components/FilterDropdown';
+import { FilterDropdown } from '@/components/common/FilterDropdown';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 
 export default function CombosManagementPage() {

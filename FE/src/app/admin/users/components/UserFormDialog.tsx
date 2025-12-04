@@ -252,7 +252,7 @@ export function UserFormDialog({ open, onOpenChange, user, onSuccess }: UserForm
     if (!open) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+        <div className="fixed inset-0 bg-black/15 backdrop-blur-[1px] z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
             <Card className="w-full max-w-4xl bg-white shadow-2xl rounded-2xl border-0 overflow-hidden flex flex-col max-h-[90vh]">
                 {/* Header */}
                 <div className="bg-[#78A243] px-6 py-4 flex items-center justify-between shrink-0">

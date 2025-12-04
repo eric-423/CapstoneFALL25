@@ -8,7 +8,7 @@ import { UtensilsCrossed, Plus, Search, Loader2, Edit, ChevronLeft, ChevronRight
 import { toast } from 'react-toastify';
 import { AdminPageLayout, AdminPageHeader } from '../components/AdminPageLayout';
 import { Card } from '@/components/ui/card';
-import { FilterDropdown } from '../components/FilterDropdown';
+import { FilterDropdown } from '@/components/common/FilterDropdown';
 import {
     getAllBranchProducts,
     type Product,

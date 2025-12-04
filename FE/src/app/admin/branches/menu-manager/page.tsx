@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     DndContext,
     DragOverlay,
@@ -15,16 +15,14 @@ import {
     defaultDropAnimationSideEffects,
     DropAnimation
 } from '@dnd-kit/core';
-import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
+import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { toast } from 'react-toastify';
 import { AdminPageLayout, AdminPageHeader } from '@/app/admin/components/AdminPageLayout';
-import { FilterDropdown } from '@/app/admin/components/FilterDropdown';
-import { Button } from '@/components/ui/button';
-import { Save, Plus, X, Store, Search, GripVertical } from 'lucide-react';
-import { getProducts, getProductsByBranch, getAllBranchProducts, getProduct, getProductType, addProductToBranch, removeProductFromBranch, type Product, type ProductType } from '@/apis/product.api';
+import { FilterDropdown } from '@/components/common/FilterDropdown';
+import { Store, Search } from 'lucide-react';
+import { getAllBranchProducts, getProduct, getProductType, addProductToBranch, removeProductFromBranch, type Product, type ProductType } from '@/apis/product.api';
 import { getBranches, type Branch } from '@/apis/branch.api';
 
-// Placeholder components - will be implemented in separate files
 import { GlobalProductSource } from '@/app/admin/branches/menu-manager/components/GlobalProductSource';
 import { BranchTabContent } from '@/app/admin/branches/menu-manager/components/BranchTabContent';
 import { ProductDragOverlay } from '@/app/admin/branches/menu-manager/components/ProductDragOverlay';
@@ -59,7 +57,6 @@ export default function BranchMenuManagerPage() {
                     getProductType()
                 ]);
                 setBranches(branchesData);
-                // Handle potential response structure differences
                 const products = productsResponse.content || productsResponse;
                 setGlobalProducts(products);
                 setProductTypes(typesData);

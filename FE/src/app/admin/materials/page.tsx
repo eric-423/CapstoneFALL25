@@ -12,7 +12,7 @@ import { MaterialFormDialog } from './components/MaterialFormDialog';
 import { MaterialTypesManagerDialog } from './components/MaterialTypesManagerDialog';
 import { UnitsManagerDialog } from './components/UnitsManagerDialog';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
-import { FilterDropdown } from '../components/FilterDropdown';
+import { FilterDropdown } from '@/components/common/FilterDropdown';
 import {
     Material,
     MaterialSearchRequest,

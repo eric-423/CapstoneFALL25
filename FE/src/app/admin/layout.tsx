@@ -17,13 +17,10 @@ import {
   Users,
   Store,
   ShoppingBag,
-  DollarSign,
   Gift,
   MessageSquare,
-  Settings,
   LogOut,
   Package,
-  BookOpen,
   GraduationCap,
   Menu,
   X,
@@ -32,6 +29,8 @@ import {
   Leaf,
   Flame,
   UtensilsCrossed,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 
@@ -149,18 +148,13 @@ export default function AdminLayout({
     { href: '/admin/training', label: 'Khóa đào tạo', icon: GraduationCap },
     { href: '/admin/schedule', label: 'Lịch trình', icon: Calendar },
     { href: '/admin/orders', label: 'Đơn hàng', icon: ShoppingBag },
-    { href: '/admin/finance', label: 'Tài chính', icon: DollarSign },
     { href: '/admin/promotions', label: 'Khuyến mãi', icon: Gift },
     { href: '/admin/feedback', label: 'Phản hồi', icon: MessageSquare },
-    { href: '/admin/settings', label: 'Cài đặt', icon: Settings },
   ], []);
 
-  // Calculate active menu index for animated circle
   const activeIndex = useMemo(() => {
-    // Find exact match first
     let index = menuItems.findIndex(item => pathname === item.href);
 
-    // If no exact match, find parent route match (for nested routes like /admin/warehouses/1/materials)
     if (index < 0) {
       index = menuItems.findIndex(item =>
         pathname.startsWith(item.href + '/') && item.href !== '/admin'
@@ -170,7 +164,6 @@ export default function AdminLayout({
     return index >= 0 ? index : 0;
   }, [pathname, menuItems]);
 
-  // Check if a menu item is active (exact match or parent route match)
   const isMenuItemActive = useCallback((itemHref: string) => {
     if (pathname === itemHref) return true;
     // Check for nested routes (e.g., /admin/warehouses/1/materials should match /admin/warehouses)
@@ -181,6 +174,10 @@ export default function AdminLayout({
   const handleLogout = useCallback(() => {
     logout();
   }, [logout]);
+
+  const toggleSidebar = useCallback(() => {
+    setIsCollapsed(prev => !prev);
+  }, []);
   useEffect(() => {
     setSidebarOpen(false);
   }, [pathname]);
@@ -248,13 +245,13 @@ export default function AdminLayout({
                         ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
                     `}
           >
-            <div className="relative p-2 border-b border-white/20 flex-shrink-0 flex items-center overflow-hidden">
+            <div className={`relative p-2 border-b border-white/20 flex-shrink-0 flex items-center overflow-hidden z-20 bg-gradient-to-b from-[#EC6426] to-[#EC6426] ${isCollapsed ? "justify-center" : ""}`}>
               <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent"></div>
               <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#F8A91F]/20 rounded-full blur-3xl"></div>
               <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
 
-              <div className="relative z-10 flex-shrink-0">
-                <Image src={logo.src} alt="logo" width={100} height={100} />
+              <div className={`relative z-10 flex-shrink-0 transition-all duration-200 ${isCollapsed ? "mx-auto" : ""}`}>
+                <Image src={logo.src} alt="logo" width={isCollapsed ? 60 : 100} height={isCollapsed ? 60 : 100} className="transition-all duration-200" />
               </div>
 
               {!isCollapsed && (
@@ -274,8 +271,23 @@ export default function AdminLayout({
               </button>
             </div>
 
-            <nav className="flex-1 overflow-y-auto p-3 sm:p-4 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
-              <div className="space-y-1.5 relative">
+            {/* Toggle Collapse Button */}
+            <div className="hidden lg:flex justify-center -mt-4 relative z-30">
+              <button
+                onClick={toggleSidebar}
+                className="absolute -right-4 top-0 w-8 h-8 bg-[#EC6426] border-2 border-white/30 rounded-full flex items-center justify-center shadow-lg hover:bg-[#d55a22] hover:border-white/50 transition-all duration-200 group"
+                aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              >
+                {isCollapsed ? (
+                  <ChevronRight className="w-4 h-4 text-white group-hover:scale-110 transition-transform" />
+                ) : (
+                  <ChevronLeft className="w-4 h-4 text-white group-hover:scale-110 transition-transform" />
+                )}
+              </button>
+            </div>
+
+            <nav className="flex-1 overflow-y-auto p-3 sm:p-4 pt-10 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
+              <div className="space-y-1.5 relative mt-4">
                 {!isCollapsed && (
                   <div
                     className="absolute left-[9.5px] w-3 h-3 rounded-full bg-[#F8A91F] shadow-[0_0_12px_rgba(248,169,31,0.8)] border-2 border-white z-20 pointer-events-none transition-all duration-200 ease-out"

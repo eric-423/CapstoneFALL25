@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AdminPageLayout, AdminPageHeader } from '@/app/admin/components/AdminPageLayout';
-import { FilterDropdown } from '@/app/admin/components/FilterDropdown';
+import { FilterDropdown } from '@/components/common/FilterDropdown';
 import { AdminCard } from '@/app/admin/components/AdminCard';
 import { getWarehouseMaterials, getMaterials, type WarehouseMaterial, type Material } from '@/apis/material.api';
 import { AddMaterialDialog } from './components/AddMaterialDialog';

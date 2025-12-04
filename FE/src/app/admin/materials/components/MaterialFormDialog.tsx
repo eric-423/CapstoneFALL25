@@ -1,16 +1,14 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { X, Plus, Trash2 } from 'lucide-react';
+import { X } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { createMaterial, updateMaterial, type Material } from '@/apis/material.api';
 import { getMaterialTypes, type MaterialType } from '@/apis/material.api';
-import { getNutrients, type Nutrient } from '@/apis/nutrient.api';
 import { getUnits, type Unit } from '@/apis/unit.api';
 import { useBodyScrollLock } from '../../components/useBodyScrollLock';
 import { AdminSelect } from '../../components/AdminSelect';
@@ -167,7 +165,7 @@ export function MaterialFormDialog({ open, onOpenChange, material, onSuccess }: 
     if (!open) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+        <div className="fixed inset-0 bg-black/15 backdrop-blur-[1px] z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
             <Card className="w-full max-w-2xl bg-white shadow-2xl rounded-2xl border-0 overflow-hidden flex flex-col max-h-[90vh] py-0">
                 {/* Header */}
                 <div className="bg-[#78A243] p-4 flex items-center justify-between z-10 shadow-lg shrink-0">

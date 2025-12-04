@@ -98,7 +98,7 @@ export default function WarehousesPage() {
     return (
       <ManagerGuard>
         <div
-          className={`bg-white -mb-6 -mr-4 sm:-mr-4 ml-4 ${montserrat.className}`}
+          className={`${montserrat.className}`}
         >
           <AdminPageLayout>
             <div className="flex items-center justify-center h-64">
@@ -113,7 +113,7 @@ export default function WarehousesPage() {
   return (
     <ManagerGuard>
       <div
-        className={`bg-white -mb-6 -mr-4 sm:-mr-4 ml-8 ${montserrat.className}`}
+        className={`${montserrat.className}`}
       >
         <AdminPageLayout>
           <AdminPageHeader
@@ -209,10 +209,10 @@ export default function WarehousesPage() {
                             <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
                               <div
                                 className={`h-2 rounded-full ${stockPercentage >= 100
-                                    ? "bg-[#78A243]"
-                                    : stockPercentage >= 50
-                                      ? "bg-[#EBD187]"
-                                      : "bg-[#DA7339]"
+                                  ? "bg-[#78A243]"
+                                  : stockPercentage >= 50
+                                    ? "bg-[#EBD187]"
+                                    : "bg-[#DA7339]"
                                   }`}
                                 style={{
                                   width: `${Math.min(stockPercentage, 100)}%`,

@@ -137,7 +137,7 @@ export function AssignPromotionDialog({
       </Button>
 
       {open && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+        <div className="fixed inset-0 bg-black/15 backdrop-blur-[1px] z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
           <Card className="w-full max-w-4xl bg-white shadow-2xl rounded-2xl border-2 border-[#78A243]/20 overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
             <div className="p-6 border-b-2 border-gray-100 bg-gradient-to-r from-[#78A243]/5 to-transparent flex-shrink-0">
               <div className="flex items-start gap-4">

@@ -485,7 +485,7 @@ export function BranchOrdersPage({ variant }: BranchOrdersPageProps) {
     return (
         <>
             <div
-                className={`bg-white -mb-6 -mr-4 sm:-mr-4 ml-4 ${montserrat.className}`}
+                className={`${montserrat.className}`}
             >
                 <AdminPageLayout>
                     <AdminPageHeader

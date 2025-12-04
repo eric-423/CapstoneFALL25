@@ -147,7 +147,7 @@ export function RolesManagementModal({ open, onOpenChange, onRoleUpdated }: Role
     if (!open) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/15 backdrop-blur-[1px] z-50 flex items-center justify-center p-4">
             <div className="w-full max-w-6xl bg-white shadow-2xl rounded-2xl overflow-hidden max-h-[90vh] flex flex-col">
                 {/* Header */}
                 <div className="bg-gradient-to-r from-[#78A243] to-[#DA7339] p-6">

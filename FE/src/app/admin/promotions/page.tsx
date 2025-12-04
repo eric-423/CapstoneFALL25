@@ -16,7 +16,7 @@ import {
   AdminPageHeader,
 } from "../components/AdminPageLayout";
 import { AdminCard } from "../components/AdminCard";
-import { FilterDropdown } from "../components/FilterDropdown";
+import { FilterDropdown } from '@/components/common/FilterDropdown';
 import { Button } from "@/components/ui/button";
 
 export default function PromotionsPage() {

@@ -27,7 +27,7 @@ import { getRoles, type Role } from '@/apis/role.api';
 import { UserFormDialog } from './components/UserFormDialog';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { RolesManagementModal } from './components/RolesManagementModal';
-import { FilterDropdown } from '../components/FilterDropdown';
+import { FilterDropdown } from '@/components/common/FilterDropdown';
 import Link from 'next/link';
 import useAuth from '@/utils/hooks/useAuth';
 

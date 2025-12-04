@@ -66,7 +66,7 @@ export function MaterialTypeFormDialog({ open, onOpenChange, materialType, onSuc
     if (!open) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/15 backdrop-blur-[1px] z-50 flex items-center justify-center p-4">
             <Card className="w-full max-w-lg bg-white shadow-2xl rounded-2xl overflow-hidden">
                 {/* Header */}
                 <div className="bg-[#78A243] p-6">

@@ -6,11 +6,11 @@ import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AdminPageLayout, AdminPageHeader } from '../components/AdminPageLayout';
-import { FilterDropdown } from '../components/FilterDropdown';
 import { getCookingMethods, type CookingMethod, type CookingMethodSearchParams } from '@/apis/cooking-method.api';
 import { CookingMethodFormDialog } from './components/CookingMethodFormDialog';
 import { CookingMethodNutrientForm } from './components/CookingMethodNutrientForm';
 import { Beaker } from 'lucide-react';
+import { FilterDropdown } from '@/components/common/FilterDropdown';
 
 export default function CookingMethodsPage() {
     const [cookingMethods, setCookingMethods] = useState<CookingMethod[]>([]);

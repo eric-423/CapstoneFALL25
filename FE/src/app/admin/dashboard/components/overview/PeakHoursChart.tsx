@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { memo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { PeakHoursItem } from '@/apis/dashboard.api';
 import { Loader2, Inbox } from 'lucide-react';
@@ -11,7 +11,7 @@ interface PeakHoursChartProps {
     isLoading?: boolean;
 }
 
-export default function PeakHoursChart({ data, isLoading }: PeakHoursChartProps) {
+function PeakHoursChart({ data, isLoading }: PeakHoursChartProps) {
     const hasData = data && data.length > 0 && data.some(d => d.orderCount > 0);
 
     return (
@@ -80,3 +80,5 @@ export default function PeakHoursChart({ data, isLoading }: PeakHoursChartProps)
         </Card>
     );
 }
+
+export default memo(PeakHoursChart);

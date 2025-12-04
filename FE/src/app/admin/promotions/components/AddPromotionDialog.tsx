@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Gift, Percent, Calendar, Plus } from "lucide-react";
+import { Gift, Calendar, Plus } from "lucide-react";
 import { toast } from "react-toastify";
 import { useBodyScrollLock } from "../../components/useBodyScrollLock";
 import {
