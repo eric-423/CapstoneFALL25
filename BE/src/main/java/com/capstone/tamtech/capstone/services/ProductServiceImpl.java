@@ -193,7 +193,6 @@ public class ProductServiceImpl implements ProductService {
 
             productRecipesRepository.save(productRecipes);
 
-            product.getProductRecipes().add(productRecipes);
             productRecipesList.add(productRecipes);
         }
 
