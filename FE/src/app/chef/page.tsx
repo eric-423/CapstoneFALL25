@@ -114,10 +114,38 @@ export default function ChefPage() {
          const result = await markOrderAsCooked(orderId, orderItemId);
 
          if (result.success) {
+            // Update trạng thái các món đã cooked trong order
+            setOrders(prev => prev.map(order => {
+               if (order.orderId === orderId) {
+                  const updatedOrderItems = order.orderItems.map(item => 
+                     orderItemId.includes(item.orderItemId) 
+                        ? { ...item, isCooked: true }
+                        : item
+                  );
+                  
+                  // Kiểm tra xem tất cả món đã cooked chưa
+                  const allCooked = updatedOrderItems.every(item => item.isCooked);
+                  
+                  // Nếu tất cả món đã cooked, xóa order sau 1 giây
+                  if (allCooked) {
+                     setTimeout(() => {
+                        setOrders(prevOrders => prevOrders.filter(o => o.orderId !== orderId));
+                        setCompletedItems(prevItems => prevItems.filter(id => id !== orderId));
+                     }, 1000);
+                  }
+                  
+                  return {
+                     ...order,
+                     orderItems: updatedOrderItems
+                  };
+               }
+               return order;
+            }));
+            
+            // Xóa khỏi completedItems sau khi update xong
             setTimeout(() => {
-               setOrders(prev => prev.filter(order => order.orderId !== orderId));
                setCompletedItems(prev => prev.filter(id => id !== orderId));
-            }, 1000);
+            }, 100);
          } else {
             setCompletedItems(prev => prev.filter(id => id !== orderId));
          }
