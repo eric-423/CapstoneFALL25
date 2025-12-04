@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
 const API_BASE_URL = "https://tam-tac.com";
 
-export async function GET(_request: NextRequest) {
+export async function GET() {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;

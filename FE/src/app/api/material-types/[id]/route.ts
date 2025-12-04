@@ -34,6 +34,7 @@ export async function PUT(
         const data = await response.json();
         return NextResponse.json(data);
     } catch (error) {
+        console.error('Material type PUT error:', error);
         return NextResponse.json(
             { error: 'Internal Server Error' },
             { status: 500 }
@@ -71,6 +72,7 @@ export async function DELETE(
         const data = await response.json();
         return NextResponse.json(data);
     } catch (error) {
+        console.error('Material type DELETE error:', error);
         return NextResponse.json(
             { error: 'Internal Server Error' },
             { status: 500 }

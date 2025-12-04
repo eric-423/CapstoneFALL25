@@ -2,13 +2,14 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { AdminGuard } from '@/components/guards';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { UtensilsCrossed, Plus, Search, Loader2, Edit, ChevronLeft, ChevronRight, ImageIcon } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { AdminPageLayout, AdminPageHeader } from '../components/AdminPageLayout';
 import { Card } from '@/components/ui/card';
-import { FilterDropdown } from '../components/FilterDropdown';
+import { FilterDropdown } from '@/components/common/FilterDropdown';
 import {
     getAllBranchProducts,
     type Product,
@@ -165,10 +166,13 @@ export default function ProductsPage() {
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-12 h-12 rounded-lg overflow-hidden border border-[#78A243]/20 bg-gray-50 shrink-0">
                                                         {product.productImage ? (
-                                                            <img
+                                                            <Image
                                                                 src={product.productImage}
                                                                 alt={product.productName}
+                                                                width={48}
+                                                                height={48}
                                                                 className="w-full h-full object-cover"
+                                                                unoptimized
                                                             />
                                                         ) : (
                                                             <div className="w-full h-full flex items-center justify-center text-gray-300">

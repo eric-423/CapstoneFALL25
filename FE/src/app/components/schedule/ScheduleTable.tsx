@@ -92,8 +92,6 @@ export function ScheduleTable({
         <div className="grid grid-cols-7 gap-1.5 sm:gap-3 mb-3 sm:mb-4">
           {DAYS_OF_WEEK.map((day, index) => {
             const date = weekDays[index];
-            const dateKey = formatDate(date);
-            const daySchedules = schedulesByDate[dateKey] || [];
             const isTodayDate = isToday(date);
             const isPast = isPastDate(date);
 
@@ -105,8 +103,8 @@ export function ScheduleTable({
                   isPast
                     ? 'bg-gray-100 border-gray-300 opacity-60'
                     : isTodayDate
-                    ? 'bg-gradient-to-br from-orange-100 to-orange-50 border-orange-400 shadow-md'
-                    : 'bg-gray-50 border-gray-200 hover:border-gray-300'
+                      ? 'bg-gradient-to-br from-orange-100 to-orange-50 border-orange-400 shadow-md'
+                      : 'bg-gray-50 border-gray-200 hover:border-gray-300'
                 )}
               >
                 <div
@@ -115,8 +113,8 @@ export function ScheduleTable({
                     isPast
                       ? 'text-gray-400'
                       : isTodayDate
-                      ? 'text-orange-700'
-                      : 'text-gray-600'
+                        ? 'text-orange-700'
+                        : 'text-gray-600'
                   )}
                 >
                   <span className="hidden sm:inline">{day.label}</span>
@@ -128,8 +126,8 @@ export function ScheduleTable({
                     isPast
                       ? 'text-gray-400'
                       : isTodayDate
-                      ? 'text-orange-600'
-                      : 'text-gray-800'
+                        ? 'text-orange-600'
+                        : 'text-gray-800'
                   )}
                 >
                   {date.getDate()}
@@ -140,8 +138,8 @@ export function ScheduleTable({
                     isPast
                       ? 'text-gray-400'
                       : isTodayDate
-                      ? 'text-orange-600 font-medium'
-                      : 'text-gray-500'
+                        ? 'text-orange-600 font-medium'
+                        : 'text-gray-500'
                   )}
                 >
                   {date.toLocaleDateString('vi-VN', { month: 'short' })}
@@ -167,8 +165,8 @@ export function ScheduleTable({
                   isPast
                     ? 'bg-gray-100 border-gray-300 opacity-60 cursor-not-allowed'
                     : isTodayDate
-                    ? 'bg-orange-50/30 border-orange-200 cursor-pointer'
-                    : 'bg-white border-gray-200 hover:border-orange-300 hover:shadow-md cursor-pointer'
+                      ? 'bg-orange-50/30 border-orange-200 cursor-pointer'
+                      : 'bg-white border-gray-200 hover:border-orange-300 hover:shadow-md cursor-pointer'
                 )}
                 onClick={() => {
                   if (!isPast) {

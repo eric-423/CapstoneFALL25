@@ -15,6 +15,10 @@ public class ScheduleDTO implements Serializable {
     private Integer id;
     private Integer userId;
     private String userName;
+    private Integer shiftId;
+    private String shiftName;
+    private Integer branchId;
+    private String branchName;
     private String name;
     private String description;
     private Date date;

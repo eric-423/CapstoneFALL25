@@ -103,7 +103,6 @@ export default function StaffTablesPage() {
   };
 
   useEffect(() => {
-    // Get role from cookie
     const role = document.cookie
       .split("; ")
       .find((row) => row.startsWith("role="))
@@ -112,8 +111,7 @@ export default function StaffTablesPage() {
 
     fetchTables();
 
-    // Auto refresh every 30 seconds
-    const interval = setInterval(() => fetchTables(true), 30000);
+    const interval = setInterval(() => fetchTables(true), 10000);
     return () => clearInterval(interval);
   }, []);
 
@@ -132,15 +130,28 @@ export default function StaffTablesPage() {
     setQrCodeUrl(qrUrl);
   };
 
-  const downloadQRCode = () => {
+  const downloadQRCode = async () => {
     if (!selectedTableForQR || !qrCodeUrl) return;
 
-    const link = document.createElement("a");
-    link.href = qrCodeUrl;
-    link.download = `QR-${selectedTableForQR.name.replace(/\s+/g, "-")}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+      // Fetch the image as blob to avoid cross-origin issues
+      const response = await fetch(qrCodeUrl);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = `QR-${selectedTableForQR.name.replace(/\s+/g, "-")}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Clean up blob URL
+      URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error("Error downloading QR code:", error);
+      showNotification("Không thể tải QR code. Vui lòng thử lại.", "error");
+    }
   };
 
   const closeQRModal = () => {
@@ -462,11 +473,10 @@ export default function StaffTablesPage() {
       {notification && (
         <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-top-2">
           <Card
-            className={`p-4 min-w-[300px] shadow-xl border-2 ${
-              notification.type === "success"
-                ? "bg-green-50 border-green-500"
-                : "bg-red-50 border-red-500"
-            }`}
+            className={`p-4 min-w-[300px] shadow-xl border-2 ${notification.type === "success"
+              ? "bg-green-50 border-green-500"
+              : "bg-red-50 border-red-500"
+              }`}
           >
             <div className="flex items-center gap-3">
               {notification.type === "success" ? (
@@ -475,11 +485,10 @@ export default function StaffTablesPage() {
                 <AlertCircle className="h-5 w-5 text-red-600" />
               )}
               <p
-                className={`font-semibold ${
-                  notification.type === "success"
-                    ? "text-green-900"
-                    : "text-red-900"
-                }`}
+                className={`font-semibold ${notification.type === "success"
+                  ? "text-green-900"
+                  : "text-red-900"
+                  }`}
               >
                 {notification.message}
               </p>
@@ -585,21 +594,23 @@ export default function StaffTablesPage() {
                 return (
                   <Card
                     key={table.id}
-                    className={`relative flex flex-col p-4 transition-all duration-300 border-2 rounded-xl ${
-                      hasOrder
-                        ? "bg-gradient-to-br from-orange-50 to-orange-100 border-orange-300 hover:border-orange-400 hover:shadow-lg"
-                        : "bg-white border-gray-200 hover:border-[#EC6426]/30 hover:shadow-md"
-                    }`}
+                    className={`relative flex flex-col p-4 transition-all duration-300 border-2 rounded-xl ${hasOrder
+                      ? "bg-gradient-to-br from-orange-50 to-orange-100 border-orange-300 hover:border-orange-400 hover:shadow-lg"
+                      : "bg-white border-gray-200 hover:border-[#EC6426]/30 hover:shadow-md"
+                      }`}
                   >
-                    {/* Table Status Indicator */}
+                    {/* Table Status and QR - Top Right */}
                     <div className="absolute top-2 right-2">
-                      <div
-                        className={`w-3 h-3 rounded-full ${
-                          hasOrder
-                            ? "bg-orange-500 animate-pulse"
-                            : "bg-gray-300"
-                        }`}
-                      ></div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          generateQRCode(table);
+                        }}
+                        title={`QR - ${table.name}`}
+                        className="w-8 h-8 rounded-full bg-white/90 border border-[#EC6426] text-[#EC6426] flex items-center justify-center hover:bg-[#EC6426] hover:text-white transition-colors shadow-sm"
+                      >
+                        <QrCode size={14} />
+                      </button>
                     </div>
 
                     <div className="flex-grow">
@@ -673,18 +684,7 @@ export default function StaffTablesPage() {
 
                     {/* Action Buttons */}
                     <div className="flex flex-wrap gap-2 mt-auto">
-                      <Button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          generateQRCode(table);
-                        }}
-                        variant="outline"
-                        size="sm"
-                        className="flex-1 min-w-[60px] text-xs h-8 border-2 border-[#EC6426] text-[#EC6426] hover:bg-[#EC6426] hover:text-white"
-                      >
-                        <QrCode size={14} className="mr-1" />
-                        QR
-                      </Button>
+                      {/* QR button moved to top-right */}
                       {hasOrder && (
                         <Button
                           onClick={(e) => {
@@ -719,10 +719,11 @@ export default function StaffTablesPage() {
 
       {/* QR Code Modal */}
       {selectedTableForQR && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/15 backdrop-blur-[1px] p-4">
           <Card className="relative p-6 max-w-md w-full bg-white border-0 shadow-2xl rounded-2xl max-h-full overflow-y-auto">
             {/* Close Button */}
             <button
+              aria-label="Đóng"
               onClick={closeQRModal}
               className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-lg transition-colors"
             >
@@ -809,10 +810,11 @@ export default function StaffTablesPage() {
 
       {/* Waiter Action Modal */}
       {selectedTableForAction && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/15 backdrop-blur-[1px] p-4">
           <Card className="relative p-6 max-w-2xl w-full bg-white border-0 shadow-2xl rounded-2xl max-h-[90vh] overflow-y-auto">
             {/* Close Button */}
             <button
+              aria-label="Đóng"
               onClick={closeActionModal}
               className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-lg transition-colors z-10"
             >
@@ -865,11 +867,10 @@ export default function StaffTablesPage() {
                   return (
                     <div
                       key={itemKey}
-                      className={`p-4 rounded-lg border-2 transition-all ${
-                        isExcluded
-                          ? "bg-red-50 border-red-300 opacity-60"
-                          : "bg-white border-gray-200 hover:border-gray-300"
-                      }`}
+                      className={`p-4 rounded-lg border-2 transition-all ${isExcluded
+                        ? "bg-red-50 border-red-300 opacity-60"
+                        : "bg-white border-gray-200 hover:border-gray-300"
+                        }`}
                     >
                       {/* Item Details */}
                       <div className="flex items-start justify-between gap-3 mb-3">
@@ -904,10 +905,15 @@ export default function StaffTablesPage() {
                             <HandPlatter size={12} className="mr-1" />
                             Đã phục vụ
                           </Badge>
+                        ) : item.isCooked ? (
+                          <Badge className="text-xs px-3 py-1 bg-green-100 text-green-700 border-green-300">
+                            <CheckCircle size={12} className="mr-1" />
+                            Đã chuẩn bị món
+                          </Badge>
                         ) : item.isConfirmed ? (
                           <Badge className="text-xs px-3 py-1 bg-yellow-100 text-yellow-700 border-yellow-300">
                             <ChefHat size={12} className="mr-1" />
-                            Đã xác nhận
+                            Đang chế biến
                           </Badge>
                         ) : (
                           <Badge className="text-xs px-3 py-1 bg-orange-100 text-orange-700 border-orange-300">
@@ -926,17 +932,16 @@ export default function StaffTablesPage() {
                                 onClick={() => toggleExcludeItem(itemKey)}
                                 size="sm"
                                 variant="outline"
-                                className={`border-2 ${
-                                  isExcluded
-                                    ? "border-green-500 text-green-600 hover:bg-green-500 hover:text-white"
-                                    : "border-red-500 text-red-600 hover:bg-red-500 hover:text-white"
-                                }`}
+                                className={`border-2 ${isExcluded
+                                  ? "border-green-500 text-green-600 hover:bg-green-500 hover:text-white"
+                                  : "border-red-500 text-red-600 hover:bg-red-500 hover:text-white"
+                                  }`}
                               >
                                 <X size={14} className="mr-1" />
                                 {isExcluded ? "Hoàn tác" : "Loại bỏ"}
                               </Button>
                             )}
-                            {item.isConfirmed && (
+                            {item.isConfirmed && item.isCooked && (
                               <Button
                                 onClick={() =>
                                   handleDeliverSingleItem(item, index)
@@ -1015,11 +1020,10 @@ export default function StaffTablesPage() {
       {notification && (
         <div className="fixed top-4 right-4 z-[100] animate-in slide-in-from-top-2 duration-300">
           <Card
-            className={`p-4 min-w-[300px] shadow-lg border-2 ${
-              notification.type === "success"
-                ? "bg-green-50 border-green-500"
-                : "bg-red-50 border-red-500"
-            }`}
+            className={`p-4 min-w-[300px] shadow-lg border-2 ${notification.type === "success"
+              ? "bg-green-50 border-green-500"
+              : "bg-red-50 border-red-500"
+              }`}
           >
             <div className="flex items-start gap-3">
               {notification.type === "success" ? (
@@ -1029,34 +1033,32 @@ export default function StaffTablesPage() {
               )}
               <div className="flex-grow">
                 <p
-                  className={`font-semibold ${
-                    notification.type === "success"
-                      ? "text-green-900"
-                      : "text-red-900"
-                  }`}
+                  className={`font-semibold ${notification.type === "success"
+                    ? "text-green-900"
+                    : "text-red-900"
+                    }`}
                 >
                   {notification.type === "success" ? "Thành công" : "Lỗi"}
                 </p>
                 <p
-                  className={`text-sm ${
-                    notification.type === "success"
-                      ? "text-green-700"
-                      : "text-red-700"
-                  }`}
+                  className={`text-sm ${notification.type === "success"
+                    ? "text-green-700"
+                    : "text-red-700"
+                    }`}
                 >
                   {notification.message}
                 </p>
               </div>
               <button
                 onClick={() => setNotification(null)}
+                aria-label="Đóng"
                 className="flex-shrink-0 hover:opacity-70"
               >
                 <X
-                  className={`h-4 w-4 ${
-                    notification.type === "success"
-                      ? "text-green-600"
-                      : "text-red-600"
-                  }`}
+                  className={`h-4 w-4 ${notification.type === "success"
+                    ? "text-green-600"
+                    : "text-red-600"
+                    }`}
                 />
               </button>
             </div>
@@ -1065,9 +1067,10 @@ export default function StaffTablesPage() {
       )}
 
       {showPaymentMethodModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/15 backdrop-blur-[1px] p-4">
           <Card className="relative p-6 max-w-md w-full bg-white border-0 shadow-2xl rounded-2xl">
             <button
+              aria-label="Đóng"
               onClick={() => {
                 setShowPaymentMethodModal(false);
                 setSelectedPaymentMethod(null);
@@ -1094,20 +1097,18 @@ export default function StaffTablesPage() {
                 <button
                   key={method.id}
                   onClick={() => setSelectedPaymentMethod(method.id)}
-                  className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
-                    selectedPaymentMethod === method.id
-                      ? "border-green-500 bg-green-50"
-                      : "border-gray-200 hover:border-green-300 bg-white"
-                  }`}
+                  className={`w-full p-4 rounded-lg border-2 transition-all text-left ${selectedPaymentMethod === method.id
+                    ? "border-green-500 bg-green-50"
+                    : "border-gray-200 hover:border-green-300 bg-white"
+                    }`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div
-                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                          selectedPaymentMethod === method.id
-                            ? "border-green-500"
-                            : "border-gray-300"
-                        }`}
+                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedPaymentMethod === method.id
+                          ? "border-green-500"
+                          : "border-gray-300"
+                          }`}
                       >
                         {selectedPaymentMethod === method.id && (
                           <div className="w-3 h-3 rounded-full bg-green-500"></div>

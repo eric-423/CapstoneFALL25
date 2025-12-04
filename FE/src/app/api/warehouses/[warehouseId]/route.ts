@@ -34,6 +34,7 @@ export async function PUT(
         const data = await response.json();
         return NextResponse.json(data);
     } catch (error) {
+        console.error('Warehouses [id] PUT error:', error);
         return NextResponse.json(
             { error: 'Internal Server Error' },
             { status: 500 }

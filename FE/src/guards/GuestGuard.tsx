@@ -3,25 +3,20 @@
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import configs from '@/utils/configs';
 import { useAuth } from '@/utils/hooks';
+import { getAccessToken } from '@/utils/cookies.client';
 
 import { FC, PropsWithChildren, useEffect, useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
-// GuestGuard is a component that will be used to protect routes
-// that should only be accessed by unauthenticated users.
 const GuestGuard: FC<PropsWithChildren> = ({ children }) => {
   const { isLoading, isAuthenticated } = useAuth();
   const router = useRouter();
-  const pathname = usePathname();
   const [shouldRedirect, setShouldRedirect] = useState(false);
 
   useEffect(() => {
-    // Only redirect if truly authenticated and not in the middle of logout
     if (!isLoading && isAuthenticated) {
-      // Small delay to ensure logout state has propagated
       const timer = setTimeout(() => {
-        // Double-check authentication after delay
-        const token = localStorage.getItem('access_token');
+        const token = getAccessToken();
         if (token && isAuthenticated) {
           setShouldRedirect(true);
         }
@@ -42,7 +37,7 @@ const GuestGuard: FC<PropsWithChildren> = ({ children }) => {
   if (isLoading) return <LoadingSpinner />;
 
   if (shouldRedirect) {
-    return null; // Let useEffect handle navigation
+    return null;
   }
 
   return <>{children}</>;

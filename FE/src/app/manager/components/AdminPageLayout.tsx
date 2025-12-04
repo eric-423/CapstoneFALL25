@@ -74,7 +74,6 @@ export function AdminStatsCard({
   subtitle,
   trend,
   className = "",
-  iconClassName = "",
 }: AdminStatsCardProps) {
   return (
     <div

@@ -332,18 +332,6 @@ export default function TrainingDetailPage() {
     setIsVideoCompleted(false);
   }, [selectedLessonId]);
 
-  const toggleModule = (moduleNum: number) => {
-    setExpandedModules((prev) => {
-      const next = new Set(prev);
-      if (next.has(moduleNum)) {
-        next.delete(moduleNum);
-      } else {
-        next.add(moduleNum);
-      }
-      return next;
-    });
-  };
-
   if (isLoadingTraining || isLoadingLessons) {
     return (
       <div
@@ -433,9 +421,6 @@ export default function TrainingDetailPage() {
                 .map(([moduleNum, moduleLessons]) => {
                   const moduleNumber = Number(moduleNum);
                   const isExpanded = expandedModules.has(moduleNumber);
-                  const allCompleted = moduleLessons.every((lesson) =>
-                    isLessonCompleted(lesson.id)
-                  );
 
                   return (
                     <div key={moduleNumber} className="mb-3">
@@ -647,11 +632,11 @@ export default function TrainingDetailPage() {
                               });
                             }
                           }}
-                          onWaiting={() => {}}
+                          onWaiting={() => { }}
                           onPlaying={() => {
                             setIsVideoSeeking(false);
                           }}
-                          onPause={() => {}}
+                          onPause={() => { }}
                           key={selectedLessonId}
                         >
                           Trình duyệt của bạn không hỗ trợ video tag.

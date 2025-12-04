@@ -83,10 +83,18 @@ export function useTrainingData(searchQuery: string) {
     const query = searchQuery.trim().toLowerCase();
     return courses.filter((course) => {
       const matchesStatus = true; // Will be filtered by parent
+      const roleTokens = [
+        ...(course.assignedRoles ?? []),
+        course.roleName,
+      ]
+        .filter(Boolean)
+        .map((r) => String(r).toLowerCase());
+
       const matchesSearch = query
         ? course.name.toLowerCase().includes(query) ||
-          course.description.toLowerCase().includes(query) ||
-          (course.recipeName?.toLowerCase().includes(query) ?? false)
+        course.description.toLowerCase().includes(query) ||
+        (course.recipeName?.toLowerCase().includes(query) ?? false) ||
+        roleTokens.some((r) => r.includes(query))
         : true;
       return matchesStatus && matchesSearch;
     });

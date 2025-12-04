@@ -19,8 +19,6 @@ import { Material } from '@/apis/material.api';
 import { CookingMethod } from '@/apis/cooking-method.api';
 import { Unit } from '@/apis/unit.api';
 
-// Define the shape of the form data we're working with
-// This should match ProductFormData in ProductForm.tsx
 interface RecipeRequest {
     materialId: number;
     quantity: number;

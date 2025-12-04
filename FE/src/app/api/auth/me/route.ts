@@ -76,12 +76,14 @@ export async function GET(request: NextRequest) {
         exp: decodedToken.exp,
       });
     } catch (decodeError) {
+      console.error('Token decode failed:', decodeError);
       return NextResponse.json(
         { error: "Invalid token format" },
         { status: 401 }
       );
     }
   } catch (error) {
+    console.error('Failed to verify session:', error);
     return NextResponse.json(
       { error: "Failed to verify session" },
       { status: 500 }

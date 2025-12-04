@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { ArrowUp, ArrowDown, DollarSign, ShoppingCart, Users, TrendingUp, Inbox } from 'lucide-react';
 import { DashboardKPIItem } from '@/apis/dashboard.api';
 import { Card } from '@/components/ui/card';
@@ -60,7 +60,7 @@ const KPICard = ({ kpi, showTrend }: { kpi: DashboardKPIItem; showTrend?: boolea
     );
 };
 
-export default function KPICards({ kpis, isLoading, showTrend }: KPICardsProps) {
+function KPICards({ kpis, isLoading, showTrend }: KPICardsProps) {
     if (isLoading) {
         return (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -106,3 +106,5 @@ export default function KPICards({ kpis, isLoading, showTrend }: KPICardsProps) 
         </div>
     );
 }
+
+export default memo(KPICards);

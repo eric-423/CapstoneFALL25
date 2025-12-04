@@ -31,7 +31,6 @@ export function TrainingCourseCard({
   onDelete,
   onAssignUsers,
   onRefetch,
-  getRoleColor,
   getRoleText,
 }: TrainingCourseCardProps) {
   return (

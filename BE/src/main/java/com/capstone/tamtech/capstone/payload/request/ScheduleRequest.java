@@ -12,6 +12,7 @@ import java.util.Date;
 @AllArgsConstructor
 public class ScheduleRequest {
     private Integer userId;
+    private Integer shiftId;
     private String name;
     private String description;
     private Date date;

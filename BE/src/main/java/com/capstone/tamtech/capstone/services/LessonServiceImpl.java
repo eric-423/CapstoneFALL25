@@ -213,7 +213,7 @@ public class LessonServiceImpl implements LessonService {
 
         lessonDTOS.forEach(lessonDTO -> {
             UserLessonProcess userLessonProcess = userLessonProcessRepository
-                    .findByUserTraining_IdAndLesson_Id(userId, lessonDTO.getId())
+                    .findByUserTraining_User_IdAndLesson_Id(userId, lessonDTO.getId())
                     .orElse(null);
             if (userLessonProcess != null) {
                 lessonDTO.setIsCompleted(userLessonProcess.getIsLearned());
