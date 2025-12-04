@@ -420,6 +420,32 @@ export const getLessonDetail = async (
   return response.json();
 };
 
+export const getMyLessonDetail = async (
+  userTrainingId: number,
+  lessonId: number
+): Promise<LessonDetailResponse> => {
+  const response = await fetch(
+    `/api/user-trainings/me/user-trainings/${userTrainingId}/lessons/${lessonId}`,
+    {
+      method: "GET",
+      credentials: "include",
+    }
+  );
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw {
+      response: {
+        data,
+        status: response.status,
+      },
+    };
+  }
+
+  return data as LessonDetailResponse;
+};
+
 export const createLesson = async (
   trainingId: number,
   payload: CreateLessonPayload

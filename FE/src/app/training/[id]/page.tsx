@@ -6,9 +6,8 @@ import { useParams } from "next/navigation";
 import { toast } from "react-toastify";
 import { CheckCircle2, FileText, PlayCircle } from "lucide-react";
 import {
-  getTrainningById,
   getMyTrainingLessons,
-  getLessonDetail,
+  getMyLessonDetail,
   getMyLessonDocuments,
   startLesson,
   completeLesson,
@@ -42,7 +41,6 @@ export default function TrainingDetailPage() {
 
   const trainingId = useMemo(() => {
     if (!myTrainingsData?.data || !Array.isArray(myTrainingsData.data)) {
-      // Fallback: coi paramsId chính là trainingId
       return paramsId || null;
     }
 
@@ -52,8 +50,6 @@ export default function TrainingDetailPage() {
         item.id === paramsId ||
         item.trainingId === paramsId
     );
-
-    // Nếu tìm được thì dùng trainingId từ API, nếu không thì fallback paramsId
     return userTraining?.trainingId ?? paramsId ?? null;
   }, [myTrainingsData, paramsId]);
 
@@ -61,8 +57,6 @@ export default function TrainingDetailPage() {
     if (!myTrainingsData?.data || !Array.isArray(myTrainingsData.data)) {
       return paramsId;
     }
-
-    // Ưu tiên tìm theo trainingId đã resolve
     const byTrainingId = myTrainingsData.data.find(
       (item: { userTrainingId?: number; id?: number; trainingId?: number }) =>
         item.trainingId === trainingId
@@ -76,8 +70,6 @@ export default function TrainingDetailPage() {
         paramsId
       );
     }
-
-    // Fallback: tìm theo paramsId (giống logic Chef/Staff khi paramsId chính là trainingId)
     const byParam = myTrainingsData.data.find(
       (item: { userTrainingId?: number; id?: number; trainingId?: number }) =>
         item.userTrainingId === paramsId ||
@@ -92,7 +84,7 @@ export default function TrainingDetailPage() {
 
   const { data: trainingData, isLoading: isLoadingTraining } = useQuery({
     queryKey: ["training", trainingId],
-    queryFn: () => getTrainningById(trainingId!),
+    queryFn: () => getMyTrainning(trainingId!),
     enabled: !!trainingId,
     refetchOnWindowFocus: true,
     retry: 2,
@@ -116,9 +108,9 @@ export default function TrainingDetailPage() {
   });
 
   const { data: lessonDetail, isLoading: isLoadingLesson } = useQuery({
-    queryKey: ["lesson-detail", selectedLessonId],
-    queryFn: () => getLessonDetail(selectedLessonId!),
-    enabled: !!selectedLessonId,
+    queryKey: ["lesson-detail", userTrainingId, selectedLessonId],
+    queryFn: () => getMyLessonDetail(userTrainingId, selectedLessonId!),
+    enabled: !!selectedLessonId && !!userTrainingId,
   });
 
   const { data: lessonDocuments, isLoading: isLoadingDocuments } = useQuery({
@@ -212,14 +204,51 @@ export default function TrainingDetailPage() {
     }
   };
 
-  const training = trainingData?.data as
-    | {
-        id: number;
-        name: string;
-        description?: string;
-        point?: number;
-      }
-    | undefined;
+  const training = useMemo(
+    () =>
+      (() => {
+        if (!myTrainingsData?.data || !trainingId) return undefined;
+        if (!Array.isArray(myTrainingsData.data)) return undefined;
+
+        const item = myTrainingsData.data.find(
+          (t: {
+            userTrainingId?: number;
+            id?: number;
+            trainingId?: number;
+            trainingName?: string;
+            name?: string;
+            trainingPoint?: number;
+            point?: number;
+            description?: string;
+            note?: string;
+          }) =>
+            t.trainingId === trainingId ||
+            t.id === trainingId ||
+            t.userTrainingId === trainingId
+        ) as
+          | {
+              trainingId?: number;
+              id?: number;
+              trainingName?: string;
+              name?: string;
+              trainingPoint?: number;
+              point?: number;
+              description?: string;
+              note?: string;
+            }
+          | undefined;
+
+        if (!item) return undefined;
+
+        return {
+          id: item.trainingId ?? item.id ?? trainingId,
+          name: item.trainingName ?? item.name ?? "Khóa đào tạo",
+          description: item.description ?? item.note,
+          point: item.trainingPoint ?? item.point,
+        };
+      })(),
+    [myTrainingsData, trainingId]
+  );
 
   const lessons = useMemo<TrainingLesson[]>(() => {
     if (!lessonsData?.data?.lessons) {
@@ -537,7 +566,7 @@ export default function TrainingDetailPage() {
                   </div>
                 </div>
 
-                <div className="space-y-4 h-[54vh]">
+                <div className="space-y-4">
                   {videoUrl ? (
                     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-black">
                       <div className="aspect-video w-full">
@@ -548,7 +577,7 @@ export default function TrainingDetailPage() {
                           autoPlay
                           preload="auto"
                           playsInline
-                          className="h-full w-full"
+                          className="h-full w-full object-cover"
                           onEnded={() => {
                             setIsVideoCompleted(true);
                           }}
@@ -636,7 +665,7 @@ export default function TrainingDetailPage() {
                     </div>
                   ) : (
                     <div className="overflow-hidden rounded-2xl border border-dashed border-gray-300 bg-gray-50">
-                      <div className="aspect-video w-full flex flex-col items-center justify-center p-6 h-[54vh]">
+                      <div className="aspect-video w-full flex flex-col items-center justify-center p-6 ">
                         <PlayCircle className="h-10 w-10 text-gray-400" />
                         <p className="mt-3 text-sm text-gray-600">
                           Video sẽ xuất hiện tại đây sau khi bạn bắt đầu bài
