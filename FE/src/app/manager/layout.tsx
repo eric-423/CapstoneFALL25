@@ -10,9 +10,10 @@ import {
   type BarcodeProcessContext,
 } from "@/utils/hooks/useBarcodeScanner";
 import {
-  assignShipperToOrder,
-  completeOrder,
-  getBranchOrders,
+   assignChefToOrder,
+   assignShipperToOrder,
+   completeOrder,
+   getBranchOrders,
 } from "@/apis/order.api";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -217,10 +218,42 @@ export default function ManagerLayout({
       const isPickup = order.isPickUp || order.pickUp;
       const isTable = order.table || order.isTable;
 
+
+      if (status === 'IN_PROCESS') {
+         const assignChef = await assignChefToOrder(orderId);
+         if (!assignChef.success) {
+            return {
+               success: false,
+               context: {
+                  ...contextBase,
+                  action: "assign-chef" as const,
+                  message: "Không thể chuyển đơn cho bếp. Vui lòng thử lại.",
+               },
+            };
+         }
+         return {
+            success: assignChef.success as boolean,
+            context: {
+               ...contextBase,
+               action: "assign-chef" as const,
+            },
+         };
+      }
+
+
       if (isPickup && status === "COOKED") {
-        const completeResult = await completeOrder(orderId);
-        if (!completeResult.success) {
-          return {
+         const completeResult = await completeOrder(orderId);
+         if (!completeResult.success) {
+            return {
+               success: completeResult.success as boolean,
+               context: {
+                  ...contextBase,
+                  action: "complete" as const,
+                  message: "Không thể hoàn thành đơn hàng. Vui lòng thử lại.",
+               },
+            };
+         }
+         return {
             success: completeResult.success as boolean,
             context: {
               ...contextBase,

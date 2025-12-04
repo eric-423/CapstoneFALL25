@@ -82,24 +82,19 @@ export const useBarcodeScanner = (options: UseBarcodeScannerOptions = {}) => {
         }
 
         const handleKeyDown = async (e: KeyboardEvent) => {
-            // Check if scanner is still enabled
             if (!enabledRef.current) {
                 return;
             }
 
-            // Skip if currently processing
             if (isProcessingRef.current) {
                 return;
             }
 
-            // Skip if focus is on input/textarea (user is typing)
             if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
                 return;
             }
 
-            // Handle Enter key - process barcode
             if (e.key === 'Enter' && barcodeInputRef.current.trim() !== '') {
-                // Prevent all default behaviors and stop propagation immediately
                 e.preventDefault();
                 e.stopPropagation();
                 e.stopImmediatePropagation();
@@ -109,7 +104,6 @@ export const useBarcodeScanner = (options: UseBarcodeScannerOptions = {}) => {
 
                 let orderId: number | undefined;
                 try {
-                    // Parse orderId from barcode
                     const barcodeUpper = String(barcode).toUpperCase();
                     if (barcodeUpper.startsWith('ORDER')) {
                         const numberPart = String(barcode)
@@ -117,7 +111,6 @@ export const useBarcodeScanner = (options: UseBarcodeScannerOptions = {}) => {
                             .trim();
                         orderId = parseInt(numberPart, 10);
                     } else {
-                        // Extract only digits from barcode
                         const digitsOnly = String(barcode).replace(/\D/g, '');
                         orderId = parseInt(digitsOnly, 10);
                     }
@@ -160,10 +153,7 @@ export const useBarcodeScanner = (options: UseBarcodeScannerOptions = {}) => {
                     }
                 }
             }
-            // Handle character input - build barcode string
             else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-                // Prevent default for single character keys when not in input/textarea
-                // This prevents browser from trying to execute the text as code
                 e.preventDefault();
                 e.stopPropagation();
 
@@ -175,7 +165,6 @@ export const useBarcodeScanner = (options: UseBarcodeScannerOptions = {}) => {
                 }
 
                 const now = Date.now();
-                // Reset barcode input if too much time has passed since last key (likely new scan)
                 if (lastKeyTimeRef.current > 0 && now - lastKeyTimeRef.current > 1000) {
                     barcodeInputRef.current = '';
                 }
@@ -183,11 +172,9 @@ export const useBarcodeScanner = (options: UseBarcodeScannerOptions = {}) => {
 
                 barcodeInputRef.current += char;
 
-                // Clear existing timeout
                 if (timeoutRef.current) {
                     clearTimeout(timeoutRef.current);
                 }
-                // Increase timeout to 1000ms to handle slower scanners
                 timeoutRef.current = setTimeout(() => {
                     barcodeInputRef.current = '';
                     lastKeyTimeRef.current = 0;
@@ -195,7 +182,6 @@ export const useBarcodeScanner = (options: UseBarcodeScannerOptions = {}) => {
             }
         };
 
-        // Use capture phase to catch events early, before other handlers
         document.addEventListener('keydown', handleKeyDown, true);
 
         return () => {
@@ -204,11 +190,10 @@ export const useBarcodeScanner = (options: UseBarcodeScannerOptions = {}) => {
                 clearTimeout(timeoutRef.current);
                 timeoutRef.current = null;
             }
-            // Reset state on cleanup
             isProcessingRef.current = false;
             barcodeInputRef.current = '';
             lastKeyTimeRef.current = 0;
         };
-    }, [enabled]); // Only depend on enabled to avoid re-renders
+    }, [enabled]);
 };
 
