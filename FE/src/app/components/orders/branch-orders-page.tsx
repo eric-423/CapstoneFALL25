@@ -506,21 +506,18 @@ export function BranchOrdersPage({ variant }: BranchOrdersPageProps) {
                             value={stats.inProcess}
                             icon={Clock}
                             className="border-yellow-200"
-                            iconClassName="from-yellow-400 to-yellow-600"
                         />
                         <AdminStatsCard
                             title="Hoàn thành"
                             value={stats.completed}
                             icon={CheckCircle}
                             className="border-green-200"
-                            iconClassName="from-green-400 to-green-600"
                         />
                         <AdminStatsCard
                             title="Tổng doanh thu"
                             value={`${(stats.totalRevenue / 1000000).toFixed(1)}M`}
                             icon={DollarSign}
                             className="border-[#F8A91F]/20"
-                            iconClassName="from-[#EC6426] to-[#F8A91F]"
                         />
                     </AdminStatsGrid>
 

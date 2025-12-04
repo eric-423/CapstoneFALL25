@@ -51,6 +51,8 @@ import { getMaterials, Material } from '@/apis/material.api';
 import { getCookingMethods, CookingMethod } from '@/apis/cooking-method.api';
 import { getUnits, Unit } from '@/apis/unit.api';
 import { uploadMediaToSupabase } from '@/components/common/upFileToSupabase';
+import Image from 'next/image';
+import type { ProductRecipes } from '@/apis/recipe.api';
 import { ProductRecipeStepItem } from './ProductRecipeStepItem';
 import { useBodyScrollLock } from '../../components/useBodyScrollLock';
 
@@ -176,15 +178,18 @@ export function ProductForm({ open, onOpenChange, product, onSuccess }: ProductF
 
                 // Fetch recipes
                 import('@/apis/recipe.api').then(({ getRecipesByProductId }) => {
-                    getRecipesByProductId(product.productId).then(recipes => {
-                        const formattedRecipes = recipes.sort((a: any, b: any) => a.orderStep - b.orderStep).map((r: any) => ({
-                            materialId: r.materialId,
-                            quantity: r.quantity,
-                            orderStep: r.orderStep,
-                            cookingMethodId: r.cookingMethodId
-                        }));
+                    getRecipesByProductId(product.productId).then((recipes: ProductRecipes[]) => {
+                        const formattedRecipes = recipes
+                            .slice()
+                            .sort((a, b) => (a.orderStep ?? 0) - (b.orderStep ?? 0))
+                            .map((r) => ({
+                                materialId: r.material?.id ?? 0,
+                                quantity: r.quantity,
+                                orderStep: r.orderStep,
+                                cookingMethodId: r.cookingMethod?.id ?? 0,
+                            }));
                         setValue('recipesRequests', formattedRecipes);
-                    }).catch(err => console.error("Failed to load recipes", err));
+                    }).catch((err) => console.error('Failed to load recipes', err));
                 });
 
             } else {
@@ -312,11 +317,15 @@ export function ProductForm({ open, onOpenChange, product, onSuccess }: ProductF
                                         <div className="flex flex-col items-center gap-4">
                                             <div className="relative w-full aspect-square border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center overflow-hidden bg-gray-50 hover:bg-gray-100 transition-colors group cursor-pointer" onClick={() => document.getElementById('image-upload')?.click()}>
                                                 {previewUrl ? (
-                                                    <img
-                                                        src={previewUrl}
-                                                        alt="Preview"
-                                                        className="w-full h-full object-cover"
-                                                    />
+                                                    <div className="relative w-full h-full">
+                                                        <Image
+                                                            src={previewUrl}
+                                                            alt="Preview"
+                                                            className="object-cover"
+                                                            fill
+                                                            unoptimized
+                                                        />
+                                                    </div>
                                                 ) : (
                                                     <div className="flex flex-col items-center text-gray-400">
                                                         <ImageIcon className="w-10 h-10 mb-2 group-hover:scale-110 transition-transform" />

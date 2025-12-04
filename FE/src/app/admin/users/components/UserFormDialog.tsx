@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, User as UserIcon, Mail, Phone, FileText, Shield, Building, CheckCircle, MapPin } from 'lucide-react';
+import { X, User as UserIcon, Shield, CheckCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';

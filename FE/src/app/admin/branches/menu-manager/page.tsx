@@ -10,7 +10,6 @@ import {
     useSensor,
     useSensors,
     DragStartEvent,
-    DragOverEvent,
     DragEndEvent,
     defaultDropAnimationSideEffects,
     DropAnimation
@@ -129,7 +128,7 @@ export default function BranchMenuManagerPage() {
         if (!loading) {
             fetchFilteredProducts();
         }
-    }, [selectedProductType]);
+    }, [selectedProductType, loading]);
 
 
     // Drag and Drop Handlers
@@ -141,7 +140,7 @@ export default function BranchMenuManagerPage() {
         }
     };
 
-    const handleDragOver = (event: DragOverEvent) => {
+    const handleDragOver = () => {
         // Logic to handle dragging over different containers
     };
 

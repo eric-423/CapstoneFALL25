@@ -18,8 +18,10 @@ import { toast } from "react-toastify";
 import {
   getAllPromotions,
   togglePromotionStatus,
+  getPromotionTypes,
   type Promotion,
   type PromotionsPageResponse,
+  type PromotionType,
 } from "@/apis/promotion.api";
 import {
   AdminPageLayout,
@@ -38,6 +40,8 @@ export default function PromotionsPage() {
   const [pageSize] = useState(12);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [promotionTypes, setPromotionTypes] = useState<PromotionType[]>([]);
+  const [promotionTypeFilter, setPromotionTypeFilter] = useState("");
 
   const fetchPromotions = useCallback(async () => {
     try {
@@ -111,6 +115,16 @@ export default function PromotionsPage() {
       }
     };
     fetchAllForStats();
+    // fetch promotion types for filter
+    const fetchTypes = async () => {
+      try {
+        const types = await getPromotionTypes();
+        setPromotionTypes(types || []);
+      } catch (error) {
+        console.error("Error fetching promotion types:", error);
+      }
+    };
+    fetchTypes();
   }, []);
 
   const activePromotions = useMemo(
@@ -141,12 +155,16 @@ export default function PromotionsPage() {
       (statusFilter === "active" && promo.status) ||
       (statusFilter === "inactive" && !promo.status);
 
-    return matchesKeyword && matchesStatus;
+    const matchesType =
+      !promotionTypeFilter || (promo.promotionTypeName || "") === promotionTypeFilter;
+
+    return matchesKeyword && matchesStatus && matchesType;
   });
 
   const handleClearFilters = () => {
     setSearchKeyword("");
     setStatusFilter("");
+    setPromotionTypeFilter("");
   };
 
   return (
@@ -155,7 +173,7 @@ export default function PromotionsPage() {
         <AdminPageHeader
           title="Quản Lý Khuyến Mãi"
           icon={Gift}
-          actions={<AddPromotionDialog onSuccess={fetchPromotions} />}
+          actions={<AddPromotionDialog onSuccess={fetchPromotions} availablePromotionTypes={promotionTypes} />}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -207,6 +225,14 @@ export default function PromotionsPage() {
                 { value: "inactive", label: "Đã tắt" },
               ]}
               className="w-[180px]"
+            />
+            <FilterDropdown
+              label="Tất cả loại"
+              title="Lọc theo loại"
+              value={promotionTypeFilter}
+              onChange={(value) => setPromotionTypeFilter(value)}
+              items={promotionTypes.map((t) => ({ value: t.name, label: t.name }))}
+              className="w-[200px]"
             />
 
             {(searchKeyword || statusFilter) && (

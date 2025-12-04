@@ -34,7 +34,7 @@ const montserrat = Montserrat({
 });
 
 export default function ManagerDashboardPage() {
-  const { selectedBranch, timePeriod, dateRange } = useAdminContext();
+  const { selectedBranch, timePeriod } = useAdminContext();
   const branchId = useMemo(
     () => (selectedBranch?.id ? selectedBranch.id : 1),
     [selectedBranch?.id]
@@ -44,10 +44,10 @@ export default function ManagerDashboardPage() {
     [selectedBranch?.id]
   );
 
-  const [serviceComparisonType, setServiceComparisonType] = useState<
+  const [serviceComparisonType] = useState<
     "DAILY" | "MONTHLY"
   >("DAILY");
-  const [serviceDate, setServiceDate] = useState("");
+  const [serviceDate] = useState("");
   const { data: revenueStats, isLoading: isLoadingRevenue } = useQuery({
     queryKey: ["manager-dashboard-revenue", branchId, timePeriod],
     queryFn: () => getRevenueStatistics(branchId),

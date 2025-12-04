@@ -264,7 +264,7 @@ export function ScheduleManagement({
     const weekRange = getWeekRange();
 
     // Calculate stats cho tuần đang xem (bảo vệ khi schedules có thể bị undefined do response lỗi)
-    const safeSchedules = Array.isArray(schedules) ? schedules : [];
+    const safeSchedules = useMemo(() => (Array.isArray(schedules) ? schedules : []), [schedules]);
 
     // Filter schedules based on search and shift filter
     const filteredSchedules = useMemo(() => {

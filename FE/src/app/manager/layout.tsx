@@ -27,7 +27,6 @@ import {
    X,
    Warehouse,
    BookOpen,
-   DollarSign,
    CalendarDays,
    ChevronLeft,
    ChevronRight,

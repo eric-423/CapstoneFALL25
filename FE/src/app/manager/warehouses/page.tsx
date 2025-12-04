@@ -48,7 +48,7 @@ export default function WarehousesPage() {
     if (branchIdFromCookie) {
       setBranchId(parseInt(branchIdFromCookie));
     } else {
-      toast.error("❌ Không tìm thấy branchId trong cookie!");
+      toast.error("Không tìm thấy branchId trong cookie!");
       setLoading(false);
     }
   }, []);
@@ -65,7 +65,8 @@ export default function WarehousesPage() {
       setWarehouseMaterials(warehouseData);
       setAllMaterials(allMaterialsResponse.data.content);
     } catch (error) {
-      toast.error("❌ Không thể tải danh sách nguyên liệu!");
+      console.error('fetchWarehouseMaterials error:', error);
+      toast.error("Không thể tải danh sách nguyên liệu!");
     } finally {
       setLoading(false);
     }
@@ -118,7 +119,6 @@ export default function WarehousesPage() {
         <AdminPageLayout>
           <AdminPageHeader
             title="Kho & Nguyên liệu"
-            description="Quản lý nguyên liệu trong kho"
             icon={WarehouseIcon}
             actions={
               <Button
@@ -142,7 +142,6 @@ export default function WarehousesPage() {
               value={lowStockMaterials}
               icon={AlertTriangle}
               className="border-yellow-200"
-              iconClassName="from-yellow-400 to-yellow-600"
             />
             <AdminStatsCard
               title="Tổng số lượng"

@@ -173,9 +173,9 @@ export function ScheduleFormDialog({
         schedule ? 'Cập nhật lịch trình thành công!' : 'Tạo lịch trình thành công!'
       );
       onOpenChange(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error submitting schedule:', error);
-      const errorMessage = error?.message || 'Có lỗi xảy ra khi lưu lịch trình';
+      const errorMessage = error instanceof Error ? error.message : String(error) || 'Có lỗi xảy ra khi lưu lịch trình';
       toast.error(errorMessage);
     } finally {
       setLoading(false);

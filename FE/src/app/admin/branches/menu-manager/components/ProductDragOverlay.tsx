@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import { Product } from '@/apis/product.api';
 import { GripVertical } from 'lucide-react';
 
@@ -12,7 +13,7 @@ export function ProductDragOverlay({ product }: ProductDragOverlayProps) {
             <GripVertical className="h-4 w-4 text-[#78A243]" />
             <div className="h-10 w-10 bg-gray-100 rounded-md overflow-hidden flex-shrink-0">
                 {product.productImage ? (
-                    <img src={product.productImage} alt={product.productName} className="h-full w-full object-cover" />
+                    <Image src={product.productImage} alt={product.productName} width={40} height={40} className="h-full w-full object-cover" />
                 ) : (
                     <div className="h-full w-full flex items-center justify-center text-xs text-gray-400">Img</div>
                 )}

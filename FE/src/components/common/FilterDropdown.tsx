@@ -29,7 +29,6 @@ interface FilterDropdownProps {
 
 export function FilterDropdown({
     label,
-    title: _title,
     items,
     value,
     onChange,

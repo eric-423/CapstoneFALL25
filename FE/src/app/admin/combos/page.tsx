@@ -54,7 +54,7 @@ export default function CombosManagementPage() {
     // Dialog states
     const [showDialog, setShowDialog] = useState(false);
     const [editingCombo, setEditingCombo] = useState<ComboDetail | null>(null);
-    const [loadingComboDetail, setLoadingComboDetail] = useState(false);
+    // const [loadingComboDetail, setLoadingComboDetail] = useState(false);
     const [confirmDialog, setConfirmDialog] = useState<{
         open: boolean;
         comboId: number;
@@ -143,7 +143,6 @@ export default function CombosManagementPage() {
 
     const handleEditCombo = async (combo: Combo) => {
         try {
-            setLoadingComboDetail(true);
             const comboDetail = await getComboById(combo.comboId);
             setEditingCombo(comboDetail);
             setShowDialog(true);
@@ -151,7 +150,6 @@ export default function CombosManagementPage() {
             console.error('Failed to fetch combo detail:', error);
             toast.error('Không thể tải thông tin combo!');
         } finally {
-            setLoadingComboDetail(false);
         }
     };
 

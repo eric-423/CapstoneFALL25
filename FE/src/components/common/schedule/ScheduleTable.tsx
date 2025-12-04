@@ -1,13 +1,12 @@
 'use client';
 
-import React, { useMemo, useState, useRef, useEffect } from 'react';
+import React, { useMemo, useState, useRef } from 'react';
 import { Schedule } from '@/apis/schedule.api';
-import { Plus, ChevronDown, ChevronUp, Eye, X, Search, Calendar, Clock } from 'lucide-react';
+import { Plus, ChevronDown, ChevronUp, Eye, X, Search, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -103,15 +102,6 @@ const SHIFT_COLORS = {
   },
 };
 
-// Get background color for multi-shift (use first shift color)
-const getMultiShiftBg = (shifts: ShiftType[]) => {
-  if (shifts.length === 1) {
-    return SHIFT_COLORS[shifts[0]].bg;
-  }
-  // For multi-shift, use a neutral light gray
-  return 'rgb(243 244 246)'; // gray-100
-};
-
 // Get styles for schedule block (single or multi-shift)
 const getScheduleStyles = (shifts: ShiftType[]) => {
   if (shifts.length === 1) {
@@ -132,23 +122,6 @@ const getScheduleStyles = (shifts: ShiftType[]) => {
     tagClass: SHIFT_COLORS[shifts[0]].tag,
     isMultiShift: true,
   };
-};
-
-const getShiftLabel = (shifts: ShiftType[]) => {
-  if (shifts.length === 1) {
-    switch (shifts[0]) {
-      case 'morning': return 'Sáng';
-      case 'afternoon': return 'Chiều';
-      case 'evening': return 'Tối';
-    }
-  }
-  return shifts.map(s => {
-    switch (s) {
-      case 'morning': return 'S';
-      case 'afternoon': return 'C';
-      case 'evening': return 'T';
-    }
-  }).join('-');
 };
 
 // Format time for display

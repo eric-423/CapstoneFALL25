@@ -20,11 +20,6 @@ interface MaterialFormDialogProps {
     onSuccess: () => void;
 }
 
-interface NutrientRow {
-    nutrientId: string;
-    amountPer100Unit: string;
-}
-
 export function MaterialFormDialog({ open, onOpenChange, material, onSuccess }: MaterialFormDialogProps) {
     const [loading, setLoading] = useState(false);
     useBodyScrollLock(open);
@@ -49,10 +44,9 @@ export function MaterialFormDialog({ open, onOpenChange, material, onSuccess }: 
             }
             : {
                 value: material.unitId.toString(),
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                label: (material as any).unitName || `Đơn vị ID ${material.unitId}`,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                subLabel: (material as any).unitSymbol || '',
+                // Avoid using any by typing the expected fields as Partial
+                label: ((material as Partial<{ unitName?: string }>).unitName) || `Đơn vị ID ${material.unitId}`,
+                subLabel: ((material as Partial<{ unitSymbol?: string }>).unitSymbol) || '',
             };
 
         // Deduplicate by value while ensuring current option is first
@@ -133,15 +127,13 @@ export function MaterialFormDialog({ open, onOpenChange, material, onSuccess }: 
                 materialTypeId: parseInt(formData.materialTypeId),
             };
 
-            let savedMaterialId: number;
+            // Removed savedMaterialId which was previously unused
 
             if (material) {
                 await updateMaterial(material.id, requestData);
-                savedMaterialId = material.id;
                 toast.success('Cập nhật thông tin nguyên liệu thành công!');
             } else {
-                const newMaterial = await createMaterial(requestData);
-                savedMaterialId = newMaterial.id;
+                await createMaterial(requestData);
                 toast.success('Thêm nguyên liệu mới thành công!');
             }
 
@@ -153,13 +145,6 @@ export function MaterialFormDialog({ open, onOpenChange, material, onSuccess }: 
         } finally {
             setLoading(false);
         }
-    };
-
-    // Helper to get unit name for display
-    const getUnitName = (unitIdStr: string) => {
-        if (!unitIdStr) return 'đơn vị';
-        const unit = units.find(u => u.id.toString() === unitIdStr);
-        return unit ? `${unit.name} (${unit.symbols})` : 'đơn vị';
     };
 
     if (!open) return null;

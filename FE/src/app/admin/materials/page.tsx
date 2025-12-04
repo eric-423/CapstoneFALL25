@@ -39,9 +39,9 @@ export default function MaterialsPage() {
     // Filter states
     const [searchKeyword, setSearchKeyword] = useState('');
     const [typeFilter, setTypeFilter] = useState<string>('');
-    const [includeDeleted, setIncludeDeleted] = useState(false);
-    const [sortBy, setSortBy] = useState('name');
-    const [sortDirection, setSortDirection] = useState<'ASC' | 'DESC'>('ASC');
+    const [includeDeleted] = useState(false);
+    const [sortBy] = useState('name');
+    const [sortDirection] = useState<'ASC' | 'DESC'>('ASC');
 
     // Dialog states
     const [showFormDialog, setShowFormDialog] = useState(false);

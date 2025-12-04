@@ -50,29 +50,3 @@ export async function createOrderAction(formData: FormData) {
     return { error: "Có lỗi xảy ra khi đặt hàng" };
   }
 }
-
-export async function cancelOrderAction(orderId: string) {
-  try {
-    const cookieStore = await cookies();
-    const accessToken = cookieStore.get("access_token")?.value;
-
-    if (!accessToken) {
-      return { error: "Bạn cần đăng nhập để hủy đơn hàng" };
-    }
-
-    const response = await http.patch(
-      `/orders/${orderId}/cancel`,
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
-
-    return { success: true, message: "Hủy đơn hàng thành công" };
-  } catch (error) {
-    console.error("Cancel Order Action Error:", error);
-    return { error: "Không thể hủy đơn hàng" };
-  }
-}

@@ -4,12 +4,11 @@ import { LoadingSpinner } from '@/components/common/loading-spinner';
 import useScrollTop from '@/utils/hooks/useScrollTop';
 import { ProductType, Product, getProduct, getProductType } from '@/apis/product.api';
 import { Combo, searchCombos } from '@/apis/combo.api';
-import { createDiningOrder, payDiningTableOrder, updateDiningTableOrder, DiningOrderRequest, DiningTablePaymentRequest, UpdateDiningTableOrderRequest } from '@/apis/order.api';
-import { PaymentMethod, getPaymentMethods } from '@/apis/payment.api';
+import { createDiningOrder, updateDiningTableOrder, DiningOrderRequest, UpdateDiningTableOrderRequest } from '@/apis/order.api';
 import { TableData, getTableById } from '@/apis/table.api';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingCart, CheckCircle, ChevronUp, ChevronDown, Menu, X, Receipt, CreditCard } from 'lucide-react';
+import { ShoppingCart, CheckCircle, ChevronUp, ChevronDown, Menu, X, Receipt } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import TableProductCard from '../components/table-product-card';
@@ -35,7 +34,7 @@ export default function OrderTablePage() {
     const tableId = params?.id as string;
 
     const [productType, setProductType] = useState<ProductType>({ id: 0, name: 'Tất cả' });
-    const [viewMode, setViewMode] = useState<'products' | 'combos'>('products'); // New state for view mode
+    const [viewMode, setViewMode] = useState<'products' | 'combos'>('products');
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
     const [isOrderConfirmed, setIsOrderConfirmed] = useState(false);
     const [isCartExpanded, setIsCartExpanded] = useState(false);
@@ -49,11 +48,6 @@ export default function OrderTablePage() {
     const [productList, setProductList] = useState<Product[]>([]);
     const [productTypes, setProductTypes] = useState<ProductType[]>([]);
     const [comboList, setComboList] = useState<Combo[]>([]);
-    const [showPaymentModal, setShowPaymentModal] = useState(false);
-    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<number>(1);
-    const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-    const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
-    const [isLoadingPaymentMethods, setIsLoadingPaymentMethods] = useState(false);
 
     // Fetch table data on mount
     useEffect(() => {
@@ -83,27 +77,6 @@ export default function OrderTablePage() {
         };
 
         fetchProductTypes();
-    }, []);
-
-    // Fetch payment methods on mount
-    useEffect(() => {
-        const fetchPaymentMethods = async () => {
-            try {
-                setIsLoadingPaymentMethods(true);
-                const methods = await getPaymentMethods();
-                setPaymentMethods(methods);
-                // Set default payment method to first one
-                if (methods.length > 0) {
-                    setSelectedPaymentMethod(methods[0].id);
-                }
-            } catch (error) {
-                console.error('Error fetching payment methods:', error);
-            } finally {
-                setIsLoadingPaymentMethods(false);
-            }
-        };
-
-        fetchPaymentMethods();
     }, []);
 
     // Fetch products when branchId or productType changes
@@ -325,52 +298,6 @@ export default function OrderTablePage() {
         setProductType(type);
         setViewMode('products'); // Switch to products view when selecting a product type
         setIsSidebarOpen(false);
-    };
-
-    const handlePayment = () => {
-        setShowPaymentModal(true);
-    };
-
-    const handleConfirmPayment = async () => {
-        if (!tableData?.currentOrder?.id) {
-            alert('Không tìm thấy đơn hàng!');
-            return;
-        }
-
-        try {
-            setIsProcessingPayment(true);
-
-            const paymentRequest: DiningTablePaymentRequest = {
-                orderId: tableData.currentOrder.id,
-                paymentMethodId: selectedPaymentMethod,
-                promotionCode: '',
-                discountValue: 0,
-            };
-
-            const response = await payDiningTableOrder(paymentRequest);
-
-            // Check if this is PayOS payment (has paymentUrl)
-            if (response.data?.paymentUrl) {
-                // Open PayOS payment link in new window
-                window.open(response.data.paymentUrl, '_blank');
-                alert('Vui lòng hoàn tất thanh toán trên cửa sổ PayOS đã mở!');
-                setShowPaymentModal(false);
-            } else {
-                // Cash payment - completed immediately
-                alert('Thanh toán thành công!');
-                setShowPaymentModal(false);
-                setShowOrderedItems(false);
-            }
-
-            // Reload table data to get updated payment status
-            const updatedTableData = await getTableById(tableId);
-            setTableData(updatedTableData);
-        } catch (error) {
-            console.error('Error processing payment:', error);
-            alert('Có lỗi xảy ra khi thanh toán. Vui lòng thử lại!');
-        } finally {
-            setIsProcessingPayment(false);
-        }
     };
 
     if (showSuccessScreen) {

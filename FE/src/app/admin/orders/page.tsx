@@ -123,6 +123,7 @@ const handlePrintInvoice = async (order: BranchOrderResponse) => {
             if (!useBrowserPrint) {
                 return;
             }
+            console.error('Error while server printing:', error);
         }
     }
 
@@ -203,7 +204,8 @@ const handlePrintInvoice = async (order: BranchOrderResponse) => {
                     }
                 }
             } catch (error) {
-                // Silent fail for key simulation
+                // Silent fail for key simulation - log for debugging
+                console.debug('simulateEnterKey failed', error);
             }
         };
 
@@ -237,7 +239,8 @@ const handlePrintInvoice = async (order: BranchOrderResponse) => {
                     }, 100);
                 }
             } catch (error) {
-                // Silent fail for print trigger
+                // Silent fail for print trigger - log for debugging
+                console.debug('triggerPrint failed', error);
             }
         };
 
@@ -273,6 +276,7 @@ const handlePrintInvoice = async (order: BranchOrderResponse) => {
             }
         }, 1500);
     } catch (error) {
+        console.error('Failed to print invoice:', error);
         alert('Có lỗi xảy ra khi in hóa đơn. Vui lòng thử lại.');
     }
 };
@@ -353,6 +357,7 @@ export default function OrdersPage() {
                 toast.error('Không thể assign shipper. Vui lòng thử lại.');
             }
         } catch (error) {
+            console.error('Error assigning shipper:', error);
             toast.error('Lỗi khi chuyển cho shipper. Vui lòng thử lại.');
         } finally {
             setAssigningShipper(prev => {
@@ -396,21 +401,18 @@ export default function OrdersPage() {
                         value={stats.inProcess}
                         icon={Clock}
                         className="border-yellow-200"
-                        iconClassName="from-yellow-400 to-yellow-600"
                     />
                     <AdminStatsCard
                         title="Hoàn thành"
                         value={stats.completed}
                         icon={CheckCircle}
                         className="border-green-200"
-                        iconClassName="from-green-400 to-green-600"
                     />
                     <AdminStatsCard
                         title="Tổng doanh thu"
                         value={`${(stats.totalRevenue / 1000000).toFixed(1)}M`}
                         icon={DollarSign}
                         className="border-[#F8A91F]/20"
-                        iconClassName="from-[#EC6426] to-[#F8A91F]"
                     />
                 </AdminStatsGrid>
 

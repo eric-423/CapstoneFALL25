@@ -57,6 +57,17 @@ export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboF
         }
     };
 
+    const resetForm = React.useCallback(() => {
+        setName('');
+        setDescription('');
+        setPrice('');
+        setStartDate('');
+        setEndDate('');
+        setIsActive(true);
+        setBranchId(branches.length > 0 ? branches[0].id : null);
+        setComboItems([]);
+    }, [branches]);
+
     // Initialize form
     useEffect(() => {
         if (open) {
@@ -75,7 +86,7 @@ export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboF
                 resetForm();
             }
         }
-    }, [open, combo]);
+    }, [open, combo, resetForm]);
 
     useEffect(() => {
         if (branchId) {
@@ -83,16 +94,6 @@ export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboF
         }
     }, [branchId]);
 
-    const resetForm = () => {
-        setName('');
-        setDescription('');
-        setPrice('');
-        setStartDate('');
-        setEndDate('');
-        setIsActive(true);
-        setBranchId(branches.length > 0 ? branches[0].id : null);
-        setComboItems([]);
-    };
 
     const handleAddItem = () => {
         if (products.length === 0) return;
@@ -110,8 +111,15 @@ export function ComboFormDialog({ open, onOpenChange, combo, onSuccess }: ComboF
 
     const handleItemChange = (index: number, field: keyof ComboItem, value: string | number) => {
         const newItems = [...comboItems];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        newItems[index] = { ...newItems[index], [field]: value } as any;
+        const current: ComboItem = { ...newItems[index] };
+        if (field === 'productId') {
+            current.productId = Number(value);
+        } else if (field === 'quantity') {
+            current.quantity = Number(value);
+        } else if (field === 'note') {
+            current.note = String(value);
+        }
+        newItems[index] = current;
         setComboItems(newItems);
     };
 

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Calendar as CalendarIcon, Loader2, Activity, LayoutDashboard } from 'lucide-react';
+import { Calendar as CalendarIcon, Loader2, LayoutDashboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -12,7 +12,7 @@ import { DateRange } from 'react-day-picker';
 import { ManagerGuard } from '@/components/guards';
 import { AdminPageLayout, AdminPageHeader } from '../components/AdminPageLayout';
 import { getCookie } from '@/utils/cookies.client';
-import { getBranches, type Branch } from '@/apis/branch.api';
+import { getBranches } from '@/apis/branch.api';
 
 // Dashboard API
 import {

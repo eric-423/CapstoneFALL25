@@ -60,8 +60,8 @@ export function ScheduleFormDialog({
     date: selectedDate
       ? selectedDate.toISOString().split('T')[0]
       : schedule?.date
-      ? schedule.date.split('T')[0]
-      : '',
+        ? schedule.date.split('T')[0]
+        : '',
     startTime: formatTimeForInput(schedule?.startTime) || '08:00',
     endTime: formatTimeForInput(schedule?.endTime) || '17:00',
   });
@@ -78,8 +78,8 @@ export function ScheduleFormDialog({
         date: selectedDate
           ? selectedDate.toISOString().split('T')[0]
           : schedule?.date
-          ? schedule.date.split('T')[0]
-          : '',
+            ? schedule.date.split('T')[0]
+            : '',
         startTime: formatTimeForInput(schedule?.startTime) || '08:00',
         endTime: formatTimeForInput(schedule?.endTime) || '17:00',
       });
@@ -143,9 +143,9 @@ export function ScheduleFormDialog({
         schedule ? 'Cập nhật lịch trình thành công!' : 'Tạo lịch trình thành công!',
       );
       onOpenChange(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error submitting schedule:', error);
-      const errorMessage = error?.message || 'Có lỗi xảy ra khi lưu lịch trình';
+      const errorMessage = error instanceof Error ? error.message : String(error) || 'Có lỗi xảy ra khi lưu lịch trình';
       toast.error(errorMessage);
     } finally {
       setLoading(false);

@@ -413,7 +413,6 @@ export default function UserDetailPage() {
                   .reverse()
                   .map((history, index) => {
                     const isLast = index === roleHistory.length - 1;
-                    const isFirst = index === 0;
 
                     return (
                       <div key={history.id} className="relative">

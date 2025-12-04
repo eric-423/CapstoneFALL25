@@ -24,7 +24,7 @@ export default function CookingMethodsPage() {
 
     // Filter states
     const [searchKeyword, setSearchKeyword] = useState('');
-    const [sortDirection, setSortDirection] = useState<'ASC' | 'DESC'>('ASC');
+    const [sortDirection] = useState<'ASC' | 'DESC'>('ASC');
 
     // Dialog states
     const [showFormDialog, setShowFormDialog] = useState(false);

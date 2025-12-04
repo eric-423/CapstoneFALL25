@@ -6,7 +6,6 @@ import { AdminProvider } from "@/utils/contexts/AdminContext";
 import { BranchesLoader } from "./components/BranchesLoader";
 import {
   useBarcodeScanner,
-  type BarcodeProcessContext,
 } from "@/utils/hooks/useBarcodeScanner";
 import Link from "next/link";
 import Image from "next/image";
@@ -199,23 +198,17 @@ export default function AdminLayout({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [sidebarOpen]);
-  const handleBarcodeSuccess = useCallback(
-    (orderId: number, _context?: BarcodeProcessContext) => {
-      console.log("Assign chef thành công cho order:", orderId);
-    },
-    []
-  );
+  const handleBarcodeSuccess = useCallback((orderId: number) => {
+    console.log("Assign chef thành công cho order:", orderId);
+  }, []);
 
   const handleBarcodeError = useCallback((error: Error) => {
     console.error("Lỗi khi assign chef:", error);
   }, []);
 
-  const handleBarcodeAlreadyHandled = useCallback(
-    (orderId: number, _context?: BarcodeProcessContext) => {
-      console.warn("Chef khác đã nhận order:", orderId);
-    },
-    []
-  );
+  const handleBarcodeAlreadyHandled = useCallback((orderId: number) => {
+    console.warn("Chef khác đã nhận order:", orderId);
+  }, []);
   useBarcodeScanner({
     enabled: true,
     onSuccess: handleBarcodeSuccess,
