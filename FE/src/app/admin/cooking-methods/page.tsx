@@ -51,7 +51,7 @@ export default function CookingMethodsPage() {
             setTotalPages(response.totalPages);
         } catch (error) {
             console.error('Failed to fetch cooking methods:', error);
-            toast.error('❌ Không thể tải danh sách phương pháp nấu!');
+            toast.error('Không thể tải danh sách phương pháp nấu!');
         } finally {
             setLoading(false);
         }

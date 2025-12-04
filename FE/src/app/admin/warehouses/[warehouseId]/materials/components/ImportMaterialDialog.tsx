@@ -87,10 +87,10 @@ export function ImportMaterialDialog({
             link.click();
             URL.revokeObjectURL(url);
 
-            toast.success('✅ Đã tải file mẫu!');
+            toast.success('Đã tải file mẫu!');
         } catch (error) {
             console.error('Error creating template:', error);
-            toast.error('❌ Không thể tạo file mẫu!');
+            toast.error('Không thể tạo file mẫu!');
         }
     };
 
@@ -167,7 +167,7 @@ export function ImportMaterialDialog({
 
             const worksheet = workbook.worksheets[0];
             if (!worksheet) {
-                toast.error('❌ File không có sheet nào!');
+                toast.error('File không có sheet nào!');
                 return;
             }
 
@@ -201,7 +201,7 @@ export function ImportMaterialDialog({
             });
 
             if (rows.length === 0) {
-                toast.error('❌ File không có dữ liệu!');
+                toast.error('File không có dữ liệu!');
                 return;
             }
 
@@ -213,13 +213,13 @@ export function ImportMaterialDialog({
             const invalidCount = validatedRows.length - validCount;
 
             if (invalidCount > 0) {
-                toast.warning(`⚠️ Có ${invalidCount} dòng lỗi cần kiểm tra!`);
+                toast.warning(`Có ${invalidCount} dòng lỗi cần kiểm tra!`);
             } else {
-                toast.success(`✅ Đã đọc ${validCount} nguyên liệu hợp lệ!`);
+                toast.success(`Đã đọc ${validCount} nguyên liệu hợp lệ!`);
             }
         } catch (error) {
             console.error('Error reading file:', error);
-            toast.error('❌ Không thể đọc file Excel!');
+            toast.error('Không thể đọc file Excel!');
         }
     };
 
@@ -238,7 +238,7 @@ export function ImportMaterialDialog({
         const validRows = importData.filter(row => row.isValid && row.materialId);
 
         if (validRows.length === 0) {
-            toast.error('❌ Không có nguyên liệu hợp lệ để import!');
+            toast.error('Không có nguyên liệu hợp lệ để import!');
             return;
         }
 
@@ -253,12 +253,12 @@ export function ImportMaterialDialog({
                 }))
             });
 
-            toast.success(`✅ Đã import ${validRows.length} nguyên liệu vào kho!`);
+            toast.success(`Đã import ${validRows.length} nguyên liệu vào kho!`);
             onSuccess();
             handleClose();
         } catch (error) {
             console.error('Failed to import materials:', error);
-            toast.error('❌ Không thể import nguyên liệu!');
+            toast.error('Không thể import nguyên liệu!');
         } finally {
             setLoading(false);
         }

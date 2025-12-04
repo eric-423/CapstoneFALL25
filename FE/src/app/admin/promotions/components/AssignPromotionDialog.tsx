@@ -74,7 +74,7 @@ export function AssignPromotionDialog({
       setTotalElements(response.data.totalElements || 0);
     } catch (error) {
       console.error("Failed to fetch customers:", error);
-      toast.error("❌ Không thể tải danh sách khách hàng!");
+      toast.error("Không thể tải danh sách khách hàng!");
     } finally {
       setLoadingCustomers(false);
     }
@@ -128,7 +128,7 @@ export function AssignPromotionDialog({
 
   const handleAssign = async () => {
     if (selectedUsers.size === 0) {
-      toast.warning("⚠️ Vui lòng chọn ít nhất một khách hàng!");
+      toast.warning("Vui lòng chọn ít nhất một khách hàng!");
       return;
     }
 
@@ -147,15 +147,13 @@ export function AssignPromotionDialog({
         userAssignments,
       });
 
-      toast.success(
-        `✅ Đã gán khuyến mãi cho ${selectedUsers.size} khách hàng!`
-      );
+      toast.success(`Đã gán khuyến mãi cho ${selectedUsers.size} khách hàng!`);
       setOpen(false);
       setSelectedUsers(new Map());
       onSuccess();
     } catch (error) {
       console.error("Failed to assign promotion:", error);
-      toast.error("❌ Không thể gán khuyến mãi!");
+      toast.error("Không thể gán khuyến mãi!");
     } finally {
       setLoading(false);
     }
@@ -283,7 +281,6 @@ export function AssignPromotionDialog({
                       }`}
                     >
                       <div className="flex gap-4 p-4">
-                        {/* Cột checkbox + avatar */}
                         <div className="flex flex-col items-center gap-2 pt-1">
                           <input
                             type="checkbox"

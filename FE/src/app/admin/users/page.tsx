@@ -133,7 +133,7 @@ export default function UsersManagementPage() {
             });
         } catch (error) {
             console.error('Failed to fetch users:', error);
-            toast.error('❌ Không thể tải danh sách người dùng!');
+            toast.error('Không thể tải danh sách người dùng!');
         } finally {
             setLoading(false);
         }

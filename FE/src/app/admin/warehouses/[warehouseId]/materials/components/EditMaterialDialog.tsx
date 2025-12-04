@@ -43,13 +43,13 @@ export function EditMaterialDialog({
         // Validate
         const quantityNum = parseFloat(quantity);
         if (isNaN(quantityNum) || quantityNum < 0) {
-            toast.error('❌ Số lượng phải lớn hơn hoặc bằng 0!');
+            toast.error('Số lượng phải lớn hơn hoặc bằng 0!');
             return;
         }
 
         const thresholdNum = parseFloat(threshold);
         if (isNaN(thresholdNum) || thresholdNum <= 0) {
-            toast.error('❌ Ngưỡng cảnh báo phải lớn hơn 0!');
+            toast.error('Ngưỡng cảnh báo phải lớn hơn 0!');
             return;
         }
 
@@ -64,12 +64,12 @@ export function EditMaterialDialog({
                 }]
             });
 
-            toast.success('✅ Cập nhật nguyên liệu thành công!');
+            toast.success('Cập nhật nguyên liệu thành công!');
             onSuccess();
             onOpenChange(false);
         } catch (error) {
             console.error('Failed to update material:', error);
-            toast.error('❌ Không thể cập nhật nguyên liệu!');
+            toast.error('Không thể cập nhật nguyên liệu!');
         } finally {
             setLoading(false);
         }

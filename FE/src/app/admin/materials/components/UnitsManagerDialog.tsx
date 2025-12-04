@@ -41,7 +41,7 @@ export function UnitsManagerDialog({ open, onOpenChange }: UnitsManagerDialogPro
             setUnits(data);
         } catch (error) {
             console.error('Failed to fetch units:', error);
-            toast.error('❌ Không thể tải danh sách đơn vị!');
+            toast.error('Không thể tải danh sách đơn vị!');
         } finally {
             setLoading(false);
         }
@@ -67,22 +67,22 @@ export function UnitsManagerDialog({ open, onOpenChange }: UnitsManagerDialogPro
 
     const handleSaveNewUnit = async () => {
         if (!newUnitName.trim()) {
-            toast.warning('⚠️ Tên đơn vị không được để trống!');
+            toast.warning('Tên đơn vị không được để trống!');
             return;
         }
         if (!newUnitSymbols.trim()) {
-            toast.warning('⚠️ Ký hiệu không được để trống!');
+            toast.warning('Ký hiệu không được để trống!');
             return;
         }
         try {
             setActionLoading(true);
             await createUnit({ name: newUnitName.trim(), symbols: newUnitSymbols.trim() });
-            toast.success('✅ Đã thêm đơn vị mới!');
+            toast.success('Đã thêm đơn vị mới!');
             handleCancelCreate();
             await fetchUnits();
         } catch (error) {
             console.error('Failed to create unit:', error);
-            toast.error('❌ Không thể thêm đơn vị!');
+            toast.error('Không thể thêm đơn vị!');
         } finally {
             setActionLoading(false);
         }
@@ -102,22 +102,22 @@ export function UnitsManagerDialog({ open, onOpenChange }: UnitsManagerDialogPro
 
     const handleSaveUpdate = async (unitId: number) => {
         if (!editingName.trim()) {
-            toast.warning('⚠️ Tên đơn vị không được để trống!');
+            toast.warning('Tên đơn vị không được để trống!');
             return;
         }
         if (!editingSymbols.trim()) {
-            toast.warning('⚠️ Ký hiệu không được để trống!');
+            toast.warning('Ký hiệu không được để trống!');
             return;
         }
         try {
             setActionLoading(true);
             await updateUnit(unitId, { name: editingName.trim(), symbols: editingSymbols.trim() });
-            toast.success('✅ Cập nhật thành công!');
+            toast.success('Cập nhật thành công!');
             handleCancelEdit();
             await fetchUnits();
         } catch (error) {
             console.error('Failed to update unit:', error);
-            toast.error('❌ Không thể cập nhật đơn vị!');
+            toast.error('Không thể cập nhật đơn vị!');
         } finally {
             setActionLoading(false);
         }
@@ -133,12 +133,12 @@ export function UnitsManagerDialog({ open, onOpenChange }: UnitsManagerDialogPro
         try {
             setActionLoading(true);
             await deleteUnit(deletingUnit.id);
-            toast.success(`✅ Đã xóa đơn vị "${deletingUnit.name}"!`);
+            toast.success(`Đã xóa đơn vị "${deletingUnit.name}"!`);
             await fetchUnits();
             setShowConfirmDialog(false);
             setDeletingUnit(null);
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : '❌ Không thể xóa đơn vị!';
+            const errorMessage = error instanceof Error ? error.message : 'Không thể xóa đơn vị!';
             toast.error(errorMessage);
         } finally {
             setActionLoading(false);

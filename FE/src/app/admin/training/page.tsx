@@ -240,11 +240,11 @@ export default function TrainingPage() {
           open={confirmDialog.open}
           onOpenChange={(open) => !open && closeDeleteDialog()}
           title="Xoá khóa đào tạo"
-          description={`Bạn có chắc chắn muốn xoá khóa "${confirmDialog.training?.name ?? ""}"? Hành động này không thể hoàn tác.`}
+          content={`Bạn có chắc chắn muốn xoá khóa "${confirmDialog.training?.name ?? ""}"? Hành động này không thể hoàn tác.`}
           confirmText="Xoá ngay"
           cancelText="Huỷ"
           onConfirm={handleConfirmDelete}
-          isLoading={deleteLoading}
+          loading={deleteLoading}
           variant="destructive"
         />
 
