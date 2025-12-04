@@ -218,7 +218,8 @@ export function BranchOrdersPage({ variant }: BranchOrdersPageProps) {
             try {
                 const blob = await downloadInvoiceBlob(order.id);
                 await printBlobInBrowser(blob);
-                await fetchAssignToChef(order.id);
+                if (order.orderStatus === 'IM_PROCESS') await fetchAssignToChef(order.id);
+
 
             } catch {
                 toast.error("Lỗi in hóa đơn. Vui lòng thử lại.");
