@@ -1,6 +1,7 @@
 package com.capstone.tamtech.capstone.repositories;
 
 import com.capstone.tamtech.capstone.entities.Schedule;
+import com.capstone.tamtech.capstone.entities.Shift;
 import com.capstone.tamtech.capstone.entities.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -23,4 +24,6 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Integer> {
 
     @Query("SELECT s FROM Schedule s JOIN RoleHistory rh ON s.user.id = rh.user.id WHERE rh.isActive = true AND (:branchId IS NULL OR rh.branch.id = :branchId)")
     List<Schedule> findByBranchId(@Param("branchId") Integer branchId);
+
+    boolean existsByUserAndShiftAndDate(Users user, Shift shift, java.util.Date date);
 }
