@@ -476,7 +476,7 @@ export const getBranchOrders = async (status?: string): Promise<BranchOrdersApiR
 
 export const assignChefToOrder = async (orderId: number): Promise<CommonResponse> => {
     try {
-        const url = `/api/orders/staff/assign/cheff/${orderId}`;
+        const url = `/api/orders/assign/cheff/${orderId}`;
 
         const response = await fetch(url, {
             method: 'PUT',
@@ -505,7 +505,7 @@ export const assignChefToOrder = async (orderId: number): Promise<CommonResponse
 
 export const assignShipperToOrder = async (orderId: number): Promise<CommonResponse> => {
     try {
-        const response = await fetch(`/api/orders/manager/assign/shipper/${orderId}`, {
+        const response = await fetch(`/api/orders/assign/shipper/${orderId}`, {
             method: 'PUT',
             credentials: 'include',
         });
@@ -566,28 +566,6 @@ export const completeCustomerOrder = async (orderId: number): Promise<CommonResp
         };
     }
 }
-
-
-export const staffAssignShipperToOrder = async (orderId: number): Promise<CommonResponse> => {
-    try {
-        const response = await fetch(`/api/orders/staff/assign/shipper/${orderId}`, {
-            method: 'PUT',
-            credentials: 'include',
-        });
-
-        const data = await response.json();
-        return {
-            success: data === true || data === 'true' || data.success === true || response.ok,
-            message: data.message || 'Đã assign shipper thành công'
-        };
-    } catch (error) {
-        console.log(error)
-        return {
-            success: false,
-            message: 'Hiện Tại Tất Cả Shipper Đang Bận'
-        };
-    }
-};
 
 
 export const getChefOrders = async (chefId: number, status?: string): Promise<ChefOrdersApiResponse> => {
