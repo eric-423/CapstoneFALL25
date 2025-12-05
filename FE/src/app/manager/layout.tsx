@@ -10,6 +10,7 @@ import {
    type BarcodeProcessContext,
 } from "@/utils/hooks/useBarcodeScanner";
 import {
+   assignChefToOrder,
    assignShipperToOrder,
    completeOrder,
    getBranchOrders,
@@ -203,6 +204,41 @@ export default function ManagerLayout({
          const isPickup = order.isPickUp || order.pickUp;
          const isTable = order.table || order.isTable;
 
+
+         if (status === 'IN_PROCESS') {
+            // Nếu đơn đã có chef rồi, không cần assign lại
+            if (order.chefName) {
+               return {
+                  success: true,
+                  context: {
+                     ...contextBase,
+                     action: "assign-chef" as const,
+                     message: `Đơn #${orderId} đã được giao cho đầu bếp ${order.chefName}`,
+                  },
+               };
+            }
+
+            const assignChef = await assignChefToOrder(orderId);
+            if (!assignChef.success) {
+               return {
+                  success: false,
+                  context: {
+                     ...contextBase,
+                     action: "assign-chef" as const,
+                     message: "Không thể chuyển đơn cho bếp. Vui lòng thử lại.",
+                  },
+               };
+            }
+            return {
+               success: assignChef.success as boolean,
+               context: {
+                  ...contextBase,
+                  action: "assign-chef" as const,
+               },
+            };
+         }
+
+
          if (isPickup && status === "COOKED") {
             const completeResult = await completeOrder(orderId);
             if (!completeResult.success) {
@@ -211,6 +247,7 @@ export default function ManagerLayout({
                   context: {
                      ...contextBase,
                      action: "complete" as const,
+                     message: "Không thể hoàn thành đơn hàng. Vui lòng thử lại.",
                   },
                };
             }
@@ -249,7 +286,7 @@ export default function ManagerLayout({
             context: {
                ...contextBase,
                action: "no-action" as const,
-               message: `Đơn #${orderId} đang nấu, không thể xử lý.`,
+               message: `Đơn #${orderId} đang ở trạng thái ${status || "khác"}, không thể xử lý.`,
             },
          };
       },
@@ -259,10 +296,17 @@ export default function ManagerLayout({
    const handleBarcodeSuccess = useCallback(
       (orderId: number, context?: BarcodeProcessContext) => {
          if (context?.action === "assign-chef") {
-            toast.success(`Đã chuyển đơn #${orderId} cho bếp`, {
-               position: "top-right",
-               autoClose: 3000,
-            });
+            if (context?.message) {
+               toast.info(context.message, {
+                  position: "top-right",
+                  autoClose: 3000,
+               });
+            } else {
+               toast.success(`Đã chuyển đơn #${orderId} cho bếp`, {
+                  position: "top-right",
+                  autoClose: 3000,
+               });
+            }
          } else if (context?.action === "assign-shipper") {
             toast.success(`Đã bàn giao đơn #${orderId} cho shipper`, {
                position: "top-right",
@@ -317,7 +361,6 @@ export default function ManagerLayout({
       onError: handleBarcodeError,
       onAlreadyHandled: handleBarcodeAlreadyHandled,
    });
-
    return (
       <AdminProvider>
          <div className="h-screen bg-[#EFE6DB] overflow-hidden">

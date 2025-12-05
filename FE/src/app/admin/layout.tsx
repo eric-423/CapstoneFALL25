@@ -15,7 +15,6 @@ import {
   LayoutDashboard,
   Users,
   Store,
-  ShoppingBag,
   Gift,
   MessageSquare,
   LogOut,
@@ -146,7 +145,6 @@ export default function AdminLayout({
     { href: '/admin/combos', label: 'Combo', icon: Gift },
     { href: '/admin/training', label: 'Khóa đào tạo', icon: GraduationCap },
     { href: '/admin/schedule', label: 'Lịch trình', icon: Calendar },
-    { href: '/admin/orders', label: 'Đơn hàng', icon: ShoppingBag },
     { href: '/admin/promotions', label: 'Khuyến mãi', icon: Gift },
     { href: '/admin/feedback', label: 'Phản hồi', icon: MessageSquare },
   ], []);
