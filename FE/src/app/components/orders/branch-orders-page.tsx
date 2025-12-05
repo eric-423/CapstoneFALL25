@@ -9,7 +9,6 @@ import {
     getOrderStatuses,
     getBranchOrders,
     assignShipperToOrder,
-    staffAssignShipperToOrder,
     assignChefToOrder,
     getCustomerOrderDetail,
     BranchOrderResponse,
@@ -51,19 +50,12 @@ import {
     ChefHat,
 } from "lucide-react";
 import { toast } from "react-toastify";
-import { getKioskMode } from "@/utils/getKioskMode";
 
 const montserrat = Montserrat({
     subsets: ["latin", "vietnamese"],
     variable: "--font-montserrat",
     display: "swap",
 });
-
-const PRINT_CONFIG = {
-    autoClose: true,
-    useServerPrint: process.env.NEXT_PUBLIC_USE_SERVER_PRINT === "true",
-    isKioskMode: getKioskMode(),
-};
 
 const getStatusLabel = (status: string): string => {
     const statusMap: Record<string, string> = {
@@ -284,6 +276,7 @@ export function BranchOrdersPage({ variant }: BranchOrdersPageProps) {
                             autoPrintedOrdersRef.current.add(order.id);
                             void handlePrint(order);
                         }
+                        autoPrintedOrdersRef.current.clear();
                     });
             } else {
                 setOrders([]);
@@ -328,9 +321,7 @@ export function BranchOrdersPage({ variant }: BranchOrdersPageProps) {
         setAssigningShipper((prev) => new Set(prev).add(orderId));
 
         try {
-            const result = await (isManager
-                ? assignShipperToOrder(orderId)
-                : staffAssignShipperToOrder(orderId));
+            const result = await assignShipperToOrder(orderId);
 
             if (result.success) {
                 await fetchOrders();
@@ -387,9 +378,9 @@ export function BranchOrdersPage({ variant }: BranchOrdersPageProps) {
         iframe.src = url;
         document.body.appendChild(iframe);
 
-        const onloadDelay = PRINT_CONFIG.isKioskMode ? 0 : 3;
-        const fallbackDelay = PRINT_CONFIG.isKioskMode ? 10 : 100;
-        const scannerRefocusDelay = PRINT_CONFIG.isKioskMode ? 80 : 200;
+        const onloadDelay = 3;
+        const fallbackDelay = 100;
+        const scannerRefocusDelay = 200;
 
         let cleaned = false;
         let hasTriggeredPrint = false;
