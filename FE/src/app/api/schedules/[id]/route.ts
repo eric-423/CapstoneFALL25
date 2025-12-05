@@ -12,7 +12,6 @@ export async function PUT(
     const accessToken = cookieStore.get('access_token')?.value || cookieStore.get('token')?.value;
 
     if (!accessToken) {
-      console.error('No token found in cookies');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -22,12 +21,8 @@ export async function PUT(
     const body = await request.json();
     const scheduleId = (await context.params).id;
 
-    console.log('Updating schedule:', { scheduleId, body, tokenLength: accessToken.length });
-
     const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
     const url = `${baseUrl}/schedules/${scheduleId}`;
-
-    console.log('Calling backend API:', url, 'with token:', accessToken.substring(0, 20) + '...');
 
     const response = await fetch(
       url,
@@ -42,11 +37,6 @@ export async function PUT(
     );
 
     const responseText = await response.text();
-    console.log('BE Response:', {
-      status: response.status,
-      ok: response.ok,
-      responseText: responseText.substring(0, 200)
-    });
 
     interface ParsedData {
       status?: number;
@@ -61,7 +51,6 @@ export async function PUT(
     try {
       parsedData = responseText ? (JSON.parse(responseText) as ParsedData) : {};
     } catch (e) {
-      console.error('Failed to parse response:', responseText, e);
       return NextResponse.json(
         {
           status: 500,
@@ -78,13 +67,6 @@ export async function PUT(
     }
 
     // Xử lý lỗi
-    console.error('Update schedule failed:', {
-      status: response.status,
-      statusText: response.statusText,
-      parsedData,
-      body
-    });
-
     return NextResponse.json(
       {
         status: response.status || parsedData.status || 500,
@@ -94,7 +76,6 @@ export async function PUT(
       { status: response.status || 500 }
     );
   } catch (error) {
-    console.error('Error updating schedule:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -143,7 +124,6 @@ export async function DELETE(
     const data = await response.json().catch(() => ({ status: 200, desc: 'Deleted successfully' }));
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Error deleting schedule:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

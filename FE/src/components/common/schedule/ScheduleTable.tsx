@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState, useRef } from 'react';
+import React, { useMemo, useState, useRef, useCallback } from 'react';
 import { Schedule } from '@/apis/schedule.api';
 import { Plus, ChevronDown, ChevronUp, Eye, X, Search, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -37,7 +37,6 @@ const DAYS_OF_WEEK = [
   { dayOfWeek: 0, label: 'CN', fullLabel: 'Chủ nhật' },
 ];
 
-// Determine shift type based on time
 type ShiftType = 'morning' | 'afternoon' | 'evening';
 
 const getShiftFromHour = (hour: number): ShiftType => {
@@ -46,7 +45,6 @@ const getShiftFromHour = (hour: number): ShiftType => {
   return 'evening';
 };
 
-// Determine all shift types a schedule spans
 const getShiftTypes = (startTime?: string | null, endTime?: string | null): ShiftType[] => {
   if (!startTime || !endTime) return ['morning'];
 
@@ -56,23 +54,18 @@ const getShiftTypes = (startTime?: string | null, endTime?: string | null): Shif
 
   const shifts: ShiftType[] = [];
 
-  // Morning: starts before 12:00
   if (startHour < 12) {
     shifts.push('morning');
   }
 
-  // Afternoon: starts before 17:00 AND ends after 12:00
-  // Or starts between 12:00 and 17:00
   if ((startHour < 17 && endHour > 12) || (startHour >= 12 && startHour < 17)) {
     if (!shifts.includes('afternoon')) shifts.push('afternoon');
   }
 
-  // Evening: starts at 17:00 or later, OR ends after 17:00 (not exactly at 17:00)
   if (startHour >= 17 || endHour > 17 || (endHour === 17 && endMinute > 0)) {
     if (!shifts.includes('evening')) shifts.push('evening');
   }
 
-  // Ensure at least one shift based on start time
   if (shifts.length === 0) {
     shifts.push(getShiftFromHour(startHour));
   }
@@ -80,7 +73,6 @@ const getShiftTypes = (startTime?: string | null, endTime?: string | null): Shif
   return shifts;
 };
 
-// Get shift base colors
 const SHIFT_COLORS = {
   morning: {
     bg: 'rgb(254 215 170)', // amber-200
@@ -102,7 +94,6 @@ const SHIFT_COLORS = {
   },
 };
 
-// Get styles for schedule block (single or multi-shift)
 const getScheduleStyles = (shifts: ShiftType[]) => {
   if (shifts.length === 1) {
     const shift = shifts[0];
@@ -114,7 +105,6 @@ const getScheduleStyles = (shifts: ShiftType[]) => {
     };
   }
 
-  // Multi-shift: use neutral gray background
   return {
     background: 'rgb(243 244 246)', // gray-100
     border: SHIFT_COLORS[shifts[0]].border,
@@ -124,7 +114,6 @@ const getScheduleStyles = (shifts: ShiftType[]) => {
   };
 };
 
-// Format time for display
 const formatTime = (time?: string | null) => {
   if (!time) return '';
   return time.slice(0, 5);
@@ -134,6 +123,7 @@ export function ScheduleTable({
   schedules,
   currentWeek,
   onEdit,
+  onDelete,
   onCellClick,
 }: ScheduleTableProps) {
   const [selectedDayModal, setSelectedDayModal] = useState<{ date: Date; schedules: Schedule[] } | null>(null);
@@ -142,16 +132,13 @@ export function ScheduleTable({
   const scrollRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const [scrollStates, setScrollStates] = useState<{ [key: string]: { canScrollUp: boolean; canScrollDown: boolean } }>({});
 
-  // Filter schedules in modal
   const filteredModalSchedules = useMemo(() => {
     if (!selectedDayModal) return [];
 
     return selectedDayModal.schedules.filter((schedule) => {
-      // Filter by name
       const matchesName = modalSearchName === '' ||
         (schedule.userName?.toLowerCase().includes(modalSearchName.toLowerCase()));
 
-      // Filter by shift
       if (modalFilterShift === 'all') return matchesName;
 
       const shifts = getShiftTypes(schedule.startTime, schedule.endTime);
@@ -161,20 +148,24 @@ export function ScheduleTable({
     });
   }, [selectedDayModal, modalSearchName, modalFilterShift]);
 
-  // Check scroll states for each column
-  const updateScrollState = (dateKey: string, element: HTMLDivElement | null) => {
+  const updateScrollState = useCallback((dateKey: string, element: HTMLDivElement | null) => {
     if (!element) return;
 
     const canScrollUp = element.scrollTop > 0;
     const canScrollDown = element.scrollTop < element.scrollHeight - element.clientHeight - 1;
 
-    setScrollStates(prev => ({
-      ...prev,
-      [dateKey]: { canScrollUp, canScrollDown }
-    }));
-  };
+    setScrollStates(prev => {
+      const currentState = prev[dateKey];
+      if (currentState?.canScrollUp === canScrollUp && currentState?.canScrollDown === canScrollDown) {
+        return prev;
+      }
+      return {
+        ...prev,
+        [dateKey]: { canScrollUp, canScrollDown }
+      };
+    });
+  }, []);
 
-  // Get week days
   const weekDays = useMemo(() => {
     const days: Date[] = [];
     const startOfWeek = new Date(currentWeek);
@@ -190,12 +181,10 @@ export function ScheduleTable({
     return days;
   }, [currentWeek]);
 
-  // Group schedules by date
   const schedulesByDate = useMemo(() => {
     const grouped: { [key: string]: Schedule[] } = {};
     schedules.forEach((schedule) => {
       if (schedule.date) {
-        // Parse date string and get local date key (YYYY-MM-DD)
         const scheduleDate = new Date(schedule.date);
         const year = scheduleDate.getFullYear();
         const month = String(scheduleDate.getMonth() + 1).padStart(2, '0');
@@ -208,7 +197,6 @@ export function ScheduleTable({
         grouped[dateKey].push(schedule);
       }
     });
-    // Sort schedules by start time
     Object.keys(grouped).forEach(key => {
       grouped[key].sort((a, b) => {
         const timeA = a.startTime || '00:00';
@@ -220,7 +208,6 @@ export function ScheduleTable({
   }, [schedules]);
 
   const formatDate = (date: Date) => {
-    // Format date as local YYYY-MM-DD
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
@@ -246,11 +233,11 @@ export function ScheduleTable({
 
   return (
     <div className="w-full">
-      {/* Header - Fixed date row */}
       <div className="grid grid-cols-7 gap-1 mb-3">
         {DAYS_OF_WEEK.map((day, index) => {
           const date = weekDays[index];
           const isTodayDate = isToday(date);
+          const isPast = isPastDate(date);
           const dateKey = formatDate(date);
           const daySchedules = schedulesByDate[dateKey] || [];
           const hasSchedules = daySchedules.length > 0;
@@ -262,10 +249,12 @@ export function ScheduleTable({
                 'text-center py-3 px-2 rounded-lg transition-all relative group/header',
                 isTodayDate
                   ? 'bg-[#78A243] text-white'
+                  : isPast
+                  ? 'bg-gray-200 text-gray-400 opacity-60 cursor-not-allowed'
                   : 'bg-gray-100 text-gray-700',
-                hasSchedules && 'cursor-pointer hover:ring-2 hover:ring-[#78A243]/50'
+                hasSchedules && !isPast && 'cursor-pointer hover:ring-2 hover:ring-[#78A243]/50'
               )}
-              onClick={() => hasSchedules && setSelectedDayModal({ date, schedules: daySchedules })}
+              onClick={() => hasSchedules && !isPast && setSelectedDayModal({ date, schedules: daySchedules })}
             >
               <div className="text-xs font-bold uppercase tracking-wide">{day.fullLabel}</div>
               <div className={cn(
@@ -275,7 +264,6 @@ export function ScheduleTable({
                 {date.getDate()}/{date.getMonth() + 1}
               </div>
 
-              {/* Badge số lượng và hover xem tất cả */}
               {hasSchedules && (
                 <>
                   <div className={cn(
@@ -300,7 +288,6 @@ export function ScheduleTable({
         })}
       </div>
 
-      {/* Schedule columns */}
       <div className="grid grid-cols-7 gap-1">
         {DAYS_OF_WEEK.map((day, index) => {
           const date = weekDays[index];
@@ -317,12 +304,22 @@ export function ScheduleTable({
                 'relative group rounded-lg border flex flex-col',
                 isTodayDate
                   ? 'bg-[#78A243]/5 border-[#78A243]/30'
+                  : isPast
+                  ? 'bg-gray-100/50 border-gray-300 opacity-60 cursor-not-allowed'
                   : 'bg-gray-50/50 border-gray-200',
                 !isPast && 'hover:border-[#78A243]/50 hover:bg-white transition-all'
               )}
               style={{ height: '420px' }}
+              onClick={(e) => {
+                if (isPast) {
+                  e.stopPropagation();
+                  return;
+                }
+                if (daySchedules.length > 0) {
+                  setSelectedDayModal({ date, schedules: daySchedules });
+                }
+              }}
             >
-              {/* Scroll up indicator - Big centered arrow */}
               {scrollState.canScrollUp && daySchedules.length > 0 && (
                 <div
                   className="absolute top-1 left-1/2 -translate-x-1/2 z-20 cursor-pointer"
@@ -337,16 +334,20 @@ export function ScheduleTable({
                 </div>
               )}
 
-              {/* Schedule blocks with scroll - hidden scrollbar */}
               <div
                 ref={(el) => {
                   scrollRefs.current[dateKey] = el;
                   if (el) {
-                    // Initial check
-                    setTimeout(() => updateScrollState(dateKey, el), 0);
+                    requestAnimationFrame(() => {
+                      updateScrollState(dateKey, el);
+                    });
                   }
                 }}
-                onScroll={(e) => updateScrollState(dateKey, e.currentTarget)}
+                onScroll={(e) => {
+                  requestAnimationFrame(() => {
+                    updateScrollState(dateKey, e.currentTarget);
+                  });
+                }}
                 className={cn(
                   "p-2 space-y-2 flex-1 overflow-y-auto hide-scrollbar",
                   daySchedules.length === 0 && "flex items-center justify-center"
@@ -363,37 +364,46 @@ export function ScheduleTable({
                   return (
                     <div
                       key={schedule.id}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onEdit?.(schedule);
-                      }}
                       className={cn(
-                        'rounded-lg border-l-4 cursor-pointer transition-all hover:translate-x-0.5 overflow-hidden bg-white',
+                        'rounded-lg border-l-4 transition-all duration-300 ease-in-out hover:translate-x-0.5 overflow-hidden bg-white relative group schedule-item-enter',
                         isPast && 'opacity-60'
                       )}
                       style={{
                         borderLeftColor: styles.border,
                       }}
                     >
-                      {/* Content */}
                       <div
-                        className="p-2 border border-l-0 rounded-r-lg"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEdit?.(schedule);
+                        }}
+                        className="p-2 border border-l-0 rounded-r-lg cursor-pointer transition-all duration-200 hover:shadow-md"
                         style={{
                           background: styles.background,
                           borderColor: styles.border
                         }}
                       >
-                        {/* User name */}
-                        <div className={cn('font-bold text-xs truncate', isMultiShift ? 'text-gray-900' : styles.textClass)}>
+                        {onDelete && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDelete(schedule);
+                            }}
+                            className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                            title="Xóa lịch trình"
+                          >
+                            <X className="w-3 h-3 text-white" />
+                          </button>
+                        )}
+
+                        <div className={cn('font-bold text-xs truncate pr-6', isMultiShift ? 'text-gray-900' : styles.textClass)}>
                           {schedule.userName || 'Nhân viên'}
                         </div>
 
-                        {/* Time */}
                         <div className="text-[10px] text-gray-500 mt-0.5 font-medium">
                           {formatTime(schedule.startTime)} - {formatTime(schedule.endTime)}
                         </div>
 
-                        {/* Shift tags - compact */}
                         <div className="flex gap-0.5 mt-1 flex-wrap">
                           {shifts.map((shift, idx) => (
                             <span
@@ -414,7 +424,6 @@ export function ScheduleTable({
                   );
                 })}
 
-                {/* Empty state with add button */}
                 {daySchedules.length === 0 && !isPast && (
                   <div
                     className="flex flex-col items-center justify-center text-gray-400 cursor-pointer"
@@ -427,7 +436,6 @@ export function ScheduleTable({
                   </div>
                 )}
 
-                {/* Empty state for past dates */}
                 {daySchedules.length === 0 && isPast && (
                   <div className="flex flex-col items-center justify-center text-gray-300">
                     <span className="text-xs">Trống</span>
@@ -435,7 +443,6 @@ export function ScheduleTable({
                 )}
               </div>
 
-              {/* Scroll down indicator - Big centered arrow */}
               {scrollState.canScrollDown && daySchedules.length > 0 && (
                 <div
                   className="absolute bottom-14 left-1/2 -translate-x-1/2 z-20 cursor-pointer"
@@ -450,7 +457,6 @@ export function ScheduleTable({
                 </div>
               )}
 
-              {/* Floating add button - show when has schedules */}
               {!isPast && daySchedules.length > 0 && (
                 <div className="p-2 border-t border-dashed border-gray-200 group-hover:border-[#78A243]/30 transition-colors">
                   <button
@@ -470,7 +476,6 @@ export function ScheduleTable({
         })}
       </div>
 
-      {/* Legend */}
       <div className="flex items-center justify-center gap-6 mt-4 pt-4 border-t border-gray-100">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-amber-600"></div>
@@ -486,7 +491,6 @@ export function ScheduleTable({
         </div>
       </div>
 
-      {/* Day Detail Modal - ProductForm Style */}
       <Dialog open={!!selectedDayModal} onOpenChange={(open) => {
         if (!open) {
           setSelectedDayModal(null);
@@ -495,7 +499,6 @@ export function ScheduleTable({
         }
       }}>
         <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-hidden flex flex-col p-0 gap-0 bg-white border-0 shadow-xl rounded-2xl [&>button]:hidden">
-          {/* Header */}
           <div className="bg-[#78A243] p-5 flex items-center justify-between shrink-0 rounded-t-2xl">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
@@ -527,7 +530,6 @@ export function ScheduleTable({
             </div>
           </div>
 
-          {/* Filter section */}
           <div className="px-5 py-4 border-b bg-gray-50 flex gap-3 items-center">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -580,7 +582,6 @@ export function ScheduleTable({
             )}
           </div>
 
-          {/* Schedule list */}
           <div className="flex-1 overflow-y-auto p-5 bg-white">
             {filteredModalSchedules.length === 0 ? (
               <div className="text-center py-16 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50">
@@ -597,35 +598,33 @@ export function ScheduleTable({
                   return (
                     <div
                       key={schedule.id}
-                      onClick={() => {
-                        setSelectedDayModal(null);
-                        setModalSearchName('');
-                        setModalFilterShift('all');
-                        onEdit?.(schedule);
-                      }}
-                      className="bg-white rounded-lg border border-gray-200 overflow-hidden cursor-pointer hover:border-[#78A243] hover:bg-gray-50"
+                      className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:border-[#78A243] hover:bg-gray-50 relative group transition-all duration-300 ease-in-out schedule-item-enter"
                     >
                       <div className="flex">
-                        {/* Left color bar */}
                         <div
                           className="w-1.5 shrink-0"
                           style={{ background: styles.border }}
                         />
 
-                        {/* Content */}
-                        <div className="flex-1 p-3 flex items-center gap-3">
-                          {/* Avatar */}
+                        <div
+                          onClick={() => {
+                            setSelectedDayModal(null);
+                            setModalSearchName('');
+                            setModalFilterShift('all');
+                            onEdit?.(schedule);
+                          }}
+                          className="flex-1 p-3 flex items-center gap-3 cursor-pointer"
+                        >
                           <div
-                            className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
-                            style={{ background: styles.background }}
-                          >
-                            <span className={cn('text-base font-bold', styles.textClass)}>
-                              {(schedule.userName || 'N')[0].toUpperCase()}
-                            </span>
-                          </div>
+                          className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
+                          style={{ background: styles.background }}
+                        >
+                          <span className={cn('text-base font-bold', styles.textClass)}>
+                            {(schedule.userName || 'N')[0].toUpperCase()}
+                          </span>
+                        </div>
 
-                          {/* Info */}
-                          <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0">
                             <div className="font-semibold text-gray-900 truncate text-sm">
                               {schedule.userName || 'Nhân viên'}
                             </div>
@@ -636,7 +635,6 @@ export function ScheduleTable({
                             )}
                           </div>
 
-                          {/* Time and shifts */}
                           <div className="text-right shrink-0">
                             <div className="text-sm text-gray-700 font-medium">
                               {formatTime(schedule.startTime)} - {formatTime(schedule.endTime)}
@@ -658,6 +656,22 @@ export function ScheduleTable({
                             </div>
                           </div>
                         </div>
+
+                        {onDelete && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedDayModal(null);
+                              setModalSearchName('');
+                              setModalFilterShift('all');
+                              onDelete(schedule);
+                            }}
+                            className="absolute top-2 right-2 w-6 h-6 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                            title="Xóa lịch trình"
+                          >
+                            <X className="w-3.5 h-3.5 text-white" />
+                          </button>
+                        )}
                       </div>
                     </div>
                   );
@@ -666,7 +680,6 @@ export function ScheduleTable({
             )}
           </div>
 
-          {/* Footer */}
           <div className="p-4 border-t border-gray-200 bg-gray-50 shrink-0 rounded-b-2xl flex gap-3 justify-between items-center">
             <div className="text-sm text-gray-500">
               {(modalSearchName || modalFilterShift !== 'all') ? (
@@ -697,3 +710,4 @@ export function ScheduleTable({
     </div>
   );
 }
+

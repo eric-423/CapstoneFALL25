@@ -35,7 +35,7 @@ interface AdminContextType {
     toggleSearch: () => void;
 }
 
-const AdminContext = createContext<AdminContextType | undefined>(undefined);
+export const AdminContext = createContext<AdminContextType | undefined>(undefined);
 
 export function AdminProvider({ children }: { children: React.ReactNode }) {
     const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
