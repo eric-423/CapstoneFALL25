@@ -196,6 +196,18 @@ export default function StaffLayout({
 
 
       if (status === 'IN_PROCESS') {
+        // Nếu đơn đã có chef rồi, không cần assign lại
+        if (order.chefName) {
+          return {
+            success: true,
+            context: {
+              ...contextBase,
+              action: "assign-chef" as const,
+              message: `Đơn #${orderId} đã được giao cho đầu bếp ${order.chefName}`,
+            },
+          };
+        }
+
         const assignChef = await assignChefToOrder(orderId);
         if (!assignChef.success) {
           return {
@@ -274,10 +286,17 @@ export default function StaffLayout({
   const handleBarcodeSuccess = useCallback(
     (orderId: number, context?: BarcodeProcessContext) => {
       if (context?.action === "assign-chef") {
-        toast.success(`Đã chuyển đơn #${orderId} cho bếp`, {
-          position: "top-right",
-          autoClose: 3000,
-        });
+        if (context?.message) {
+          toast.info(context.message, {
+            position: "top-right",
+            autoClose: 3000,
+          });
+        } else {
+          toast.success(`Đã chuyển đơn #${orderId} cho bếp`, {
+            position: "top-right",
+            autoClose: 3000,
+          });
+        }
       } else if (context?.action === "assign-shipper") {
         toast.success(`Đã bàn giao đơn #${orderId} cho shipper`, {
           position: "top-right",
