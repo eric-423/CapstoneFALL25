@@ -20,7 +20,7 @@ import { ChangePasswordSchema } from "@/utils/validate.schema";
 import CustomerInforInput from "@/components/input/customerInfo.input";
 import ShareButton from "@/components/button/share.button";
 import HeaderHome from "@/components/home/header.home";
-import { AntDesign } from "@expo/vector-icons";
+import { AntDesign, FontAwesome5 } from "@expo/vector-icons";
 import DropDown from "@/components/order/item.dropdown";
 import { router, useFocusEffect } from "expo-router";
 import {
@@ -62,6 +62,8 @@ const PlaceOrderPage = () => {
   const [selectedPromotion, setSelectedPromotion] = useState<any>(null);
   const [isLoadingPromotions, setIsLoadingPromotions] = useState(false);
   const [customerInformation, setCustomerInformation] = useState<any>(null);
+  const [allAddresses, setAllAddresses] = useState<any[]>([]);
+  const [showAddressModal, setShowAddressModal] = useState(false);
   const [canShip, setCanShip] = useState(false);
   const [orderMode, setOrderMode] = useState<"SHIPPING" | "PICKUP">("SHIPPING");
   const [distance, setDistance] = useState<number | null>(null);
@@ -149,10 +151,11 @@ const PlaceOrderPage = () => {
           return;
         }
         const res = await GetCustomerInformation(appState.userInfo.id);
-        const filteredData = Array.isArray(res.data.data)
-          ? res.data.data.filter((item: any) => item.isDefault === true)
-          : res.data.data;
-        setCustomerInformation(filteredData[0] || null);
+        const data = Array.isArray(res.data.data) ? res.data.data : [];
+        setAllAddresses(data);
+        const defaultAddress =
+          data.find((item: any) => item.isDefault === true) || data[0];
+        setCustomerInformation(defaultAddress || null);
       };
       fetchCustomerInformation();
     }, [appState?.userInfo?.id])
@@ -225,14 +228,6 @@ const PlaceOrderPage = () => {
           >
             {orderMode === "SHIPPING" ? "Giao hàng" : "Tự lấy"}
           </Text>
-          {orderMode === "SHIPPING" && (
-            <Pressable
-              style={{ marginRight: 10 }}
-              onPress={() => router.navigate("/(user)/order/address.create")}
-            >
-              <AntDesign name="edit" size={25} color={APP_COLOR.BROWN} />
-            </Pressable>
-          )}
         </View>
 
         <View
@@ -243,7 +238,10 @@ const PlaceOrderPage = () => {
           }}
         >
           {orderMode === "SHIPPING" && (
-            <View style={{ marginVertical: 10 }}>
+            <Pressable
+              onPress={() => setShowAddressModal(true)}
+              style={{ marginVertical: 10 }}
+            >
               <View
                 style={{ flexDirection: "row", gap: 5, alignItems: "center" }}
               >
@@ -276,7 +274,7 @@ const PlaceOrderPage = () => {
               >
                 {customerInformation?.address}
               </Text>
-            </View>
+            </Pressable>
           )}
           <View style={{ marginVertical: 10, flexDirection: "row", gap: 20 }}>
             <Pressable
@@ -350,7 +348,7 @@ const PlaceOrderPage = () => {
                   color: APP_COLOR.BROWN,
                 }}
               >
-                Tự lấy
+                Nhận tại cửa hàng
               </Text>
             </Pressable>
           </View>
@@ -1173,6 +1171,235 @@ const PlaceOrderPage = () => {
                           }}
                         />
                       )}
+                    </View>
+                  </View>
+                </Modal>
+                <Modal
+                  visible={showAddressModal}
+                  animationType="slide"
+                  transparent={true}
+                  onRequestClose={() => setShowAddressModal(false)}
+                >
+                  <View
+                    style={{
+                      flex: 1,
+                      backgroundColor: "rgba(0, 0, 0, 0.5)",
+                      justifyContent: "flex-end",
+                    }}
+                  >
+                    <View
+                      style={{
+                        backgroundColor: APP_COLOR.WHITE,
+                        borderTopLeftRadius: 20,
+                        borderTopRightRadius: 20,
+                        maxHeight: "80%",
+                        flex: 1,
+                        paddingBottom: 50,
+                      }}
+                    >
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          padding: 20,
+                          borderBottomWidth: 1,
+                          borderBottomColor: APP_COLOR.BACKGROUND_ORANGE,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontFamily: FONTS.semiBold,
+                            fontSize: 20,
+                            color: APP_COLOR.BROWN,
+                          }}
+                        >
+                          Chọn địa chỉ giao hàng
+                        </Text>
+                        <Pressable onPress={() => setShowAddressModal(false)}>
+                          <AntDesign
+                            name="close"
+                            size={24}
+                            color={APP_COLOR.BROWN}
+                          />
+                        </Pressable>
+                      </View>
+                      <ScrollView
+                        style={{ flex: 1 }}
+                        contentContainerStyle={{ paddingBottom: 20 }}
+                        showsVerticalScrollIndicator={true}
+                        nestedScrollEnabled={true}
+                      >
+                        {allAddresses.length === 0 ? (
+                          <View
+                            style={{
+                              padding: 20,
+                              alignItems: "center",
+                            }}
+                          >
+                            <Text
+                              style={{
+                                fontFamily: FONTS.regular,
+                                fontSize: 16,
+                                color: APP_COLOR.BROWN,
+                                textAlign: "center",
+                              }}
+                            >
+                              Chưa có địa chỉ nào. Vui lòng thêm địa chỉ mới.
+                            </Text>
+                            <Pressable
+                              onPress={() => {
+                                setShowAddressModal(false);
+                                router.navigate("/(user)/order/address.create");
+                              }}
+                              style={{
+                                marginTop: 15,
+                                paddingVertical: 10,
+                                paddingHorizontal: 20,
+                                backgroundColor: APP_COLOR.ORANGE,
+                                borderRadius: 8,
+                              }}
+                            >
+                              <Text
+                                style={{
+                                  fontFamily: FONTS.semiBold,
+                                  fontSize: 16,
+                                  color: APP_COLOR.WHITE,
+                                }}
+                              >
+                                Thêm địa chỉ mới
+                              </Text>
+                            </Pressable>
+                          </View>
+                        ) : (
+                          allAddresses.map((address: any, index: number) => (
+                            <Pressable
+                              key={address.informationId || `address-${index}`}
+                              onPress={() => {
+                                setCustomerInformation(address);
+                                setShowAddressModal(false);
+                              }}
+                              style={{
+                                padding: 15,
+                                borderBottomWidth: 1,
+                                borderBottomColor: APP_COLOR.BACKGROUND_ORANGE,
+                                backgroundColor:
+                                  customerInformation?.informationId ===
+                                  address.informationId
+                                    ? APP_COLOR.BACKGROUND_ORANGE
+                                    : "transparent",
+                              }}
+                            >
+                              <View
+                                style={{
+                                  flexDirection: "row",
+                                  justifyContent: "space-between",
+                                  alignItems: "flex-start",
+                                }}
+                              >
+                                <View style={{ flex: 1 }}>
+                                  <View
+                                    style={{
+                                      flexDirection: "row",
+                                      gap: 5,
+                                      alignItems: "center",
+                                      marginBottom: 5,
+                                    }}
+                                  >
+                                    <Text
+                                      style={{
+                                        fontFamily: FONTS.semiBold,
+                                        fontSize: 16,
+                                        color: APP_COLOR.BROWN,
+                                      }}
+                                    >
+                                      {address.fullName}
+                                    </Text>
+                                    {address.isDefault && (
+                                      <View
+                                        style={{
+                                          backgroundColor: APP_COLOR.ORANGE,
+                                          paddingHorizontal: 8,
+                                          paddingVertical: 2,
+                                          borderRadius: 4,
+                                        }}
+                                      >
+                                        <Text
+                                          style={{
+                                            fontFamily: FONTS.regular,
+                                            fontSize: 12,
+                                            color: APP_COLOR.WHITE,
+                                          }}
+                                        >
+                                          Mặc định
+                                        </Text>
+                                      </View>
+                                    )}
+                                  </View>
+                                  <Text
+                                    style={{
+                                      fontFamily: FONTS.regular,
+                                      fontSize: 14,
+                                      color: APP_COLOR.BROWN,
+                                      marginBottom: 3,
+                                    }}
+                                  >
+                                    {address.phone}
+                                  </Text>
+                                  <Text
+                                    style={{
+                                      fontFamily: FONTS.regular,
+                                      fontSize: 14,
+                                      color: APP_COLOR.BROWN,
+                                    }}
+                                  >
+                                    {address.address}
+                                  </Text>
+                                </View>
+                                {customerInformation?.informationId ===
+                                  address.informationId && (
+                                  <FontAwesome5
+                                    name="check-circle"
+                                    size={24}
+                                    color={APP_COLOR.ORANGE}
+                                  />
+                                )}
+                              </View>
+                            </Pressable>
+                          ))
+                        )}
+                      </ScrollView>
+                      <View
+                        style={{
+                          paddingHorizontal: 20,
+                          paddingVertical: 15,
+                          borderTopWidth: 1,
+                          borderTopColor: APP_COLOR.BACKGROUND_ORANGE,
+                        }}
+                      >
+                        <Pressable
+                          onPress={() => {
+                            setShowAddressModal(false);
+                            router.navigate("/(user)/order/address.create");
+                          }}
+                          style={{
+                            paddingVertical: 12,
+                            backgroundColor: APP_COLOR.ORANGE,
+                            borderRadius: 8,
+                            alignItems: "center",
+                          }}
+                        >
+                          <Text
+                            style={{
+                              fontFamily: FONTS.semiBold,
+                              fontSize: 16,
+                              color: APP_COLOR.WHITE,
+                            }}
+                          >
+                            + Thêm địa chỉ mới
+                          </Text>
+                        </Pressable>
+                      </View>
                     </View>
                   </View>
                 </Modal>
