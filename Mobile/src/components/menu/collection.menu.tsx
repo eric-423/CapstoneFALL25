@@ -24,6 +24,7 @@ import {
   SortProductByPrice,
 } from "@/utils/api";
 import { router } from "expo-router";
+import { map } from "lodash";
 const { width: sWidth } = Dimensions.get("window");
 const comboPlaceholder = require("@/assets/splash.png");
 
@@ -968,10 +969,10 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   itemImageOutOfStock: {
-    opacity: 0.5,
+    opacity: 0.4,
   },
   itemContainerOutOfStock: {
-    opacity: 0.8,
+    opacity: 0.6,
   },
   outOfStockOverlay: {
     position: "absolute",
@@ -979,38 +980,41 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.3)",
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
     zIndex: 1,
   },
   outOfStockBanner: {
     position: "absolute",
-    top: 30,
-    left: 120,
+    top: 20,
+    left: 0,
+    right: 0,
     backgroundColor: "#DC2626",
-    paddingVertical: 6,
-    paddingHorizontal: 30,
-    transform: [{ rotate: "-15deg" }],
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    alignItems: "center",
+    justifyContent: "center",
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 5,
+      height: 4,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+    elevation: 8,
     zIndex: 1000,
   },
   outOfStockText: {
     color: APP_COLOR.WHITE,
     fontFamily: FONTS.bold,
-    fontSize: 14,
-    letterSpacing: 1,
+    fontSize: 16,
+    letterSpacing: 2,
+    textTransform: "uppercase",
   },
   itemNameOutOfStock: {
-    opacity: 0.6,
+    opacity: 0.5,
   },
   itemPriceOutOfStock: {
-    opacity: 0.6,
+    opacity: 0.5,
   },
   quantityContainerDisabled: {
     opacity: 0.5,
