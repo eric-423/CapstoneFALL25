@@ -118,13 +118,13 @@ public class UserManagementServiceImpl implements UserManagementService {
     public UserManagementDTO createUser(UserCreateRequest request) {
         if (request.getEmail() != null && !request.getEmail().isEmpty()) {
             usersRepository.findByEmail(request.getEmail()).ifPresent(u -> {
-                throw new IllegalArgumentException("Email already exists: " + request.getEmail());
+                throw new IllegalArgumentException("Email đã tồn tại: " + request.getEmail());
             });
         }
 
         if (request.getPhoneNumber() != null && !request.getPhoneNumber().isEmpty()) {
             usersRepository.findByPhoneNumber(request.getPhoneNumber()).ifPresent(u -> {
-                throw new IllegalArgumentException("Phone number already exists: " + request.getPhoneNumber());
+                throw new IllegalArgumentException("Số điện thoại đã tồn tại: " + request.getPhoneNumber());
             });
         }
 
@@ -168,7 +168,7 @@ public class UserManagementServiceImpl implements UserManagementService {
                 && !request.getEmail().equals(user.getEmail())) {
             usersRepository.findByEmail(request.getEmail()).ifPresent(u -> {
                 if (u.getId() != userId) {
-                    throw new IllegalArgumentException("Email already exists: " + request.getEmail());
+                    throw new IllegalArgumentException("Email đã tồn tại trong hệ thống: " + request.getEmail());
                 }
             });
         }
@@ -177,7 +177,7 @@ public class UserManagementServiceImpl implements UserManagementService {
                 && !request.getPhoneNumber().equals(user.getPhoneNumber())) {
             usersRepository.findByPhoneNumber(request.getPhoneNumber()).ifPresent(u -> {
                 if (u.getId() != userId) {
-                    throw new IllegalArgumentException("Phone number already exists: " + request.getPhoneNumber());
+                    throw new IllegalArgumentException("Số điện thoại đã tồn tại trong hệ thống: " + request.getPhoneNumber());
                 }
             });
         }
