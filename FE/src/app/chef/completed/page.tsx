@@ -237,7 +237,6 @@ export default function CompletedPage() {
                     ) : (
                         <div className='grid gap-4'>
                             {sortByDate(orders).map((order) => {
-                                const firstItem = order.orderItems[0];
                                 const totalAmount = getTotalAmount(order);
                                 const totalItems = order.orderItems.reduce((sum, item) => sum + item.quantity, 0);
                                 const cookedItem = order.orderItems.find(item => item.cookedAt);
@@ -260,55 +259,120 @@ export default function CompletedPage() {
                                                         </span>
                                                     </div>
 
-                                                    {firstItem && (
+                                                    {/* {firstItem && (
                                                         <div className='mb-3'>
                                                             <span className='font-medium text-sm text-gray-600'>Xác nhận lúc:</span>
                                                             <span className='ml-2 text-sm text-gray-700'>
                                                                 {formatDate(firstItem.confirmAt)}
                                                             </span>
                                                         </div>
-                                                    )}
+                                                    )} */}
 
                                                     <div className='mb-4 space-y-2'>
                                                         <p className='text-sm font-medium text-gray-700'>Danh sách món:</p>
                                                         <div className='space-y-2'>
-                                                            {order.orderItems.map((item, index) => (
-                                                                <div key={index} className='flex items-start gap-3 p-3 bg-white rounded-lg'>
-                                                                    {item.productImg && (
-                                                                        <Image
-                                                                            src={item.productImg}
-                                                                            alt={item.productName || 'Hình món ăn'}
-                                                                            width={64}
-                                                                            height={64}
-                                                                            loading='lazy'
-                                                                            className='object-cover rounded w-16 h-16'
-                                                                        />
-                                                                    )}
-                                                                    <div className='flex-1'>
-                                                                        <div className='flex items-center justify-between'>
-                                                                            <p className='font-medium text-gray-800'>{item.productName}</p>
-                                                                            <p className='text-sm text-gray-600'>
-                                                                                {item.price.toLocaleString('vi-VN')} đ × {item.quantity}
-                                                                            </p>
-                                                                        </div>
-                                                                        {item.note && (
-                                                                            <p className='text-xs text-gray-500 mt-1'>
-                                                                                Ghi chú: {item.note}
-                                                                            </p>
-                                                                        )}
-                                                                        {item.comboDTO && (
-                                                                            <Badge className='mt-1 bg-blue-50 text-blue-700 border-blue-200 text-xs'>
-                                                                                Combo
-                                                                            </Badge>
-                                                                        )}
-                                                                        {item.cookedAt && (
-                                                                            <p className='text-xs text-green-600 mt-1'>
-                                                                                Đã nấu: {formatDate(item.cookedAt)}
-                                                                            </p>
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-                                                            ))}
+                                                            {(() => {
+                                                                // Tách items có combo và không có combo
+                                                                const comboItems = order.orderItems.filter(item => item.comboDTO);
+                                                                const regularItems = order.orderItems.filter(item => !item.comboDTO);
+                                                                const processedComboIds = new Set<number>();
+
+                                                                return (
+                                                                    <>
+                                                                        {comboItems.map((item) => {
+                                                                            if (!item.comboDTO) return null;
+
+                                                                            if (processedComboIds.has(item.comboDTO.id)) {
+                                                                                return null;
+                                                                            }
+                                                                            processedComboIds.add(item.comboDTO.id);
+
+                                                                            return (
+                                                                                <div key={`combo-${item.comboDTO.id}`}>
+                                                                                    <div className='flex items-start gap-3 p-3 bg-white rounded-lg'>
+                                                                                        {item.productImg && (
+                                                                                            <Image
+                                                                                                src={item.productImg}
+                                                                                                alt={item.productName || 'Hình món ăn'}
+                                                                                                width={64}
+                                                                                                height={64}
+                                                                                                loading='lazy'
+                                                                                                className='object-cover rounded w-16 h-16'
+                                                                                            />
+                                                                                        )}
+                                                                                        <div className='flex-1'>
+                                                                                            <div className='flex items-center justify-between'>
+                                                                                                <div className='flex items-center gap-2'>
+                                                                                                    <p className='font-medium text-gray-800'>{item.productName}</p>
+                                                                                                    <Badge className='bg-blue-50 text-blue-700 border-blue-200 text-xs'>
+                                                                                                        Combo
+                                                                                                    </Badge>
+                                                                                                </div>
+                                                                                                <p className='text-sm text-gray-600'>
+                                                                                                    {item.price.toLocaleString('vi-VN')} đ × {item.quantity}
+                                                                                                </p>
+                                                                                            </div>
+                                                                                            {item.note && (
+                                                                                                <p className='text-xs text-gray-500 mt-1'>
+                                                                                                    Ghi chú: {item.note}
+                                                                                                </p>
+                                                                                            )}
+                                                                                        </div>
+                                                                                    </div>
+
+                                                                                    {item.comboDTO.comboItems && item.comboDTO.comboItems.length > 0 && (
+                                                                                        <div className='ml-4 mt-2 space-y-2 border-l-2 border-blue-300 pl-4'>
+                                                                                            {item.comboDTO.comboItems.map((comboItem, idx) => (
+                                                                                                <div key={idx} className='flex items-start gap-3 p-3 bg-white rounded-lg'>
+                                                                                                    <div className='flex-1'>
+                                                                                                        <div className='flex items-center justify-between'>
+                                                                                                            <p className='font-medium text-gray-800'>
+                                                                                                                {comboItem.note || `Sản phẩm #${comboItem.productId}`}
+                                                                                                            </p>
+                                                                                                            <p className='text-sm text-gray-600'>
+                                                                                                                × {comboItem.quantity}
+                                                                                                            </p>
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            ))}
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+                                                                            );
+                                                                        })}
+
+
+                                                                        {regularItems.map((item, index) => (
+                                                                            <div key={index} className='flex items-start gap-3 p-3 bg-white rounded-lg'>
+                                                                                {item.productImg && (
+                                                                                    <Image
+                                                                                        src={item.productImg}
+                                                                                        alt={item.productName || 'Hình món ăn'}
+                                                                                        width={64}
+                                                                                        height={64}
+                                                                                        loading='lazy'
+                                                                                        className='object-cover rounded w-16 h-16'
+                                                                                    />
+                                                                                )}
+                                                                                <div className='flex-1'>
+                                                                                    <div className='flex items-center justify-between'>
+                                                                                        <p className='font-medium text-gray-800'>{item.productName}</p>
+                                                                                        <p className='text-sm text-gray-600'>
+                                                                                            {item.price.toLocaleString('vi-VN')} đ × {item.quantity}
+                                                                                        </p>
+                                                                                    </div>
+                                                                                    {item.note && (
+                                                                                        <p className='text-xs text-gray-500 mt-1'>
+                                                                                            Ghi chú: {item.note}
+                                                                                        </p>
+                                                                                    )}
+                                                                                </div>
+                                                                            </div>
+                                                                        ))}
+                                                                    </>
+                                                                );
+                                                            })()}
                                                         </div>
                                                     </div>
 

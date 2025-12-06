@@ -5,6 +5,7 @@ import useScrollTop from '@/utils/hooks/useScrollTop';
 import { removeCookie } from '@/utils/cookies.client';
 
 import { useEffect, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 import { PaymentResultContent } from '@/app/components/payment/payment-result-content';
 
@@ -12,9 +13,10 @@ export default function PaymentSuccessPage() {
     useScrollTop();
     const { clearCart } = useCart();
     const hasClearedCart = useRef(false);
+    const searchParams = useSearchParams();
+    const orderCode = searchParams.get('orderCode');
 
     useEffect(() => {
-        // Xóa giỏ hàng ngay khi vào trang thanh toán thành công
         if (!hasClearedCart.current) {
             clearCart();
             hasClearedCart.current = true;
@@ -25,5 +27,5 @@ export default function PaymentSuccessPage() {
         };
     }, [clearCart]);
 
-    return <PaymentResultContent isSuccess={true} />;
+    return <PaymentResultContent isSuccess={true} orderCode={orderCode} />;
 }

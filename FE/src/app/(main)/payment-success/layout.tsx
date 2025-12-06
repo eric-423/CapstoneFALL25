@@ -10,13 +10,13 @@ export const metadata: Metadata = {
         url: '/payment-success',
         type: 'website',
     },
-    robots: 'noindex, nofollow', // Payment result pages should not be indexed
+    robots: 'noindex, nofollow',
 };
 
 export default function PaymentSuccessLayout({
     children,
 }: {
-    children: React.ReactNode;
+    children: React.ReactNode;  
 }) {
     return children;
 }

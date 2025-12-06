@@ -52,6 +52,10 @@ import type {
     AdminPageHeaderProps,
 } from '@/app/admin/components/AdminPageLayout';
 import { AdminCard } from '@/app/admin/components/AdminCard';
+import { getCookie } from '@/utils/cookies.client';
+import { usePathname } from 'next/navigation';
+import { getBranches, type Branch } from '@/apis/branch.api';
+import { Building2 } from 'lucide-react';
 
 interface ScheduleManagementProps {
     AdminPageLayout: React.ComponentType<AdminPageLayoutProps>;
@@ -64,9 +68,14 @@ export function ScheduleManagement({
     AdminPageHeader,
     useBodyScrollLock,
 }: ScheduleManagementProps) {
+    const pathname = usePathname();
+    const isAdmin = pathname?.startsWith('/admin') || false;
+
     const [schedules, setSchedules] = useState<Schedule[]>([]);
     const [users, setUsers] = useState<Array<{ id: number; name: string }>>([]);
     const [currentWeek, setCurrentWeek] = useState(new Date());
+    const [branches, setBranches] = useState<Branch[]>([]);
+    const [selectedBranchId, setSelectedBranchId] = useState<number | null>(null);
 
     // Dialog states
     const [showFormDialog, setShowFormDialog] = useState(false);
@@ -86,7 +95,10 @@ export function ScheduleManagement({
 
     const fetchSchedules = useCallback(async () => {
         try {
-            const response = await getSchedules();
+            // Nếu là admin và có chọn chi nhánh, truyền branchId
+            // Nếu không phải admin, không truyền branchId (API sẽ tự lấy từ token)
+            const branchId = isAdmin && selectedBranchId ? selectedBranchId : undefined;
+            const response = await getSchedules(branchId);
 
             const data = (response as unknown as { data: Schedule[] }).data;
             setSchedules(data);
@@ -95,7 +107,7 @@ export function ScheduleManagement({
             toast.error('Không thể tải danh sách lịch trình');
             setSchedules([]);
         }
-    }, []);
+    }, [isAdmin, selectedBranchId]);
 
     const fetchUsers = useCallback(async () => {
         try {
@@ -105,22 +117,48 @@ export function ScheduleManagement({
                 sortBy: 'fullName',
                 sortDirection: 'ASC',
             };
+
+            if (isAdmin && selectedBranchId) {
+                searchRequest.branchId = selectedBranchId;
+            } else if (!isAdmin) {
+                const branchId = getCookie('branchId');
+                if (branchId) {
+                    searchRequest.branchId = parseInt(branchId);
+                }
+            }
+
             const response = await getAllUsers(searchRequest);
             const userList = response.data.content.map((user: User) => ({
                 id: user.id,
                 name: user.fullName,
             }));
             setUsers(userList);
+
         } catch (error) {
             console.error('Failed to fetch users:', error);
             toast.error('Không thể tải danh sách nhân viên');
         }
-    }, []);
+
+    }, [isAdmin, selectedBranchId]);
+
+    const fetchBranches = useCallback(async () => {
+        if (!isAdmin) return;
+        try {
+            const branchesData = await getBranches();
+            setBranches(branchesData);
+        } catch (error) {
+            console.error('Failed to fetch branches:', error);
+            toast.error('Không thể tải danh sách chi nhánh');
+        }
+    }, [isAdmin]);
 
     useEffect(() => {
         fetchSchedules();
         fetchUsers();
-    }, [fetchSchedules, fetchUsers]);
+        if (isAdmin) {
+            fetchBranches();
+        }
+    }, [fetchSchedules, fetchUsers, fetchBranches, isAdmin]);
 
     const isCurrentWeek = () => {
         const today = new Date();
@@ -155,26 +193,32 @@ export function ScheduleManagement({
 
     const handleSubmit = async (data: CreateScheduleData | UpdateScheduleData) => {
         try {
+            // Nếu là admin và có chọn chi nhánh, thêm branchId vào payload
+            const payload: CreateScheduleData | UpdateScheduleData | (CreateScheduleData & { branchId?: number }) | (UpdateScheduleData & { branchId?: number }) = { ...data };
+            if (isAdmin && selectedBranchId) {
+                (payload as CreateScheduleData & { branchId?: number }).branchId = selectedBranchId;
+            }
+
             if (editingSchedule) {
-                setSchedules(prev => prev.map(s => 
-                    s.id === editingSchedule.id 
-                        ? { ...s, ...data as UpdateScheduleData, name: (data as UpdateScheduleData).name || s.name }
+                setSchedules(prev => prev.map(s =>
+                    s.id === editingSchedule.id
+                        ? { ...s, ...payload as UpdateScheduleData, name: (payload as UpdateScheduleData).name || s.name }
                         : s
                 ));
-                await updateSchedule(editingSchedule.id, data as UpdateScheduleData);
+                await updateSchedule(editingSchedule.id, payload as UpdateScheduleData);
             } else {
                 const tempSchedule: Schedule = {
                     id: Date.now(),
-                    userId: (data as CreateScheduleData).userId,
-                    userName: users.find(u => u.id === (data as CreateScheduleData).userId)?.name || '',
-                    name: (data as CreateScheduleData).name,
-                    description: (data as CreateScheduleData).description || null,
-                    date: (data as CreateScheduleData).date,
-                    startTime: (data as CreateScheduleData).startTime || null,
-                    endTime: (data as CreateScheduleData).endTime || null,
+                    userId: (payload as CreateScheduleData).userId,
+                    userName: users.find(u => u.id === (payload as CreateScheduleData).userId)?.name || '',
+                    name: (payload as CreateScheduleData).name,
+                    description: (payload as CreateScheduleData).description || null,
+                    date: (payload as CreateScheduleData).date,
+                    startTime: (payload as CreateScheduleData).startTime || null,
+                    endTime: (payload as CreateScheduleData).endTime || null,
                 };
                 setSchedules(prev => [...prev, tempSchedule]);
-                await createSchedule(data as CreateScheduleData);
+                await createSchedule(payload as CreateScheduleData);
             }
             await fetchSchedules();
             setEditingSchedule(null);
@@ -183,7 +227,7 @@ export function ScheduleManagement({
         } catch (error) {
             await fetchSchedules();
             console.error('Failed to save schedule:', error);
-            throw error;
+            toast.error('Không thể lưu lịch trình');
         }
     };
 
@@ -204,7 +248,7 @@ export function ScheduleManagement({
             setSchedules(prev => prev.filter(s => s.id !== scheduleId));
             setDeleteDialogOpen(false);
             setScheduleToDelete(null);
-            
+
             await deleteSchedule(scheduleId);
             toast.success('Xóa lịch trình thành công!');
             await fetchSchedules();
@@ -425,6 +469,32 @@ export function ScheduleManagement({
                             </Button>
                         )}
                     </div>
+
+                    {isAdmin && branches.length > 0 && (
+                        <Select
+                            value={selectedBranchId ? selectedBranchId.toString() : 'all'}
+                            onValueChange={(value) => {
+                                if (value === 'all') {
+                                    setSelectedBranchId(null);
+                                } else {
+                                    setSelectedBranchId(parseInt(value));
+                                }
+                            }}
+                        >
+                            <SelectTrigger className="w-[180px] h-10 border-gray-200 focus:border-[#78A243] focus:ring-[#78A243]/20">
+                                <Building2 className="w-4 h-4 mr-2 text-gray-400" />
+                                <SelectValue placeholder="Chọn chi nhánh" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Tất cả chi nhánh</SelectItem>
+                                {branches.map((branch) => (
+                                    <SelectItem key={branch.id} value={branch.id.toString()}>
+                                        {branch.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    )}
 
                     <Select value={filterShift} onValueChange={setFilterShift}>
                         <SelectTrigger className="w-[140px] h-10 border-gray-200 focus:border-[#78A243] focus:ring-[#78A243]/20">

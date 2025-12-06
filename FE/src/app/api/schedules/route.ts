@@ -3,8 +3,11 @@ import { cookies } from 'next/headers';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://tam-tac.com';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
     try {
+        const { searchParams } = new URL(request.url);
+        const branchId = searchParams.get('branchId');
+
         const cookieStore = await cookies();
         const token = cookieStore.get('token')?.value;
 
@@ -16,7 +19,9 @@ export async function GET() {
         }
 
         const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
-        const url = `${baseUrl}/schedules`;
+        const url = branchId && parseInt(branchId, 10) > 0
+            ? `${baseUrl}/schedules?branchId=${branchId}`
+            : `${baseUrl}/schedules`;
 
         const response = await fetch(
             url,

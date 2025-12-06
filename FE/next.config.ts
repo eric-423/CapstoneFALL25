@@ -7,8 +7,15 @@ const nextConfig: NextConfig = {
   // Image optimization
   images: {
     formats: ['image/avif', 'image/webp'],
-    domains: ['localhost'],
+    domains: ['localhost'], // Giữ lại cái này cho local
     remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'scvanwhslmgejfwcmlzx.supabase.co', // <--- THÊM DÒNG NÀY (Quan trọng nhất)
+        port: '',
+        pathname: '/**',
+      },
+      // Nếu bạn vẫn muốn giữ wildcard cho các trang khác (không khuyến khích vì bảo mật, nhưng có thể giữ)
       {
         protocol: 'https',
         hostname: '**',
