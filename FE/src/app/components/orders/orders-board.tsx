@@ -48,7 +48,7 @@ import {
     getBranchOrders,
     getCustomerOrderDetail,
     getOrderStatuses,
-    staffAssignShipperToOrder,
+
 } from '@/apis/order.api';
 import { toast } from 'react-toastify';
 import { getKioskMode } from '@/utils/getKioskMode';
@@ -387,7 +387,7 @@ export function OrdersBoard({ variant }: OrdersBoardProps) {
             return;
         }
 
-        const assignFn = isManager ? assignShipperToOrder : staffAssignShipperToOrder;
+        const assignFn = assignShipperToOrder;
         setAssigningShipper((prev) => new Set(prev).add(orderId));
 
         try {
