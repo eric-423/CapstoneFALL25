@@ -20,13 +20,35 @@ jobs:
 
       - name: 📦 Install & Build Next.js Frontend
         working-directory: ./FE
+        env:
+          # === KHAI BÁO BIẾN ĐỂ NEXT.JS ĐÓNG GÓI VÀO CODE ===
+          NEXT_PUBLIC_BASE_URL: ${{ secrets.NEXT_PUBLIC_BASE_URL }}
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+          NEXT_PUBLIC_WS_BASE_URL: ${{ secrets.NEXT_PUBLIC_WS_BASE_URL }}
+          NEXT_PUBLIC_WS_ENDPOINT: ${{ secrets.NEXT_PUBLIC_WS_ENDPOINT }}
+          
+          # Google Maps
+          NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
+          NEXT_PUBLIC_FORCE_KIOSK_MODE: ${{ secrets.NEXT_PUBLIC_FORCE_KIOSK_MODE }}
+          
+          # Supabase
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_SUPABASE_TRAINING_BUCKET: ${{ secrets.NEXT_PUBLIC_SUPABASE_TRAINING_BUCKET }}
+          
+          # Dify
+          NEXT_PUBLIC_DIFY_API_KEY: ${{ secrets.NEXT_PUBLIC_DIFY_API_KEY }}
+          NEXT_PUBLIC_DIFY_CHATBOT_TOKEN: ${{ secrets.NEXT_PUBLIC_DIFY_CHATBOT_TOKEN }}
+          NEXT_PUBLIC_DIFY_BASE_URL: ${{ secrets.NEXT_PUBLIC_DIFY_BASE_URL }}
+          # ===================================================
+
         run: |
           echo "=== Start building FE ==="
           npm ci
           npm run build
           echo "=== Verify .next ==="
           ls -la .next || (echo ".next not found!" && exit 1)
-          # SỬA: Tạo file nén ngay trong thư mục hiện tại (FE), không dùng ../
           tar -czf fe-build.tgz .next public package.json package-lock.json
           echo "=== Build archived to fe-build.tgz ==="
 
