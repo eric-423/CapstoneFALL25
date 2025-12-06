@@ -54,11 +54,9 @@ const mapCustomerOrderDetail = (
     0
   );
 
-  // Tính tổng tiền sản phẩm (subTotal)
   const subTotal = detail.subTotal ?? fallback?.subTotal ?? 0;
-  
-  // Tính điểm nhận được: tổng tiền sản phẩm / 1000
-  const calculatedPointEarned = Math.floor(subTotal / 1000);
+
+  const calculatedPointEarned = Math.floor(subTotal / 10000);
 
   const mergedBase: OrderResponse = {
     id: detail.id ?? fallback?.id ?? 0,
