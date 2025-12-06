@@ -58,26 +58,36 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
+            # === BẮT ĐẦU ĐOẠN FIX NVM ===
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # Load NVM
+            [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" 
+            
+            # Nếu dùng ~/.profile hoặc ~/.bashrc thì load luôn cho chắc
+            source ~/.profile || true
+            source ~/.bashrc || true
+            
+            # Kiểm tra xem đã có npm chưa
+            echo "Node path: $(which node)"
+            echo "NPM path: $(which npm)"
+            # === KẾT THÚC ĐOẠN FIX NVM ===
+
             set -e
             cd /var/www/myapp
             
-            # 1. Dọn dẹp file cũ
             echo "🧹 Cleaning old files..."
             find . -mindepth 1 -maxdepth 1 -exec rm -rf {} +
             
-            # 2. Di chuyển file build từ /tmp vào đây
             echo "🚚 Moving build from tmp..."
             mv /tmp/fe-build.tgz .
             
-            # 3. Giải nén và xóa file nén
             tar -xzf fe-build.tgz
             rm -f fe-build.tgz
             
-            # 4. Cài đặt dependencies
             echo "📦 Installing dependencies..."
+            # Dùng đường dẫn tuyệt đối của npm nếu lệnh trên đã tìm thấy, hoặc dùng npm thường
             npm ci --production
             
-            # 5. Restart Systemd
             echo "🔄 Restarting Service..."
             sudo systemctl restart myapp.service || (echo "❌ myapp.service not found." && exit 1)
             
