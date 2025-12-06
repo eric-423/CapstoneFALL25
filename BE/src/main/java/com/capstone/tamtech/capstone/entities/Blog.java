@@ -28,7 +28,7 @@ public class Blog {
     private boolean status;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH})
-    @JoinColumn(name = "blog_type_id")
+    @JoinColumn(name = "type")
     private BlogType blogType;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH})
