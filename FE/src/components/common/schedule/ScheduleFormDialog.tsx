@@ -156,14 +156,11 @@ export function ScheduleFormDialog({
     const hasEndTime = formData.endTime && formData.endTime.trim() !== '';
     const hasTime = hasStartTime && hasEndTime;
 
-    // Validation: Không được có cả shiftId và thời gian cùng lúc
     if (hasShiftId && hasTime) {
       toast.error('Vui lòng chỉ chọn ca làm việc hoặc nhập thời gian, không được chọn cả hai');
       return;
     }
 
-    // Validation: Nếu có thời gian thì không cần date hoặc shiftId
-    // Nếu không có thời gian thì cần ít nhất một trong hai: date hoặc shiftId
     if (!hasTime) {
       if (!hasDate && !hasShiftId) {
         toast.error('Vui lòng chọn ngày hoặc ca làm việc');

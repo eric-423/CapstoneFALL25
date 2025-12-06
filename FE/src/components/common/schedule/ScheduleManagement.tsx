@@ -205,7 +205,8 @@ export function ScheduleManagement({
                         ? { ...s, ...payload as UpdateScheduleData, name: (payload as UpdateScheduleData).name || s.name }
                         : s
                 ));
-                await updateSchedule(editingSchedule.id, payload as UpdateScheduleData);
+                const updateResponse = await updateSchedule(editingSchedule.id, payload as UpdateScheduleData);
+                console.log('Update schedule response:', updateResponse);
             } else {
                 const tempSchedule: Schedule = {
                     id: Date.now(),
@@ -218,7 +219,24 @@ export function ScheduleManagement({
                     endTime: (payload as CreateScheduleData).endTime || null,
                 };
                 setSchedules(prev => [...prev, tempSchedule]);
-                await createSchedule(payload as CreateScheduleData);
+                const createResponse = await createSchedule(payload as CreateScheduleData);
+                console.log('Create schedule response:', createResponse);
+
+                // Kiểm tra nếu có lỗi từ API
+                if (createResponse.status !== 0 && createResponse.status !== 200) {
+                    // Xóa tempSchedule khỏi state vì tạo thất bại
+                    setSchedules(prev => prev.filter(s => s.id !== tempSchedule.id));
+                    
+                    // Xác định thông báo lỗi phù hợp
+                    const errorDesc = createResponse.desc || '';
+                    if (errorDesc.includes('Schedule for this user, shift and date already exists') || 
+                        errorDesc.includes('already exists')) {
+                        throw new Error('Nhân viên đã có lịch trình trong ca này');
+                    } else {
+                        throw new Error(errorDesc || 'Không thể tạo lịch trình');
+                    }
+                }
+
             }
             await fetchSchedules();
             setEditingSchedule(null);
