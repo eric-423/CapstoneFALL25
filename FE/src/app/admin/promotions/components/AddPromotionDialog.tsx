@@ -44,7 +44,10 @@ interface AddPromotionDialogProps {
   availablePromotionTypes?: PromotionType[];
 }
 
-export function AddPromotionDialog({ onSuccess, availablePromotionTypes }: AddPromotionDialogProps) {
+export function AddPromotionDialog({
+  onSuccess,
+  availablePromotionTypes,
+}: AddPromotionDialogProps) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [promotionTypes, setPromotionTypes] = useState<PromotionTypeOption[]>(
@@ -110,11 +113,13 @@ export function AddPromotionDialog({ onSuccess, availablePromotionTypes }: AddPr
     if (!formData.name.trim()) newErrors.name = "Vui lòng nhập tên khuyến mãi";
     if (!formData.description.trim())
       newErrors.description = "Vui lòng nhập mô tả";
-    if (!formData.value) {
-      newErrors.value = "Vui lòng nhập giá trị giảm giá";
-    } else {
-      if (Number(formData.value) <= 0) {
-        newErrors.value = "Giá trị giảm phải lớn hơn 0";
+    if (!isFreeShipping()) {
+      if (!formData.value) {
+        newErrors.value = "Vui lòng nhập giá trị giảm giá";
+      } else {
+        if (Number(formData.value) <= 0) {
+          newErrors.value = "Giá trị giảm phải lớn hơn 0";
+        }
       }
     }
     if (formData.minimumOrderValue && Number(formData.minimumOrderValue) < 0) {
@@ -157,7 +162,7 @@ export function AddPromotionDialog({ onSuccess, availablePromotionTypes }: AddPr
       const promotionData: CreatePromotionData = {
         name: formData.name.trim(),
         description: formData.description.trim(),
-        value: Number(formData.value),
+        value: isFreeShipping() ? 0 : Number(formData.value),
         minimumOrderValue: formData.minimumOrderValue
           ? Number(formData.minimumOrderValue)
           : 0,
@@ -175,17 +180,17 @@ export function AddPromotionDialog({ onSuccess, availablePromotionTypes }: AddPr
       console.error("Error creating promotion:", error);
       const errorMessage =
         error &&
-          typeof error === "object" &&
-          "response" in error &&
-          error.response &&
-          typeof error.response === "object" &&
-          "data" in error.response &&
-          error.response.data &&
-          typeof error.response.data === "object" &&
-          ("message" in error.response.data || "error" in error.response.data)
+        typeof error === "object" &&
+        "response" in error &&
+        error.response &&
+        typeof error.response === "object" &&
+        "data" in error.response &&
+        error.response.data &&
+        typeof error.response.data === "object" &&
+        ("message" in error.response.data || "error" in error.response.data)
           ? (error.response.data as { message?: string; error?: string })
-            .message ||
-          (error.response.data as { message?: string; error?: string }).error
+              .message ||
+            (error.response.data as { message?: string; error?: string }).error
           : "Có lỗi xảy ra khi tạo khuyến mãi";
       toast.error(`${errorMessage || "Có lỗi xảy ra khi tạo khuyến mãi"}`);
     } finally {
@@ -216,6 +221,13 @@ export function AddPromotionDialog({ onSuccess, availablePromotionTypes }: AddPr
   const parseNumber = (value: string): string => {
     return value.replace(/\D/g, "");
   };
+  const isFreeShipping = () => {
+    if (!formData.promotionType) return false;
+    const selectedType = promotionTypes.find(
+      (t) => t.value === formData.promotionType
+    );
+    return selectedType?.label?.toLowerCase().includes("vận chuyển") || false;
+  };
 
   const handleInputChange = (
     field: keyof PromotionFormData,
@@ -224,6 +236,14 @@ export function AddPromotionDialog({ onSuccess, availablePromotionTypes }: AddPr
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field as keyof typeof errors]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+    if (field === "promotionType") {
+      const selectedType = promotionTypes.find(
+        (t) => t.value === String(value)
+      );
+      if (selectedType?.label?.toLowerCase().includes("vận chuyển")) {
+        setFormData((prev) => ({ ...prev, value: "" }));
+      }
     }
   };
 
@@ -302,7 +322,9 @@ export function AddPromotionDialog({ onSuccess, availablePromotionTypes }: AddPr
                   className={`h-11 border-2 ${errors.name ? "border-red-400 focus:border-red-500" : "border-gray-200 focus:border-[#78A243]"} focus:ring-[#78A243]/20 focus:ring-4 transition-all`}
                 />
                 {errors.name && (
-                  <p className="text-xs text-red-600 font-medium">{errors.name}</p>
+                  <p className="text-xs text-red-600 font-medium">
+                    {errors.name}
+                  </p>
                 )}
               </div>
 
@@ -313,7 +335,9 @@ export function AddPromotionDialog({ onSuccess, availablePromotionTypes }: AddPr
                 <textarea
                   placeholder="Mô tả chi tiết về chương trình khuyến mãi..."
                   value={formData.description}
-                  onChange={(e) => handleInputChange("description", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("description", e.target.value)
+                  }
                   rows={3}
                   className={`w-full px-3 py-2 rounded-md border-2 ${errors.description ? "border-red-400" : "border-gray-200"} focus:border-[#78A243] focus:ring-[#78A243]/20 focus:ring-4 outline-none transition-all text-[#2D1E1A] placeholder:text-gray-400`}
                 />
@@ -329,7 +353,7 @@ export function AddPromotionDialog({ onSuccess, availablePromotionTypes }: AddPr
                   <label className="text-sm font-semibold text-[#2D1E1A]">
                     Loại giảm giá <span className="text-red-500">*</span>
                   </label>
-                  {(!availablePromotionTypes && isLoadingTypes) ? (
+                  {!availablePromotionTypes && isLoadingTypes ? (
                     <div className="flex items-center justify-center h-11">
                       <div className="w-5 h-5 border-2 border-[#78A243] border-t-transparent rounded-full animate-spin" />
                       <span className="ml-2 text-sm text-[#2D1E1A]/60">
@@ -382,7 +406,9 @@ export function AddPromotionDialog({ onSuccess, availablePromotionTypes }: AddPr
                     </label>
                     <button
                       type="button"
-                      onClick={() => handleInputChange("status", !formData.status)}
+                      onClick={() =>
+                        handleInputChange("status", !formData.status)
+                      }
                       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#78A243] focus:ring-offset-2 ${formData.status ? "bg-[#78A243]" : "bg-gray-300"}`}
                     >
                       <span
@@ -393,24 +419,30 @@ export function AddPromotionDialog({ onSuccess, availablePromotionTypes }: AddPr
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-[#2D1E1A]">
-                    Giá trị giảm <span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    type="number"
-                    min="0"
-                    value={formData.value}
-                    onChange={(e) => handleInputChange("value", e.target.value)}
-                    className={`h-11 border-2 ${errors.value ? "border-red-400" : "border-gray-200"} focus:border-[#78A243]`}
-                  />
-                  {errors.value && (
-                    <p className="text-xs text-red-600 font-medium">
-                      {errors.value}
-                    </p>
-                  )}
-                </div>
+              <div
+                className={`grid gap-4 ${isFreeShipping() ? "grid-cols-1" : "grid-cols-2"}`}
+              >
+                {!isFreeShipping() && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-[#2D1E1A]">
+                      Giá trị giảm <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={formData.value}
+                      onChange={(e) =>
+                        handleInputChange("value", e.target.value)
+                      }
+                      className={`h-11 border-2 ${errors.value ? "border-red-400" : "border-gray-200"} focus:border-[#78A243]`}
+                    />
+                    {errors.value && (
+                      <p className="text-xs text-red-600 font-medium">
+                        {errors.value}
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-[#2D1E1A]">
@@ -425,7 +457,10 @@ export function AddPromotionDialog({ onSuccess, availablePromotionTypes }: AddPr
                         : ""
                     }
                     onChange={(e) =>
-                      handleNumberInputChange("minimumOrderValue", e.target.value)
+                      handleNumberInputChange(
+                        "minimumOrderValue",
+                        e.target.value
+                      )
                     }
                     className="h-11 border-2 border-gray-200 focus:border-[#78A243]"
                   />
@@ -441,7 +476,9 @@ export function AddPromotionDialog({ onSuccess, availablePromotionTypes }: AddPr
                   <Input
                     type="date"
                     value={formData.startDate}
-                    onChange={(e) => handleInputChange("startDate", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("startDate", e.target.value)
+                    }
                     className={`h-11 border-2 ${errors.startDate ? "border-red-400" : "border-gray-200"} focus:border-[#78A243]`}
                   />
                   {errors.startDate && (
@@ -459,7 +496,9 @@ export function AddPromotionDialog({ onSuccess, availablePromotionTypes }: AddPr
                   <Input
                     type="date"
                     value={formData.endDate}
-                    onChange={(e) => handleInputChange("endDate", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("endDate", e.target.value)
+                    }
                     className={`h-11 border-2 ${errors.endDate ? "border-red-400" : "border-gray-200"} focus:border-[#78A243]`}
                   />
                   {errors.endDate && (

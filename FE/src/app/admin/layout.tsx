@@ -4,12 +4,10 @@ import { Button } from "@/components/ui/button";
 import { useAuthContext } from "@/utils/contexts/AuthContext";
 import { AdminProvider } from "@/utils/contexts/AdminContext";
 import { BranchesLoader } from "./components/BranchesLoader";
-import {
-  useBarcodeScanner,
-} from "@/utils/hooks/useBarcodeScanner";
+import { useBarcodeScanner } from "@/utils/hooks/useBarcodeScanner";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect, useMemo, memo, useCallback } from "react";
 import {
   LayoutDashboard,
@@ -27,10 +25,11 @@ import {
   Leaf,
   Flame,
   UtensilsCrossed,
-  ChevronLeft,
-  ChevronRight,
+  BookOpen,
+  Table,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
+import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 
 const MenuItem = memo(
   ({
@@ -86,10 +85,11 @@ const MenuItem = memo(
                     flex items-center gap-3 py-2.5 sm:py-3 rounded-xl 
                     transition-all duration-150 relative group flex-1
                     ${isCollapsed ? "justify-center px-3" : "px-4 ml-10"}
-                    ${isActive
-                ? "bg-white/20 text-white shadow-lg font-semibold backdrop-blur-sm"
-                : "text-white/80 hover:bg-white/10 hover:text-white"
-              }
+                    ${
+                      isActive
+                        ? "bg-white/20 text-white shadow-lg font-semibold backdrop-blur-sm"
+                        : "text-white/80 hover:bg-white/10 hover:text-white"
+                    }
                 `}
           >
             {isActive && isCollapsed && (
@@ -127,54 +127,73 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const { logout } = useAuthContext();
+  const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  // Memoize menu items to prevent recreation on every render
-  const menuItems = useMemo(() => [
-    { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/admin/users', label: 'Người dùng', icon: Users },
-    { href: '/admin/branches', label: 'Chi nhánh', icon: Store },
-    { href: '/admin/warehouses', label: 'Kho', icon: Warehouse },
-    { href: '/admin/branches/menu-manager', label: 'Quản lý Menu', icon: Store },
-    { href: '/admin/products', label: 'Món ăn', icon: UtensilsCrossed },
-    { href: '/admin/materials', label: 'Nguyên liệu', icon: Package },
-    { href: '/admin/nutrients', label: 'Dinh dưỡng', icon: Leaf },
-    { href: '/admin/cooking-methods', label: 'Phương pháp nấu', icon: Flame },
-    { href: '/admin/combos', label: 'Combo', icon: Gift },
-    { href: '/admin/training', label: 'Khóa đào tạo', icon: GraduationCap },
-    { href: '/admin/schedule', label: 'Lịch trình', icon: Calendar },
-    { href: '/admin/promotions', label: 'Khuyến mãi', icon: Gift },
-    { href: '/admin/feedback', label: 'Phản hồi', icon: MessageSquare },
-  ], []);
+  const menuItems = useMemo(
+    () => [
+      { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/admin/users", label: "Người dùng", icon: Users },
+      { href: "/admin/branches", label: "Chi nhánh", icon: Store },
+      { href: "/admin/warehouses", label: "Kho", icon: Warehouse },
+      {
+        href: "/admin/branches/menu-manager",
+        label: "Quản lý Menu",
+        icon: Store,
+      },
+      { href: "/admin/products", label: "Món ăn", icon: UtensilsCrossed },
+      { href: "/admin/materials", label: "Nguyên liệu", icon: Package },
+      { href: "/admin/nutrients", label: "Dinh dưỡng", icon: Leaf },
+      { href: "/admin/cooking-methods", label: "Phương pháp nấu", icon: Flame },
+      { href: "/admin/combos", label: "Combo", icon: Gift },
+      { href: "/admin/tables", label: "Quản lý bàn ăn", icon: Table },
+      { href: "/admin/training", label: "Khóa đào tạo", icon: GraduationCap },
+      { href: "/admin/schedule", label: "Lịch trình", icon: Calendar },
+      { href: "/admin/promotions", label: "Khuyến mãi", icon: Gift },
+      { href: "/admin/feedback", label: "Phản hồi", icon: MessageSquare },
+    ],
+    []
+  );
 
   const activeIndex = useMemo(() => {
-    let index = menuItems.findIndex(item => pathname === item.href);
+    let index = menuItems.findIndex((item) => pathname === item.href);
 
     if (index < 0) {
-      index = menuItems.findIndex(item =>
-        pathname.startsWith(item.href + '/') && item.href !== '/admin'
+      index = menuItems.findIndex(
+        (item) => pathname.startsWith(item.href + "/") && item.href !== "/admin"
       );
     }
 
     return index >= 0 ? index : 0;
   }, [pathname, menuItems]);
 
-  const isMenuItemActive = useCallback((itemHref: string) => {
-    if (pathname === itemHref) return true;
-    // Check for nested routes (e.g., /admin/warehouses/1/materials should match /admin/warehouses)
-    if (pathname.startsWith(itemHref + '/') && itemHref !== '/admin') return true;
-    return false;
-  }, [pathname]);
+  const isMenuItemActive = useCallback(
+    (itemHref: string) => {
+      if (pathname === itemHref) return true;
+      const hasExactMatch = menuItems.some(
+        (item) => item.href !== itemHref && pathname === item.href
+      );
+      if (hasExactMatch) return false;
+      const hasMoreSpecificMatch = menuItems.some(
+        (item) =>
+          item.href !== itemHref &&
+          pathname.startsWith(item.href + "/") &&
+          item.href.startsWith(itemHref + "/")
+      );
+      if (hasMoreSpecificMatch) return false;
+
+      if (pathname.startsWith(itemHref + "/") && itemHref !== "/admin")
+        return true;
+      return false;
+    },
+    [pathname, menuItems]
+  );
 
   const handleLogout = useCallback(() => {
     logout();
   }, [logout]);
-
-  const toggleSidebar = useCallback(() => {
-    setIsCollapsed(prev => !prev);
-  }, []);
   useEffect(() => {
     setSidebarOpen(false);
   }, [pathname]);
@@ -236,45 +255,59 @@ export default function AdminLayout({
                         ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
                     `}
           >
-            <div className={`relative p-2 border-b border-white/20 flex-shrink-0 flex items-center overflow-hidden z-20 bg-gradient-to-b from-[#EC6426] to-[#EC6426] ${isCollapsed ? "justify-center" : ""}`}>
+            <div
+              className={`relative p-2 border-b border-white/20 flex-shrink-0 flex items-center overflow-hidden z-20 bg-gradient-to-b from-[#EC6426] to-[#EC6426] ${isCollapsed ? "justify-center" : ""}`}
+            >
               <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent"></div>
               <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#F8A91F]/20 rounded-full blur-3xl"></div>
               <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
 
-              <div className={`relative z-10 flex-shrink-0 transition-all duration-200 ${isCollapsed ? "mx-auto" : ""}`}>
-                <Image src={logo.src} alt="logo" width={isCollapsed ? 60 : 100} height={isCollapsed ? 60 : 100} className="transition-all duration-200" />
-              </div>
+              {!isCollapsed && (
+                <div
+                  className={`relative z-10 flex-shrink-0 transition-all duration-200`}
+                >
+                  <Image
+                    src={logo.src}
+                    alt="logo"
+                    width={100}
+                    height={100}
+                    className="transition-all duration-200"
+                  />
+                </div>
+              )}
 
               {!isCollapsed && (
                 <div className="relative z-10 flex-1 min-w-0 transition-opacity duration-150">
-                  <p className="text-[15px] text-white/100 font-semibold tracking-widest uppercase">
-                    Admin Panel
+                  <p className="text-[15px] text-white/100 font-semibold tracking-widest uppercase text-center">
+                    Quản trị viên
                   </p>
                 </div>
               )}
 
-              <button
-                onClick={() => setSidebarOpen(false)}
-                className="lg:hidden absolute top-4 right-4 p-2 hover:bg-white/10 rounded-lg transition-colors z-20"
-                aria-label="Close sidebar"
+              <div
+                className={`relative z-10 flex items-center ${isCollapsed ? "justify-center" : "gap-2"}`}
               >
-                <X className="w-5 h-5 text-white" />
-              </button>
-            </div>
-
-            {/* Toggle Collapse Button */}
-            <div className="hidden lg:flex justify-center -mt-4 relative z-30">
-              <button
-                onClick={toggleSidebar}
-                className="absolute -right-4 top-0 w-8 h-8 bg-[#EC6426] border-2 border-white/30 rounded-full flex items-center justify-center shadow-lg hover:bg-[#d55a22] hover:border-white/50 transition-all duration-200 group"
-                aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-              >
-                {isCollapsed ? (
-                  <ChevronRight className="w-4 h-4 text-white group-hover:scale-110 transition-transform" />
-                ) : (
-                  <ChevronLeft className="w-4 h-4 text-white group-hover:scale-110 transition-transform" />
-                )}
-              </button>
+                <button
+                  onClick={() => setIsCollapsed((prev) => !prev)}
+                  className="hidden lg:flex p-2 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0"
+                  aria-label={
+                    isCollapsed ? "Mở rộng sidebar" : "Thu gọn sidebar"
+                  }
+                >
+                  {isCollapsed ? (
+                    <MenuUnfoldOutlined className="w-4 h-4 text-white" />
+                  ) : (
+                    <MenuFoldOutlined className="w-4 h-4 text-white" />
+                  )}
+                </button>
+                <button
+                  onClick={() => setSidebarOpen(false)}
+                  className="lg:hidden p-2 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0"
+                  aria-label="Close sidebar"
+                >
+                  <X className="w-5 h-5 text-white" />
+                </button>
+              </div>
             </div>
 
             <nav className="flex-1 overflow-y-auto p-3 sm:p-4 pt-10 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
@@ -301,10 +334,21 @@ export default function AdminLayout({
                 ))}
               </div>
             </nav>
-            <div className="p-3 sm:p-4 flex-shrink-0 border-t border-white/20">
+            <div className="p-3 sm:p-4 flex-shrink-0 border-t border-white/20 bg-[#EC6426]">
               <Button
-                variant="outline"
-                className={`w-full ${isCollapsed ? "justify-center px-2" : "justify-start gap-3"} border-2 border-white/30 bg-white/10 hover:bg-white/20 hover:border-white/50 text-white font-semibold transition-all duration-200 shadow-lg hover:shadow-xl py-2.5 sm:py-3`}
+                className={`w-full ${isCollapsed ? "justify-center px-2" : "justify-start gap-3"} hover:bg-[#EC6426]/90 text-white font-semibold transition-all duration-200 hover:shadow-xl py-2.5 sm:py-3 mb-2`}
+                onClick={() => router.push("/admin/training")}
+                title={isCollapsed ? "Khóa học của tôi" : undefined}
+              >
+                <BookOpen size={18} className="flex-shrink-0" />
+                {!isCollapsed && (
+                  <span className="text-sm sm:text-base font-semibold">
+                    Khóa học của tôi
+                  </span>
+                )}
+              </Button>
+              <Button
+                className={`w-full ${isCollapsed ? "justify-center px-2" : "justify-start gap-3"} hover:bg-[#EC6426]/90 text-white font-semibold transition-all duration-200 hover:shadow-xl py-2.5 sm:py-3`}
                 onClick={handleLogout}
                 title={isCollapsed ? "Đăng xuất" : undefined}
               >
@@ -315,6 +359,12 @@ export default function AdminLayout({
                   </span>
                 )}
               </Button>
+            </div>
+
+            <div className="p-3 sm:p-4 bg-black/10 backdrop-blur border-t border-white/20 flex-shrink-0">
+              <p className="text-xs text-center text-white/70 font-medium">
+                © 2025 Tâm Tắc Restaurant
+              </p>
             </div>
           </aside>
           <main
