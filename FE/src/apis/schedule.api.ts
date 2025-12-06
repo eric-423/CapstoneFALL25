@@ -155,7 +155,7 @@ export const createSchedule = async (
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    const errorMessage = errorData.desc || errorData.error || 'Failed to create schedule';
+    const errorMessage = errorData.message || errorData.desc || errorData.error || 'Failed to create schedule';
     console.log(errorMessage);
     // Return empty response instead of throwing
     return { status: response.status, desc: errorMessage, data: [] };
