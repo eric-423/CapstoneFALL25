@@ -135,8 +135,10 @@ public class ScheduleServiceImpl implements ScheduleService {
             schedule.setUser(user);
         }
 
+        Shift shift = schedule.getShift();
+
         if (request.getShiftId() != null) {
-            Shift shift = shiftRepository.findById(request.getShiftId())
+            shift = shiftRepository.findById(request.getShiftId())
                     .orElseThrow(
                             () -> new ResourceNotFoundException("Shift not found with id: " + request.getShiftId()));
             schedule.setShift(shift);
@@ -149,20 +151,17 @@ public class ScheduleServiceImpl implements ScheduleService {
                 schedule.setDescription(shift.getDescription());
             }
         } else {
+            if (shift == null) {
+                throw new IllegalArgumentException("Schedule must have a shift. Please provide shiftId.");
+            }
+            schedule.setStartTime(shift.getStartTime());
+            schedule.setEndTime(shift.getEndTime());
+
             if (request.getName() != null) {
                 schedule.setName(request.getName());
             }
             if (request.getDescription() != null) {
                 schedule.setDescription(request.getDescription());
-            }
-            if (request.getDate() != null) {
-                schedule.setDate(request.getDate());
-            }
-            if (request.getStartTime() != null) {
-                schedule.setStartTime(request.getStartTime());
-            }
-            if (request.getEndTime() != null) {
-                schedule.setEndTime(request.getEndTime());
             }
         }
 
