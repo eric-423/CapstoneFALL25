@@ -13,6 +13,8 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
@@ -49,9 +51,8 @@ export default function UsersManagementPage() {
   const [branchFilter, setBranchFilter] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize] = useState(10);
-  const [sortBy] = useState("id");
-  const [sortDirection] = useState<"ASC" | "DESC">("ASC");
-
+  const [sortBy, setSortBy] = useState("id");
+  const [sortDirection, setSortDirection] = useState<"ASC" | "DESC">("ASC");
   const [showDialog, setShowDialog] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [showRolesModal, setShowRolesModal] = useState(false);
@@ -230,6 +231,32 @@ export default function UsersManagementPage() {
     }
   };
 
+  const handleSort = (column: string) => {
+    if (sortBy === column) {
+      setSortDirection(sortDirection === "ASC" ? "DESC" : "ASC");
+    } else {
+      setSortBy(column);
+      setSortDirection("ASC");
+    }
+    setCurrentPage(0);
+  };
+
+  const getSortIcon = (column: string) => {
+    if (sortBy !== column) {
+      return (
+        <div className="flex flex-col -space-y-1">
+          <ChevronUp className="h-3.5 w-3.5 text-gray-400" />
+          <ChevronDown className="h-3.5 w-3.5 text-gray-400" />
+        </div>
+      );
+    }
+    return sortDirection === "ASC" ? (
+      <ChevronUp className="h-3.5 w-3.5 text-[#78A243]" />
+    ) : (
+      <ChevronDown className="h-3.5 w-3.5 text-[#78A243]" />
+    );
+  };
+
   return (
     <AdminPageLayout>
       <AdminPageHeader
@@ -256,7 +283,6 @@ export default function UsersManagementPage() {
         }
       />
 
-      {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <AdminCard
           title="Tổng người dùng"
@@ -300,7 +326,7 @@ export default function UsersManagementPage() {
         />
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-gradient-to-r from-[#EBD187]/20 to-[#78A243]/10 backdrop-blur-sm border-[#78A243]/20 border shadow-sm rounded-xl">
+      <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-white backdrop-blur-sm border-[#78A243]/20 border shadow-sm rounded-xl">
         <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[200px]">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#2D1E1A]/60" />
@@ -384,31 +410,73 @@ export default function UsersManagementPage() {
         ) : (
           <>
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gradient-to-r from-[#78A243]/10 to-[#EBD187]/20 border-b-2 border-[#78A243]/30">
+              <table className="w-full text-center">
+                <thead className="bg-white border-b-2 border-grey-300">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-bold text-[#2D1E1A]">
-                      ID
+                    <th
+                      className="px-4 py-3 text-center text-sm font-bold text-[#2D1E1A] cursor-pointer hover:bg-gray-50 transition-colors"
+                      onClick={() => handleSort("id")}
+                    >
+                      <div className="flex items-center justify-center gap-1.5">
+                        ID
+                        {getSortIcon("id")}
+                      </div>
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-bold text-[#2D1E1A]">
-                      Họ tên
+                    <th
+                      className="px-4 py-3 text-center text-sm font-bold text-[#2D1E1A] cursor-pointer hover:bg-gray-50 transition-colors"
+                      onClick={() => handleSort("fullName")}
+                    >
+                      <div className="flex items-center justify-center gap-1.5">
+                        Họ tên
+                        {getSortIcon("fullName")}
+                      </div>
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-bold text-[#2D1E1A]">
-                      Email
+                    <th
+                      className="px-4 py-3 text-center text-sm font-bold text-[#2D1E1A] cursor-pointer hover:bg-gray-50 transition-colors"
+                      onClick={() => handleSort("email")}
+                    >
+                      <div className="flex items-center justify-center gap-1.5">
+                        Email
+                        {getSortIcon("email")}
+                      </div>
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-bold text-[#2D1E1A]">
-                      SĐT
+                    <th
+                      className="px-4 py-3 text-center text-sm font-bold text-[#2D1E1A] cursor-pointer hover:bg-gray-50 transition-colors"
+                      onClick={() => handleSort("phoneNumber")}
+                    >
+                      <div className="flex items-center justify-center gap-1.5">
+                        SĐT
+                        {getSortIcon("phoneNumber")}
+                      </div>
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-bold text-[#2D1E1A]">
-                      Vai trò
+                    <th
+                      className="px-4 py-3 text-center text-sm font-bold text-[#2D1E1A] cursor-pointer hover:bg-gray-50 transition-colors"
+                      onClick={() => handleSort("role")}
+                    >
+                      <div className="flex items-center justify-center gap-1.5">
+                        Vai trò
+                        {getSortIcon("role")}
+                      </div>
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-bold text-[#2D1E1A]">
-                      Chi nhánh
+                    <th
+                      className="px-4 py-3 text-center text-sm font-bold text-[#2D1E1A] cursor-pointer hover:bg-gray-50 transition-colors"
+                      onClick={() => handleSort("branchId")}
+                    >
+                      <div className="flex items-center justify-center gap-1.5">
+                        Chi nhánh
+                        {getSortIcon("branchId")}
+                      </div>
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-bold text-[#2D1E1A]">
-                      Trạng thái
+                    <th
+                      className="px-4 py-3 text-center text-sm font-bold text-[#2D1E1A] cursor-pointer hover:bg-gray-50 transition-colors"
+                      onClick={() => handleSort("isBan")}
+                    >
+                      <div className="flex items-center justify-center gap-1.5">
+                        Trạng thái
+                        {getSortIcon("isBan")}
+                      </div>
                     </th>
-                    <th className="px-4 py-3 text-right text-sm font-bold text-[#2D1E1A]">
+                    <th className="px-4 py-3 text-center text-sm font-bold text-[#2D1E1A]">
                       Thao tác
                     </th>
                   </tr>
@@ -422,7 +490,7 @@ export default function UsersManagementPage() {
                       <td className="px-4 py-3 text-sm font-semibold text-[#2D1E1A]">
                         {user.id}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 text-center">
                         <div className="flex flex-col">
                           <span className="text-sm font-semibold text-[#2D1E1A]">
                             {user.fullName}
@@ -470,11 +538,11 @@ export default function UsersManagementPage() {
                       <td className="px-4 py-3">
                         {user.isBan ? (
                           <Badge className="bg-red-100 text-red-700 border-red-300">
-                            🔒 Đã khóa
+                            Đã khóa
                           </Badge>
                         ) : (
                           <Badge className="bg-[#78A243]/20 text-[#78A243] border-[#78A243]/30">
-                            ✓ Hoạt động
+                            Hoạt động
                           </Badge>
                         )}
                       </td>
