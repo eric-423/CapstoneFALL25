@@ -21,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.view.RedirectView;
 import vn.payos.PayOS;
 import vn.payos.model.webhooks.WebhookData;
 
@@ -106,6 +107,12 @@ public class OrderController {
         } catch (Exception e) {
             return new ResponseEntity<>("Cancel", HttpStatus.OK);
         }
+    }
+
+    @GetMapping("/payment/cancel")
+    public RedirectView paymentCancel(@RequestParam int orderCode) {
+        orderService.cancelOrder(orderCode);
+        return new RedirectView("https://tam-tac.com/payment-failed");
     }
 
     @PutMapping("/staff/assign/cheff/{orderId}")
