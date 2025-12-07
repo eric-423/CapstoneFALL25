@@ -29,7 +29,7 @@ export async function PUT(
             );
         }
 
-        const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
+        const baseUrl = API_BASE_URL.endsWith('/api/v1') ? API_BASE_URL : `${API_BASE_URL}/api/v1`;
         const url = `${baseUrl}/orders/${orderId}/status`;
 
         console.log('🔄 Updating order status:', orderId, 'to', status);

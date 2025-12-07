@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
 
         const body = await request.json();
 
-        const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
+        const baseUrl = API_BASE_URL.endsWith('/api/v1') ? API_BASE_URL : `${API_BASE_URL}/api/v1`;
         const url = `${baseUrl}/orders/dining-table/payment`;
 
         console.log('🔄 Processing dining table payment:', body);

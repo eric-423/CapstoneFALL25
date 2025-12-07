@@ -19,7 +19,7 @@ export async function GET(
             );
         }
 
-        const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
+        const baseUrl = API_BASE_URL.endsWith('/api/v1') ? API_BASE_URL : `${API_BASE_URL}/api/v1`;
         const url = `${baseUrl}/orders/${orderId}/bill/download`;
 
         const response = await fetch(url, {

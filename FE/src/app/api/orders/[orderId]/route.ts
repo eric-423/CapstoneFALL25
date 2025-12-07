@@ -5,7 +5,7 @@ import { getToken } from '@/utils/cookies.server';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://tam-tac.com';
 
 const buildUpstreamUrl = (orderId: string) => {
-  const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
+  const baseUrl = API_BASE_URL.endsWith('/api/v1') ? API_BASE_URL : `${API_BASE_URL}/api/v1`;
   return `${baseUrl}/orders/${orderId}`;
 };
 

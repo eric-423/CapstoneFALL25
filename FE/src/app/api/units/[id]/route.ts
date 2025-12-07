@@ -21,7 +21,7 @@ export async function PUT(
 
         const body = await request.json();
 
-        const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
+        const baseUrl = API_BASE_URL.endsWith('/api/v1') ? API_BASE_URL : `${API_BASE_URL}/api/v1`;
         const url = `${baseUrl}/units/${id}`;
 
         console.log('🔄 Updating unit:', id, body);
@@ -86,7 +86,7 @@ export async function DELETE(
             );
         }
 
-        const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
+        const baseUrl = API_BASE_URL.endsWith('/api/v1') ? API_BASE_URL : `${API_BASE_URL}/api/v1`;
         const url = `${baseUrl}/units/${id}`;
 
         console.log('🔄 Deleting unit:', id);

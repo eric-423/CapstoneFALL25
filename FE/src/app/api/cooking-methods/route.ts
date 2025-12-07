@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
             params.append(key, value);
         });
 
-        const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
+        const baseUrl = API_BASE_URL.endsWith('/api/v1') ? API_BASE_URL : `${API_BASE_URL}/api/v1`;
         const url = `${baseUrl}/cooking-methods?${params.toString()}`;
 
         const response = await fetch(url, {
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
+        const baseUrl = API_BASE_URL.endsWith('/api/v1') ? API_BASE_URL : `${API_BASE_URL}/api/v1`;
         const url = `${baseUrl}/cooking-methods`;
 
         const response = await fetch(url, {

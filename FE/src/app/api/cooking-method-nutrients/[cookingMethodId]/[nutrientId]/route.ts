@@ -16,7 +16,7 @@ export async function GET(
         }
 
         const { cookingMethodId, nutrientId } = await params;
-        const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
+        const baseUrl = API_BASE_URL.endsWith('/api/v1') ? API_BASE_URL : `${API_BASE_URL}/api/v1`;
         const url = `${baseUrl}/cooking-method-nutrients/${cookingMethodId}/${nutrientId}`;
 
         const response = await fetch(url, {
@@ -61,7 +61,7 @@ export async function PUT(
 
         const { cookingMethodId, nutrientId } = await params;
         const body = await request.json();
-        const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
+        const baseUrl = API_BASE_URL.endsWith('/api/v1') ? API_BASE_URL : `${API_BASE_URL}/api/v1`;
         const url = `${baseUrl}/cooking-method-nutrients/${cookingMethodId}/${nutrientId}`;
 
         const response = await fetch(url, {
@@ -106,7 +106,7 @@ export async function DELETE(
         }
 
         const { cookingMethodId, nutrientId } = await params;
-        const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
+        const baseUrl = API_BASE_URL.endsWith('/api/v1') ? API_BASE_URL : `${API_BASE_URL}/api/v1`;
         const url = `${baseUrl}/cooking-method-nutrients/${cookingMethodId}/${nutrientId}`;
 
         const response = await fetch(url, {
