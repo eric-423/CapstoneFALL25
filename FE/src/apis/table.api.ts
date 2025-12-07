@@ -1,96 +1,156 @@
 export interface TableData {
-    id: number;
-    name: string;
-    isActive: boolean;
-    seat: number;
-    note: string;
-    branchId: number;
-    currentOrder: CurrentOrder | null;
-    orders: CurrentOrder[];
+  id: number;
+  name: string;
+  isActive: boolean;
+  seat: number;
+  note: string;
+  branchId: number;
+  currentOrder: CurrentOrder | null;
+  orders: CurrentOrder[];
 }
 
 export interface CurrentOrder {
+  id: number;
+  subTotal: number;
+  promotionCode: string | null;
+  discountValue: number | null;
+  discountPercent: number | null;
+  amount: number;
+  shippingFee: number | null;
+  isPickUp: boolean;
+  isTable: boolean;
+  delivery_at: string | null;
+  orderStatus: string;
+  note: string;
+  payment_code: string | null;
+  address: string;
+  phone: string;
+  pointUsed: number;
+  pointEarned: number;
+  createdAt: string;
+  orderItems: OrderItem[];
+  customerDTO: {
     id: number;
-    subTotal: number;
-    promotionCode: string | null;
-    discountValue: number | null;
-    discountPercent: number | null;
-    amount: number;
-    shippingFee: number | null;
-    isPickUp: boolean;
-    isTable: boolean;
-    delivery_at: string | null;
-    orderStatus: string;
-    note: string;
-    payment_code: string | null;
-    address: string;
-    phone: string;
-    pointUsed: number;
-    pointEarned: number;
-    createdAt: string;
-    orderItems: OrderItem[];
-    customerDTO: {
-        id: number;
-        fullName: string;
-        email: string | null;
-        phone: string | null;
-        address: string | null;
-        isActive: boolean | null;
-        dateOfBirth: string | null;
-        createdAt: string | null;
-        memberPoint: number | null;
-        memberRank: string | null;
-    };
-    pickupTime: string | null;
-    customerName: string;
-    status: string;
-    paymentUrl: string | null;
+    fullName: string;
+    email: string | null;
+    phone: string | null;
+    address: string | null;
+    isActive: boolean | null;
+    dateOfBirth: string | null;
+    createdAt: string | null;
+    memberPoint: number | null;
+    memberRank: string | null;
+  };
+  pickupTime: string | null;
+  customerName: string;
+  status: string;
+  paymentUrl: string | null;
 }
 
 export interface OrderItem {
-    orderItemId: number;
-    productId: number;
-    productName: string;
-    orderId: number;
-    quantity: number;
+  orderItemId: number;
+  productId: number;
+  productName: string;
+  orderId: number;
+  quantity: number;
+  price: number;
+  note: string | null;
+  feedback: string | null;
+  feedbackPoint: number;
+  expiredFeedbackTime: string | null;
+  productImg: string;
+  comboDTO: {
+    id: number;
+    name: string;
+    description: string;
     price: number;
-    note: string | null;
-    feedback: string | null;
-    feedbackPoint: number;
-    expiredFeedbackTime: string | null;
-    productImg: string;
-    comboDTO: {
-        id: number;
-        name: string;
-        description: string;
-        price: number;
-        startDate: string;
-        endDate: string;
-        branchId: number;
-        comboItems: Array<{
-            productId: number;
-            comboId: number;
-            quantity: number;
-            note: string;
-        }>;
-        active: boolean;
-    } | null;
-    isConfirmed: boolean;
-    confirmAt: string | null;
-    isDelivered: boolean;
-    deliveredAt: string | null;
-    cookedAt: string | null;
-    isCooked: boolean;
-    feedBackYet: boolean;
+    startDate: string;
+    endDate: string;
+    branchId: number;
+    comboItems: Array<{
+      productId: number;
+      comboId: number;
+      quantity: number;
+      note: string;
+    }>;
+    active: boolean;
+  } | null;
+  isConfirmed: boolean;
+  confirmAt: string | null;
+  isDelivered: boolean;
+  deliveredAt: string | null;
+  cookedAt: string | null;
+  isCooked: boolean;
+  feedBackYet: boolean;
+}
+
+export interface CreateTableRequest {
+  name: string;
+  isActive: boolean;
+  seat: number;
+  note: string;
+  branchId: number;
+}
+
+export interface UpdateTableRequest {
+  name?: string;
+  isActive?: boolean;
+  seat?: number;
+  note?: string;
+  branchId?: number;
 }
 
 export const getTableById = async (tableId: string): Promise<TableData> => {
-    const response = await fetch(`/api/table/${tableId}`);
+  const response = await fetch(`/api/table/${tableId}`);
 
-    if (!response.ok) {
-        throw new Error('Failed to fetch table data');
-    }
+  if (!response.ok) {
+    throw new Error("Failed to fetch table data");
+  }
 
-    const data = await response.json();
-    return data;
+  const data = await response.json();
+  return data;
+};
+
+export const createTable = async (
+  tableData: CreateTableRequest
+): Promise<TableData> => {
+  const response = await fetch("/api/table/add", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify(tableData),
+  });
+
+  if (!response.ok) {
+    const errorData = await response
+      .json()
+      .catch(() => ({ error: "Failed to create table" }));
+    throw new Error(
+      errorData.message || errorData.error || "Failed to create table"
+    );
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+export const deactivateTable = async (tableId: number): Promise<void> => {
+  const response = await fetch(`/api/table/inactive/${tableId}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    const errorData = await response
+      .json()
+      .catch(() => ({ error: "Failed to deactivate table" }));
+    throw new Error(
+      errorData.message || errorData.error || "Failed to deactivate table"
+    );
+  }
 };

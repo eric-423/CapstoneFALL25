@@ -261,29 +261,23 @@ export default function AdminLayout({
               <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent"></div>
               <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#F8A91F]/20 rounded-full blur-3xl"></div>
               <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
-
               {!isCollapsed && (
-                <div
-                  className={`relative z-10 flex-shrink-0 transition-all duration-200`}
-                >
-                  <Image
-                    src={logo.src}
-                    alt="logo"
-                    width={100}
-                    height={100}
-                    className="transition-all duration-200"
-                  />
-                </div>
+                <>
+                  <div className="relative z-10 flex-1 min-w-0 transition-opacity duration-150"></div>
+                  <div
+                    className={`relative z-10 flex-shrink-0 transition-all duration-200`}
+                  >
+                    <Image
+                      src={logo.src}
+                      alt="logo"
+                      width={120}
+                      height={100}
+                      className="transition-all duration-200"
+                    />
+                  </div>
+                  <div className="relative z-10 flex-1 min-w-0 transition-opacity duration-150"></div>
+                </>
               )}
-
-              {!isCollapsed && (
-                <div className="relative z-10 flex-1 min-w-0 transition-opacity duration-150">
-                  <p className="text-[15px] text-white/100 font-semibold tracking-widest uppercase text-center">
-                    Quản trị viên
-                  </p>
-                </div>
-              )}
-
               <div
                 className={`relative z-10 flex items-center ${isCollapsed ? "justify-center" : "gap-2"}`}
               >
@@ -368,7 +362,7 @@ export default function AdminLayout({
             </div>
           </aside>
           <main
-            className={`flex-1 w-full bg-[#EFE6DB] min-w-0 transition-[margin] duration-200 ease-out will-change-[margin] ${isCollapsed ? "lg:ml-20" : "lg:ml-56 xl:ml-64"}`}
+            className={`flex-1 w-full bg-white min-w-0 transition-[margin] duration-200 ease-out will-change-[margin] ${isCollapsed ? "lg:ml-20" : "lg:ml-56 xl:ml-64"}`}
           >
             <div className="lg:hidden sticky top-0 z-30 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 shadow-sm">
               <button
