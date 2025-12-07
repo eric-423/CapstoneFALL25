@@ -63,10 +63,10 @@ public class OpenApiConfig {
                                                                 .url("http://localhost:8080")
                                                                 .description("Local Server"),
                                                 new Server()
-                                                                .url("https://tam-tac.com")
+                                                                .url("https://tam-tac.com/api/v1")
                                                                 .description("Production Server"),
                                                 new Server()
-                                                        .url("http://104.214.186.132:8080")
+                                                        .url("http://104.214.186.132:8080/api/v1")
                                                         .description("Development Server")))
 
                                 .components(new Components()
