@@ -29,14 +29,16 @@ import { getAllUsers, type UserSearchRequest } from "@/apis/user.api";
 import { banUser, unbanUser, type User } from "@/apis/admin-user.api";
 import { getBranches, type Branch } from "@/apis/branch.api";
 import { getRoles, type Role } from "@/apis/role.api";
-import { UserFormDialog } from "./components/UserFormDialog";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { RolesManagementModal } from "./components/RolesManagementModal";
 import { FilterDropdown } from "@/components/common/FilterDropdown";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import useAuth from "@/utils/hooks/useAuth";
+import { UserFormDialog } from "./components/UserFormDialog";
 
 export default function UsersManagementPage() {
+  const router = useRouter();
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -53,8 +55,6 @@ export default function UsersManagementPage() {
   const [pageSize] = useState(10);
   const [sortBy, setSortBy] = useState("id");
   const [sortDirection, setSortDirection] = useState<"ASC" | "DESC">("ASC");
-  const [showDialog, setShowDialog] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
   const [showRolesModal, setShowRolesModal] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
@@ -171,13 +171,11 @@ export default function UsersManagementPage() {
   }, [fetchUsers]);
 
   const handleCreateUser = () => {
-    setEditingUser(null);
-    setShowDialog(true);
+    router.push("/admin/users/create");
   };
 
   const handleEditUser = (user: User) => {
-    setEditingUser(user);
-    setShowDialog(true);
+    router.push(`/admin/users/${user.id}/edit`);
   };
 
   const handleConfirmAction = async () => {
@@ -212,9 +210,6 @@ export default function UsersManagementPage() {
     }
   };
 
-  const handleDialogSuccess = () => {
-    fetchUsers();
-  };
   const handleClearFilters = () => {
     setSearchKeyword("");
     setDebouncedSearchKeyword("");
@@ -224,7 +219,6 @@ export default function UsersManagementPage() {
     setCurrentPage(0);
   };
 
-  // Handle page change
   const handlePageChange = (newPage: number) => {
     if (newPage >= 0 && newPage < totalPages) {
       setCurrentPage(newPage);
@@ -405,7 +399,7 @@ export default function UsersManagementPage() {
         ) : users.length === 0 ? (
           <div className="p-12 text-center text-[#2D1E1A]/70">
             <Users className="h-16 w-16 mx-auto mb-4 text-[#78A243]/30" />
-            <p className="font-semibold">Đảng tìm thấy người dùng nào</p>
+            <p className="font-semibold">Không tìm thấy người dùng nào</p>
           </div>
         ) : (
           <>
@@ -700,12 +694,6 @@ export default function UsersManagementPage() {
           </>
         )}
       </Card>
-      <UserFormDialog
-        open={showDialog}
-        onOpenChange={setShowDialog}
-        user={editingUser}
-        onSuccess={handleDialogSuccess}
-      />
       <ConfirmDialog
         open={confirmDialog.open}
         onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}
