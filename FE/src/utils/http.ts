@@ -1,5 +1,4 @@
 import configs from "@/utils/configs";
-import { apiBaseURL } from "@/utils/configs/environment";
 
 import axios, { AxiosError, AxiosInstance } from "axios";
 
@@ -21,7 +20,7 @@ class Http {
   instance: AxiosInstance;
 
   constructor() {
-    const baseURL = apiBaseURL || "http://localhost:8080";
+    const baseURL = process.env.NEXT_PUBLIC_API_URL;
 
     this.instance = axios.create({
       baseURL: baseURL,
