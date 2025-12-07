@@ -564,7 +564,7 @@ export function OrdersBoard({ variant }: OrdersBoardProps) {
                                                     )}
                                                     {order.isPickUp && (
                                                         <Badge className="bg-purple-100 text-purple-700 border-purple-200 border-2 px-3 py-1 text-xs font-bold rounded-lg">
-                                                            Mang đi
+                                                            Nhận tại quán
                                                         </Badge>
                                                     )}
                                                     {!order.isTable && !order.isPickUp && (
@@ -837,7 +837,7 @@ function StaffOrderDetailDialog({
                                 )}
                                 {selectedOrder.isPickUp && (
                                     <Badge className="bg-purple-50 text-purple-700 border-purple-200 border-2 px-3 py-1 text-xs font-semibold rounded-xl">
-                                        Mang đi
+                                        Nhận tại quán
                                     </Badge>
                                 )}
                                 {!selectedOrder.isTable && !selectedOrder.isPickUp && (

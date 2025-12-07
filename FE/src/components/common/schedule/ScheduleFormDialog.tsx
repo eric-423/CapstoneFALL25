@@ -38,10 +38,6 @@ const formatTimeForInput = (time?: string | null) => {
   return time.length >= 5 ? time.slice(0, 5) : time;
 };
 
-const formatTimeForPayload = (time: string) => {
-  if (!time) return time;
-  return time.length === 5 ? `${time}:00` : time;
-};
 
 export function ScheduleFormDialog({
   open,
@@ -61,8 +57,6 @@ export function ScheduleFormDialog({
       : schedule?.date
         ? schedule.date.split('T')[0]
         : '',
-    startTime: formatTimeForInput(schedule?.startTime) || '',
-    endTime: formatTimeForInput(schedule?.endTime) || '',
     shiftId: (schedule as Schedule & { shiftId?: number })?.shiftId || 0,
   });
 
@@ -79,14 +73,6 @@ export function ScheduleFormDialog({
 
     if (scheduleDate < today) return true;
 
-    if (scheduleDate.getTime() === today.getTime() && schedule.endTime) {
-      const [hours, minutes] = schedule.endTime.split(':');
-      const endTime = new Date();
-      endTime.setHours(parseInt(hours || '0'), parseInt(minutes || '0'), 0, 0);
-      const now = new Date();
-      if (now > endTime) return true;
-    }
-
     return false;
   }, [schedule]);
 
@@ -101,8 +87,7 @@ export function ScheduleFormDialog({
           : schedule?.date
             ? schedule.date.split('T')[0]
             : '',
-        startTime: formatTimeForInput(schedule?.startTime) || '',
-        endTime: formatTimeForInput(schedule?.endTime) || '',
+
         shiftId: (schedule as Schedule & { shiftId?: number })?.shiftId || 0,
       });
 
@@ -149,39 +134,8 @@ export function ScheduleFormDialog({
       return;
     }
 
-    // Kiểm tra các trường có giá trị
     const hasDate = formData.date && formData.date.trim() !== '';
     const hasShiftId = formData.shiftId && formData.shiftId > 0;
-    const hasStartTime = formData.startTime && formData.startTime.trim() !== '';
-    const hasEndTime = formData.endTime && formData.endTime.trim() !== '';
-    const hasTime = hasStartTime && hasEndTime;
-
-    if (hasShiftId && hasTime) {
-      toast.error('Vui lòng chỉ chọn ca làm việc hoặc nhập thời gian, không được chọn cả hai');
-      return;
-    }
-
-    if (!hasTime) {
-      if (!hasDate && !hasShiftId) {
-        toast.error('Vui lòng chọn ngày hoặc ca làm việc');
-        return;
-      }
-    }
-
-    if (hasStartTime && hasEndTime) {
-      const startParts = formData.startTime.split(':');
-      const endParts = formData.endTime.split(':');
-      const startMinutes = parseInt(startParts[0]) * 60 + parseInt(startParts[1] || '0');
-      const endMinutes = parseInt(endParts[0]) * 60 + parseInt(endParts[1] || '0');
-
-      if (startMinutes === endMinutes) {
-        toast.error('Thời gian bắt đầu và kết thúc không được giống nhau');
-        return;
-      }
-    } else if (hasStartTime || hasEndTime) {
-      toast.error('Vui lòng nhập đầy đủ thời gian bắt đầu và kết thúc');
-      return;
-    }
 
     if (hasDate) {
       const selectedDateObj = new Date(formData.date);
@@ -208,24 +162,12 @@ export function ScheduleFormDialog({
         payload.date = formData.date;
       }
 
-      if (hasTime) {
-        if (formData.startTime) {
-          payload.startTime = formatTimeForPayload(formData.startTime);
-        }
-        if (formData.endTime) {
-          payload.endTime = formatTimeForPayload(formData.endTime);
-        }
-        payload.shiftId = 0;
-      } else {
-        if (hasShiftId) {
-          payload.shiftId = formData.shiftId;
-        }
+      if (hasShiftId) {
+        payload.shiftId = formData.shiftId;
       }
 
       await onSubmit(payload);
-      toast.success(
-        schedule ? 'Cập nhật lịch trình thành công!' : 'Tạo lịch trình thành công!'
-      );
+
       onOpenChange(false);
     } catch (error: unknown) {
       console.error('Error submitting schedule:', error);
@@ -342,49 +284,7 @@ export function ScheduleFormDialog({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="startTime" className="font-semibold text-gray-800">
-                  Giờ bắt đầu {!isViewOnly && <span className="text-gray-400 text-xs">(tùy chọn)</span>}
-                </Label>
-                <Input
-                  id="startTime"
-                  type="time"
-                  value={formData.startTime}
-                  onChange={(e) => {
-                    const newStartTime = e.target.value;
-                    setFormData({
-                      ...formData,
-                      startTime: newStartTime,
-                      shiftId: 0
-                    });
-                  }}
-                  disabled={isViewOnly}
-                  className="focus:border-[#78A243] focus:ring-[#78A243]/20"
-                />
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="endTime" className="font-semibold text-gray-800">
-                  Giờ kết thúc {!isViewOnly && <span className="text-gray-400 text-xs">(tùy chọn)</span>}
-                </Label>
-                <Input
-                  id="endTime"
-                  type="time"
-                  value={formData.endTime}
-                  onChange={(e) => {
-                    const newEndTime = e.target.value;
-                    setFormData({
-                      ...formData,
-                      endTime: newEndTime,
-                      shiftId: 0
-                    });
-                  }}
-                  disabled={isViewOnly}
-                  className="focus:border-[#78A243] focus:ring-[#78A243]/20"
-                />
-              </div>
-            </div>
 
             <div className="space-y-2">
               <Label htmlFor="shiftId" className="font-semibold text-gray-800">
@@ -397,8 +297,6 @@ export function ScheduleFormDialog({
                   setFormData({
                     ...formData,
                     shiftId: newShiftId,
-                    startTime: '',
-                    endTime: ''
                   });
                 }}
                 disabled={isViewOnly}

@@ -193,11 +193,10 @@ export function ScheduleManagement({
 
     const handleSubmit = async (data: CreateScheduleData | UpdateScheduleData) => {
         try {
-            // Nếu là admin và có chọn chi nhánh, thêm branchId vào payload
-            const payload: CreateScheduleData | UpdateScheduleData | (CreateScheduleData & { branchId?: number }) | (UpdateScheduleData & { branchId?: number }) = { ...data };
-            if (isAdmin && selectedBranchId) {
-                (payload as CreateScheduleData & { branchId?: number }).branchId = selectedBranchId;
-            }
+            // Tạo payload và xóa startTime và endTime (backend không cần)
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { startTime, endTime, ...dataWithoutTime } = data;
+            const payload: CreateScheduleData | UpdateScheduleData = { ...dataWithoutTime };
 
             if (editingSchedule) {
                 setSchedules(prev => prev.map(s =>
@@ -222,14 +221,11 @@ export function ScheduleManagement({
                 const createResponse = await createSchedule(payload as CreateScheduleData);
                 console.log('Create schedule response:', createResponse);
 
-                // Kiểm tra nếu có lỗi từ API
                 if (createResponse.status !== 0 && createResponse.status !== 200) {
-                    // Xóa tempSchedule khỏi state vì tạo thất bại
                     setSchedules(prev => prev.filter(s => s.id !== tempSchedule.id));
-                    
-                    // Xác định thông báo lỗi phù hợp
+
                     const errorDesc = createResponse.desc || '';
-                    if (errorDesc.includes('Schedule for this user, shift and date already exists') || 
+                    if (errorDesc.includes('Schedule for this user, shift and date already exists') ||
                         errorDesc.includes('already exists')) {
                         throw new Error('Nhân viên đã có lịch trình trong ca này');
                     } else {
@@ -244,8 +240,8 @@ export function ScheduleManagement({
             setSelectedUserId(undefined);
         } catch (error) {
             await fetchSchedules();
-            console.error('Failed to save schedule:', error);
-            toast.error('Không thể lưu lịch trình');
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            toast.error(errorMessage);
         }
     };
 

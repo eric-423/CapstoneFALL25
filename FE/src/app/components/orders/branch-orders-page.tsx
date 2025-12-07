@@ -25,6 +25,12 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
     Dialog,
     DialogContent,
     DialogDescription,
@@ -48,6 +54,7 @@ import {
     CreditCard,
     Building2,
     ChefHat,
+    ChevronDown,
 } from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -138,6 +145,16 @@ const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat("vi-VN").format(amount) + "đ";
 };
 
+const getOrderTypeLabel = (type: string): string => {
+    const typeMap: Record<string, string> = {
+        ALL: "Tất cả loại",
+        PICKUP: "Nhận tại quán",
+        TABLE: "Dùng tại bàn",
+        DELIVERY: "Giao hàng",
+    };
+    return typeMap[type] || type;
+};
+
 
 
 const focusBarcodeScanner = () => {
@@ -192,6 +209,7 @@ export function BranchOrdersPage({ variant }: BranchOrdersPageProps) {
 
     const [orderStatuses, setOrderStatuses] = useState<string[]>([]);
     const [selectedStatus, setSelectedStatus] = useState<string>("ALL");
+    const [orderTypeFilter, setOrderTypeFilter] = useState<string>("ALL");
     const [orders, setOrders] = useState<BranchOrderResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const [assigningShipper, setAssigningShipper] = useState<Set<number>>(
@@ -457,22 +475,45 @@ export function BranchOrdersPage({ variant }: BranchOrdersPageProps) {
         window.addEventListener("afterprint", afterPrint);
     };
 
+    const filteredOrders = useMemo(() => {
+        if (orderTypeFilter === "ALL") {
+            return orders;
+        }
+
+        return orders.filter((order) => {
+            const isPickUp = order.pickUp;
+            const isTable = order.table;
+
+            switch (orderTypeFilter) {
+                case "PICKUP":
+                    return isPickUp === true;
+                case "TABLE":
+                    return isTable === true;
+                case "DELIVERY":
+                    return !isPickUp && !isTable;
+                default:
+                    return true;
+            }
+        });
+
+    }, [orders, orderTypeFilter]);
+
     const stats = useMemo(() => {
-        const total = orders.length;
-        const inProcess = orders.filter((o) =>
+        const total = filteredOrders.length;
+        const inProcess = filteredOrders.filter((o) =>
             ["IN_PROCESS", "PROCESSING", "COOKING", "COOKED"].includes(o.orderStatus)
         ).length;
-        const delivering = orders.filter((o) =>
+        const delivering = filteredOrders.filter((o) =>
             ["DELIVERING", "SHIPPING", "DELIVERED"].includes(o.orderStatus)
         ).length;
-        const completed = orders.filter((o) => o.orderStatus === "COMPLETED")
+        const completed = filteredOrders.filter((o) => o.orderStatus === "COMPLETED")
             .length;
-        const totalRevenue = orders.reduce((sum, o) => sum + o.amount, 0);
+        const totalRevenue = filteredOrders.reduce((sum, o) => sum + o.amount, 0);
         return { total, inProcess, delivering, completed, totalRevenue };
-    }, [orders]);
+    }, [filteredOrders]);
 
     const shouldShowInitialLoader = loading && orders.length === 0;
-    const shouldShowEmptyState = !shouldShowInitialLoader && orders.length === 0;
+    const shouldShowEmptyState = !shouldShowInitialLoader && filteredOrders.length === 0;
 
     return (
         <>
@@ -513,20 +554,57 @@ export function BranchOrdersPage({ variant }: BranchOrdersPageProps) {
                     </AdminStatsGrid>
 
                     <Card className="p-4 sm:p-6 bg-[#FDE3CF]/70 border-0 shadow-sm rounded-xl">
-                        <div className="flex flex-wrap gap-2 mb-6">
-                            {orderStatuses.map((status) => (
-                                <Button
-                                    key={status}
-                                    onClick={() => setSelectedStatus(status)}
-                                    variant={selectedStatus === status ? "default" : "outline"}
-                                    className={`transition-all duration-300 rounded-xl font-semibold whitespace-nowrap px-4 py-2 ${selectedStatus === status
-                                        ? "bg-[#EC6426] text-white border-0 shadow-md hover:from-[#E05522] hover:to-[#E6991A]"
-                                        : "border-2 border-[#EC6426]/30 text-[#EC6426] bg-white hover:border-[#EC6426] hover:bg-[#EC6426]/5"
-                                        }`}
-                                >
-                                    {getStatusLabel(status)}
-                                </Button>
-                            ))}
+                        <div className="flex flex-col gap-4 mb-6">
+                            <div className="flex flex-wrap gap-2 items-center justify-between">
+                                <div className="flex flex-wrap gap-2 items-center">
+                                    {orderStatuses.map((status) => (
+                                        <Button
+                                            key={status}
+                                            onClick={() => setSelectedStatus(status)}
+                                            variant={selectedStatus === status ? "default" : "outline"}
+                                            className={`transition-all duration-300 rounded-xl font-semibold whitespace-nowrap px-4 py-2 ${selectedStatus === status
+                                                ? "bg-[#EC6426] text-white border-0 shadow-md hover:from-[#E05522] hover:to-[#E6991A]"
+                                                : "border-2 border-[#EC6426]/30 text-[#EC6426] bg-white hover:border-[#EC6426] hover:bg-[#EC6426]/5"
+                                                }`}
+                                        >
+                                            {getStatusLabel(status)}
+                                        </Button>
+                                    ))}
+                                </div>
+                                {isManager && (
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild className="min-w-[130px]" >
+                                            <Button
+                                                variant="outline"
+                                                className="transition-all duration-300 text-sm font-semibold  px-4 py-2 border-2 bg-white "
+                                            >
+                                                {getOrderTypeLabel(orderTypeFilter)}
+                                                <ChevronDown className="ml-2 h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end" className="min-w-[130px]">
+                                            <DropdownMenuItem
+                                                onClick={() => setOrderTypeFilter("ALL")}
+                                                className={`cursor-pointer ${orderTypeFilter === "ALL" ? "bg-blue-50 font-semibold" : ""}`}
+                                            >
+                                                Tất cả loại
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem
+                                                onClick={() => setOrderTypeFilter("PICKUP")}
+                                                className={`cursor-pointer ${orderTypeFilter === "PICKUP" ? "bg-blue-50 font-semibold" : ""}`}
+                                            >
+                                                Nhận tại quán
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem
+                                                onClick={() => setOrderTypeFilter("DELIVERY")}
+                                                className={`cursor-pointer ${orderTypeFilter === "DELIVERY" ? "bg-blue-50 font-semibold" : ""}`}
+                                            >
+                                                Giao hàng
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                )}
+                            </div>
                         </div>
 
                         {shouldShowInitialLoader ? (
@@ -548,7 +626,7 @@ export function BranchOrdersPage({ variant }: BranchOrdersPageProps) {
                             </div>
                         ) : (
                             <div className="space-y-4">
-                                {orders.map((order) => (
+                                {filteredOrders.map((order) => (
                                     <Card
                                         key={order.id}
                                         className="p-4 sm:p-6 border-2 border-gray-100 hover:border-[#EC6426]/30 hover:shadow-lg transition-all duration-300 rounded-xl"
@@ -569,22 +647,24 @@ export function BranchOrdersPage({ variant }: BranchOrdersPageProps) {
                                                             {getStatusLabel(order.orderStatus)}
                                                         </Badge>
                                                     </div>
-                                                    {order.isTable || order.table && (
+
+                                                    {(order.isTable === true || order.table === true) && (
                                                         <Badge className="bg-blue-100 text-blue-700 border-blue-200 border-2 px-3 py-1 text-xs font-bold rounded-lg">
                                                             Dùng tại bàn
                                                         </Badge>
                                                     )}
-                                                    {order.isPickUp || order.pickUp && (
+                                                    {(order.isPickUp === true || order.pickUp === true) && (
                                                         <Badge className="bg-purple-100 text-purple-700 border-purple-200 border-2 px-3 py-1 text-xs font-bold rounded-lg">
                                                             Nhận tại quán
                                                         </Badge>
                                                     )}
-                                                    {!order.isTable && !order.isPickUp && !order.table && !order.pickUp && (
+                                                    {(!order.isTable && !order.isPickUp && !order.table && !order.pickUp) && (
                                                         <Badge className="bg-green-100 text-green-700 border-green-200 border-2 px-3 py-1 text-xs font-bold rounded-lg">
                                                             <Truck size={12} className="mr-1" />
                                                             Giao hàng
                                                         </Badge>
                                                     )}
+
                                                 </div>
 
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -817,7 +897,7 @@ export function BranchOrdersPage({ variant }: BranchOrdersPageProps) {
                                             )}
                                             {selectedOrder.isPickUp && (
                                                 <Badge className="bg-purple-50 text-purple-700 border-purple-200 border-2 px-3 py-1 text-xs font-semibold rounded-xl">
-                                                    Mang đi
+                                                    Nhận tại quán
                                                 </Badge>
                                             )}
                                             {!selectedOrder.isTable && !selectedOrder.isPickUp && (
