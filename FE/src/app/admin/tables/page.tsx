@@ -24,15 +24,28 @@ import {
 import { AdminCard } from "../components/AdminCard";
 import { FilterDropdown } from "@/components/common/FilterDropdown";
 import { getBranches, type Branch, getTablesByBranch } from "@/apis/branch.api";
-import { type TableData } from "@/apis/table.api";
+import { type TableData, deactivateTable } from "@/apis/table.api";
+import { useRouter } from "next/navigation";
+import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 
 export default function TablesManagementPage() {
+  const router = useRouter();
   const [tables, setTables] = useState<TableData[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [branchFilter, setBranchFilter] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    tableId: number;
+    tableName: string;
+  }>({
+    open: false,
+    tableId: 0,
+    tableName: "",
+  });
+  const [actionLoading, setActionLoading] = useState(false);
 
   const fetchBranches = useCallback(async () => {
     try {
@@ -104,6 +117,61 @@ export default function TablesManagementPage() {
     setStatusFilter("");
   };
 
+  const handleDeactivateTable = (tableId: number, tableName: string) => {
+    setConfirmDialog({
+      open: true,
+      tableId,
+      tableName,
+    });
+  };
+
+  const handleConfirmDeactivate = async () => {
+    try {
+      setActionLoading(true);
+      await deactivateTable(confirmDialog.tableId);
+      toast.success(
+        `Đã vô hiệu hóa bàn "${confirmDialog.tableName}" thành công!`
+      );
+      await fetchTables();
+      setConfirmDialog({
+        open: false,
+        tableId: 0,
+        tableName: "",
+      });
+    } catch (error) {
+      console.error("Failed to deactivate table:", error);
+      let errorMessage = "Không thể vô hiệu hóa bàn. Vui lòng thử lại!";
+      if (
+        error &&
+        typeof error === "object" &&
+        "response" in error &&
+        error.response &&
+        typeof error.response === "object" &&
+        "data" in error.response &&
+        error.response.data &&
+        typeof error.response.data === "object"
+      ) {
+        const errorData = error.response.data as {
+          desc?: string;
+          message?: string;
+          error?: string;
+        };
+        if (errorData.desc) {
+          errorMessage = errorData.desc;
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
+        } else if (errorData.error) {
+          errorMessage = errorData.error;
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      toast.error(errorMessage);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const filteredTables = tables.filter((table) => {
     const matchesKeyword =
       !searchKeyword ||
@@ -133,8 +201,7 @@ export default function TablesManagementPage() {
         actions={
           <Button
             className="bg-[#78A243] hover:bg-[#78A243]/90 text-white shadow-md hover:shadow-lg transition-all"
-            disabled
-            title="Tính năng đang phát triển"
+            onClick={() => router.push("/admin/tables/new")}
           >
             <Plus className="h-4 w-4 mr-2" />
             Thêm bàn ăn
@@ -319,8 +386,8 @@ export default function TablesManagementPage() {
                       ? "text-red-600 border-red-300 hover:bg-red-50"
                       : "text-[#78A243] border-[#78A243]/30 hover:bg-[#78A243]/10"
                   }`}
-                  disabled
-                  title="Tính năng đang phát triển"
+                  disabled={!table.isActive || actionLoading}
+                  onClick={() => handleDeactivateTable(table.id, table.name)}
                 >
                   {table.isActive ? (
                     <>
@@ -339,6 +406,25 @@ export default function TablesManagementPage() {
           ))
         )}
       </div>
+      <ConfirmDialog
+        open={confirmDialog.open}
+        onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}
+        onConfirm={handleConfirmDeactivate}
+        title="Vô hiệu hóa bàn ăn"
+        content={
+          <span>
+            Bạn có chắc chắn muốn vô hiệu hóa bàn{" "}
+            <span className="font-bold text-gray-900">
+              &quot;{confirmDialog.tableName}&quot;
+            </span>
+            ?
+          </span>
+        }
+        alertMessage="Bàn đã vô hiệu hóa sẽ không thể sử dụng cho đơn hàng mới."
+        confirmText="Vô hiệu hóa"
+        variant="destructive"
+        loading={actionLoading}
+      />
     </AdminPageLayout>
   );
 }
