@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
-const API_BASE_URL = 'https://tam-tac.com';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://tam-tac.com/api/v1';
 
 export async function POST(request: NextRequest) {
     try {
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
 
         const body = await request.json();
 
-        const response = await fetch(`${API_BASE_URL}/api/promotions/create`, {
+        const response = await fetch(`${API_BASE_URL}/promotions/create`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

@@ -15,7 +15,7 @@ export async function GET() {
       );
     }
 
-    const response = await fetch(`${API_BASE_URL}/api/promotion-types`, {
+    const response = await fetch(`${API_BASE_URL}/promotion-types`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
