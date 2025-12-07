@@ -16,7 +16,7 @@ export async function GET() {
     }
 
     const response = await fetch(
-      `${API_BASE_URL}/api/promotions/customer/available`,
+      `${API_BASE_URL}/promotions/customer/available`,
       {
         method: "GET",
         headers: {
