@@ -207,6 +207,7 @@ public class SecurityConfig {
                         .requestMatchers("/payment-method").permitAll()
                         .requestMatchers("/orders/shipping/fee").permitAll()
                         .requestMatchers("/orders/payment/webhook").permitAll()
+                        .requestMatchers("/orders/payment/cancel").permitAll()
                         .requestMatchers("/orders/dining-table/create").permitAll()
                         .requestMatchers("/orders/dining-table/update/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()

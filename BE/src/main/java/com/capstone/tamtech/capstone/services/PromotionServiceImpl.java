@@ -158,29 +158,25 @@ public class PromotionServiceImpl implements PromotionService {
     }
 
     private boolean isPromotionDateValid(Promotion promotion) {
-        try {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
             Date now = new Date();
-            System.out.println(now);
 
-            if (promotion.getStartDate() != null && !promotion.getStartDate().isEmpty()) {
-                Date startDate = sdf.parse(promotion.getStartDate());
+            if (promotion.getStartDate() != null) {
+                Date startDate = promotion.getStartDate();
                 if (now.before(startDate)) {
                     return false;
                 }
             }
 
-            if (promotion.getEndDate() != null && !promotion.getEndDate().isEmpty()) {
-                Date endDate = sdf.parse(promotion.getEndDate());
+            if (promotion.getEndDate() != null) {
+                Date endDate = promotion.getEndDate();
                 if (now.after(endDate)) {
                     return false;
                 }
             }
 
             return true;
-        } catch (ParseException e) {
-            return false;
-        }
+
     }
 
     @Override
