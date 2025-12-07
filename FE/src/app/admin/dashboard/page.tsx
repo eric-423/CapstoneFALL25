@@ -588,32 +588,43 @@ export default function DashboardTabsPage() {
             </Popover>
           </div>
 
-          <TabsList className="grid w-full grid-cols-4 lg:w-[600px] bg-white/60 h-11 p-1 rounded-xl border border-gray-300">
+          <TabsList className="grid w-full grid-cols-4 lg:w-[600px] bg-white/60 h-11 p-1 rounded-xl border border-gray-300 dashboard-tabs">
             <TabsTrigger
               value="overview"
-              className="h-full rounded-lg data-[state=active]:bg-[#78A243] data-[state=active]:text-white data-[state=active]:shadow-none text-[#2D1E1A]/70 font-medium"
+              className="h-full rounded-lg data-[state=active]:shadow-none text-[#2D1E1A]/70 font-medium transition-colors"
             >
               Tổng quan
             </TabsTrigger>
             <TabsTrigger
               value="products"
-              className="h-full rounded-lg data-[state=active]:bg-[#78A243] data-[state=active]:text-white data-[state=active]:shadow-none text-[#2D1E1A]/70 font-medium"
+              className="h-full rounded-lg data-[state=active]:shadow-none text-[#2D1E1A]/70 font-medium transition-colors"
             >
               Sản phẩm
             </TabsTrigger>
             <TabsTrigger
               value="marketing"
-              className="h-full rounded-lg data-[state=active]:bg-[#78A243] data-[state=active]:text-white data-[state=active]:shadow-none text-[#2D1E1A]/70 font-medium"
+              className="h-full rounded-lg data-[state=active]:shadow-none text-[#2D1E1A]/70 font-medium transition-colors"
             >
               Marketing
             </TabsTrigger>
             <TabsTrigger
               value="operations"
-              className="h-full rounded-lg data-[state=active]:bg-[#78A243] data-[state=active]:text-white data-[state=active]:shadow-none text-[#2D1E1A]/70 font-medium"
+              className="h-full rounded-lg data-[state=active]:shadow-none text-[#2D1E1A]/70 font-medium transition-colors"
             >
               Vận hành
             </TabsTrigger>
           </TabsList>
+          <style
+            dangerouslySetInnerHTML={{
+              __html: `
+              .dashboard-tabs [data-slot="tabs-trigger"][data-state="active"],
+              .dashboard-tabs button[data-state="active"] {
+                background-color: #DA7339 !important;
+                color: white !important;
+              }
+            `,
+            }}
+          />
         </div>
 
         <TabsContent
