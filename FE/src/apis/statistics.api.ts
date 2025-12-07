@@ -81,9 +81,6 @@ export interface TopSellingItems {
   items: SellingItem[];
 }
 
-/**
- * Lấy thống kê doanh thu theo ngày
- */
 export async function getRevenueStatistics(branchId: number, date?: string) {
   const params = new URLSearchParams({ branchId: branchId.toString() });
   if (date) params.append("date", date);
@@ -107,9 +104,6 @@ export async function getRevenueStatistics(branchId: number, date?: string) {
   return result.data as RevenueStatistics;
 }
 
-/**
- * Lấy thống kê số lượng đơn hàng theo ngày
- */
 export async function getOrderCountStatistics(branchId: number, date?: string) {
   const params = new URLSearchParams({ branchId: branchId.toString() });
   if (date) params.append("date", date);
@@ -285,21 +279,23 @@ export async function getTopSellingItems(
     return { items: [] };
   }
 
-  const mappedItems: SellingItem[] = result.data.topItems.map((item: {
-    id: number;
-    name: string;
-    type: "PRODUCT" | "COMBO";
-    quantitySold: number;
-    revenue: number;
-    imageUrl?: string;
-  }) => ({
-    itemId: item.id,
-    itemName: item.name,
-    itemType: item.type,
-    quantitySold: item.quantitySold,
-    totalRevenue: item.revenue,
-    imageUrl: item.imageUrl,
-  }));
+  const mappedItems: SellingItem[] = result.data.topItems.map(
+    (item: {
+      id: number;
+      name: string;
+      type: "PRODUCT" | "COMBO";
+      quantitySold: number;
+      revenue: number;
+      imageUrl?: string;
+    }) => ({
+      itemId: item.id,
+      itemName: item.name,
+      itemType: item.type,
+      quantitySold: item.quantitySold,
+      totalRevenue: item.revenue,
+      imageUrl: item.imageUrl,
+    })
+  );
 
   return { items: mappedItems };
 }

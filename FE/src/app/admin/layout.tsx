@@ -134,7 +134,7 @@ export default function AdminLayout({
 
   const menuItems = useMemo(
     () => [
-      { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/admin/dashboard", label: "Tổng quan", icon: LayoutDashboard },
       { href: "/admin/users", label: "Người dùng", icon: Users },
       { href: "/admin/branches", label: "Chi nhánh", icon: Store },
       { href: "/admin/warehouses", label: "Kho", icon: Warehouse },
@@ -330,18 +330,6 @@ export default function AdminLayout({
             </nav>
             <div className="p-3 sm:p-4 flex-shrink-0 border-t border-white/20 bg-[#EC6426]">
               <Button
-                className={`w-full ${isCollapsed ? "justify-center px-2" : "justify-start gap-3"} hover:bg-[#EC6426]/90 text-white font-semibold transition-all duration-200 hover:shadow-xl py-2.5 sm:py-3 mb-2`}
-                onClick={() => router.push("/admin/training")}
-                title={isCollapsed ? "Khóa học của tôi" : undefined}
-              >
-                <BookOpen size={18} className="flex-shrink-0" />
-                {!isCollapsed && (
-                  <span className="text-sm sm:text-base font-semibold">
-                    Khóa học của tôi
-                  </span>
-                )}
-              </Button>
-              <Button
                 className={`w-full ${isCollapsed ? "justify-center px-2" : "justify-start gap-3"} hover:bg-[#EC6426]/90 text-white font-semibold transition-all duration-200 hover:shadow-xl py-2.5 sm:py-3`}
                 onClick={handleLogout}
                 title={isCollapsed ? "Đăng xuất" : undefined}
@@ -379,7 +367,7 @@ export default function AdminLayout({
               </div>
             </div>
 
-            <div className="p-4 sm:p-6 max-w-full overflow-x-hidden">
+            <div className="p-4 sm:p-6 max-w-full overflow-x-hidden h-[100vh]">
               {children}
             </div>
           </main>
