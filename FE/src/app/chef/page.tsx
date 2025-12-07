@@ -117,15 +117,15 @@ export default function ChefPage() {
             // Update trạng thái các món đã cooked trong order
             setOrders(prev => prev.map(order => {
                if (order.orderId === orderId) {
-                  const updatedOrderItems = order.orderItems.map(item => 
-                     orderItemId.includes(item.orderItemId) 
+                  const updatedOrderItems = order.orderItems.map(item =>
+                     orderItemId.includes(item.orderItemId)
                         ? { ...item, isCooked: true }
                         : item
                   );
-                  
+
                   // Kiểm tra xem tất cả món đã cooked chưa
                   const allCooked = updatedOrderItems.every(item => item.isCooked);
-                  
+
                   // Nếu tất cả món đã cooked, xóa order sau 1 giây
                   if (allCooked) {
                      setTimeout(() => {
@@ -133,7 +133,7 @@ export default function ChefPage() {
                         setCompletedItems(prevItems => prevItems.filter(id => id !== orderId));
                      }, 1000);
                   }
-                  
+
                   return {
                      ...order,
                      orderItems: updatedOrderItems
@@ -141,8 +141,7 @@ export default function ChefPage() {
                }
                return order;
             }));
-            
-            // Xóa khỏi completedItems sau khi update xong
+
             setTimeout(() => {
                setCompletedItems(prev => prev.filter(id => id !== orderId));
             }, 100);
@@ -155,16 +154,6 @@ export default function ChefPage() {
       }
    };
 
-   const formatDate = (dateString: string) => {
-      const date = new Date(dateString);
-      return date.toLocaleString('vi-VN', {
-         day: '2-digit',
-         month: '2-digit',
-         year: 'numeric',
-         hour: '2-digit',
-         minute: '2-digit',
-      });
-   };
 
    const sortByDate = (orders: ChefOrderResponse[]) => {
       return [...orders].sort((a, b) => {
@@ -236,7 +225,6 @@ export default function ChefPage() {
                ) : (
                   <div className='grid gap-4'>
                      {sortByDate(orders).map((order) => {
-                        const firstItem = order.orderItems[0];
                         const totalAmount = getTotalAmount(order);
                         const totalItems = order.orderItems.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -258,14 +246,14 @@ export default function ChefPage() {
                                                 {totalItems} món
                                              </span>
                                           </div>
-                                          {firstItem && (
+                                          {/* {firstItem && (
                                              <div className='mb-1'>
                                                 <span className='font-medium text-sm text-gray-600'>Xác nhận lúc:</span>
                                                 <span className='ml-2 text-sm text-gray-700'>
                                                    {formatDate(firstItem.confirmAt)}
                                                 </span>
                                              </div>
-                                          )}
+                                          )} */}
                                        </div>
 
                                        <Button
@@ -293,58 +281,146 @@ export default function ChefPage() {
                                     <div className='mb-4 space-y-2'>
                                        <p className='text-sm font-medium text-gray-700'>Danh sách món:</p>
                                        <div className='space-y-2'>
-                                          {order.orderItems.map((item, index) => (
-                                             <div key={index} className='flex items-start gap-3 p-3 bg-gray-50 rounded-lg'>
-                                                {item.productImg && (
-                                                   <Image
-                                                      src={item.productImg}
-                                                      alt={item.productName}
-                                                      width={64}
-                                                      height={64}
-                                                      className='w-16 h-16 object-cover rounded'
-                                                   />
-                                                )}
-                                                <div className='flex-1'>
-                                                   <div className='flex items-center justify-between gap-4'>
-                                                      <p className='font-medium text-gray-800'>
-                                                         {item.productName}
-                                                      </p>
-                                                      <div className='flex items-center gap-3'>
-                                                         <p className='text-md text-primary text-bold'>
-                                                            {item.price.toLocaleString('vi-VN')} đ × {item.quantity}
-                                                         </p>
+                                          {(() => {
+                                             // Tách items có combo và không có combo
+                                             const comboItems = order.orderItems.filter(item => item.comboDTO);
+                                             const regularItems = order.orderItems.filter(item => !item.comboDTO);
+                                             const processedComboIds = new Set<number>();
 
-                                                         {
-                                                            item.isCooked ? (
-                                                               <Badge className='bg-gray-100 text-green-800 border-green-200'>Đã hoàn thành</Badge>
-                                                            ) : (
-                                                               <Button
-                                                                  size='sm'
-                                                                  className='bg-green-600 hover:bg-green-700 text-white whitespace-nowrap'
-                                                                  onClick={() => handleMarkAsCompleted(order.orderId, [item.orderItemId])}
-                                                               >
-                                                                  Hoàn thành
-                                                               </Button>
-                                                            )
-                                                         }
+                                             return (
+                                                <>
+                                                   {/* Hiển thị combo items */}
+                                                   {comboItems.map((item) => {
+                                                      if (!item.comboDTO) return null;
+
+                                                      // Chỉ hiển thị combo 1 lần cho mỗi comboId
+                                                      if (processedComboIds.has(item.comboDTO.id)) {
+                                                         return null;
+                                                      }
+                                                      processedComboIds.add(item.comboDTO.id);
+
+                                                      return (
+                                                         <div key={`combo-${item.comboDTO.id}`}>
+                                                            {/* Header combo */}
+                                                            <div className='flex items-start gap-3 p-3 bg-gray-50 rounded-lg'>
+                                                               {item.productImg && (
+                                                                  <Image
+                                                                     src={item.productImg}
+                                                                     alt={item.productName}
+                                                                     width={64}
+                                                                     height={64}
+                                                                     className='w-16 h-16 object-cover rounded'
+                                                                  />
+                                                               )}
+                                                               <div className='flex-1'>
+                                                                  <div className='flex items-center justify-between gap-4'>
+                                                                     <div className='flex items-center gap-2'>
+                                                                        <p className='font-medium text-gray-800'>
+                                                                           {item.productName}
+                                                                        </p>
+                                                                        <Badge className='bg-blue-50 text-blue-700 border-blue-200 text-xs'>
+                                                                           Combo
+                                                                        </Badge>
+                                                                     </div>
+                                                                     <div className='flex items-center gap-3'>
+                                                                        <p className='text-md text-primary text-bold'>
+                                                                           {item.price.toLocaleString('vi-VN')} đ × {item.quantity}
+                                                                        </p>
+                                                                        {
+                                                                           item.isCooked ? (
+                                                                              <Badge className='bg-gray-100 text-green-800 border-green-200'>Đã hoàn thành</Badge>
+                                                                           ) : (
+                                                                              <Button
+                                                                                 size='sm'
+                                                                                 className='bg-green-600 hover:bg-green-700 text-white whitespace-nowrap'
+                                                                                 onClick={() => handleMarkAsCompleted(order.orderId, [item.orderItemId])}
+                                                                              >
+                                                                                 Hoàn thành
+                                                                              </Button>
+                                                                           )
+                                                                        }
+                                                                     </div>
+                                                                  </div>
+                                                                  {item.note && (
+                                                                     <p className='text-xs text-gray-500 mt-1'>
+                                                                        Ghi chú: {item.note}
+                                                                     </p>
+                                                                  )}
+                                                               </div>
+                                                            </div>
+
+
+                                                            {item.comboDTO.comboItems && item.comboDTO.comboItems.length > 0 && (
+                                                               <div className='ml-4 mt-2 space-y-2 border-l-2 border-blue-300 pl-4'>
+                                                                  {item.comboDTO.comboItems.map((comboItem, idx) => (
+                                                                     <div key={idx} className='flex items-start gap-3 p-3 bg-gray-50 rounded-lg'>
+                                                                        <div className='flex-1'>
+                                                                           <div className='flex items-center justify-between gap-4'>
+                                                                              <p className='font-medium text-gray-800'>
+                                                                                 {comboItem.note || `Sản phẩm #${comboItem.productId}`}
+                                                                              </p>
+                                                                              <p className='text-md text-primary text-bold'>
+                                                                                 × {comboItem.quantity}
+                                                                              </p>
+                                                                           </div>
+                                                                        </div>
+                                                                     </div>
+                                                                  ))}
+                                                               </div>
+                                                            )}
+                                                         </div>
+                                                      );
+                                                   })}
 
 
 
+                                                   {regularItems.map((item, index) => (
+                                                      <div key={index} className='flex items-start gap-3 p-3 bg-gray-50 rounded-lg'>
+                                                         {item.productImg && (
+                                                            <Image
+                                                               src={item.productImg}
+                                                               alt={item.productName}
+                                                               width={64}
+                                                               height={64}
+                                                               className='w-16 h-16 object-cover rounded'
+                                                            />
+                                                         )}
+
+                                                         <div className='flex-1'>
+                                                            <div className='flex items-center justify-between gap-4'>
+                                                               <p className='font-medium text-gray-800'>
+                                                                  {item.productName}
+                                                               </p>
+                                                               <div className='flex items-center gap-3'>
+                                                                  <p className='text-md text-primary text-bold'>
+                                                                     {item.price.toLocaleString('vi-VN')} đ × {item.quantity}
+                                                                  </p>
+                                                                  {
+                                                                     item.isCooked ? (
+                                                                        <Badge className='bg-gray-100 text-green-800 border-green-200'>Đã hoàn thành</Badge>
+                                                                     ) : (
+                                                                        <Button
+                                                                           size='sm'
+                                                                           className='bg-green-600 hover:bg-green-700 text-white whitespace-nowrap'
+                                                                           onClick={() => handleMarkAsCompleted(order.orderId, [item.orderItemId])}
+                                                                        >
+                                                                           Hoàn thành
+                                                                        </Button>
+                                                                     )
+                                                                  }
+                                                               </div>
+                                                            </div>
+                                                            {item.note && (
+                                                               <p className='text-xs text-gray-500 mt-1'>
+                                                                  Ghi chú: {item.note}
+                                                               </p>
+                                                            )}
+                                                         </div>
                                                       </div>
-                                                   </div>
-                                                   {item.note && (
-                                                      <p className='text-xs text-gray-500 mt-1'>
-                                                         Ghi chú: {item.note}
-                                                      </p>
-                                                   )}
-                                                   {item.comboDTO && (
-                                                      <Badge className='mt-1 bg-blue-50 text-blue-700 border-blue-200 text-xs'>
-                                                         Combo
-                                                      </Badge>
-                                                   )}
-                                                </div>
-                                             </div>
-                                          ))}
+                                                   ))}
+                                                </>
+                                             );
+                                          })()}
                                        </div>
                                     </div>
 

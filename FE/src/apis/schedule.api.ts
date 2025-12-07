@@ -69,10 +69,10 @@ export interface ShiftResponse {
 }
 
 export const getShifts = async (branchId?: number): Promise<ShiftResponse> => {
-  const url = branchId && branchId > 0 
+  const url = branchId && branchId > 0
     ? `/api/shifts?branchId=${branchId}`
     : '/api/shifts';
-    
+
   const response = await fetch(url, {
     method: 'GET',
     credentials: 'include',
@@ -123,8 +123,12 @@ export const updateShift = async (shiftId: number, data: UpdateShiftData): Promi
 };
 
 
-export const getSchedules = async (): Promise<ScheduleResponse> => {
-  const response = await fetch('/api/schedules', {
+export const getSchedules = async (branchId?: number): Promise<ScheduleResponse> => {
+  const url = branchId && branchId > 0
+    ? `/api/schedules?branchId=${branchId}`
+    : '/api/schedules';
+
+  const response = await fetch(url, {
     method: 'GET',
     credentials: 'include',
   });
@@ -151,15 +155,17 @@ export const createSchedule = async (
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.desc || 'Failed to create schedule');
+    const errorMessage = errorData.message || errorData.desc || errorData.error || 'Failed to create schedule';
+    console.log(errorMessage);
+    // Return empty response instead of throwing
+    return { status: response.status, desc: errorMessage, data: [] };
   }
 
   return response.json();
 };
 
-/**
- * Cập nhật lịch trình
- */
+
+
 export const updateSchedule = async (
   scheduleId: number,
   data: UpdateScheduleData

@@ -66,7 +66,7 @@ export const getBranches = async (): Promise<Branch[]> => {
     const branchesData = data?.data ?? data;
 
     if (Array.isArray(branchesData)) {
-      return branchesData as Branch[];
+      return branchesData.filter((branch: Branch) => branch.active === true) as Branch[];
     }
 
     if (branchesData === undefined || branchesData === null) {

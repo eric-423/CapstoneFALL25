@@ -136,7 +136,7 @@ public class DiningTableServiceImpl implements DiningTableService {
         diningTable.setBranch(branch);
 
         diningTableRepository.save(diningTable);
-        return toDTO(diningTableRepository.save(diningTable));
+        return toDTO(diningTable);
     }
 
     @Override

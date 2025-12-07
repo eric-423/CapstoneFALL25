@@ -58,21 +58,21 @@ export function OrderDetailsContent({
   const orderTypeBadges = [
     extendedOrder.table
       ? {
-          label: "Dùng tại bàn",
-          color: "bg-blue-50 text-blue-700 border-blue-200",
-        }
+        label: "Dùng tại bàn",
+        color: "bg-blue-50 text-blue-700 border-blue-200",
+      }
       : null,
     extendedOrder.pickUp
       ? {
-          label: "Tự đến lấy",
-          color: "bg-purple-50 text-purple-700 border-purple-200",
-        }
+        label: "Tự đến lấy",
+        color: "bg-purple-50 text-purple-700 border-purple-200",
+      }
       : null,
     !extendedOrder.table && !extendedOrder.pickUp
       ? {
-          label: "Giao tận nơi",
-          color: "bg-green-50 text-green-700 border-green-200",
-        }
+        label: "Giao tận nơi",
+        color: "bg-green-50 text-green-700 border-green-200",
+      }
       : null,
   ].filter(Boolean) as { label: string; color: string }[];
   const recordedItemsCount =
@@ -91,7 +91,7 @@ export function OrderDetailsContent({
 
   const formatCurrency = (value?: number | null) => {
     if (typeof value !== "number" || Number.isNaN(value))
-      return "Chưa cập nhật";
+      return "0đ";
     return `${value.toLocaleString("vi-VN")}đ`;
   };
 
@@ -390,21 +390,30 @@ export function OrderDetailsContent({
               Chi tiết thanh toán
             </CardTitle>
           </CardHeader>
+
           <CardContent className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Tổng tiền hàng:</span>
+              <span className="text-muted-foreground">Tổng tiền:</span>
               <span className="font-medium">
                 {formatCurrency(order.subTotal)}
               </span>
             </div>
-            {order.shippingFee !== undefined && order.shippingFee !== null && (
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Phí vận chuyển:</span>
-                <span className="font-medium">
-                  {formatCurrency(order.shippingFee)}
-                </span>
-              </div>
-            )}
+
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Tổng tiền sản phẩm:</span>
+              <span className="font-medium">
+                {formatCurrency(orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0))}
+              </span>
+            </div>
+
+
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Phí vận chuyển:</span>
+              <span className="font-medium">
+                {formatCurrency(order.shippingFee)}
+              </span>
+            </div>
+
             {order.discountValue !== undefined &&
               order.discountValue !== null && (
                 <div className="flex justify-between text-sm text-green-600">
@@ -414,6 +423,7 @@ export function OrderDetailsContent({
                   </span>
                 </div>
               )}
+
             {order.promotionCode && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground pt-1 border-t border-gray-200">
                 <Gift className="h-4 w-4" />
@@ -425,6 +435,7 @@ export function OrderDetailsContent({
                 </span>
               </div>
             )}
+
             {order.pointUsed !== undefined && order.pointUsed !== null && (
               <div className="flex justify-between text-sm text-muted-foreground">
                 <span className="flex items-center gap-1">
@@ -438,26 +449,25 @@ export function OrderDetailsContent({
                 </span>
               </div>
             )}
-            {order.pointEarned !== undefined && order.pointEarned !== null && (
-              <div>
-                <div className="flex justify-between text-sm text-green-600">
-                  <span className="flex items-center gap-1">
-                    <Coins className="h-4 w-4" />
-                    Điểm nhận được:
-                  </span>
-                  <span className="font-medium">
-                    {order.pointEarned === 0
-                      ? "0 điểm"
-                      : `+${order.pointEarned.toLocaleString("vi-VN")} điểm`}
-                  </span>
-                </div>
-                {order.subTotal !== undefined && order.subTotal !== null && (
-                  <div className="text-xs text-muted-foreground mt-0.5 ml-5">
-                    điểm dự kiến nhận được
-                  </div>
-                )}
+
+
+            <div>
+              <div className="flex justify-between text-sm text-green-600">
+                <span className="flex items-center gap-1">
+                  <Coins className="h-4 w-4" />
+                  Điểm nhận được:
+                </span>
+                <span className="font-medium">
+                  {order.pointEarned && `+${order.pointEarned?.toLocaleString("vi-VN")} điểm`}
+                </span>
               </div>
-            )}
+              {order.subTotal !== undefined && order.subTotal !== null && (
+                <div className="text-xs text-muted-foreground mt-0.5 ml-5">
+                  điểm dự kiến nhận được
+                </div>
+              )}
+            </div>
+
             <div className="flex justify-between pt-2 border-t-2 border-gray-300 mt-2">
               <span className="font-bold text-base">Tổng thanh toán:</span>
               <span className="font-bold text-primary text-xl">
@@ -465,19 +475,21 @@ export function OrderDetailsContent({
               </span>
             </div>
           </CardContent>
-        </Card>
+        </Card >
 
         {/* Order status message */}
-        {normalizedStatus === "COMPLETED" && (
-          <div className="flex items-center justify-center p-3 bg-green-50 rounded-lg border border-green-200">
-            <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />
-            <span className="text-green-700 text-sm">
-              Đơn hàng đã được giao thành công. Cảm ơn bạn đã sử dụng dịch vụ
-              của Tấm Tắc!
-            </span>
-          </div>
-        )}
-      </div>
+        {
+          normalizedStatus === "COMPLETED" && (
+            <div className="flex items-center justify-center p-3 bg-green-50 rounded-lg border border-green-200">
+              <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />
+              <span className="text-green-700 text-sm">
+                Đơn hàng đã được giao thành công. Cảm ơn bạn đã sử dụng dịch vụ
+                của Tấm Tắc!
+              </span>
+            </div>
+          )
+        }
+      </div >
 
       <div className="flex flex-col sm:flex-row gap-3 mt-6">
         {order.billPdfUrl && (
@@ -490,6 +502,6 @@ export function OrderDetailsContent({
           </Button>
         )}
       </div>
-    </div>
+    </div >
   );
 }

@@ -16,6 +16,4 @@ public class ScheduleRequest {
     private String name;
     private String description;
     private Date date;
-    private Time startTime;
-    private Time endTime;
 }

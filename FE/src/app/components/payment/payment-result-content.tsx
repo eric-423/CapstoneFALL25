@@ -9,7 +9,12 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 
-export function PaymentResultContent({ isSuccess = true }) {
+interface PaymentResultContentProps {
+  isSuccess?: boolean;
+  orderCode?: string | null;
+}
+
+export function PaymentResultContent({ isSuccess = true, orderCode }: PaymentResultContentProps) {
   const router = useRouter();
   const [userRole, setUserRole] = useState<string | null>(null);
 
@@ -26,9 +31,8 @@ export function PaymentResultContent({ isSuccess = true }) {
       <div className="container mx-auto max-w-2xl">
         <div className="text-center mb-6">
           <div
-            className={`inline-flex items-center justify-center w-80 h-80 rounded-full mb-4 ${
-              isSuccess ? "bg-green-100" : "bg-red-100"
-            }`}
+            className={`inline-flex items-center justify-center w-80 h-80 rounded-full mb-4 ${isSuccess ? "bg-green-100" : "bg-red-100"
+              }`}
           >
             {isSuccess ? (
               <div className="w-80 h-80 relative">
@@ -122,7 +126,13 @@ export function PaymentResultContent({ isSuccess = true }) {
         </div>
         <Card
           className="shadow-sm bg-primary/90 mb-20 mt-5 cursor-pointer hover:bg-primary transition-colors"
-          onClick={() => router.push("/profile?tab=orders")}
+          onClick={() => {
+            if (orderCode) {
+              router.push(`/profile/orders/${orderCode}`);
+            } else {
+              router.push("/profile?tab=orders");
+            }
+          }}
         >
           <CardContent className=" text-center py-3">
             <p className="text-lg text-white">Theo dõi đơn hàng</p>
