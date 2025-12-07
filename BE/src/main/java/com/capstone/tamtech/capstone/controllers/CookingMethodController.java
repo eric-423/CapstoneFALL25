@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/cooking-methods")
+@RequestMapping("/cooking-methods")
 public class CookingMethodController {
 
     @Autowired

@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/orders")
+@RequestMapping("/orders")
 @CrossOrigin(origins = "*")
 @Tag(name = "Order Management", description = "API quản lý order")
 public class OrderController {

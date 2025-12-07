@@ -12,7 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/nutrients")
+@RequestMapping("/nutrients")
 public class NutrientController {
 
     @Autowired

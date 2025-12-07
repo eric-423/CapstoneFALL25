@@ -15,7 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/cooking-utensils")
+@RequestMapping("/cooking-utensils")
 @CrossOrigin(origins = "*")
 @Tag(name = "Cooking Utensils", description = "API quản lý dụng cụ bếp")
 public class CookingUtensilController {

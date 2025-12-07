@@ -16,7 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/materials")
+@RequestMapping("/materials")
 @CrossOrigin(origins = "*")
 @Tag(name = "Material Management", description = "API quản lý nguyên liệu")
 public class MaterialController {

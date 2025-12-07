@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/order-statuses")
+@RequestMapping("/order-statuses")
 @CrossOrigin(origins = "*")
 @Tag(name = "Order Status Management", description = "API quản lý trạng thái đơn hàng")
 public class OrderStatusController {

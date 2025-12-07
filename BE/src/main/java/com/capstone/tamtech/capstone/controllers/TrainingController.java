@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/trainings")
+@RequestMapping("/trainings")
 @CrossOrigin(origins = "*")
 @Tag(name = "Training Management", description = "API quản lý đào tạo")
 public class TrainingController {

@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Date;
 
 @RestController
-@RequestMapping("/api/statistics")
+@RequestMapping("/statistics")
 @CrossOrigin(origins = "*")
 @Tag(name = "Statistics", description = "API thống kê doanh thu, đơn hàng, khách hàng")
 public class StatisticsController {

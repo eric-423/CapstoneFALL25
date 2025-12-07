@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/branches")
+@RequestMapping("/branches")
 @CrossOrigin(origins = "*")
 @Tag(name = "Branch Management", description = "API quản lý chi nhánh")
 public class BranchController {

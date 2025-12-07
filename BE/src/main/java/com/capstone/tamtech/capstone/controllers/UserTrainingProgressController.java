@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/user-trainings")
+@RequestMapping("/user-trainings")
 @CrossOrigin(origins = "*")
 @Tag(name = "User Training Progress - Me")
 public class UserTrainingProgressController {

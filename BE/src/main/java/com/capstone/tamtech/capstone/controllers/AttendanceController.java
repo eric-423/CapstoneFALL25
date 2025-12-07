@@ -15,7 +15,7 @@ import java.sql.Date;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/attendance")
+@RequestMapping("/attendance")
 @CrossOrigin(origins = "*")
 @Tag(name = "Attendance Management", description = "API quản lý chấm công")
 public class AttendanceController {

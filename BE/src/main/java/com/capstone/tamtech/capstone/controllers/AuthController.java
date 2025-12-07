@@ -20,7 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 @CrossOrigin(origins = "*")
 @Tag(name = "Authentication", description = "API xác thực, đăng nhập, đăng ký và quản lý OTP")
 public class AuthController {
