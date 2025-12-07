@@ -316,7 +316,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private ProductSearchDTO mapToProductSearchDTO(Product product, Map<Integer, Integer> quantityMap) {
-        if (product.getCaloriesCache() == null) {
+        if (product.getCaloriesCache() == null || product.getCaloriesCache() == 0.0) {
             product.setCaloriesCache(reCalculateCaloriesForProduct(product.getId()));
             productRepository.save(product);
         }
