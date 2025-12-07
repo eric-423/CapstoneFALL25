@@ -375,7 +375,7 @@ export default function UsersManagementPage() {
         ) : users.length === 0 ? (
           <div className="p-12 text-center text-[#2D1E1A]/70">
             <Users className="h-16 w-16 mx-auto mb-4 text-[#78A243]/30" />
-            <p className="font-semibold">Đảng tìm thấy người dùng nào</p>
+            <p className="font-semibold">Không tìm thấy người dùng nào</p>
           </div>
         ) : (
           <>
