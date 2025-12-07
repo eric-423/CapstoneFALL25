@@ -18,7 +18,7 @@ export async function POST(
         const { branchId } = await params;
         const body = await request.json();
 
-        const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
+        const baseUrl = API_BASE_URL.endsWith('/api/v1') ? API_BASE_URL : `${API_BASE_URL}/api/v1`;
         const url = `${baseUrl}/branches/${branchId}/products`;
 
         const response = await fetch(url, {

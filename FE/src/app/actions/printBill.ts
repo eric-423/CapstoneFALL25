@@ -17,7 +17,7 @@ export async function printBillAction(orderId: number) {
             return { success: false, error: 'Unauthorized - No token found' };
         }
 
-        const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
+        const baseUrl = API_BASE_URL.endsWith('/api/v1') ? API_BASE_URL : `${API_BASE_URL}/api/v1`;
         const url = `${baseUrl}/orders/${orderId}/bill/download`;
 
         console.log('[Server Action] Đang fetch từ URL:', url);

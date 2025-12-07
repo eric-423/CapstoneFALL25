@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
 
         const body = await request.json();
 
-        const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
+        const baseUrl = API_BASE_URL.endsWith('/api/v1') ? API_BASE_URL : `${API_BASE_URL}/api/v1`;
         const url = `${baseUrl}/shifts`;
 
         const response = await fetch(url, {
@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
+        const baseUrl = API_BASE_URL.endsWith('/api/v1') ? API_BASE_URL : `${API_BASE_URL}/api/v1`;
         // Only add branchId to URL if it exists and is valid (> 0)
         const url = branchId && parseInt(branchId, 10) > 0
             ? `${baseUrl}/shifts?branchId=${branchId}`

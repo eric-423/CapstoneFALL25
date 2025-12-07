@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
         const { searchParams } = new URL(request.url);
         const queryString = searchParams.toString();
 
-        const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
+        const baseUrl = API_BASE_URL.endsWith('/api/v1') ? API_BASE_URL : `${API_BASE_URL}/api/v1`;
         const url = `${baseUrl}/dashboard/overview/peak-hours${queryString ? `?${queryString}` : ''}`;
 
         console.log('🔄 Fetching Peak Hours:', url);

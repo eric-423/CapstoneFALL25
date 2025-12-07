@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import JwtDecode from '@/utils/jwtDecode';
 import { getToken } from '@/utils/cookies.server';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://tam-tac.com';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 
 export async function GET(request: NextRequest) {
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
         const { searchParams } = new URL(request.url);
         const status = searchParams.get('status');
 
-        const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
+        const baseUrl = API_BASE_URL?.endsWith('/api/v1') ? API_BASE_URL : `${API_BASE_URL}/api/v1`;
         let url = `${baseUrl}/orders/branch/my-branch`;
 
         if (status && status.trim() !== '' && status !== 'ALL') {

@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
+        const baseUrl = API_BASE_URL.endsWith('/api/v1') ? API_BASE_URL : `${API_BASE_URL}/api/v1`;
         const url = branchId && parseInt(branchId, 10) > 0
             ? `${baseUrl}/schedules?branchId=${branchId}`
             : `${baseUrl}/schedules`;
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
+        const baseUrl = API_BASE_URL.endsWith('/api/v1') ? API_BASE_URL : `${API_BASE_URL}/api/v1`;
         const url = `${baseUrl}/schedules`;
 
         const response = await fetch(

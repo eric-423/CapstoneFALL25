@@ -31,7 +31,7 @@ export async function GET(
         const { searchParams } = new URL(request.url);
         const status = searchParams.get('status');
 
-        const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
+        const baseUrl = API_BASE_URL.endsWith('/api/v1') ? API_BASE_URL : `${API_BASE_URL}/api/v1`;
         let url = `${baseUrl}/orders/cheff/view/${chefId}`;
 
         if (status && status.trim() !== '' && status !== 'ALL') {
