@@ -26,7 +26,7 @@ import {
 import { router } from "expo-router";
 import { map } from "lodash";
 const { width: sWidth } = Dimensions.get("window");
-const comboPlaceholder = require("@/assets/splash.png");
+const comboPlaceholder = require("@/assets/saleoff/combo.png");
 
 interface IProps {
   part?: "product" | "combo";
@@ -190,7 +190,10 @@ const CollectionMenu = (props: IProps) => {
             productDescription: combo.description || "",
             name: combo.name,
             productId: `combo_${combo.comboId}`,
-            image: combo.imageUrl || comboPlaceholder,
+            image:
+              combo.imageUrl && combo.imageUrl.trim() !== ""
+                ? combo.imageUrl
+                : comboPlaceholder,
             description: combo.description || "",
             price: combo.price || 0,
             averageRating: 5,

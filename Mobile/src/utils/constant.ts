@@ -38,5 +38,5 @@ export const APP_FONT = {
   },
 };
 
-export const BASE_URL = "https://tam-tac.com/api";
+export const BASE_URL = "http://104.214.186.132:8080/api";
 export const GOOGLE_API_KEY = "AIzaSyBlYGK-B4z2rhDqwAbOaCczIqbzuH0hCfI";

@@ -49,6 +49,7 @@ const SearchPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [isCartDropdownOpen, setIsCartDropdownOpen] = useState(false);
   const fallbackImage = require("@/assets/icons/com-tam.png");
+  const comboFallbackImage = require("@/assets/saleoff/combo.png");
   const { cart, setCart } = useCurrentApp();
 
   // Tính toán số lượng và danh sách sản phẩm trong cart
@@ -66,10 +67,12 @@ const SearchPage = () => {
         const data = item?.data || {};
         const unitPrice =
           Number(data.basePrice || data.price || data.productPrice || 0) || 0;
+        const isCombo = data.isCombo || false;
+        const defaultImage = isCombo ? comboFallbackImage : fallbackImage;
         const imageSource =
-          typeof data.image === "string"
+          typeof data.image === "string" && data.image.trim() !== ""
             ? { uri: data.image }
-            : data.image || fallbackImage;
+            : data.image || defaultImage;
         return {
           id: key,
           image: imageSource,
@@ -96,24 +99,28 @@ const SearchPage = () => {
         setError(null);
         const res = await SearchProductByName(branchId, text);
         const apiProducts = res?.data?.content || res?.data?.data || [];
-        const mappedProducts: IProduct[] = apiProducts.map((p: any) => ({
-          productId: String(p.productId),
-          description: p.productDescription || p.productName || "",
-          price: p.productPrice || 0,
-          image:
-            typeof p.productImage === "string" && p.productImage
-              ? { uri: p.productImage }
-              : fallbackImage,
-          name: p.productName || "",
-          averageRating: 4.5,
-          ProductType: {
-            name: p.productType || "",
-            productTypeId: p.productTypeId || 0,
-          },
-          productPrice: p.productPrice || 0,
-          productName: p.productName || "",
-          productDescription: p.productDescription || "",
-        }));
+        const mappedProducts: IProduct[] = apiProducts.map((p: any) => {
+          const isCombo = p.isCombo || p.comboId || false;
+          const defaultImage = isCombo ? comboFallbackImage : fallbackImage;
+          return {
+            productId: String(p.productId),
+            description: p.productDescription || p.productName || "",
+            price: p.productPrice || 0,
+            image:
+              typeof p.productImage === "string" && p.productImage.trim() !== ""
+                ? { uri: p.productImage }
+                : defaultImage,
+            name: p.productName || "",
+            averageRating: 4.5,
+            ProductType: {
+              name: p.productType || "",
+              productTypeId: p.productTypeId || 0,
+            },
+            productPrice: p.productPrice || 0,
+            productName: p.productName || "",
+            productDescription: p.productDescription || "",
+          };
+        });
         setProducts(mappedProducts);
       } catch (err: any) {
         console.error("Error searching products:", err);

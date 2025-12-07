@@ -30,6 +30,7 @@ import {
   GetBranchInfo,
   GetAvailablePromotion,
   GetBranchNearLocation,
+  GetOrderById,
 } from "@/utils/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -176,6 +177,142 @@ const PlaceOrderPage = () => {
     }
   }, []);
 
+  const handleCreateOrder = async () => {
+    if (!appState?.userInfo?.id) {
+      console.error("Customer ID không tồn tại");
+      return;
+    }
+    if (!branchId) {
+      console.error("Branch ID không tồn tại");
+      return;
+    }
+    if (orderMode === "SHIPPING") {
+      if (!customerInformation?.address) {
+        console.error("Địa chỉ giao hàng không tồn tại");
+        return;
+      }
+      if (!customerInformation?.phone) {
+        console.error("Số điện thoại không tồn tại");
+        return;
+      }
+    }
+    if (!restaurant?._id || !cart?.[restaurant._id]?.items) {
+      console.error("Giỏ hàng trống");
+      return;
+    }
+    try {
+      setLoading(true);
+      const orderItemList = Object.values(cart[restaurant._id].items).map(
+        (item: any) => {
+          const isCombo = item?.data?.isCombo;
+          const unitPrice = Number(
+            item?.data?.basePrice || item?.data?.price || 0
+          );
+          return {
+            productId: isCombo ? 0 : Number(item?.data?.productId) || 0,
+            comboId: isCombo ? Number(item?.data?.comboId) || 0 : 0,
+            quantity: item?.quantity || 0,
+            price: unitPrice * (item?.quantity || 0),
+            note: "",
+          };
+        }
+      );
+      const payload = {
+        customerId: appState.userInfo.id,
+        promotionCode: selectedPromotion?.id || "",
+        discountValue: discountAmount,
+        shippingAddress:
+          orderMode === "SHIPPING"
+            ? customerInformation.address
+            : branchAddress || "",
+        shippingPhoneNumber:
+          orderMode === "SHIPPING"
+            ? customerInformation.phone
+            : appState?.userInfo?.phoneNumber || "",
+        orderItemList,
+        mode: orderMode === "SHIPPING" ? "SHIPPING" : "PICKUP",
+        diningTableId: 0,
+        branchId: branchId,
+        paymentMethodId: 2,
+        paymentMethod: "Thanh toán online",
+        pointUsed: Number(pointsToUse) || 0,
+      };
+      const res = await CreateOrder(payload);
+      console.log("CreateOrder response:", JSON.stringify(res.data, null, 2));
+
+      const orderId = res.data?.data?.id;
+      const orderStatus = res.data?.data?.orderStatus || res.data?.data?.status;
+
+      let paymentUrl =
+        res.data?.data?.paymentUrl ||
+        res.data?.paymentUrl ||
+        res.data?.data?.payment_url ||
+        res.data?.payment_url;
+
+      if (
+        !paymentUrl &&
+        orderId &&
+        orderStatus === "CREATED" &&
+        payload.paymentMethodId === 2
+      ) {
+        try {
+          console.log(
+            "PaymentUrl is null, fetching order details, orderId:",
+            orderId
+          );
+          await new Promise((resolve) => setTimeout(resolve, 500));
+
+          const orderRes = await GetOrderById(orderId);
+          const orderData = orderRes.data?.data || orderRes.data;
+          paymentUrl =
+            orderData?.paymentUrl ||
+            orderData?.payment_url ||
+            orderData?.data?.paymentUrl;
+          console.log("PaymentUrl from GetOrderById:", paymentUrl);
+        } catch (error) {
+          console.error("Error fetching order details:", error);
+        }
+      }
+
+      if (
+        paymentUrl &&
+        typeof paymentUrl === "string" &&
+        paymentUrl.trim() !== ""
+      ) {
+        console.log("Navigating to payment with URL:", paymentUrl);
+        setTimeout(() => {
+          router.push({
+            pathname: "/(user)/order/payment.webview",
+            params: { paymentUrl: paymentUrl },
+          });
+        }, 100);
+      } else if (
+        orderId &&
+        orderStatus === "CREATED" &&
+        payload.paymentMethodId === 2
+      ) {
+        console.log("No paymentUrl found, navigating to order details page");
+        setTimeout(() => {
+          router.push({
+            pathname: "/(user)/order/[id]",
+            params: { id: orderId.toString() },
+          });
+        }, 100);
+      } else {
+        console.log("No paymentUrl found, navigating to success page");
+        setTimeout(() => {
+          router.push("/(auth)/order.success");
+        }, 100);
+      }
+    } catch (error: any) {
+      console.error("Error creating order:", error);
+      if (error.response) {
+        console.error("Error response:", error.response.data);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
   const calculateDiscount = useCallback(
     (promotion: any, totalAmount: number, currentShippingFee: number) => {
       if (!promotion) return 0;
@@ -208,213 +345,216 @@ const PlaceOrderPage = () => {
       }}
     >
       <HeaderHome pageName="placeOrderPage" />
-      <ScrollView style={{ flex: 1, paddingHorizontal: 10 }}>
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            position: "relative",
-            alignItems: "center",
-          }}
-        >
+      <ScrollView
+        style={{ flex: 1, paddingHorizontal: 10 }}
+        contentContainerStyle={{ paddingBottom: 80 }}
+      >
+        <View style={styles.textContainer}>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              position: "relative",
+              alignItems: "center",
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: FONTS.bold,
+                fontSize: 15,
+                color: APP_COLOR.BROWN,
+                position: "relative",
+                top: 5,
+              }}
+            >
+              {orderMode === "SHIPPING" ? "Giao hàng" : "Nhận tại cửa hàng"}
+            </Text>
+          </View>
+
+          <View
+            style={{
+              position: "relative",
+              minWidth: 200,
+              flex: 1,
+            }}
+          >
+            {orderMode === "SHIPPING" && (
+              <Pressable
+                onPress={() => setShowAddressModal(true)}
+                style={{ marginVertical: 10 }}
+              >
+                <View
+                  style={{ flexDirection: "row", gap: 5, alignItems: "center" }}
+                >
+                  <Text
+                    style={{
+                      fontFamily: FONTS.regular,
+                      fontSize: 14,
+                      color: APP_COLOR.BROWN,
+                    }}
+                  >
+                    {customerInformation?.fullName}
+                  </Text>
+                  <Text style={{ fontSize: 14, color: APP_COLOR.GRAY }}>|</Text>
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      color: APP_COLOR.BROWN,
+                      fontFamily: FONTS.regular,
+                    }}
+                  >
+                    {customerInformation?.phone}
+                  </Text>
+                </View>
+                <Text
+                  style={{
+                    fontFamily: FONTS.regular,
+                    fontSize: 13,
+                    color: APP_COLOR.BROWN,
+                  }}
+                >
+                  {customerInformation?.address}
+                </Text>
+              </Pressable>
+            )}
+            <View style={{ marginVertical: 10, flexDirection: "row", gap: 20 }}>
+              <Pressable
+                onPress={() => setOrderMode("SHIPPING")}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 8,
+                }}
+              >
+                <View
+                  style={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: 10,
+                    borderWidth: 2,
+                    borderColor:
+                      orderMode === "SHIPPING"
+                        ? APP_COLOR.ORANGE
+                        : APP_COLOR.GRAY,
+                    backgroundColor:
+                      orderMode === "SHIPPING"
+                        ? APP_COLOR.ORANGE
+                        : "transparent",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  {orderMode === "SHIPPING" && (
+                    <AntDesign name="check" size={12} color={APP_COLOR.WHITE} />
+                  )}
+                </View>
+                <Text
+                  style={{
+                    fontFamily: FONTS.regular,
+                    fontSize: 14,
+                    color: APP_COLOR.BROWN,
+                  }}
+                >
+                  Giao hàng
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => setOrderMode("PICKUP")}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 8,
+                }}
+              >
+                <View
+                  style={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: 10,
+                    borderWidth: 2,
+                    borderColor:
+                      orderMode === "PICKUP"
+                        ? APP_COLOR.ORANGE
+                        : APP_COLOR.GRAY,
+                    backgroundColor:
+                      orderMode === "PICKUP" ? APP_COLOR.ORANGE : "transparent",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  {orderMode === "PICKUP" && (
+                    <AntDesign name="check" size={12} color={APP_COLOR.WHITE} />
+                  )}
+                </View>
+                <Text
+                  style={{
+                    fontFamily: FONTS.regular,
+                    fontSize: 14,
+                    color: APP_COLOR.BROWN,
+                  }}
+                >
+                  Nhận tại cửa hàng
+                </Text>
+              </Pressable>
+            </View>
+            <View>
+              <DropDown title="Cửa hàng tiếp nhận" value={branchName || ""} />
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.textContainer}>
           <Text
             style={{
               fontFamily: FONTS.bold,
-              fontSize: 17,
+              fontSize: 18,
               color: APP_COLOR.BROWN,
-              position: "relative",
-              top: 5,
+              marginBottom: 5,
             }}
           >
-            {orderMode === "SHIPPING" ? "Giao hàng" : "Tự lấy"}
+            Chi tiết đơn hàng
           </Text>
-        </View>
-
-        <View
-          style={{
-            position: "relative",
-            minWidth: 200,
-            flex: 1,
-          }}
-        >
-          {orderMode === "SHIPPING" && (
-            <Pressable
-              onPress={() => setShowAddressModal(true)}
-              style={{ marginVertical: 10 }}
-            >
+          {orderItems?.map((item, index) => {
+            return (
               <View
-                style={{ flexDirection: "row", gap: 5, alignItems: "center" }}
-              >
-                <Text
-                  style={{
-                    fontFamily: FONTS.regular,
-                    fontSize: 18,
-                    color: APP_COLOR.BROWN,
-                  }}
-                >
-                  {customerInformation?.fullName}
-                </Text>
-                <Text style={{ fontSize: 18, color: APP_COLOR.GRAY }}>|</Text>
-                <Text
-                  style={{
-                    fontSize: 18,
-                    color: APP_COLOR.BROWN,
-                    fontFamily: FONTS.regular,
-                  }}
-                >
-                  {customerInformation?.phone}
-                </Text>
-              </View>
-              <Text
+                key={`${item.productId}-${index}`}
                 style={{
-                  fontFamily: FONTS.regular,
-                  fontSize: 16,
-                  color: APP_COLOR.BROWN,
-                }}
-              >
-                {customerInformation?.address}
-              </Text>
-            </Pressable>
-          )}
-          <View style={{ marginVertical: 10, flexDirection: "row", gap: 20 }}>
-            <Pressable
-              onPress={() => setOrderMode("SHIPPING")}
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 8,
-              }}
-            >
-              <View
-                style={{
-                  width: 20,
-                  height: 20,
-                  borderRadius: 10,
-                  borderWidth: 2,
-                  borderColor:
-                    orderMode === "SHIPPING"
-                      ? APP_COLOR.ORANGE
-                      : APP_COLOR.GRAY,
-                  backgroundColor:
-                    orderMode === "SHIPPING" ? APP_COLOR.ORANGE : "transparent",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                {orderMode === "SHIPPING" && (
-                  <AntDesign name="check" size={12} color={APP_COLOR.WHITE} />
-                )}
-              </View>
-              <Text
-                style={{
-                  fontFamily: FONTS.regular,
-                  fontSize: 16,
-                  color: APP_COLOR.BROWN,
-                }}
-              >
-                Giao hàng
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => setOrderMode("PICKUP")}
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 8,
-              }}
-            >
-              <View
-                style={{
-                  width: 20,
-                  height: 20,
-                  borderRadius: 10,
-                  borderWidth: 2,
-                  borderColor:
-                    orderMode === "PICKUP" ? APP_COLOR.ORANGE : APP_COLOR.GRAY,
-                  backgroundColor:
-                    orderMode === "PICKUP" ? APP_COLOR.ORANGE : "transparent",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                {orderMode === "PICKUP" && (
-                  <AntDesign name="check" size={12} color={APP_COLOR.WHITE} />
-                )}
-              </View>
-              <Text
-                style={{
-                  fontFamily: FONTS.regular,
-                  fontSize: 16,
-                  color: APP_COLOR.BROWN,
-                }}
-              >
-                Nhận tại cửa hàng
-              </Text>
-            </Pressable>
-          </View>
-          <View
-            style={{
-              marginVertical: 10,
-              borderBottomWidth: 0.5,
-              borderBottomColor: APP_COLOR.BROWN,
-              paddingBottom: 10,
-            }}
-          >
-            <DropDown title="Cửa hàng tiếp nhận" value={branchName || ""} />
-          </View>
-        </View>
-
-        <Text
-          style={{
-            fontFamily: FONTS.bold,
-            fontSize: 20,
-            color: APP_COLOR.BROWN,
-            marginBottom: 5,
-          }}
-        >
-          Chi tiết đơn hàng
-        </Text>
-        {orderItems?.map((item, index) => {
-          return (
-            <View
-              key={`${item.productId}-${index}`}
-              style={{
-                gap: 10,
-                flexDirection: "row",
-                paddingBottom: 5,
-              }}
-            >
-              <View
-                style={{
+                  gap: 10,
                   flexDirection: "row",
-                  justifyContent: "space-between",
-                  width: "100%",
+                  paddingBottom: 5,
                 }}
               >
-                <Text
+                <View
                   style={{
-                    fontFamily: FONTS.regular,
-                    fontSize: 17,
-                    color: APP_COLOR.BROWN,
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    width: "100%",
                   }}
                 >
-                  {item.title} x {item.quantity}
-                </Text>
+                  <Text
+                    style={{
+                      fontFamily: FONTS.regular,
+                      fontSize: 14,
+                      color: APP_COLOR.BROWN,
+                    }}
+                  >
+                    {item.title} x {item.quantity}
+                  </Text>
 
-                <Text
-                  style={{
-                    fontFamily: FONTS.regular,
-                    fontSize: 17,
-                    color: APP_COLOR.BROWN,
-                  }}
-                >
-                  {currencyFormatter(item.price)}
-                </Text>
+                  <Text
+                    style={{
+                      fontFamily: FONTS.regular,
+                      fontSize: 14,
+                      color: APP_COLOR.BROWN,
+                    }}
+                  >
+                    {currencyFormatter(item.price)}
+                  </Text>
+                </View>
               </View>
-            </View>
-          );
-        })}
-
+            );
+          })}
+        </View>
         <Formik
           validationSchema={ChangePasswordSchema}
           initialValues={{
@@ -513,96 +653,11 @@ const PlaceOrderPage = () => {
                 setFieldValue("pointUsed", 0);
               }
             }, [pointsToUse, pointUsed, setFieldValue]);
-            const handleCreateOrder = async () => {
-              if (!appState?.userInfo?.id) {
-                console.error("Customer ID không tồn tại");
-                return;
-              }
-              if (!branchId) {
-                console.error("Branch ID không tồn tại");
-                return;
-              }
-              if (orderMode === "SHIPPING") {
-                if (!customerInformation?.address) {
-                  console.error("Địa chỉ giao hàng không tồn tại");
-                  return;
-                }
-                if (!customerInformation?.phone) {
-                  console.error("Số điện thoại không tồn tại");
-                  return;
-                }
-              }
-              if (!restaurant?._id || !cart?.[restaurant._id]?.items) {
-                console.error("Giỏ hàng trống");
-                return;
-              }
-              try {
-                setLoading(true);
-                const orderItemList = Object.values(
-                  cart[restaurant._id].items
-                ).map((item: any) => {
-                  const isCombo = item?.data?.isCombo;
-                  const unitPrice = Number(
-                    item?.data?.basePrice || item?.data?.price || 0
-                  );
-                  return {
-                    productId: isCombo ? 0 : Number(item?.data?.productId) || 0,
-                    comboId: isCombo ? Number(item?.data?.comboId) || 0 : 0,
-                    quantity: item?.quantity || 0,
-                    price: unitPrice * (item?.quantity || 0),
-                    note: "",
-                  };
-                });
-                const payload = {
-                  customerId: appState.userInfo.id,
-                  promotionCode: selectedPromotion?.id || "",
-                  discountValue: discountAmount,
-                  shippingAddress:
-                    orderMode === "SHIPPING"
-                      ? customerInformation.address
-                      : branchAddress || "",
-                  shippingPhoneNumber:
-                    orderMode === "SHIPPING"
-                      ? customerInformation.phone
-                      : appState?.userInfo?.phoneNumber || "",
-                  orderItemList,
-                  mode: orderMode === "SHIPPING" ? "SHIPPING" : "PICKUP",
-                  diningTableId: 0,
-                  branchId: branchId,
-                  paymentMethodId: 2,
-                  paymentMethod: "Thanh toán online",
-                  pointUsed: Number(pointsToUse) || 0,
-                };
-                const res = await CreateOrder(payload);
-                if (res.data?.data?.paymentUrl) {
-                  router.replace({
-                    pathname: "/(user)/order/payment.webview",
-                    params: { paymentUrl: res.data.data.paymentUrl },
-                  });
-                } else {
-                  router.replace("/(auth)/order.success");
-                }
-              } catch (error: any) {
-                console.error("Error creating order:", error);
-                if (error.response) {
-                  console.error("Error response:", error.response.data);
-                }
-              } finally {
-                setLoading(false);
-              }
-            };
 
             return (
               <View style={styles.container}>
                 {orderItems?.length > 0 && (
-                  <View
-                    style={{
-                      marginVertical: 15,
-                      borderTopWidth: 0.5,
-                      borderTopColor: APP_COLOR.BROWN,
-                      paddingTop: 10,
-                    }}
-                  >
+                  <View>
                     <View style={styles.textInputView}>
                       <Text style={styles.textInputText}>
                         Tổng tiền (
@@ -621,6 +676,7 @@ const PlaceOrderPage = () => {
                           style={{
                             color: APP_COLOR.ORANGE,
                             fontFamily: FONTS.regular,
+                            fontSize: 14,
                             textDecorationLine: "underline",
                             marginVertical: "auto",
                           }}
@@ -629,13 +685,13 @@ const PlaceOrderPage = () => {
                             <Text
                               style={{
                                 textDecorationLine: "none",
-                                fontSize: 18,
+                                fontSize: 14,
                               }}
                             >
                               Đã áp dụng
                             </Text>
                           ) : (
-                            "Áp dụng mã khuyến mãi"
+                            "Mã khuyến mãi"
                           )}
                         </Text>
                       </Pressable>
@@ -644,7 +700,7 @@ const PlaceOrderPage = () => {
                       <Text
                         style={[
                           styles.textInputText,
-                          { fontFamily: FONTS.regular, fontSize: 17 },
+                          { fontFamily: FONTS.regular, fontSize: 14 },
                         ]}
                       >
                         Thành tiền
@@ -652,7 +708,7 @@ const PlaceOrderPage = () => {
                       <Text
                         style={{
                           fontFamily: FONTS.regular,
-                          fontSize: 17,
+                          fontSize: 14,
                           color: APP_COLOR.BROWN,
                         }}
                       >
@@ -673,7 +729,7 @@ const PlaceOrderPage = () => {
                           <Text
                             style={[
                               styles.textInputText,
-                              { fontFamily: FONTS.regular, fontSize: 17 },
+                              { fontFamily: FONTS.regular, fontSize: 14 },
                             ]}
                           >
                             Phí giao hàng
@@ -682,7 +738,7 @@ const PlaceOrderPage = () => {
                             <Text
                               style={{
                                 fontFamily: FONTS.regular,
-                                fontSize: 14,
+                                fontSize: 12,
                                 color: APP_COLOR.BROWN,
                               }}
                             >
@@ -693,7 +749,7 @@ const PlaceOrderPage = () => {
                         <Text
                           style={{
                             fontFamily: FONTS.regular,
-                            fontSize: 17,
+                            fontSize: 14,
                             color: APP_COLOR.BROWN,
                           }}
                         >
@@ -706,7 +762,7 @@ const PlaceOrderPage = () => {
                         <Text
                           style={[
                             styles.textInputText,
-                            { fontFamily: FONTS.regular, fontSize: 17 },
+                            { fontFamily: FONTS.regular, fontSize: 14 },
                           ]}
                         >
                           Phí giảm sau khi áp mã
@@ -714,7 +770,7 @@ const PlaceOrderPage = () => {
                         <Text
                           style={{
                             fontFamily: FONTS.regular,
-                            fontSize: 17,
+                            fontSize: 14,
                             color: APP_COLOR.ORANGE,
                           }}
                         >
@@ -725,67 +781,81 @@ const PlaceOrderPage = () => {
                     {pointUsed > 0 && (
                       <View style={styles.textInputView}>
                         <View style={{ flex: 1 }}>
-                          <Text
-                            style={[
-                              styles.textInputText,
-                              { fontFamily: FONTS.regular, fontSize: 17 },
-                            ]}
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                            }}
                           >
-                            Sử dụng điểm thưởng
-                          </Text>
+                            <Text
+                              style={[
+                                styles.textInputText,
+                                {
+                                  fontFamily: FONTS.regular,
+                                  fontSize: 14,
+                                },
+                              ]}
+                            >
+                              Sử dụng điểm thưởng
+                            </Text>
+                            <View
+                              style={{
+                                flexDirection: "row",
+                                alignItems: "center",
+                                gap: 8,
+                              }}
+                            >
+                              <TextInput
+                                style={{
+                                  borderBottomWidth: 1,
+                                  borderBottomColor: APP_COLOR.BROWN,
+                                  paddingBottom: 1,
+                                  width: 35,
+                                  textAlign: "center",
+                                  fontFamily: FONTS.regular,
+                                  fontSize: 14,
+                                  color: APP_COLOR.BROWN,
+                                }}
+                                value={pointsToUse}
+                                onChangeText={(text) => {
+                                  const numericValue = text.replace(
+                                    /[^0-9]/g,
+                                    ""
+                                  );
+                                  const numValue = Number(numericValue);
+                                  if (numericValue === "" || numValue === 0) {
+                                    setPointsToUse("");
+                                  } else if (numValue > pointUsed) {
+                                    setPointsToUse(pointUsed.toString());
+                                  } else {
+                                    setPointsToUse(numericValue);
+                                  }
+                                }}
+                                keyboardType="numeric"
+                                placeholder="0"
+                                placeholderTextColor={APP_COLOR.BROWN}
+                              />
+                              <Text
+                                style={{
+                                  fontFamily: FONTS.regular,
+                                  fontSize: 12,
+                                  color: APP_COLOR.BROWN,
+                                }}
+                              >
+                                điểm
+                              </Text>
+                            </View>
+                          </View>
                           <Text
                             style={{
                               fontFamily: FONTS.regular,
-                              fontSize: 12,
+                              fontSize: 11,
                               color: APP_COLOR.BROWN,
                               marginTop: 4,
                             }}
                           >
                             Bạn có {pointUsed} điểm (1 điểm = 1.000đ)
-                          </Text>
-                        </View>
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            gap: 8,
-                          }}
-                        >
-                          <TextInput
-                            style={{
-                              borderBottomWidth: 1,
-                              borderBottomColor: APP_COLOR.BROWN,
-                              paddingBottom: 3,
-                              width: 50,
-                              textAlign: "center",
-                              fontFamily: FONTS.regular,
-                              fontSize: 16,
-                              color: APP_COLOR.BROWN,
-                            }}
-                            value={pointsToUse}
-                            onChangeText={(text) => {
-                              const numericValue = text.replace(/[^0-9]/g, "");
-                              const numValue = Number(numericValue);
-                              if (numericValue === "" || numValue === 0) {
-                                setPointsToUse("");
-                              } else if (numValue > pointUsed) {
-                                setPointsToUse(pointUsed.toString());
-                              } else {
-                                setPointsToUse(numericValue);
-                              }
-                            }}
-                            keyboardType="numeric"
-                            placeholder="0"
-                            placeholderTextColor={APP_COLOR.BROWN}
-                          />
-                          <Text
-                            style={{
-                              fontFamily: FONTS.regular,
-                              fontSize: 14,
-                              color: APP_COLOR.BROWN,
-                            }}
-                          >
-                            điểm
                           </Text>
                         </View>
                       </View>
@@ -795,7 +865,7 @@ const PlaceOrderPage = () => {
                         <Text
                           style={[
                             styles.textInputText,
-                            { fontFamily: FONTS.regular, fontSize: 17 },
+                            { fontFamily: FONTS.regular, fontSize: 14 },
                           ]}
                         >
                           Giảm từ điểm thưởng
@@ -803,7 +873,7 @@ const PlaceOrderPage = () => {
                         <Text
                           style={{
                             fontFamily: FONTS.regular,
-                            fontSize: 17,
+                            fontSize: 14,
                             color: APP_COLOR.ORANGE,
                           }}
                         >
@@ -824,11 +894,20 @@ const PlaceOrderPage = () => {
                         * Chỉ hỗ trợ giao hàng tại TP.HCM và không quá 5km
                       </Text>
                     )}
+                    <CustomerInforInput
+                      onChangeText={handleChange("note")}
+                      onBlur={handleBlur("note")}
+                      value={values.note}
+                      error={errors.note}
+                      touched={touched.note}
+                      placeholder="Ghi chú"
+                      placeholderTextColor={APP_COLOR.ORANGE}
+                    />
                     <View style={styles.textInputView}>
                       <Text
                         style={[
                           styles.textInputText,
-                          { fontFamily: FONTS.bold, fontSize: 20 },
+                          { fontFamily: FONTS.bold, fontSize: 18 },
                         ]}
                       >
                         Số tiền thanh toán
@@ -836,7 +915,7 @@ const PlaceOrderPage = () => {
                       <Text
                         style={{
                           fontFamily: FONTS.bold,
-                          fontSize: 20,
+                          fontSize: 18,
                           color: APP_COLOR.BROWN,
                         }}
                       >
@@ -876,7 +955,7 @@ const PlaceOrderPage = () => {
                         <Text
                           style={{
                             fontFamily: FONTS.bold,
-                            fontSize: 16,
+                            fontSize: 15,
                             color: APP_COLOR.BROWN,
                             marginBottom: 1,
                           }}
@@ -886,7 +965,7 @@ const PlaceOrderPage = () => {
                         <Text
                           style={{
                             fontFamily: FONTS.regular,
-                            fontSize: 13,
+                            fontSize: 12,
                             color: APP_COLOR.BROWN,
                           }}
                         >
@@ -946,7 +1025,7 @@ const PlaceOrderPage = () => {
                         <Text
                           style={{
                             fontFamily: FONTS.bold,
-                            fontSize: 20,
+                            fontSize: 18,
                             color: APP_COLOR.BROWN,
                           }}
                         >
@@ -986,7 +1065,7 @@ const PlaceOrderPage = () => {
                           <Text
                             style={{
                               fontFamily: FONTS.regular,
-                              fontSize: 16,
+                              fontSize: 14,
                               color: APP_COLOR.BROWN,
                             }}
                           >
@@ -1047,7 +1126,7 @@ const PlaceOrderPage = () => {
                                     <Text
                                       style={{
                                         fontFamily: FONTS.bold,
-                                        fontSize: 16,
+                                        fontSize: 15,
                                         color: APP_COLOR.BROWN,
                                         marginBottom: 5,
                                       }}
@@ -1057,7 +1136,7 @@ const PlaceOrderPage = () => {
                                     <Text
                                       style={{
                                         fontFamily: FONTS.regular,
-                                        fontSize: 13,
+                                        fontSize: 12,
                                         color: APP_COLOR.BROWN,
                                         marginBottom: 5,
                                       }}
@@ -1067,7 +1146,7 @@ const PlaceOrderPage = () => {
                                     <Text
                                       style={{
                                         fontFamily: FONTS.medium,
-                                        fontSize: 12,
+                                        fontSize: 11,
                                         color: APP_COLOR.ORANGE,
                                         marginBottom: 3,
                                       }}
@@ -1158,7 +1237,7 @@ const PlaceOrderPage = () => {
                                     <Text
                                       style={{
                                         fontFamily: FONTS.bold,
-                                        fontSize: 14,
+                                        fontSize: 13,
                                         color: APP_COLOR.ORANGE,
                                       }}
                                     >
@@ -1210,7 +1289,7 @@ const PlaceOrderPage = () => {
                         <Text
                           style={{
                             fontFamily: FONTS.semiBold,
-                            fontSize: 20,
+                            fontSize: 18,
                             color: APP_COLOR.BROWN,
                           }}
                         >
@@ -1240,7 +1319,7 @@ const PlaceOrderPage = () => {
                             <Text
                               style={{
                                 fontFamily: FONTS.regular,
-                                fontSize: 16,
+                                fontSize: 14,
                                 color: APP_COLOR.BROWN,
                                 textAlign: "center",
                               }}
@@ -1263,7 +1342,7 @@ const PlaceOrderPage = () => {
                               <Text
                                 style={{
                                   fontFamily: FONTS.semiBold,
-                                  fontSize: 16,
+                                  fontSize: 14,
                                   color: APP_COLOR.WHITE,
                                 }}
                               >
@@ -1309,7 +1388,7 @@ const PlaceOrderPage = () => {
                                     <Text
                                       style={{
                                         fontFamily: FONTS.semiBold,
-                                        fontSize: 16,
+                                        fontSize: 14,
                                         color: APP_COLOR.BROWN,
                                       }}
                                     >
@@ -1392,7 +1471,7 @@ const PlaceOrderPage = () => {
                           <Text
                             style={{
                               fontFamily: FONTS.semiBold,
-                              fontSize: 16,
+                              fontSize: 14,
                               color: APP_COLOR.WHITE,
                             }}
                           >
@@ -1403,48 +1482,53 @@ const PlaceOrderPage = () => {
                     </View>
                   </View>
                 </Modal>
-                <CustomerInforInput
-                  onChangeText={handleChange("note")}
-                  onBlur={handleBlur("note")}
-                  value={values.note}
-                  error={errors.note}
-                  touched={touched.note}
-                  placeholder="Ghi chú"
-                  placeholderTextColor={APP_COLOR.ORANGE}
-                />
-                <ShareButton
-                  loading={loading}
-                  title="Tạo đơn hàng"
-                  onPress={handleCreateOrder}
-                  textStyle={{
-                    textTransform: "uppercase",
-                    color: APP_COLOR.WHITE,
-                    paddingVertical: 5,
-                    fontFamily: FONTS.regular,
-                    fontSize: 18,
-                  }}
-                  btnStyle={{
-                    justifyContent: "center",
-                    borderRadius: 10,
-                    paddingVertical: 5,
-                    backgroundColor: APP_COLOR.ORANGE,
-                    width: "80%",
-                    alignSelf: "center",
-                    marginTop: 5,
-                  }}
-                  pressStyle={{ alignSelf: "stretch" }}
-                />
               </View>
             );
           }}
         </Formik>
       </ScrollView>
+      <ShareButton
+        loading={loading}
+        title="Đặt hàng"
+        onPress={handleCreateOrder}
+        textStyle={{
+          textTransform: "uppercase",
+          color: APP_COLOR.WHITE,
+          paddingVertical: 5,
+          fontFamily: FONTS.regular,
+          fontSize: 16,
+          alignItems: "center",
+        }}
+        btnStyle={{
+          position: "absolute",
+          bottom: 50,
+          height: 55,
+          width: "80%",
+          alignSelf: "center",
+          justifyContent: "center",
+          borderRadius: 10,
+          backgroundColor: APP_COLOR.ORANGE,
+          paddingHorizontal: 10,
+        }}
+        pressStyle={{ alignSelf: "stretch" }}
+      />
     </View>
   );
 };
 const styles = StyleSheet.create({
   container: {
     gap: 3,
+    backgroundColor: APP_COLOR.WHITE,
+    paddingVertical: 10,
+    borderRadius: 10,
+    paddingHorizontal: 20,
+  },
+  textContainer: {
+    backgroundColor: APP_COLOR.WHITE,
+    paddingVertical: 10,
+    borderRadius: 10,
+    paddingHorizontal: 20,
+    marginBottom: 10,
   },
   textInputView: {
     flexDirection: "row",
@@ -1453,7 +1537,7 @@ const styles = StyleSheet.create({
   textInputText: {
     color: APP_COLOR.BROWN,
     fontFamily: FONTS.bold,
-    fontSize: 20,
+    fontSize: 15,
     marginVertical: "auto",
   },
 });

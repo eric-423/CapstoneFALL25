@@ -331,7 +331,7 @@ const OrderPage = () => {
                           <Text
                             style={{
                               color: APP_COLOR.BROWN,
-                              fontSize: 15,
+                              fontSize: 13,
                               fontFamily: FONTS.medium,
                             }}
                           >
@@ -375,7 +375,7 @@ const OrderPage = () => {
                               style={[
                                 styles.text,
                                 {
-                                  fontSize: 20,
+                                  fontSize: 18,
                                   fontFamily: FONTS.bold,
                                   alignSelf: "flex-end",
                                 },
@@ -477,7 +477,7 @@ const OrderPage = () => {
                           <Text
                             style={{
                               color: APP_COLOR.BROWN,
-                              fontSize: 15,
+                              fontSize: 13,
                               fontFamily: FONTS.medium,
                             }}
                           >
@@ -521,7 +521,7 @@ const OrderPage = () => {
                               style={[
                                 styles.text,
                                 {
-                                  fontSize: 20,
+                                  fontSize: 18,
                                   fontFamily: FONTS.bold,
                                   alignSelf: "flex-end",
                                 },
@@ -663,7 +663,7 @@ const OrderPage = () => {
 const styles = StyleSheet.create({
   text: {
     fontFamily: FONTS.medium,
-    fontSize: 15,
+    fontSize: 13,
     color: APP_COLOR.BROWN,
     marginLeft: 5,
   },
@@ -695,14 +695,14 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: APP_COLOR.BROWN,
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: FONTS.bold,
     textAlign: "center",
   },
   orderText: {
     fontFamily: FONTS.regular,
     color: APP_COLOR.BROWN,
-    fontSize: 14,
+    fontSize: 13,
   },
   modalOverlay: {
     flex: 1,

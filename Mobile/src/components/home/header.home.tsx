@@ -120,6 +120,7 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
     locationReal,
     setLocationReal,
     appState,
+    branchId,
     setBranchId,
     setBranchName,
   } = useCurrentApp();
@@ -186,17 +187,50 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
           setBranchInfo(dataSource);
           if (dataSource.length > 0) {
             setSelectedBranch((prevSelected: any) => {
-              if (prevSelected?.id) {
+              if (prevSelected?.id || prevSelected?.branchId) {
                 const foundBranch = dataSource.find(
-                  (b: any) => b.id === prevSelected.id
+                  (b: any) =>
+                    b.id === prevSelected.id ||
+                    b.branchId === prevSelected.branchId ||
+                    b.id === prevSelected.branchId
                 );
                 if (foundBranch) {
+                  const branchIdToSet = foundBranch.branchId || foundBranch.id;
+                  if (branchIdToSet) {
+                    setBranchId(branchIdToSet);
+                  }
+                  if (foundBranch.name) {
+                    setBranchName(foundBranch.name);
+                  }
                   return foundBranch;
                 }
               }
+              if (branchId) {
+                const foundBranchByContextId = dataSource.find(
+                  (b: any) => b.id === branchId || b.branchId === branchId
+                );
+                if (foundBranchByContextId) {
+                  const branchIdToSet =
+                    foundBranchByContextId.branchId ||
+                    foundBranchByContextId.id;
+                  if (branchIdToSet) {
+                    setBranchId(branchIdToSet);
+                  }
+                  if (foundBranchByContextId.name) {
+                    setBranchName(foundBranchByContextId.name);
+                  }
+                  return foundBranchByContextId;
+                }
+              }
               const firstBranch = dataSource[0];
-              if (firstBranch?.id) {
-                setBranchId(firstBranch.id);
+              if (firstBranch) {
+                const branchIdToSet = firstBranch.branchId || firstBranch.id;
+                if (branchIdToSet) {
+                  setBranchId(branchIdToSet);
+                }
+                if (firstBranch.name) {
+                  setBranchName(firstBranch.name);
+                }
               }
               return firstBranch;
             });
@@ -212,7 +246,9 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
       };
     }, [
       locationReal,
+      branchId,
       setBranchId,
+      setBranchName,
       appState?.userInfo?.id,
       getDeviceLocationAddress,
     ])
