@@ -15,7 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/material-types")
+@RequestMapping("/material-types")
 @Tag(name = "Material Type Management", description = "API quản lý loại nguyên liệu")
 public class MaterialTypeController {
 

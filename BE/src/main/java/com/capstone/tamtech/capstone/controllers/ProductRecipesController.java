@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/recipes")
+@RequestMapping("/recipes")
 @CrossOrigin(origins = "*")
 @Tag(name = "Product Recipes Management", description = "API quản lý công thức sản phẩm")
 public class ProductRecipesController {

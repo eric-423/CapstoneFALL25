@@ -15,7 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/utensils-types")
+@RequestMapping("/utensils-types")
 @CrossOrigin(origins = "*")
 @Tag(name = "Utensils Type", description = "API quản lý loại dụng cụ bếp")
 public class UtensilsTypeController {

@@ -18,7 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/combos")
+@RequestMapping("/combos")
 @CrossOrigin(origins = "*")
 @Tag(name = "Combo Management", description = "API quản lý combo")
 public class ComboController {

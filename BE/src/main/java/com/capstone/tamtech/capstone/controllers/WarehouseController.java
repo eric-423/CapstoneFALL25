@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/warehouses")
+@RequestMapping("/warehouses")
 @CrossOrigin(origins = "*")
 @Tag(name = "Warehouse Management", description = "API quản lý kho")
 public class WarehouseController {

@@ -81,7 +81,7 @@ public class ShipperLocationController {
         }
     }
 
-    @GetMapping("/api/orders/{orderId}/shipper-location")
+    @GetMapping("/orders/{orderId}/shipper-location")
     @ResponseBody
     public ResponseEntity<?> getShipperLocation(@PathVariable int orderId) {
         try {
@@ -118,7 +118,7 @@ public class ShipperLocationController {
         }
     }
 
-    @PostMapping("/api/shipper/orders/{orderId}/location")
+    @PostMapping("/shipper/orders/{orderId}/location")
     @ResponseBody
     public ResponseEntity<?> updateLocationREST(
             @PathVariable int orderId,

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/material-nutrients")
+@RequestMapping("/material-nutrients")
 public class MaterialNutrientController {
 
     @Autowired

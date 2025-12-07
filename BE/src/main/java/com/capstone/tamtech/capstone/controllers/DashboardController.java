@@ -16,7 +16,7 @@ import java.util.Date;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/dashboard")
+@RequestMapping("/dashboard")
 @CrossOrigin(origins = "*")
 @Tag(name = "Dashboard Admin", description = "API Dashboard Admin dạng Tab")
 public class DashboardController {

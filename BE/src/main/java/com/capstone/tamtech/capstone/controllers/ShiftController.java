@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/shifts")
+@RequestMapping("/shifts")
 @CrossOrigin(origins = "*")
 @Tag(name = "Shift Management", description = "API quản lý ca làm việc")
 public class ShiftController {

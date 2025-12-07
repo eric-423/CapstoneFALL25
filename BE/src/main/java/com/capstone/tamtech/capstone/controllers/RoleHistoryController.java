@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/role-histories")
+@RequestMapping("/role-histories")
 @CrossOrigin(origins = "*")
 @Tag(name = "Role History Management", description = "API quản lý lịch sử vai trò người dùng (Chỉ dành cho ADMIN)")
 public class RoleHistoryController {

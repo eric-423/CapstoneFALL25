@@ -16,7 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/users")
 @CrossOrigin(origins = "*")
 @Tag(name = "User Management", description = "API quản lý người dùng (Chỉ dành cho ADMIN)")
 public class UserManagementController {
