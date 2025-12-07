@@ -61,10 +61,14 @@ public class OpenApiConfig {
                                 .servers(List.of(
                                                 new Server()
                                                                 .url("http://localhost:8080")
-                                                                .description("Development Server"),
+                                                                .description("Local Server"),
                                                 new Server()
                                                                 .url("https://tam-tac.com")
-                                                                .description("Production Server")))
+                                                                .description("Production Server"),
+                                                new Server()
+                                                        .url("http://104.214.186.132:8080")
+                                                        .description("Development Server")))
+
                                 .components(new Components()
                                                 .addSecuritySchemes("bearerAuth", securityScheme))
                                 .addSecurityItem(securityRequirement);
