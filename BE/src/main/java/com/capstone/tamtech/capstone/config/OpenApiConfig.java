@@ -60,7 +60,7 @@ public class OpenApiConfig {
                                                                 .url("https://www.apache.org/licenses/LICENSE-2.0.html")))
                                 .servers(List.of(
                                                 new Server()
-                                                                .url("http://localhost:8080")
+                                                                .url("http://localhost:8080/api/v1")
                                                                 .description("Local Server"),
                                                 new Server()
                                                                 .url("https://tam-tac.com/api/v1")
