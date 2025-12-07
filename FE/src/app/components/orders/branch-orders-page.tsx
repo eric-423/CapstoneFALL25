@@ -508,8 +508,11 @@ export function BranchOrdersPage({ variant }: BranchOrdersPageProps) {
         ).length;
         const completed = filteredOrders.filter((o) => o.orderStatus === "COMPLETED")
             .length;
-        const totalRevenue = filteredOrders.reduce((sum, o) => sum + o.amount, 0);
+        const totalRevenue = filteredOrders
+            .filter((o) => o.orderStatus !== "CANCELLED" && o.orderStatus !== "CANCEL" && o.orderStatus !== 'CREATED')
+            .reduce((sum, o) => sum + o.amount, 0);
         return { total, inProcess, delivering, completed, totalRevenue };
+
     }, [filteredOrders]);
 
     const shouldShowInitialLoader = loading && orders.length === 0;
@@ -547,7 +550,7 @@ export function BranchOrdersPage({ variant }: BranchOrdersPageProps) {
                         />
                         <AdminStatsCard
                             title="Tổng doanh thu"
-                            value={`${(stats.totalRevenue / 1000000).toFixed(1)}M`}
+                            value={formatCurrency(stats.totalRevenue)}
                             icon={DollarSign}
                             className="border-[#F8A91F]/20"
                         />
