@@ -19,6 +19,7 @@ import {
 import React from "react";
 import { FONTS } from "@/theme/typography";
 import { TopSellingProduct } from "@/utils/api";
+import comboLogo from "@/assets/saleoff/combo.png";
 const { width: sWidth } = Dimensions.get("window");
 
 interface IProps {
@@ -35,6 +36,8 @@ interface IPropsProduct {
   type: string;
   imageUrl: string;
   averageRating: number;
+  isCombo?: boolean;
+  comboId?: number;
 }
 
 interface ModalContextType {
@@ -200,9 +203,16 @@ const CollectionHome = (props: IProps) => {
                     <Image
                       style={styles.itemImage}
                       source={
-                        typeof item.imageUrl === "string"
+                        (item.isCombo ||
+                          item.comboId ||
+                          item.type === "COMBO" ||
+                          item.type === "combo") &&
+                        (!item.imageUrl || item.imageUrl.trim() === "")
+                          ? comboLogo
+                          : typeof item.imageUrl === "string" &&
+                            item.imageUrl.trim() !== ""
                           ? { uri: item.imageUrl }
-                          : (item.imageUrl as any)
+                          : (item.imageUrl as any) || comboLogo
                       }
                     />
                     <View style={styles.ratingContainer}>

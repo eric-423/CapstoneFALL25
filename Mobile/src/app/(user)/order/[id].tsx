@@ -221,8 +221,12 @@ const OrderDetailsPage = () => {
 
   return (
     <View style={{ flex: 1, backgroundColor: APP_COLOR.BACKGROUND_ORANGE }}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.container}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        style={{ flex: 1, paddingHorizontal: 10 }}
+        contentContainerStyle={{ paddingBottom: 20 }}
+      >
+        <View style={[styles.textContainer, { paddingTop: 40 }]}>
           <View style={styles.headerTitle}>
             <Text style={[styles.title, { textAlign: "center" }]}>
               Giao hàng đơn số {orderDetails?.orderId || orderIdParam}
@@ -236,6 +240,9 @@ const OrderDetailsPage = () => {
           {!!error && !isLoading && (
             <Text style={styles.errorText}>{error}</Text>
           )}
+        </View>
+
+        <View style={styles.textContainer}>
           <View style={styles.orderDetailsStatus}>
             <Text style={styles.statusLabel}>Trạng thái đơn hàng</Text>
             <View style={styles.statusLayout}>
@@ -261,8 +268,6 @@ const OrderDetailsPage = () => {
                 alignItems: "flex-start",
                 marginVertical: 10,
                 marginBottom: 5,
-                borderBottomColor: APP_COLOR.BROWN,
-                borderBottomWidth: 0.5,
                 width: "45%",
               }}
             >
@@ -337,8 +342,6 @@ const OrderDetailsPage = () => {
             </View>
             <View
               style={{
-                borderBottomColor: APP_COLOR.BROWN,
-                borderBottomWidth: 0.5,
                 paddingBottom: 10,
                 marginBottom: 4.5,
                 width: "50%",
@@ -398,7 +401,7 @@ const OrderDetailsPage = () => {
                 <Text
                   style={{
                     fontFamily: FONTS.regular,
-                    fontSize: 14,
+                    fontSize: 12,
                     color: APP_COLOR.BROWN,
                   }}
                 >
@@ -419,220 +422,201 @@ const OrderDetailsPage = () => {
               </View>
             </View>
           </View>
+        </View>
 
-          <View
-            style={{
-              borderBottomColor: APP_COLOR.BROWN,
-              borderBottomWidth: 0.5,
-              paddingBottom: 10,
-            }}
-          >
-            <Text style={styles.labelIcon}>Chi tiết đơn hàng</Text>
-            {orderDetails?.orderItems.map((item, index) => (
-              <View key={index} style={styles.itemContainer}>
-                <View>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      gap: 125,
-                    }}
+        <View style={styles.textContainer}>
+          <Text style={styles.labelIcon}>Chi tiết đơn hàng</Text>
+          {orderDetails?.orderItems.map((item, index) => (
+            <View key={index} style={styles.itemContainer}>
+              <View>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    gap: 125,
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.itemValue,
+                      { fontFamily: FONTS.bold, width: "50%" },
+                    ]}
                   >
-                    <Text
-                      style={[
-                        styles.itemValue,
-                        { fontFamily: FONTS.bold, width: "50%" },
-                      ]}
-                    >
-                      {item.productName}
-                    </Text>
-                    <Text style={[styles.itemValue]}>
-                      {currencyFormatter(item.price)}
-                    </Text>
-                  </View>
-                  <Text style={styles.itemValue}>
-                    Số lượng: {item.quantity}
+                    {item.productName}
+                  </Text>
+                  <Text style={[styles.itemValue]}>
+                    {currencyFormatter(item.price)}
                   </Text>
                 </View>
+                <Text style={styles.itemValue}>Số lượng: {item.quantity}</Text>
               </View>
-            ))}
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.textContainer}>
+          <Text style={[styles.label, { fontSize: 16 }]}>Tổng tiền</Text>
+          <View style={styles.detailsContainer}>
+            <Text style={styles.totalValue}>Thành tiền</Text>
+            <Text style={styles.totalValue}>
+              {currencyFormatter(
+                orderDetails?.order_subtotal || orderDetails?.order_amount || 0
+              )}
+            </Text>
           </View>
-          <View
-            style={{
-              borderBottomColor: APP_COLOR.BROWN,
-              borderBottomWidth: 0.5,
-              paddingBottom: 10,
-              marginBottom: 10,
-            }}
-          >
-            <Text style={[styles.label, { fontSize: 19 }]}>Tổng tiền</Text>
-            <View style={styles.detailsContainer}>
-              <Text style={styles.totalValue}>Thành tiền</Text>
-              <Text style={styles.totalValue}>
-                {currencyFormatter(
-                  orderDetails?.order_subtotal ||
-                    orderDetails?.order_amount ||
-                    0
-                )}
-              </Text>
-            </View>
-            <View style={styles.detailsContainer}>
-              <Text style={styles.totalValue}>Phí giao hàng</Text>
-              <Text style={styles.totalValue}>
-                {currencyFormatter(orderDetails?.order_shipping_fee)}
-              </Text>
-            </View>
-            <View style={styles.detailsContainer}>
-              <Text style={styles.totalValue}>Giảm giá</Text>
-              <Text style={styles.totalValue}>
-                -{currencyFormatter(orderDetails?.order_discount_value)}
-              </Text>
-            </View>
-            <View style={styles.detailsContainer}>
-              <Text style={styles.totalLabel}>Số tiền thanh toán</Text>
-              <Text style={styles.totalLabel}>
-                {currencyFormatter(
-                  orderDetails?.order_amount ||
-                    0 +
-                      (orderDetails?.order_shipping_fee || 0) -
-                      (orderDetails?.order_discount_value || 0)
-                )}
-              </Text>
-            </View>
-            <View style={styles.detailsContainer}>
-              <Text style={styles.totalLabel}>Điểm tích lũy</Text>
-              <Text style={styles.totalLabel}>
-                {(orderDetails?.order_amount ||
+          <View style={styles.detailsContainer}>
+            <Text style={styles.totalValue}>Phí giao hàng</Text>
+            <Text style={styles.totalValue}>
+              {currencyFormatter(orderDetails?.order_shipping_fee)}
+            </Text>
+          </View>
+          <View style={styles.detailsContainer}>
+            <Text style={styles.totalValue}>Giảm giá</Text>
+            <Text style={styles.totalValue}>
+              -{currencyFormatter(orderDetails?.order_discount_value)}
+            </Text>
+          </View>
+          <View style={styles.detailsContainer}>
+            <Text style={styles.totalLabel}>Số tiền thanh toán</Text>
+            <Text style={styles.totalLabel}>
+              {currencyFormatter(
+                orderDetails?.order_amount ||
                   0 +
                     (orderDetails?.order_shipping_fee || 0) -
-                    (orderDetails?.order_discount_value || 0) ||
-                  0 / 1000) / 1000}{" "}
-                điểm
-              </Text>
-            </View>
-            <Text style={styles.label}>Ghi chú</Text>
-            <Text style={styles.value}>
-              {orderDetails?.note || "Không có ghi chú"}
+                    (orderDetails?.order_discount_value || 0)
+              )}
             </Text>
-            <View style={{ flexDirection: "row" }}>
-              <View style={styles.buttonContainer}>
-                {orderDetails?.status === "CREATED" && (
-                  <TouchableOpacity
-                    style={[
-                      styles.buttonFooter,
-                      {
-                        backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
-                        borderWidth: 1,
-                        borderColor: APP_COLOR.BROWN,
-                      },
-                    ]}
-                    onPress={() => {
-                      if (orderDetails?.paymentUrl) {
-                        router.navigate({
-                          pathname: "/(user)/order/payment.webview",
-                          params: { paymentUrl: orderDetails.paymentUrl },
-                        });
-                      } else {
-                        Alert.alert(
-                          "Lỗi",
-                          "Không tìm thấy URL thanh toán. Vui lòng thử lại sau."
-                        );
-                      }
-                    }}
-                  >
-                    <Text
-                      style={[styles.buttonText, { color: APP_COLOR.BROWN }]}
-                    >
-                      Thanh toán
-                    </Text>
-                  </TouchableOpacity>
-                )}
-                {orderDetails?.status === "SHIPPING" &&
-                  orderDetails?.orderId && (
-                    <TouchableOpacity
-                      style={[
-                        styles.buttonFooter,
-                        {
-                          backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
-                          borderWidth: 1,
-                          borderColor: APP_COLOR.BROWN,
-                        },
-                      ]}
-                      onPress={() =>
-                        router.navigate({
-                          pathname: "/(user)/order/track/[id]",
-                          params: { id: String(orderDetails.orderId) },
-                        })
-                      }
-                    >
-                      <Text
-                        style={[
-                          styles.buttonText,
-                          { color: APP_COLOR.BROWN, textAlign: "center" },
-                        ]}
-                      >
-                        Theo dõi đơn
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                {normalizedStatus === "DELIVERED" && orderDetails?.orderId && (
-                  <TouchableOpacity
-                    style={[
-                      styles.buttonFooter,
-                      {
-                        backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
-                        borderWidth: 1,
-                        borderColor: APP_COLOR.BROWN,
-                      },
-                    ]}
-                    onPress={handleCompleteOrder}
-                    disabled={isCompleting}
-                  >
-                    <Text
-                      style={[
-                        styles.buttonText,
-                        { color: APP_COLOR.BROWN, textAlign: "center" },
-                      ]}
-                    >
-                      {isCompleting ? "Đang xử lý..." : "Đã nhận đơn"}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-                {normalizedStatus === "COMPLETED" &&
-                  orderDetails?.billPdfUrl && (
-                    <TouchableOpacity
-                      style={[
-                        styles.buttonFooter,
-                        {
-                          backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
-                          borderWidth: 1,
-                          borderColor: APP_COLOR.BROWN,
-                        },
-                      ]}
-                      onPress={handleViewBill}
-                    >
-                      <Text
-                        style={[
-                          styles.buttonText,
-                          { color: APP_COLOR.BROWN, textAlign: "center" },
-                        ]}
-                      >
-                        Xem hóa đơn
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                <TouchableOpacity
+          </View>
+          <View style={styles.detailsContainer}>
+            <Text style={styles.totalLabel}>Điểm tích lũy</Text>
+            <Text style={styles.totalLabel}>
+              {(orderDetails?.order_amount ||
+                0 +
+                  (orderDetails?.order_shipping_fee || 0) -
+                  (orderDetails?.order_discount_value || 0) ||
+                0 / 1000) / 1000}{" "}
+              điểm
+            </Text>
+          </View>
+          <Text style={styles.label}>Ghi chú</Text>
+          <Text style={styles.value}>
+            {orderDetails?.note || "Không có ghi chú"}
+          </Text>
+        </View>
+
+        <View style={styles.btnContainer}>
+          <View style={styles.buttonContainer}>
+            {orderDetails?.status === "CREATED" && (
+              <TouchableOpacity
+                style={[
+                  styles.buttonFooter,
+                  {
+                    backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
+                    borderWidth: 1,
+                    borderColor: APP_COLOR.BROWN,
+                  },
+                ]}
+                onPress={() => {
+                  if (orderDetails?.paymentUrl) {
+                    router.navigate({
+                      pathname: "/(user)/order/payment.webview",
+                      params: { paymentUrl: orderDetails.paymentUrl },
+                    });
+                  } else {
+                    Alert.alert(
+                      "Lỗi",
+                      "Không tìm thấy URL thanh toán. Vui lòng thử lại sau."
+                    );
+                  }
+                }}
+              >
+                <Text style={[styles.buttonText, { color: APP_COLOR.BROWN }]}>
+                  Thanh toán
+                </Text>
+              </TouchableOpacity>
+            )}
+            {orderDetails?.status === "SHIPPING" && orderDetails?.orderId && (
+              <TouchableOpacity
+                style={[
+                  styles.buttonFooter,
+                  {
+                    backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
+                    borderWidth: 1,
+                    borderColor: APP_COLOR.BROWN,
+                  },
+                ]}
+                onPress={() =>
+                  router.navigate({
+                    pathname: "/(user)/order/track/[id]",
+                    params: { id: String(orderDetails.orderId) },
+                  })
+                }
+              >
+                <Text
                   style={[
-                    styles.buttonFooter,
-                    { backgroundColor: APP_COLOR.ORANGE },
+                    styles.buttonText,
+                    { color: APP_COLOR.BROWN, textAlign: "center" },
                   ]}
-                  onPress={() => router.navigate("/(tabs)")}
                 >
-                  <Text style={[styles.buttonText, { color: APP_COLOR.WHITE }]}>
-                    Về trang chủ
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
+                  Theo dõi đơn
+                </Text>
+              </TouchableOpacity>
+            )}
+            {normalizedStatus === "DELIVERED" && orderDetails?.orderId && (
+              <TouchableOpacity
+                style={[
+                  styles.buttonFooter,
+                  {
+                    backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
+                    borderWidth: 1,
+                    borderColor: APP_COLOR.BROWN,
+                  },
+                ]}
+                onPress={handleCompleteOrder}
+                disabled={isCompleting}
+              >
+                <Text
+                  style={[
+                    styles.buttonText,
+                    { color: APP_COLOR.BROWN, textAlign: "center" },
+                  ]}
+                >
+                  {isCompleting ? "Đang xử lý..." : "Đã nhận đơn"}
+                </Text>
+              </TouchableOpacity>
+            )}
+            {normalizedStatus === "COMPLETED" && orderDetails?.billPdfUrl && (
+              <TouchableOpacity
+                style={[
+                  styles.buttonFooter,
+                  {
+                    backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
+                    borderWidth: 1,
+                    borderColor: APP_COLOR.BROWN,
+                  },
+                ]}
+                onPress={handleViewBill}
+              >
+                <Text
+                  style={[
+                    styles.buttonText,
+                    { color: APP_COLOR.BROWN, textAlign: "center" },
+                  ]}
+                >
+                  Xem hóa đơn
+                </Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              style={[
+                styles.buttonFooter,
+                { backgroundColor: APP_COLOR.ORANGE },
+              ]}
+              onPress={() => router.navigate("/(tabs)")}
+            >
+              <Text style={[styles.buttonText, { color: APP_COLOR.WHITE }]}>
+                Về trang chủ
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
@@ -647,47 +631,59 @@ const styles = StyleSheet.create({
     paddingVertical: 35,
     paddingHorizontal: 16,
   },
+  textContainer: {
+    backgroundColor: APP_COLOR.WHITE,
+    paddingVertical: 10,
+    borderRadius: 10,
+    marginBottom: 10,
+    paddingHorizontal: 10,
+  },
+  btnContainer: {
+    paddingVertical: 10,
+    borderRadius: 10,
+    marginBottom: 30,
+  },
   headerTitle: {
     marginBottom: 10,
   },
   title: {
-    fontSize: 25,
+    fontSize: 22,
     marginVertical: "auto",
     fontFamily: FONTS.medium,
     color: APP_COLOR.BROWN,
   },
   detailsContainer: { flexDirection: "row", justifyContent: "space-between" },
   label: {
-    fontSize: 15,
+    fontSize: 13,
     fontFamily: FONTS.bold,
     color: APP_COLOR.BROWN,
     width: 170,
   },
   totalLabel: {
-    fontSize: 15,
+    fontSize: 13,
     fontFamily: FONTS.bold,
     color: APP_COLOR.BROWN,
   },
   statusLabel: {
-    fontSize: 15,
+    fontSize: 13,
     fontFamily: FONTS.bold,
     color: APP_COLOR.BROWN,
     width: 200,
     marginVertical: "auto",
   },
   value: {
-    fontSize: 15,
+    fontSize: 13,
     fontFamily: FONTS.regular,
     color: APP_COLOR.BROWN,
     width: 180,
   },
   totalValue: {
-    fontSize: 15,
+    fontSize: 13,
     fontFamily: FONTS.regular,
     color: APP_COLOR.BROWN,
   },
   customerValue: {
-    fontSize: 15,
+    fontSize: 13,
     fontFamily: FONTS.semiBold,
     color: APP_COLOR.BROWN,
     marginHorizontal: 2,
@@ -695,11 +691,10 @@ const styles = StyleSheet.create({
   itemContainer: {
     marginVertical: 4,
     justifyContent: "space-between",
-    backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
     flexDirection: "row",
   },
   itemValue: {
-    fontSize: 15,
+    fontSize: 13,
     fontFamily: FONTS.medium,
     color: APP_COLOR.BROWN,
   },
@@ -707,7 +702,7 @@ const styles = StyleSheet.create({
     width: 130,
     height: 30,
     position: "relative",
-    left: 15,
+    left: 5,
   },
   orderDetailsStatus: {
     flexDirection: "row",
@@ -721,7 +716,7 @@ const styles = StyleSheet.create({
   },
   labelIcon: {
     color: APP_COLOR.BROWN,
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: FONTS.bold,
     alignSelf: "center",
   },
@@ -742,7 +737,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: APP_COLOR.BROWN,
-    fontSize: 17,
+    fontSize: 15,
     fontFamily: FONTS.bold,
     marginHorizontal: "auto",
   },

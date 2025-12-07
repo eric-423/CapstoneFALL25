@@ -12,6 +12,7 @@ import { useCurrentApp } from "@/context/app.context";
 import Toast from "react-native-root-toast";
 
 const fallbackImage = require("@/assets/icons/com-tam.png");
+const comboFallbackImage = require("@/assets/saleoff/combo.png");
 
 const CartPage = () => {
   const { cart, restaurant, locationReal, appState } = useCurrentApp();
@@ -25,10 +26,12 @@ const CartPage = () => {
       const unitPrice = Number(
         data.basePrice || data.price || data.productPrice || 0
       );
+      const isCombo = data.isCombo || false;
+      const defaultImage = isCombo ? comboFallbackImage : fallbackImage;
       const imageSource =
-        typeof data.image === "string"
+        typeof data.image === "string" && data.image.trim() !== ""
           ? { uri: data.image }
-          : data.image || fallbackImage;
+          : data.image || defaultImage;
       return {
         id: key,
         image: imageSource,

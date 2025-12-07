@@ -13,6 +13,7 @@ import { FONTS } from "@/theme/typography";
 import { router, useRouter } from "expo-router";
 import TodayOffersSection from "./today.offers.home";
 import { GetCustomerPromotion } from "@/utils/api";
+import { useCurrentApp } from "@/context/app.context";
 const icon = [
   {
     key: 1,
@@ -71,7 +72,7 @@ const IconItem = ({ item }: any) => {
 const TopListHome = () => {
   const [offers, setOffers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
+  const { appState } = useCurrentApp();
   useEffect(() => {
     const fetchPromotions = async () => {
       try {
@@ -147,7 +148,7 @@ const TopListHome = () => {
   return (
     <View>
       <BannerHome />
-      {offers.length > 0 && <TodayOffersSection offers={offers} />}
+      {appState && <TodayOffersSection offers={offers} />}
       <View style={{ paddingHorizontal: 10 }}>
         <View style={styles.header}>
           <Text style={styles.title}>Danh mục</Text>
