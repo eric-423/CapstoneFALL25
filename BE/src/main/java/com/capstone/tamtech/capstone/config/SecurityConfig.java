@@ -241,6 +241,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/table/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/table/**").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(HttpMethod.PUT, "/table/**").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.PATCH, "/table/**").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(HttpMethod.DELETE, "/table/**").hasAnyRole("ADMIN", "MANAGER")
 
                         .requestMatchers("/orders/cheff/**").hasRole("CHEFF")

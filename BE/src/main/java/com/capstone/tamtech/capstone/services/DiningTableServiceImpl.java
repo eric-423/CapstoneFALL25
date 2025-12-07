@@ -168,5 +168,16 @@ public class DiningTableServiceImpl implements DiningTableService {
         return null;
     }
 
+    @Override
+    public boolean setDiningTableActive(int id) {
+        DiningTable diningTable = diningTableRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Dining table not found with id: " + id));
+        if (diningTable != null) {
+            diningTable.setIsActive(true);
+            diningTableRepository.save(diningTable);
+            return true;
+        }
+        return false;
+    }
+
 
 }
