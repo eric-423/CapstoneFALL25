@@ -250,8 +250,8 @@ export function ScheduleTable({
                 isTodayDate
                   ? 'bg-[#78A243] text-white'
                   : isPast
-                  ? 'bg-gray-200 text-gray-400 opacity-60 cursor-not-allowed'
-                  : 'bg-gray-100 text-gray-700',
+                    ? 'bg-gray-200 text-gray-400 opacity-60 cursor-not-allowed'
+                    : 'bg-gray-100 text-gray-700',
                 hasSchedules && !isPast && 'cursor-pointer hover:ring-2 hover:ring-[#78A243]/50'
               )}
               onClick={() => hasSchedules && !isPast && setSelectedDayModal({ date, schedules: daySchedules })}
@@ -305,8 +305,8 @@ export function ScheduleTable({
                 isTodayDate
                   ? 'bg-[#78A243]/5 border-[#78A243]/30'
                   : isPast
-                  ? 'bg-gray-100/50 border-gray-300 opacity-60 cursor-not-allowed'
-                  : 'bg-gray-50/50 border-gray-200',
+                    ? 'bg-gray-100/50 border-gray-300 opacity-60 cursor-not-allowed'
+                    : 'bg-gray-50/50 border-gray-200',
                 !isPast && 'hover:border-[#78A243]/50 hover:bg-white transition-all'
               )}
               style={{ height: '420px' }}
@@ -521,6 +521,7 @@ export function ScheduleTable({
                 </div>
               )}
               <button
+                title="Đóng"
                 type="button"
                 onClick={() => setSelectedDayModal(null)}
                 className="w-8 h-8 rounded-lg border border-white/30 bg-white/10 hover:bg-white/20 flex items-center justify-center"
@@ -616,15 +617,15 @@ export function ScheduleTable({
                           className="flex-1 p-3 flex items-center gap-3 cursor-pointer"
                         >
                           <div
-                          className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
-                          style={{ background: styles.background }}
-                        >
-                          <span className={cn('text-base font-bold', styles.textClass)}>
-                            {(schedule.userName || 'N')[0].toUpperCase()}
-                          </span>
-                        </div>
+                            className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
+                            style={{ background: styles.background }}
+                          >
+                            <span className={cn('text-base font-bold', styles.textClass)}>
+                              {(schedule.userName || 'N')[0].toUpperCase()}
+                            </span>
+                          </div>
 
-                        <div className="flex-1 min-w-0">
+                          <div className="flex-1 min-w-0">
                             <div className="font-semibold text-gray-900 truncate text-sm">
                               {schedule.userName || 'Nhân viên'}
                             </div>
