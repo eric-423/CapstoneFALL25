@@ -24,7 +24,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     public final String returnUrl = "https://tam-tac.com/payment-success";
 
-    public final String cancelUrl = "https://tam-tac.com/api/v1/cancel";
+    public final String cancelUrl = "https://tam-tac.com/api/v1/orders/payment/cancel";
 
     public PayOS payOS;
 
