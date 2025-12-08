@@ -328,7 +328,9 @@ export default function UsersManagementPage() {
             <Input
               placeholder="Tìm kiếm người dùng..."
               value={searchKeyword}
-              onChange={(e) => setSearchKeyword(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setSearchKeyword(e.target.value)
+              }
               className="w-full max-w-[250px] pl-10 pr-4 py-2 border bg-white/80 border-[#78A243]/30 rounded-lg text-sm focus:border-[#78A243] focus:ring-1 focus:ring-[#78A243]/20 outline-none"
             />
             {searchKeyword && searchKeyword !== debouncedSearchKeyword && (
