@@ -124,6 +124,7 @@ public class ComboServiceImpl implements ComboService {
                 .branchId(combo.getBranch() != null ? combo.getBranch().getId() : null)
                 .branchName(combo.getBranch() != null ? combo.getBranch().getName() : null)
                 .isInStock(isInStock(combo.getId()))
+                .imageUrl(combo.getImageUrl())
                 .build();
     }
 
@@ -143,6 +144,7 @@ public class ComboServiceImpl implements ComboService {
         combo.setBranch(branch);
         combo.setCreatedAt(new Date());
         combo.setUpdatedAt(new Date());
+        combo.setImageUrl(request.getImageUrl());
 
         Combo savedCombo = comboRepository.save(combo);
 
@@ -196,6 +198,7 @@ public class ComboServiceImpl implements ComboService {
                     .orElseThrow(() -> new ResourceNotFoundException("Branch not found"));
             combo.setBranch(branch);
         }
+
 
         combo.setUpdatedAt(new Date());
 
@@ -262,7 +265,7 @@ public class ComboServiceImpl implements ComboService {
         dto.setEndDate(combo.getEndDate());
         dto.setActive(combo.isActive());
         dto.setBranchId(combo.getBranch() != null ? combo.getBranch().getId() : null);
-
+        dto.setImageUrl(combo.getImageUrl());
         List<ComboItem> comboItems = comboItemRepository.findByComboId(combo.getId());
         List<ComboItemDTO> comboItemDTOs = comboItems.stream()
                 .map(item -> {

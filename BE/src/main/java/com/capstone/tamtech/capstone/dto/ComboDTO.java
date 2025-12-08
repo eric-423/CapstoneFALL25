@@ -32,5 +32,7 @@ public class ComboDTO {
 
     private int branchId;
 
+    private String imageUrl;
+
     private List<ComboItemDTO> comboItems;
 }

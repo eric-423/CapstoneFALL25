@@ -45,6 +45,9 @@ public class ComboSearchDTO implements Serializable {
 
     @Schema(description = "Có đủ nguyên liệu để nấu không", example = "true")
     private boolean isInStock;
+
+    @Schema(description = "URL hình ảnh combo", example = "http://example.com/images/combo1.jpg")
+    private String imageUrl;
 }
 
 
