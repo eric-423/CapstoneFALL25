@@ -82,10 +82,10 @@ const KPICard = ({
           <TrendIndicator kpi={kpi} />
         </div>
         <h3 className="text-2xl font-bold text-[#2D1E1A]">
-          {kpi.unit}
           {typeof kpi.value === "number"
             ? kpi.value.toLocaleString()
-            : kpi.value}
+            : kpi.value}{" "}
+          {kpi.unit}
         </h3>
         {showTrend && (
           <div className="flex items-center gap-1.5 mt-2">

@@ -27,11 +27,8 @@ export async function GET() {
       cache: "no-store",
     });
 
-    console.log("📥 Response status:", response.status, response.statusText);
-
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("❌ Error response:", errorText);
       let errorData;
       try {
         errorData = JSON.parse(errorText);
@@ -42,19 +39,16 @@ export async function GET() {
     }
 
     const responseText = await response.text();
-    console.log("✅ Response text:", responseText.substring(0, 200));
 
     let data;
     try {
       data = JSON.parse(responseText);
     } catch (parseError) {
-      console.error("❌ Failed to parse JSON:", parseError);
       throw new Error("Invalid JSON response from server");
     }
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Get Order Statuses API Error:", error);
     return NextResponse.json(
       {
         error:

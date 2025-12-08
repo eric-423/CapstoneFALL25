@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useMemo } from "react";
-import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { useForm, useFieldArray, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "react-toastify";
@@ -134,19 +134,28 @@ export function ProductForm({
     name: "recipesRequests",
   });
 
-  // Lọc materials: khi thêm mới chỉ hiện materials có quantity > 0
-  // Khi edit, hiện tất cả để vẫn hiển thị được nguyên liệu đã chọn
-  const filteredMaterials = useMemo(() => {
-    if (!product) {
-      // Thêm mới: chỉ hiện materials có quantity > 0
-      return materials.filter((m) => m.quantity > 0);
-    } else {
-      // Edit: hiện tất cả materials để đảm bảo hiển thị được nguyên liệu đã chọn
-      return materials;
-    }
-  }, [materials, product]);
+  const selectedMaterialIds = useWatch({
+    control,
+    name: "recipesRequests",
+  });
 
-  // Format số tiền với dấu chấm phân cách (giống voucher)
+  const getFilteredMaterialsForIndex = (index: number) => {
+    const currentMaterialId = selectedMaterialIds?.[index]?.materialId;
+    const otherSelectedIds =
+      selectedMaterialIds
+        ?.map((item, idx) => (idx !== index ? item?.materialId : null))
+        .filter((id): id is number => id !== null && id !== undefined) || [];
+    return materials.filter((m) => {
+      if (m.id === currentMaterialId) return true;
+
+      if (otherSelectedIds.includes(m.id)) return false;
+
+      if (product) return true;
+
+      return m.quantity > 0;
+    });
+  };
+
   const formatNumber = (value: string | number): string => {
     if (!value && value !== 0) return "";
     const numericValue =
@@ -155,7 +164,6 @@ export function ProductForm({
     return Number(numericValue).toLocaleString("vi-VN");
   };
 
-  // Parse số từ chuỗi đã format
   const parseNumber = (value: string): string => {
     return value.replace(/\D/g, "");
   };
@@ -240,6 +248,21 @@ export function ProductForm({
                       recipe.cookingMethodId ?? recipe.cookingMethod?.id ?? 0,
                   };
                 });
+
+              // Ensure materials from recipes are in the materials list
+              // This is important for materials that might have quantity = 0 or were deleted
+              const recipeMaterials = recipes
+                .map((r) => r.material)
+                .filter((m): m is Material => m !== null && m !== undefined);
+
+              setMaterials((prevMaterials) => {
+                const existingIds = new Set(prevMaterials.map((m) => m.id));
+                const newMaterials = recipeMaterials.filter(
+                  (m) => !existingIds.has(m.id)
+                );
+                return [...prevMaterials, ...newMaterials];
+              });
+
               setValue("recipesRequests", formattedRecipes);
             })
             .catch((err) => console.error("Failed to load recipes", err));
@@ -355,13 +378,6 @@ export function ProductForm({
       <DialogContent className="sm:max-w-[1000px] max-h-[95vh] flex flex-col p-0 gap-0 bg-white border-0 shadow-2xl rounded-2xl [&>button]:hidden">
         <div className="bg-[#78A243] p-5 flex items-center justify-between shrink-0 rounded-t-2xl">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
-              {product ? (
-                <ChefHat className="h-5 w-5 text-white" />
-              ) : (
-                <Plus className="h-5 w-5 text-white" />
-              )}
-            </div>
             <DialogTitle className="text-xl font-bold text-white">
               {product ? "Cập nhật sản phẩm" : "Thêm sản phẩm mới"}
             </DialogTitle>
@@ -593,7 +609,7 @@ export function ProductForm({
                                 register={register}
                                 setValue={setValue}
                                 remove={remove}
-                                materials={filteredMaterials}
+                                materials={getFilteredMaterialsForIndex(index)}
                                 cookingMethods={cookingMethods}
                                 units={units}
                                 errors={errors}

@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import JwtDecode from "@/utils/jwtDecode";
-
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ chefId: string }> }
@@ -19,7 +17,6 @@ export async function GET(
         { status: 401 }
       );
     }
-
     const decodedToken = JwtDecode(token);
     if (!decodedToken) {
       return NextResponse.json(

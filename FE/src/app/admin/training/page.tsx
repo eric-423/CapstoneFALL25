@@ -4,10 +4,12 @@ import { useState, useMemo, useEffect } from "react";
 import { GraduationCap } from "lucide-react";
 import { toast } from "react-toastify";
 
+import Link from "next/link";
 import { AdminGuard } from "@/components/guards";
 import { deleteTraining } from "@/apis/trainning.api";
 import { TrainingCourse, StaffRole } from "@/utils/types/training.type";
-import { AddTrainingDialog } from "@/app/admin/training/components/AddTrainingDialog";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 import {
   AdminPageLayout,
   AdminPageHeader,
@@ -16,7 +18,6 @@ import {
   TrainingStatsCards,
   TrainingSearchAndFilter,
   TrainingCourseList,
-  TrainingDetailDialog,
   AssignUserDialog,
 } from "./components";
 import { useTrainingData } from "./components/hook/useTrainingData";
@@ -35,10 +36,6 @@ export default function TrainingPage() {
   });
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [shouldRefetch, setShouldRefetch] = useState(false);
-  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
-  const [selectedTrainingId, setSelectedTrainingId] = useState<number | null>(
-    null
-  );
   const [assignUserDialog, setAssignUserDialog] = useState<{
     open: boolean;
     trainingId: number | null;
@@ -49,7 +46,7 @@ export default function TrainingPage() {
   const [selectedCourse, setSelectedCourse] = useState<TrainingCourse | null>(
     null
   );
-  useBodyScrollLock(detailDialogOpen || assignUserDialog.open || confirmDialog.open);
+  useBodyScrollLock(assignUserDialog.open || confirmDialog.open);
 
   const {
     filteredCourses: allFilteredCourses,
@@ -94,16 +91,6 @@ export default function TrainingPage() {
     return text[role];
   };
 
-  const handleViewTraining = (trainingId: number) => {
-    setSelectedTrainingId(trainingId);
-    setDetailDialogOpen(true);
-  };
-
-  const handleCloseDetailDialog = () => {
-    setDetailDialogOpen(false);
-    setSelectedTrainingId(null);
-  };
-
   const openDeleteDialog = (training: TrainingCourse) => {
     setConfirmDialog({
       open: true,
@@ -128,12 +115,14 @@ export default function TrainingPage() {
       const payload = await deleteTraining(confirmDialog.training.id);
       const message =
         payload &&
-          typeof payload === "object" &&
-          "desc" in payload &&
-          typeof payload.desc === "string"
+        typeof payload === "object" &&
+        "desc" in payload &&
+        typeof payload.desc === "string"
           ? payload.desc
           : "Xoá khóa đào tạo thành công";
-      toast.success(message, { toastId: `delete-training-${confirmDialog.training.id}` });
+      toast.success(message, {
+        toastId: `delete-training-${confirmDialog.training.id}`,
+      });
       setShouldRefetch(true);
       refetch();
       closeDeleteDialog();
@@ -147,7 +136,9 @@ export default function TrainingPage() {
         serverDesc ||
         (error instanceof Error ? error.message : "Xoá khóa đào tạo thất bại");
       console.error(message);
-      toast.error(message, { toastId: `delete-training-error-${confirmDialog.training.id}` });
+      toast.error(message, {
+        toastId: `delete-training-error-${confirmDialog.training.id}`,
+      });
     } finally {
       setDeleteLoading(false);
     }
@@ -188,7 +179,12 @@ export default function TrainingPage() {
           description="Tạo và quản lý khóa học cho nhân viên"
           icon={GraduationCap}
           actions={
-            <AddTrainingDialog onSuccess={() => setShouldRefetch(true)} />
+            <Link href="/admin/training/create">
+              <Button className="bg-[#78A243] hover:bg-[#78A243]/90 text-white shadow-md hover:shadow-lg transition-all font-semibold">
+                <Plus size={18} className="mr-2" />
+                Tạo Khóa Đào Tạo
+              </Button>
+            </Link>
           }
         />
 
@@ -209,11 +205,11 @@ export default function TrainingPage() {
           isFetching={isFetchingTrainings}
         />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           <TrainingCourseList
             courses={filteredCourses}
             isLoading={isLoadingTrainings}
-            onView={handleViewTraining}
+            onView={() => {}}
             onDelete={openDeleteDialog}
             onAssignUsers={handleOpenAssignUserDialog}
             onRefetch={() => {
@@ -225,16 +221,6 @@ export default function TrainingPage() {
             getRoleText={getRoleText}
           />
         </div>
-
-        <TrainingDetailDialog
-          open={detailDialogOpen}
-          trainingId={selectedTrainingId}
-          onClose={handleCloseDetailDialog}
-          onRefetch={() => {
-            setShouldRefetch(true);
-            refetch();
-          }}
-        />
 
         <ConfirmDialog
           open={confirmDialog.open}

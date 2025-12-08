@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import {
   Package,
   Plus,
@@ -39,11 +40,11 @@ import { FilterDropdown } from "@/components/common/FilterDropdown";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 
 export default function CombosManagementPage() {
+  const router = useRouter();
   const { branches } = useAdminContext();
   const [combos, setCombos] = useState<Combo[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // API filter params - only these trigger API calls
   const [apiParams, setApiParams] = useState<ComboSearchParams>({
     page: 0,
     size: 20,
@@ -51,7 +52,6 @@ export default function CombosManagementPage() {
     sortDirection: "ASC",
   });
 
-  // Local input states - for user input without triggering API
   const [keyword, setKeyword] = useState("");
   const [selectedBranchId, setSelectedBranchId] = useState<
     number | undefined
@@ -64,10 +64,8 @@ export default function CombosManagementPage() {
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
-  // Dialog states
   const [showDialog, setShowDialog] = useState(false);
   const [editingCombo, setEditingCombo] = useState<ComboDetail | null>(null);
-  // const [loadingComboDetail, setLoadingComboDetail] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
     comboId: number;
@@ -121,7 +119,6 @@ export default function CombosManagementPage() {
   };
 
   const handleSearch = () => {
-    // Update API params to trigger search with current input values
     setApiParams({
       ...apiParams,
       page: 0,
@@ -134,13 +131,11 @@ export default function CombosManagementPage() {
   };
 
   const handleClearFilters = () => {
-    // Clear all input states
     setKeyword("");
     setSelectedBranchId(undefined);
     setActiveFilter(undefined);
     setMinPrice("");
     setMaxPrice("");
-    // Reset API params to default
     setApiParams({
       page: 0,
       size: 20,
@@ -150,8 +145,7 @@ export default function CombosManagementPage() {
   };
 
   const handleCreateCombo = () => {
-    setEditingCombo(null);
-    setShowDialog(true);
+    router.push("/admin/combos/create");
   };
 
   const handleEditCombo = async (combo: Combo) => {
@@ -217,7 +211,6 @@ export default function CombosManagementPage() {
 
   return (
     <AdminPageLayout>
-      {/* Header */}
       <AdminPageHeader
         title="Quản lý Combo"
         description="Quản lý các combo sản phẩm và ưu đãi"
@@ -233,7 +226,6 @@ export default function CombosManagementPage() {
         }
       />
 
-      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <AdminCard title="Tổng combo" value={stats.total} icon={Package} />
         <AdminCard
@@ -450,7 +442,6 @@ export default function CombosManagementPage() {
         )}
       </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <Card className="p-3 bg-white">
           <div className="flex items-center justify-between">
@@ -494,7 +485,6 @@ export default function CombosManagementPage() {
         </Card>
       )}
 
-      {/* Combo Form Dialog */}
       <ComboFormDialog
         open={showDialog}
         onOpenChange={setShowDialog}
@@ -502,7 +492,6 @@ export default function CombosManagementPage() {
         onSuccess={handleDialogSuccess}
       />
 
-      {/* Confirm Delete Dialog */}
       <ConfirmDialog
         open={confirmDialog.open}
         onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}

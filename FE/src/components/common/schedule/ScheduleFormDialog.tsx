@@ -1,27 +1,33 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState, useMemo } from 'react';
-import { X, Calendar, CheckCircle, Eye } from 'lucide-react';
+import React, { useEffect, useState, useMemo } from "react";
+import { X, Calendar, CheckCircle, Eye } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogTitle,
   DialogFooter,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Schedule, CreateScheduleData, UpdateScheduleData, getShifts, type Shift } from '@/apis/schedule.api';
-import { getCookie } from '@/utils/cookies.client';
-import { toast } from 'react-toastify';
+} from "@/components/ui/select";
+import {
+  Schedule,
+  CreateScheduleData,
+  UpdateScheduleData,
+  getShifts,
+  type Shift,
+} from "@/apis/schedule.api";
+import { getCookie } from "@/utils/cookies.client";
+import { toast } from "react-toastify";
 
 interface ScheduleFormDialogProps {
   open: boolean;
@@ -34,10 +40,9 @@ interface ScheduleFormDialogProps {
 }
 
 const formatTimeForInput = (time?: string | null) => {
-  if (!time) return '';
+  if (!time) return "";
   return time.length >= 5 ? time.slice(0, 5) : time;
 };
-
 
 export function ScheduleFormDialog({
   open,
@@ -50,18 +55,17 @@ export function ScheduleFormDialog({
 }: ScheduleFormDialogProps) {
   const [formData, setFormData] = useState({
     userId: selectedUserId || schedule?.userId || 0,
-    name: schedule?.name || '',
-    description: schedule?.description || '',
+    name: schedule?.name || "",
+    description: schedule?.description || "",
     date: selectedDate
-      ? selectedDate.toISOString().split('T')[0]
+      ? selectedDate.toISOString().split("T")[0]
       : schedule?.date
-        ? schedule.date.split('T')[0]
-        : '',
+        ? schedule.date.split("T")[0]
+        : "",
     shiftId: (schedule as Schedule & { shiftId?: number })?.shiftId || 0,
   });
 
   const [shifts, setShifts] = useState<Shift[]>([]);
-
 
   const isViewOnly = useMemo(() => {
     if (!schedule?.date) return false;
@@ -80,13 +84,13 @@ export function ScheduleFormDialog({
     if (open) {
       setFormData({
         userId: selectedUserId || schedule?.userId || 0,
-        name: schedule?.name || '',
-        description: schedule?.description || '',
+        name: schedule?.name || "",
+        description: schedule?.description || "",
         date: selectedDate
-          ? selectedDate.toISOString().split('T')[0]
+          ? selectedDate.toISOString().split("T")[0]
           : schedule?.date
-            ? schedule.date.split('T')[0]
-            : '',
+            ? schedule.date.split("T")[0]
+            : "",
 
         shiftId: (schedule as Schedule & { shiftId?: number })?.shiftId || 0,
       });
@@ -97,7 +101,7 @@ export function ScheduleFormDialog({
 
   const fetchShifts = async () => {
     try {
-      const branchId = getCookie('branchId');
+      const branchId = getCookie("branchId");
       let branchIdNum: number | undefined;
 
       if (branchId) {
@@ -112,7 +116,7 @@ export function ScheduleFormDialog({
         setShifts(Array.isArray(response.data) ? response.data : []);
       }
     } catch (error) {
-      console.error('Failed to fetch shifts:', error);
+      console.error("Failed to fetch shifts:", error);
     }
   };
 
@@ -125,16 +129,16 @@ export function ScheduleFormDialog({
     }
 
     if (!formData.userId) {
-      toast.error('Vui lòng chọn nhân viên');
+      toast.error("Vui lòng chọn nhân viên");
       return;
     }
 
     if (!formData.name.trim()) {
-      toast.error('Vui lòng nhập tên lịch trình');
+      toast.error("Vui lòng nhập tên lịch trình");
       return;
     }
 
-    const hasDate = formData.date && formData.date.trim() !== '';
+    const hasDate = formData.date && formData.date.trim() !== "";
     const hasShiftId = formData.shiftId && formData.shiftId > 0;
 
     if (hasDate) {
@@ -144,18 +148,20 @@ export function ScheduleFormDialog({
       today.setHours(0, 0, 0, 0);
 
       if (selectedDateObj < today) {
-        toast.error('Ngày lịch trình không được trước ngày hôm nay');
+        toast.error("Ngày lịch trình không được trước ngày hôm nay");
         return;
       }
     }
 
     try {
-      const userId = schedule ? (schedule.userId || formData.userId) : formData.userId;
+      const userId = schedule
+        ? schedule.userId || formData.userId
+        : formData.userId;
 
       const payload: CreateScheduleData | UpdateScheduleData = {
         userId: userId,
         name: formData.name,
-        description: formData.description || '',
+        description: formData.description || "",
       };
 
       if (hasDate) {
@@ -170,41 +176,41 @@ export function ScheduleFormDialog({
 
       onOpenChange(false);
     } catch (error: unknown) {
-      console.error('Error submitting schedule:', error);
-      const errorMessage = error instanceof Error ? error.message : String(error) || 'Có lỗi xảy ra khi lưu lịch trình';
+      console.error("Error submitting schedule:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : String(error) || "Có lỗi xảy ra khi lưu lịch trình";
       toast.error(errorMessage);
     }
   };
 
   const getDialogTitle = () => {
-    if (isViewOnly) return 'Chi tiết lịch trình';
-    if (schedule) return 'Chỉnh sửa lịch trình';
-    return 'Tạo lịch trình mới';
+    if (isViewOnly) return "Chi tiết lịch trình";
+    if (schedule) return "Chỉnh sửa lịch trình";
+    return "Tạo lịch trình mới";
   };
 
   const getHeaderColor = () => {
-    if (isViewOnly) return 'bg-gray-500';
-    return 'bg-[#78A243]';
+    if (isViewOnly) return "bg-gray-500";
+    return "bg-[#78A243]";
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px] max-h-[95vh] overflow-y-auto flex flex-col p-0 gap-0 bg-white border border-gray-200 rounded-xl [&>button]:hidden">
-        <div className={`${getHeaderColor()} p-4 flex items-center justify-between shrink-0 rounded-t-xl`}>
+        <div
+          className={`${getHeaderColor()} p-4 flex items-center justify-between shrink-0 rounded-t-xl`}
+        >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white/15 rounded-lg flex items-center justify-center">
-              {isViewOnly ? (
-                <Eye className="h-5 w-5 text-white" />
-              ) : (
-                <Calendar className="h-5 w-5 text-white" />
-              )}
-            </div>
             <div>
               <DialogTitle className="text-xl font-bold text-white">
                 {getDialogTitle()}
               </DialogTitle>
               {isViewOnly && (
-                <p className="text-white/70 text-sm mt-0.5">Lịch trình đã qua - chỉ xem</p>
+                <p className="text-white/70 text-sm mt-0.5">
+                  Lịch trình đã qua - chỉ xem
+                </p>
               )}
             </div>
           </div>
@@ -219,14 +225,18 @@ export function ScheduleFormDialog({
           </Button>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col flex-grow overflow-hidden">
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col flex-grow overflow-hidden"
+        >
           <div className="flex-grow overflow-y-auto p-6 bg-gray-50/50 space-y-4">
             <div className="space-y-2">
               <Label htmlFor="userId" className="font-semibold text-gray-800">
-                Nhân viên {!isViewOnly && <span className="text-red-500">*</span>}
+                Nhân viên{" "}
+                {!isViewOnly && <span className="text-red-500">*</span>}
               </Label>
               <Select
-                value={formData.userId ? formData.userId.toString() : ''}
+                value={formData.userId ? formData.userId.toString() : ""}
                 onValueChange={(value) =>
                   setFormData({ ...formData, userId: parseInt(value) })
                 }
@@ -256,12 +266,15 @@ export function ScheduleFormDialog({
 
             <div className="space-y-2">
               <Label htmlFor="name" className="font-semibold text-gray-800">
-                Tên lịch trình {!isViewOnly && <span className="text-red-500">*</span>}
+                Tên lịch trình{" "}
+                {!isViewOnly && <span className="text-red-500">*</span>}
               </Label>
               <Input
                 id="name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 placeholder="Ví dụ: Ca sáng, Ca chiều, Ca tối..."
                 required={!isViewOnly}
                 disabled={isViewOnly}
@@ -271,27 +284,37 @@ export function ScheduleFormDialog({
 
             <div className="space-y-2">
               <Label htmlFor="date" className="font-semibold text-gray-800">
-                Ngày {!isViewOnly && <span className="text-gray-400 text-xs">(tùy chọn hoặc chọn ca làm việc)</span>}
+                Ngày{" "}
+                {!isViewOnly && (
+                  <span className="text-gray-400 text-xs">
+                    (tùy chọn hoặc chọn ca làm việc)
+                  </span>
+                )}
               </Label>
               <Input
                 id="date"
                 type="date"
                 value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                min={new Date().toISOString().split('T')[0]}
+                onChange={(e) =>
+                  setFormData({ ...formData, date: e.target.value })
+                }
+                min={new Date().toISOString().split("T")[0]}
                 disabled={isViewOnly}
                 className="focus:border-[#78A243] focus:ring-[#78A243]/20"
               />
             </div>
 
-
-
             <div className="space-y-2">
               <Label htmlFor="shiftId" className="font-semibold text-gray-800">
-                Ca làm việc {!isViewOnly && <span className="text-gray-400 text-xs">(tùy chọn hoặc chọn ngày)</span>}
+                Ca làm việc{" "}
+                {!isViewOnly && (
+                  <span className="text-gray-400 text-xs">
+                    (tùy chọn hoặc chọn ngày)
+                  </span>
+                )}
               </Label>
               <Select
-                value={formData.shiftId ? formData.shiftId.toString() : ''}
+                value={formData.shiftId ? formData.shiftId.toString() : ""}
                 onValueChange={(value) => {
                   const newShiftId = parseInt(value) || 0;
                   setFormData({
@@ -311,7 +334,8 @@ export function ScheduleFormDialog({
                 >
                   {shifts.map((shift) => (
                     <SelectItem key={shift.id} value={shift.id.toString()}>
-                      {shift.name} ({formatTimeForInput(shift.startTime)} - {formatTimeForInput(shift.endTime)})
+                      {shift.name} ({formatTimeForInput(shift.startTime)} -{" "}
+                      {formatTimeForInput(shift.endTime)})
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -319,8 +343,14 @@ export function ScheduleFormDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description" className="font-semibold text-gray-800">
-                Mô tả {!isViewOnly && <span className="text-gray-400 text-xs">(tùy chọn)</span>}
+              <Label
+                htmlFor="description"
+                className="font-semibold text-gray-800"
+              >
+                Mô tả{" "}
+                {!isViewOnly && (
+                  <span className="text-gray-400 text-xs">(tùy chọn)</span>
+                )}
               </Label>
               <Textarea
                 id="description"
@@ -328,7 +358,11 @@ export function ScheduleFormDialog({
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
                 }
-                placeholder={isViewOnly ? 'Không có mô tả' : 'Nhập mô tả chi tiết về lịch trình (nếu có)...'}
+                placeholder={
+                  isViewOnly
+                    ? "Không có mô tả"
+                    : "Nhập mô tả chi tiết về lịch trình (nếu có)..."
+                }
                 rows={3}
                 disabled={isViewOnly}
                 className="focus:border-[#78A243] focus:ring-[#78A243]/20"
@@ -361,7 +395,7 @@ export function ScheduleFormDialog({
                   className="px-5 py-2.5 bg-[#78A243] hover:bg-[#78A243]/90 text-white font-semibold"
                 >
                   <CheckCircle className="h-4 w-4 mr-2" />
-                  {schedule ? 'Cập nhật' : 'Tạo mới'}
+                  {schedule ? "Cập nhật" : "Tạo mới"}
                 </Button>
               </>
             )}
@@ -371,4 +405,3 @@ export function ScheduleFormDialog({
     </Dialog>
   );
 }
-

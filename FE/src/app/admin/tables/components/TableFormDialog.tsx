@@ -220,9 +220,6 @@ export function TableFormDialog({
       <DialogContent className="sm:max-w-[600px] max-h-[95vh] flex flex-col p-0 gap-0 bg-white border-0 shadow-2xl rounded-2xl [&>button]:hidden">
         <div className="bg-[#78A243] p-5 flex items-center justify-between shrink-0 rounded-t-2xl">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
-              <TableIcon className="h-5 w-5 text-white" />
-            </div>
             <DialogTitle className="text-xl font-bold text-white">
               {tableId ? "Sửa thông tin bàn ăn" : "Thêm bàn ăn mới"}
             </DialogTitle>
