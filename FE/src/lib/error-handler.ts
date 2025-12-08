@@ -33,8 +33,8 @@ export function createErrorResponse(error: AppError | Error): NextResponse {
 
   // Don't expose internal errors in production
   const isProduction = process.env.NODE_ENV === 'production';
-  const message = isProduction && statusCode >= 500 
-    ? 'Đã xảy ra lỗi hệ thống' 
+  const message = isProduction && statusCode >= 500
+    ? 'Đã xảy ra lỗi hệ thống'
     : error.message;
 
   return NextResponse.json(

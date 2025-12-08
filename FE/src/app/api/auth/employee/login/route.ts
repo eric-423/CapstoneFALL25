@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import axios from 'axios';
-import { apiBaseURL } from '@/utils/configs/environment';
 import { cookies } from 'next/headers';
 
 export async function POST(request: NextRequest) {
+    const cookieStore = await cookies();
+
     try {
         const body = await request.json();
         const { email, password } = body;
@@ -15,35 +15,33 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const baseURL = apiBaseURL;
-        const fullUrl = `${baseURL}/auth/employee/login`;
 
-        const cookieStore = await cookies();
-        const token = cookieStore.get('token')?.value;
-
-        const headers: Record<string, string> = {
-            'Content-Type': 'application/json',
-        };
-
-        if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
-        }
-
-        const response = await axios.post(fullUrl, {
-            email,
-            password,
-        }, {
-            headers,
-            timeout: 10000,
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/auth/employee/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({ email, password }),
         });
 
-        const responseData = NextResponse.json(response.data);
 
-        if (response.data?.token) {
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('API Error Response:', errorText);
+            return NextResponse.json(
+                { error: 'Failed to login', desc: errorText },
+                { status: response.status }
+            );
+        }
 
-            const maxAgeInSeconds = Math.floor(response.data.expiresIn / 1000);
+        const responseData = await response.json();
 
-            responseData.cookies.set('token', response.data.token, {
+        if (responseData?.token) {
+            const expiresIn = responseData.expiresIn || responseData.data?.expiresIn || 7 * 24 * 60 * 60 * 1000;
+            const maxAgeInSeconds = Math.floor(expiresIn / 1000);
+
+            cookieStore.set('token', responseData.token, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'strict',
@@ -51,7 +49,7 @@ export async function POST(request: NextRequest) {
                 maxAge: maxAgeInSeconds,
             });
 
-            responseData.cookies.set('branchId', response.data.userInfo?.branchId, {
+            cookieStore.set('branchId', responseData.userInfo?.branchId, {
                 httpOnly: false,
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'strict',
@@ -59,8 +57,8 @@ export async function POST(request: NextRequest) {
                 maxAge: maxAgeInSeconds,
             });
 
-            if (response.data.userInfo?.id) {
-                responseData.cookies.set('userId', response.data.userInfo.id.toString(), {
+            if (responseData.userInfo?.id) {
+                cookieStore.set('userId', responseData.userInfo.id.toString(), {
                     httpOnly: false,
                     secure: process.env.NODE_ENV === 'production',
                     sameSite: 'strict',
@@ -69,8 +67,8 @@ export async function POST(request: NextRequest) {
                 });
             }
 
-            if (response.data.userInfo?.role) {
-                responseData.cookies.set('role', response.data.userInfo.role, {
+            if (responseData.userInfo?.role) {
+                cookieStore.set('role', responseData.userInfo.role, {
                     httpOnly: false,
                     secure: process.env.NODE_ENV === 'production',
                     sameSite: 'strict',
@@ -79,8 +77,8 @@ export async function POST(request: NextRequest) {
                 });
             }
 
-            if (response.data.userInfo?.branchId !== undefined && response.data.userInfo?.branchId !== null) {
-                responseData.cookies.set('branchId', response.data.userInfo.branchId.toString(), {
+            if (responseData.userInfo?.branchId !== undefined && responseData.userInfo?.branchId !== null) {
+                cookieStore.set('branchId', responseData.userInfo.branchId.toString(), {
                     httpOnly: false,
                     secure: process.env.NODE_ENV === 'production',
                     sameSite: 'strict',
@@ -90,14 +88,22 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        return responseData;
+        return NextResponse.json(responseData);
 
     } catch (error: unknown) {
-        const errorMessage = (error as { response?: { data?: { message?: string; error?: string } } })?.response?.data?.message
-            || (error as { response?: { data?: { message?: string; error?: string } } })?.response?.data?.error
-            || (axios.isAxiosError(error) && error.code === 'ECONNREFUSED' ? 'Không thể kết nối đến server. Vui lòng kiểm tra lại.' : 'Đăng nhập thất bại. Vui lòng thử lại.');
+        console.error('Login API Error:', error);
 
-        const statusCode = (error as { response?: { status?: number } })?.response?.status || 401;
+        let errorMessage = 'Đăng nhập thất bại. Vui lòng thử lại.';
+        let statusCode = 500;
+
+        if (error instanceof Error) {
+            if (error.message.includes('ECONNREFUSED') || error.message.includes('fetch failed')) {
+                errorMessage = 'Không thể kết nối đến server. Vui lòng kiểm tra lại.';
+                statusCode = 503;
+            } else {
+                errorMessage = error.message;
+            }
+        }
 
         return NextResponse.json(
             { error: errorMessage },

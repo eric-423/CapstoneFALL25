@@ -74,9 +74,8 @@ export interface ComboSearchResponse {
     empty: boolean;
 }
 
-/**
- * Lấy chi tiết combo theo ID
- */
+
+
 export const getComboById = async (comboId: number): Promise<ComboDetail> => {
     const response = await fetch(`/api/combos/${comboId}`, {
         method: 'GET',
@@ -97,11 +96,9 @@ export const getComboById = async (comboId: number): Promise<ComboDetail> => {
     return result.data || result;
 };
 
-/**
- * Tìm kiếm combos
- */
+
+
 export const searchCombos = async (params: ComboSearchParams): Promise<ComboSearchResponse> => {
-    // Build query params
     const queryParams = new URLSearchParams();
     Object.entries({
         branchId: params.branchId,
@@ -139,9 +136,9 @@ export const searchCombos = async (params: ComboSearchParams): Promise<ComboSear
     return data;
 };
 
-/**
- * Tạo combo mới
- */
+
+
+
 export const createCombo = async (data: CreateComboRequest): Promise<Combo> => {
     const response = await fetch('/api/combos', {
         method: 'POST',
@@ -166,9 +163,9 @@ export const createCombo = async (data: CreateComboRequest): Promise<Combo> => {
     return result.data || result;
 };
 
-/**
- * Cập nhật combo
- */
+
+
+
 export const updateCombo = async (comboId: number, data: UpdateComboRequest): Promise<Combo> => {
     const response = await fetch(`/api/combos/${comboId}`, {
         method: 'PUT',
@@ -193,9 +190,9 @@ export const updateCombo = async (comboId: number, data: UpdateComboRequest): Pr
     return result.data || result;
 };
 
-/**
- * Xóa combo
- */
+
+
+
 export const deleteCombo = async (comboId: number): Promise<void> => {
     const response = await fetch(`/api/combos/${comboId}`, {
         method: 'DELETE',

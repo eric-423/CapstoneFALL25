@@ -149,7 +149,7 @@ cp .env.example .env.local
 Cập nhật các biến môi trường trong `.env.local`:
 ```env
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
-NEXT_PUBLIC_API_URL=http://localhost:8080
+NEXT_PUBLIC_BASE_URL=http://localhost:8080
 NEXT_PUBLIC_USE_MOCK=false
 ```
 

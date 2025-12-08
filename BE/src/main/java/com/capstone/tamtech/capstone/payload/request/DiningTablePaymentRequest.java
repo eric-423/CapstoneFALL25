@@ -11,5 +11,6 @@ public class DiningTablePaymentRequest {
     private int paymentMethodId;
     private String promotionCode;
     private double discountValue;
+    private int usedPoints;
 
 }

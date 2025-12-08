@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 public class ComboItemDTO {
     private int productId;
+    private String productName;
     private int comboId;
     private int quantity;
     private String note;

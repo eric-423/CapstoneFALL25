@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import http from '@/utils/http';
+import { createErrorResponse, CustomError, ErrorCodes } from '@/lib/error-handler';
 
 export async function GET(request: NextRequest) {
   try {
@@ -7,22 +7,31 @@ export async function GET(request: NextRequest) {
     const limit = request.nextUrl.searchParams.get('limit') || '20';
 
     if (!address) {
-      return NextResponse.json({ error: 'Missing address' }, { status: 400 });
+      return createErrorResponse(
+        new CustomError('Missing address', 400, ErrorCodes.VALIDATION_ERROR)
+      );
     }
 
-    const response = await http.get('/branches/nearby', {
-      params: {
-        address,
-        limit,
-      },
-    });
-
-    return NextResponse.json(response.data);
-  } catch (error) {
-    console.error('Nearby branches API error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch nearby branches' },
-      { status: 500 },
+    const params = new URLSearchParams({ address, limit });
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/branches/nearby?${params.toString()}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
     );
+
+    if (!response.ok) {
+      return createErrorResponse(
+        new CustomError('Failed to fetch nearby branches', response.status)
+      );
+    }
+
+    const data = await response.json();
+    return NextResponse.json(data);
+  } catch (error) {
+    return createErrorResponse(error as Error);
   }
 }

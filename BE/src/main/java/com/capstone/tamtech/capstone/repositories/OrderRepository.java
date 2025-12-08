@@ -1,6 +1,8 @@
 package com.capstone.tamtech.capstone.repositories;
 
 import com.capstone.tamtech.capstone.entities.Order;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -20,6 +22,9 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
 
         @Query("SELECT o FROM Order o WHERE o.branch.id = :branchId ORDER BY o.createdAt DESC")
         List<Order> findByBranchId(@Param("branchId") int branchId);
+
+        Page<Order> findByBranch_Id(int id, Pageable pageable);
+
 
         List<Order> findByBranch_IdAndStatus_NameOrderByCreatedAtDesc(int id, String name);
 

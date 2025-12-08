@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://tam-tac.com';
+const API_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://tam-tac.com';
 
 // GET /api/recipes/product/{productId}
 export async function GET(request: NextRequest, { params }: { params: Promise<{ productId: string }> }) {

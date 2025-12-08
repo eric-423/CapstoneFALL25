@@ -1,26 +1,47 @@
 import { NextRequest, NextResponse } from 'next/server';
-import http from '@/utils/http';
+import { cookies } from 'next/headers';
+import { createErrorResponse, CustomError, ErrorCodes } from '@/lib/error-handler';
 
 export async function GET(request: NextRequest) {
   try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('token')?.value;
+
+    if (!token) {
+      return createErrorResponse(
+        new CustomError('Unauthorized', 401, ErrorCodes.AUTHENTICATION_ERROR)
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const page = searchParams.get('page') || '0';
     const size = searchParams.get('size') || '20';
     const status = searchParams.get('status');
 
-    const params: Record<string, string> = { page, size };
-    if (status) params.status = status;
+    const params = new URLSearchParams({ page, size });
+    if (status) params.append('status', status);
 
-
-    const response = await http.get('/orders', { params });
-
-    return NextResponse.json(response.data);
-  } catch (error) {
-    console.error('Orders API Error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch orders' },
-      { status: 500 }
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/orders?${params.toString()}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
+
+    if (!response.ok) {
+      return createErrorResponse(
+        new CustomError('Failed to fetch orders', response.status)
+      );
+    }
+
+    const data = await response.json();
+    return NextResponse.json(data);
+  } catch (error) {
+    return createErrorResponse(error as Error);
   }
 }
 
@@ -31,12 +52,14 @@ export async function POST(request: NextRequest) {
   try {
     const token = request.cookies.get('token')?.value;
     if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return createErrorResponse(
+        new CustomError('Unauthorized', 401, ErrorCodes.AUTHENTICATION_ERROR)
+      );
     }
 
     const body = await request.json();
 
-    const backendRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders`, {
+    const backendRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/orders`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -46,14 +69,14 @@ export async function POST(request: NextRequest) {
     });
 
     if (!backendRes.ok) {
-      const errorBody = await backendRes.json().catch(() => ({}));
-      return NextResponse.json(errorBody, { status: backendRes.status });
+      return createErrorResponse(
+        new CustomError('Failed to create order', backendRes.status)
+      );
     }
 
     const data = await backendRes.json();
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Create Order API Error:', error);
-    return NextResponse.json({ error: 'Failed to create order' }, { status: 500 });
+    return createErrorResponse(error as Error);
   }
 }

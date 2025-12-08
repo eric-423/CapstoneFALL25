@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import http from '@/utils/http';
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,28 +12,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const response = await http.post('/auth/customer/reset-password', {
-      otp,
-      phoneNumber,
-      newPassword,
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/auth/customer/reset-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({ otp, phoneNumber, newPassword }),
     });
 
-    return NextResponse.json(response.data, { status: response.status || 200 });
-  } catch (error: unknown) {
+    if (!response.ok) {
+      return NextResponse.json(
+        { error: 'Failed to reset password', desc: await response.text() },
+        { status: response.status }
+      );
+    }
+
+    return NextResponse.json(await response.json(), { status: response.status || 200 });
+  } catch (error) {
     console.error('Reset Password API Error:', error);
-
-    const errorMessage =
-      (error as { response?: { data?: { message?: string; error?: string; desc?: string } } })?.response?.data?.desc ||
-      (error as { response?: { data?: { message?: string; error?: string } } })?.response?.data?.message ||
-      (error as { response?: { data?: { message?: string; error?: string } } })?.response?.data?.error ||
-      'Không thể đặt lại mật khẩu. Vui lòng thử lại.';
-
-    const statusCode = (error as { response?: { status?: number } })?.response?.status || 400;
-
     return NextResponse.json(
-      { error: errorMessage, desc: errorMessage },
-      { status: statusCode }
+      { error: 'Failed to reset password', desc: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
     );
   }
 }
-

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://tam-tac.com';
 
 export async function GET(request: NextRequest) {
     try {
@@ -18,10 +17,8 @@ export async function GET(request: NextRequest) {
         const { searchParams } = new URL(request.url);
         const queryString = searchParams.toString();
 
-        const baseUrl = API_BASE_URL.endsWith('/api/v1') ? API_BASE_URL : `${API_BASE_URL}/api/v1`;
-        const url = `${baseUrl}/cooking-utensils${queryString ? `?${queryString}` : ''}`;
+        const url = `${process.env.NEXT_PUBLIC_BASE_URL}/cooking-utensils${queryString ? `?${queryString}` : ''}`;
 
-        console.log('🔄 Fetching cooking utensils');
 
         const response = await fetch(url, {
             method: 'GET',
@@ -33,36 +30,23 @@ export async function GET(request: NextRequest) {
             cache: 'no-store',
         });
 
-        console.log('📥 Response status:', response.status, response.statusText);
 
         if (!response.ok) {
-            const errorText = await response.text();
-            console.error('❌ Error response:', errorText);
+            const errorBody = await response.text();
             let errorData;
             try {
-                errorData = JSON.parse(errorText);
+                errorData = JSON.parse(errorBody);
             } catch {
-                errorData = { error: errorText || 'Failed to fetch cooking utensils' };
+                errorData = { error: errorBody || 'Failed to fetch cooking utensils' };
             }
             return NextResponse.json(errorData, { status: response.status });
         }
 
-        const responseText = await response.text();
-        let data;
-        try {
-            data = responseText ? JSON.parse(responseText) : { data: [] };
-        } catch (parseError) {
-            console.error('❌ Failed to parse JSON:', parseError);
-            data = { data: [] };
-        }
-
+        const data = await response.json();
         return NextResponse.json(data);
     } catch (error) {
-        console.error('Cooking Utensils API Error:', error);
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Internal server error' },
-            { status: 500 }
-        );
+        console.error('Error fetching cooking utensils:', error);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
 
@@ -80,10 +64,7 @@ export async function POST(request: NextRequest) {
 
         const body = await request.json();
 
-        const baseUrl = API_BASE_URL.endsWith('/api/v1') ? API_BASE_URL : `${API_BASE_URL}/api/v1`;
-        const url = `${baseUrl}/cooking-utensils`;
-
-        console.log('🔄 Creating cooking utensil:', body);
+        const url = `${process.env.NEXT_PUBLIC_BASE_URL}/cooking-utensils`;
 
         const response = await fetch(url, {
             method: 'POST',
@@ -96,35 +77,21 @@ export async function POST(request: NextRequest) {
             cache: 'no-store',
         });
 
-        console.log('📥 Response status:', response.status, response.statusText);
-
         if (!response.ok) {
-            const errorText = await response.text();
-            console.error('❌ Error response:', errorText);
+            const errorBody = await response.text();
             let errorData;
             try {
-                errorData = JSON.parse(errorText);
+                errorData = JSON.parse(errorBody);
             } catch {
-                errorData = { error: errorText || 'Failed to create cooking utensil' };
+                errorData = { error: errorBody || 'Failed to create cooking utensil' };
             }
             return NextResponse.json(errorData, { status: response.status });
         }
 
-        const responseText = await response.text();
-        let data;
-        try {
-            data = responseText ? JSON.parse(responseText) : { success: true };
-        } catch (parseError) {
-            console.error('❌ Failed to parse JSON:', parseError);
-            data = { success: true };
-        }
-
+        const data = await response.json();
         return NextResponse.json(data);
     } catch (error) {
-        console.error('Create Cooking Utensil API Error:', error);
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Internal server error' },
-            { status: 500 }
-        );
+        console.error('Error creating cooking utensil:', error);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

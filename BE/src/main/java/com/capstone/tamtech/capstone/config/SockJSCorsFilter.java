@@ -19,9 +19,13 @@ public class SockJSCorsFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-        String path = httpRequest.getRequestURI();
+        String requestUri = httpRequest.getRequestURI();
+        String contextPath = httpRequest.getContextPath();
+        String pathWithinApp = requestUri != null && requestUri.startsWith(contextPath)
+                ? requestUri.substring(contextPath.length())
+                : requestUri;
 
-        if (path != null && (path.startsWith("/ws") || path.startsWith("/ws/"))) {
+        if (pathWithinApp != null && (pathWithinApp.startsWith("/ws") || pathWithinApp.startsWith("/ws/"))) {
             String origin = httpRequest.getHeader("Origin");
             String upgrade = httpRequest.getHeader("Upgrade");
             String connection = httpRequest.getHeader("Connection");

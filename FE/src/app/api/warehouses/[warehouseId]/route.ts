@@ -1,3 +1,4 @@
+import { createErrorResponse } from '@/lib/error-handler';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -7,7 +8,7 @@ export async function PUT(
 ) {
     try {
         const cookieStore = await cookies();
-        const token = cookieStore.get('access_token')?.value || cookieStore.get('token')?.value;
+        const token = cookieStore.get('token')?.value;
 
         if (!token) {
             return NextResponse.json(
@@ -31,13 +32,9 @@ export async function PUT(
             }
         );
 
-        const data = await response.json();
-        return NextResponse.json(data);
+        return NextResponse.json(await response.json());
     } catch (error) {
-        console.error('Warehouses [id] PUT error:', error);
-        return NextResponse.json(
-            { error: 'Internal Server Error' },
-            { status: 500 }
-        );
+        console.error('Error updating warehouse:', error);
+        return createErrorResponse(error as Error);
     }
 }

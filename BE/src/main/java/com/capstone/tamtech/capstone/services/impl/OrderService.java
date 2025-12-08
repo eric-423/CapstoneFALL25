@@ -54,4 +54,6 @@ public interface OrderService {
     List<OrderCheffViewDTO> getOrdersByChefId(int chefId, String status);
 
     void autoCompleteDeliveredShippingOrders();
+
+    Boolean assignCustomerToOrder(int customerId, int orderId);
 }

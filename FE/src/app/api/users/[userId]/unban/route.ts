@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-
-const API_URL = process.env.NEXT_PUBLIC_BASE_URL;
+import { createErrorResponse } from '@/lib/error-handler';
 
 export async function PUT(
     request: NextRequest,
@@ -9,42 +8,32 @@ export async function PUT(
 ) {
     try {
         const cookieStore = await cookies();
-        const accessToken = cookieStore.get('access_token')?.value || cookieStore.get('token')?.value;
+        const token = cookieStore.get('token')?.value;
 
-        if (!accessToken) {
-            return NextResponse.json(
-                { error: 'Unauthorized' },
-                { status: 401 }
-            );
+        if (!token) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
         const { userId } = await params;
 
         const response = await fetch(
-            `${API_URL}/users/${userId}/unban`,
+            `${process.env.NEXT_PUBLIC_BASE_URL}/users/${userId}/unban`,
             {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Bearer ${accessToken}`,
+                    Authorization: `Bearer ${token}`,
                 },
             }
         );
 
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ error: 'Failed to unban user' }));
-            return NextResponse.json(
-                errorData,
-                { status: response.status }
-            );
+            return createErrorResponse(new Error('Failed to unban user'));
         }
 
-        const data = await response.json();
-        return NextResponse.json(data);
+        return NextResponse.json(await response.json());
     } catch (error) {
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Failed to unban user' },
-            { status: 500 }
-        );
+        console.error('Error unbanning user:', error);
+        return createErrorResponse(error as Error);
     }
 }

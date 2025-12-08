@@ -86,6 +86,25 @@ public class OrderController {
         return new ResponseEntity<>(responseData, HttpStatus.CREATED);
     }
 
+    @PostMapping("/dining-table/payment")
+    public ResponseEntity<?> payDiningTableOrder(@RequestBody DiningTablePaymentRequest paymentRequest)
+            throws BadRequestException {
+        ResponseData responseData = new ResponseData();
+        responseData.setData(orderService.payDiningTableOrder(paymentRequest));
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
+
+    @PatchMapping("/dining-table/assign-customer/{customerId}/{orderId}")
+    public ResponseEntity<?> assignCustomerToOrder(@PathVariable int customerId, @PathVariable int orderId) {
+        ResponseData responseData = new ResponseData();
+        responseData.setData(orderService.assignCustomerToOrder(customerId, orderId));
+        responseData.setDesc("Khách hàng đã được thêm vào đơn hàng thành công!!!");
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
+
+
+
+
     @PostMapping("/payment/webhook")
     public ResponseEntity<String> paymentWebhook(@RequestBody Object body)
             throws JsonProcessingException, IllegalArgumentException {
@@ -108,6 +127,7 @@ public class OrderController {
             return new ResponseEntity<>("Cancel", HttpStatus.OK);
         }
     }
+
 
     @GetMapping("/payment/cancel")
     public RedirectView paymentCancel(@RequestParam int orderCode) {
@@ -182,13 +202,6 @@ public class OrderController {
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
 
-    @PostMapping("/dining-table/payment")
-    public ResponseEntity<?> payDiningTableOrder(@RequestBody DiningTablePaymentRequest paymentRequest)
-            throws BadRequestException {
-        ResponseData responseData = new ResponseData();
-        responseData.setData(orderService.payDiningTableOrder(paymentRequest));
-        return new ResponseEntity<>(responseData, HttpStatus.OK);
-    }
 
 
     /**

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { getToken } from '@/utils/cookies.server';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://tam-tac.com';
+const API_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://tam-tac.com';
 
 const buildUpstreamUrl = (request: NextRequest) => {
     const { searchParams } = new URL(request.url);

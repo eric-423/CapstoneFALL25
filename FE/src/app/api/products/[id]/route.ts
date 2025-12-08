@@ -29,7 +29,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
     const baseUrl =
       process.env.NEXT_PUBLIC_BASE_URL ||
-      process.env.NEXT_PUBLIC_API_URL ||
+      process.env.NEXT_PUBLIC_BASE_URL ||
       "https://tam-tac.com/api";
 
     const apiUrl = baseUrl.endsWith("/api")

@@ -7,7 +7,7 @@ export const useSampleData = process.env.NEXT_PUBLIC_USE_SAMPLE_DATA === 'true' 
 export const useMockAPI = process.env.NEXT_PUBLIC_USE_MOCK_API === 'true' || isDevelopment;
 
 // API URLs
-export const apiBaseURL = process.env.NEXT_PUBLIC_API_URL || 'https://tam-tac.com/api/v1';
+export const apiBaseURL = process.env.NEXT_PUBLIC_BASE_URL || 'https://tam-tac.com/api/v1';
 export const baseURL = process.env.NEXT_PUBLIC_BASE_URL || process.env.BASE_URL || '';
 export const wsBaseURL = process.env.NEXT_PUBLIC_WS_BASE_URL || apiBaseURL || baseURL || '';
 export const wsEndpoint = process.env.NEXT_PUBLIC_WS_ENDPOINT || '/ws';

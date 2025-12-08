@@ -4,14 +4,8 @@ import { cookies } from 'next/headers';
 export async function POST(request: NextRequest) {
     try {
         const cookieStore = await cookies();
-        const accessToken = cookieStore.get('access_token')?.value || cookieStore.get('token')?.value;
+        const token = cookieStore.get('token')?.value;
 
-        if (!accessToken) {
-            return NextResponse.json(
-                { error: 'Unauthorized' },
-                { status: 401 }
-            );
-        }
 
         const body = await request.json();
 
@@ -21,7 +15,7 @@ export async function POST(request: NextRequest) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Bearer ${accessToken}`,
+                    Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify(body),
             }

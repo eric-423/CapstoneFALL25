@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+import { createErrorResponse } from '@/lib/error-handler';
 
 export async function GET(
     request: NextRequest,
@@ -21,7 +20,7 @@ export async function GET(
         const { lessonId } = await params;
 
         const response = await fetch(
-            `${API_URL}/lessons/admin/lessons/${lessonId}`,
+            `${process.env.NEXT_PUBLIC_BASE_URL}/lessons/admin/lessons/${lessonId}`,
             {
                 method: 'GET',
                 headers: {
@@ -32,22 +31,14 @@ export async function GET(
             }
         );
 
-        const payload = await response.json().catch(() => null);
-
         if (!response.ok) {
-            return NextResponse.json(
-                payload ?? { error: 'Failed to fetch lesson detail' },
-                { status: response.status }
-            );
+            return createErrorResponse(new Error('Failed to fetch lesson detail'));
         }
 
-        return NextResponse.json(payload ?? {});
+        return NextResponse.json(await response.json());
     } catch (error) {
-        console.error('Get Lesson Detail API Error:', error);
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Failed to fetch lesson detail' },
-            { status: 500 }
-        );
+        console.error('Error fetching lesson detail:', error);
+        return createErrorResponse(error as Error);
     }
 }
 
@@ -70,7 +61,7 @@ export async function PUT(
         const body = await request.json();
 
         const response = await fetch(
-            `${API_URL}/lessons/admin/lessons/${lessonId}`,
+            `${process.env.NEXT_PUBLIC_BASE_URL}/lessons/admin/lessons/${lessonId}`,
             {
                 method: 'PUT',
                 headers: {
@@ -82,22 +73,14 @@ export async function PUT(
             }
         );
 
-        const payload = await response.json().catch(() => null);
-
         if (!response.ok) {
-            return NextResponse.json(
-                payload ?? { error: 'Failed to update lesson' },
-                { status: response.status }
-            );
+            return createErrorResponse(new Error('Failed to update lesson'));
         }
 
-        return NextResponse.json(payload ?? {});
+        return NextResponse.json(await response.json());
     } catch (error) {
-        console.error('Update Lesson API Error:', error);
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Failed to update lesson' },
-            { status: 500 }
-        );
+        console.error('Error updating lesson:', error);
+        return createErrorResponse(error as Error);
     }
 }
 

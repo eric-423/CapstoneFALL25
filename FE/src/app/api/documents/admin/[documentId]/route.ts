@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+import { createErrorResponse } from '@/lib/error-handler';
 
 export async function PUT(
     request: NextRequest,
@@ -22,7 +21,7 @@ export async function PUT(
         const body = await request.json();
 
         const response = await fetch(
-            `${API_URL}/documents/admin/${documentId}`,
+            `${process.env.NEXT_PUBLIC_BASE_URL}/documents/admin/${documentId}`,
             {
                 method: 'PUT',
                 headers: {
@@ -34,22 +33,14 @@ export async function PUT(
             }
         );
 
-        const payload = await response.json().catch(() => null);
-
         if (!response.ok) {
-            return NextResponse.json(
-                payload ?? { error: 'Failed to update document' },
-                { status: response.status }
-            );
+            return createErrorResponse(new Error('Failed to update document'));
         }
 
-        return NextResponse.json(payload ?? {});
+        return NextResponse.json(await response.json());
     } catch (error) {
-        console.error('Update Document API Error:', error);
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Failed to update document' },
-            { status: 500 }
-        );
+        console.error('Error updating document:', error);
+        return createErrorResponse(error as Error);
     }
 }
 
@@ -71,7 +62,7 @@ export async function DELETE(
         const { documentId } = await params;
 
         const response = await fetch(
-            `${API_URL}/documents/admin/${documentId}`,
+            `${process.env.NEXT_PUBLIC_BASE_URL}/documents/admin/${documentId}`,
             {
                 method: 'DELETE',
                 headers: {
@@ -81,22 +72,14 @@ export async function DELETE(
             }
         );
 
-        const payload = await response.json().catch(() => null);
-
         if (!response.ok) {
-            return NextResponse.json(
-                payload ?? { error: 'Failed to delete document' },
-                { status: response.status }
-            );
+            return createErrorResponse(new Error('Failed to delete document'));
         }
 
-        return NextResponse.json(payload ?? {});
+        return NextResponse.json(await response.json());
     } catch (error) {
-        console.error('Delete Document API Error:', error);
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Failed to delete document' },
-            { status: 500 }
-        );
+        console.error('Error deleting document:', error);
+        return createErrorResponse(error as Error);
     }
 }
 

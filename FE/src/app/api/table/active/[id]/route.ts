@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { apiBaseURL } from "@/utils/configs/environment";
+import { createErrorResponse } from "@/lib/error-handler";
 
 export async function PATCH(
   request: NextRequest,
@@ -23,35 +23,21 @@ export async function PATCH(
       );
     }
 
-    const baseURL = apiBaseURL;
-    const fullUrl = `${baseURL}/table/active/${id}`;
-
-    const response = await fetch(fullUrl, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/table/active/${id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
-        Accept: "*/*",
         Authorization: `Bearer ${token}`,
       },
     });
 
     if (!response.ok) {
-      const errorData = await response
-        .json()
-        .catch(() => ({ error: "Failed to activate table" }));
-      return NextResponse.json(errorData, { status: response.status });
+      return createErrorResponse(new Error('Failed to activate table'));
     }
 
-    const data = await response.json().catch(() => ({ success: true }));
-    return NextResponse.json(data);
+    return NextResponse.json(await response.json());
   } catch (error) {
-    console.error("Activate Table API Error:", error);
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error ? error.message : "Failed to activate table",
-      },
-      { status: 500 }
-    );
+    console.error("Error activating table:", error);
+    return createErrorResponse(error as Error);
   }
 }

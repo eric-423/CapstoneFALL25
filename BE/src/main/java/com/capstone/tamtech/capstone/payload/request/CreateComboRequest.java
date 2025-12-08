@@ -18,6 +18,7 @@ public class CreateComboRequest {
     private Date endDate;
     private Boolean isActive;
     private Integer branchId;
+    private String imageUrl;
     private List<ComboItemRequest> comboItems;
 
     @Data

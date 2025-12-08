@@ -1,4 +1,4 @@
-import http from "@/utils/http";
+import { getToken } from "@/utils/cookies.client";
 import { getCookie } from "@/utils/cookies.client";
 
 export const GET_PRODUCT_TYPE_QUERY_KEY = "GET_PRODUCT_TYPE_QUERY_KEY";
@@ -105,8 +105,22 @@ export interface OrderProductResponse {
 }
 
 export const getProductType = async () => {
-  const { data } = await http.get("/product-types");
-  return [{ id: 0, name: "Tất cả" }, ...data.data] as ProductType[];
+  const token = getToken();
+  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/product-types`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch product types');
+  }
+
+  const result = await response.json();
+  const data = result?.data ?? result;
+  return [{ id: 0, name: "Tất cả" }, ...(Array.isArray(data) ? data : [])] as ProductType[];
 };
 
 export const getProducts = async (
@@ -114,14 +128,28 @@ export const getProducts = async (
   size: number = 100,
   productType: number = 0
 ) => {
-  const { data } = await http.get("/products", {
-    params: {
-      page,
-      size,
-      typeId: productType,
+  const token = getToken();
+  const params = new URLSearchParams({
+    page: page.toString(),
+    size: size.toString(),
+    typeId: productType.toString(),
+  });
+
+  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/products?${params.toString()}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
     },
   });
-  return data.data;
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch products');
+  }
+
+  const result = await response.json();
+  const data = result?.data ?? result;
+  return data?.data ?? data;
 };
 
 export const getProductsByBranch = async (
@@ -306,13 +334,26 @@ export const getTopSellingProducts = async (
   branchId: number,
   limit: number = 1
 ): Promise<TopSellingApiResponse> => {
-  const { data } = await http.get("/statistics/top-selling", {
-    params: {
-      branchId,
-      limit,
+  const token = getToken();
+  const params = new URLSearchParams({
+    branchId: branchId.toString(),
+    limit: limit.toString(),
+  });
+
+  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/statistics/top-selling?${params.toString()}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
     },
   });
-  return data;
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch top selling products');
+  }
+
+  const result = await response.json();
+  return result?.data ?? result;
 };
 
 export interface AllBranchProductSearchParams {

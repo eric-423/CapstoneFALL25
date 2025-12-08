@@ -42,6 +42,16 @@ public class CustomerController {
         return ResponseEntity.ok(responseData);
     }
 
+    @GetMapping("/find/by-phone")
+    public ResponseEntity<?> getCustomerByPhone(@RequestParam String phone) {
+        CustomerDTO customer = informationService.getCustomerByPhone(phone);
+
+        ResponseData responseData = new ResponseData();
+        responseData.setData(customer);
+
+        return ResponseEntity.ok(responseData);
+    }
+
 
     @GetMapping("/{customerId}/base-info")
     public ResponseEntity<?> getBaseInfo(@PathVariable int customerId) {

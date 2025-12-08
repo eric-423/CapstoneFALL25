@@ -1,58 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server';
-import axios from 'axios';
-import { apiBaseURL } from '@/utils/configs/environment';
 import { cookies } from 'next/headers';
+import { createErrorResponse } from '@/lib/error-handler';
 
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ branchId: string }> }
 ) {
     try {
-        const { branchId } = await params;
-
-        if (!branchId) {
-            return NextResponse.json(
-                { error: 'Branch ID is required' },
-                { status: 400 }
-            );
-        }
-
-        const baseURL = apiBaseURL;
-        const fullUrl = `${baseURL}/table/branch/${branchId}`;
-
         const cookieStore = await cookies();
         const token = cookieStore.get('token')?.value;
 
-        const headers: Record<string, string> = {
-            'Content-Type': 'application/json',
-        };
-
-        if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
+        if (!token) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const response = await axios.get(fullUrl, {
-            headers,
-            timeout: 10000,
+        const { branchId } = await params;
+
+        if (!branchId) {
+            return createErrorResponse(new Error('Branch ID is required'));
+        }
+
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/table/branch/${branchId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
         });
 
-        return NextResponse.json(response.data);
-
-    } catch (error: unknown) {
-        if (axios.isAxiosError(error)) {
-            console.error('Error fetching tables by branch:', error.message);
-            console.error('Response:', error.response?.data);
+        if (!response.ok) {
+            return createErrorResponse(new Error('Failed to fetch tables by branch'));
         }
 
-        const errorMessage = (error as { response?: { data?: { message?: string; error?: string } } })?.response?.data?.message
-            || (error as { response?: { data?: { message?: string; error?: string } } })?.response?.data?.error
-            || 'Failed to fetch tables';
+        return NextResponse.json(await response.json());
 
-        const statusCode = (error as { response?: { status?: number } })?.response?.status || 500;
-
-        return NextResponse.json(
-            { error: errorMessage },
-            { status: statusCode }
-        );
+    } catch (error: unknown) {
+        console.error('Error fetching tables by branch:', error);
+        return createErrorResponse(error as Error);
     }
 }

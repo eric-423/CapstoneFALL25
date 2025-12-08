@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { apiBaseURL } from "@/utils/configs/environment";
+import { createErrorResponse } from "@/lib/error-handler";
 
 export async function PUT(
   request: NextRequest,
@@ -25,36 +25,18 @@ export async function PUT(
 
     const body = await request.json();
 
-    const baseURL = apiBaseURL;
-    const fullUrl = `${baseURL}/table/update/${id}`;
-
-    const response = await fetch(fullUrl, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/table/update/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        Accept: "*/*",
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(body),
     });
 
-    if (!response.ok) {
-      const errorData = await response
-        .json()
-        .catch(() => ({ error: "Failed to update table" }));
-      return NextResponse.json(errorData, { status: response.status });
-    }
-
-    const data = await response.json().catch(() => ({ success: true }));
-    return NextResponse.json(data);
+    return NextResponse.json(await response.json());
   } catch (error) {
-    console.error("Update Table API Error:", error);
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error ? error.message : "Failed to update table",
-      },
-      { status: 500 }
-    );
+    console.error("Error updating table:", error);
+    return createErrorResponse(error as Error);
   }
 }

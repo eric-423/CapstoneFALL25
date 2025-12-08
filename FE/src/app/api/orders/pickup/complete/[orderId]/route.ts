@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 type CompletePickupRouteContext = {
   params: Promise<{ orderId?: string | string[] }>;
