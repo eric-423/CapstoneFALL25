@@ -301,6 +301,7 @@ public class SecurityConfig {
                         .requestMatchers("/schedules/**").hasAnyRole("ADMIN", "MANAGER", "STAFF", "CHEFF", "WAITER")
 
                         .requestMatchers("/dashboard/**").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers("/transactions/**").hasAnyRole("ADMIN", "MANAGER")
                         .anyRequest().authenticated());
 
         return http.build();
