@@ -183,7 +183,7 @@ public class InformationServiceImpl implements InformationService {
         Users users = usersRepository.findByPhoneNumber(phone).orElseThrow(() ->
                 new ResourceNotFoundException("Không tìm thấy khách hàng với số điện thoại: " + phone));
 
-        if (!users.getRoleHistories().getLast().getRole().getName().equals("CUSTOMER")) {
+        if (!users.getRoleHistories().get(users.getRoleHistories().size() - 1).getRole().getName().equals("CUSTOMER")) {
             throw new IllegalArgumentException("Người dùng không phải là khách hàng");
         }
         CustomerDTO dto = new CustomerDTO();
