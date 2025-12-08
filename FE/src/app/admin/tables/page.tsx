@@ -24,9 +24,14 @@ import {
 import { AdminCard } from "../components/AdminCard";
 import { FilterDropdown } from "@/components/common/FilterDropdown";
 import { getBranches, type Branch, getTablesByBranch } from "@/apis/branch.api";
-import { type TableData, deactivateTable } from "@/apis/table.api";
+import {
+  type TableData,
+  deactivateTable,
+  activateTable,
+} from "@/apis/table.api";
 import { useRouter } from "next/navigation";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
+import { TableFormDialog } from "./components/TableFormDialog";
 
 export default function TablesManagementPage() {
   const router = useRouter();
@@ -46,6 +51,8 @@ export default function TablesManagementPage() {
     tableName: "",
   });
   const [actionLoading, setActionLoading] = useState(false);
+  const [showTableDialog, setShowTableDialog] = useState(false);
+  const [editingTableId, setEditingTableId] = useState<number | null>(null);
 
   const fetchBranches = useCallback(async () => {
     try {
@@ -125,6 +132,46 @@ export default function TablesManagementPage() {
     });
   };
 
+  const handleActivateTable = async (tableId: number, tableName: string) => {
+    try {
+      setActionLoading(true);
+      await activateTable(tableId);
+      toast.success(`Đã kích hoạt bàn "${tableName}" thành công!`);
+      await fetchTables();
+    } catch (error) {
+      console.error("Failed to activate table:", error);
+      let errorMessage = "Không thể kích hoạt bàn. Vui lòng thử lại!";
+      if (
+        error &&
+        typeof error === "object" &&
+        "response" in error &&
+        error.response &&
+        typeof error.response === "object" &&
+        "data" in error.response &&
+        error.response.data &&
+        typeof error.response.data === "object"
+      ) {
+        const errorData = error.response.data as {
+          desc?: string;
+          message?: string;
+          error?: string;
+        };
+        if (errorData.desc) {
+          errorMessage = errorData.desc;
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
+        } else if (errorData.error) {
+          errorMessage = errorData.error;
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      toast.error(errorMessage);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleConfirmDeactivate = async () => {
     try {
       setActionLoading(true);
@@ -201,7 +248,7 @@ export default function TablesManagementPage() {
         actions={
           <Button
             className="bg-[#78A243] hover:bg-[#78A243]/90 text-white shadow-md hover:shadow-lg transition-all"
-            onClick={() => router.push("/admin/tables/new")}
+            onClick={() => setShowTableDialog(true)}
           >
             <Plus className="h-4 w-4 mr-2" />
             Thêm bàn ăn
@@ -299,7 +346,7 @@ export default function TablesManagementPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
         {loading ? (
           <div className="col-span-full p-12 text-center text-[#2D1E1A]/70">
             <div className="w-12 h-12 border-4 border-[#EBD187] border-t-[#78A243] rounded-full animate-spin mx-auto mb-4"></div>
@@ -372,8 +419,10 @@ export default function TablesManagementPage() {
                   size="sm"
                   variant="outline"
                   className="flex-1 text-[#DA7339] border-[#DA7339]/30 hover:bg-[#DA7339]/10"
-                  disabled
-                  title="Tính năng đang phát triển"
+                  onClick={() => {
+                    setEditingTableId(table.id);
+                    setShowTableDialog(true);
+                  }}
                 >
                   <Edit2 className="h-3 w-3 mr-1" />
                   Sửa
@@ -386,8 +435,14 @@ export default function TablesManagementPage() {
                       ? "text-red-600 border-red-300 hover:bg-red-50"
                       : "text-[#78A243] border-[#78A243]/30 hover:bg-[#78A243]/10"
                   }`}
-                  disabled={!table.isActive || actionLoading}
-                  onClick={() => handleDeactivateTable(table.id, table.name)}
+                  disabled={actionLoading}
+                  onClick={() => {
+                    if (table.isActive) {
+                      handleDeactivateTable(table.id, table.name);
+                    } else {
+                      handleActivateTable(table.id, table.name);
+                    }
+                  }}
                 >
                   {table.isActive ? (
                     <>
@@ -424,6 +479,14 @@ export default function TablesManagementPage() {
         confirmText="Vô hiệu hóa"
         variant="destructive"
         loading={actionLoading}
+      />
+
+      <TableFormDialog
+        open={showTableDialog}
+        onOpenChange={setShowTableDialog}
+        onSuccess={() => {
+          fetchTables();
+        }}
       />
     </AdminPageLayout>
   );

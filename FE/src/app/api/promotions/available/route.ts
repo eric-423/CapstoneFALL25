@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
-const API_BASE_URL = "https://tam-tac.com";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "https://tam-tac.com/api/v1";
 
 export async function GET() {
   try {
@@ -16,7 +17,7 @@ export async function GET() {
     }
 
     const response = await fetch(
-      `${API_BASE_URL}/api/promotions/customer/available`,
+      `${API_BASE_URL}/promotions/customer/available`,
       {
         method: "GET",
         headers: {

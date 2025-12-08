@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 const BACKEND_BASE_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || "https://tam-tac.com";
+  process.env.NEXT_PUBLIC_API_URL || "https://tam-tac.com/api/v1";
 
 export async function PUT(req: Request) {
   try {
@@ -17,7 +17,7 @@ export async function PUT(req: Request) {
       );
     }
 
-    const backendUrl = `${BACKEND_BASE_URL}/api/promotions/${promotionCode}/status?status=${status}`;
+    const backendUrl = `${BACKEND_BASE_URL}/promotions/${promotionCode}/status?status=${status}`;
 
     const authorization = req.headers.get("authorization");
 
