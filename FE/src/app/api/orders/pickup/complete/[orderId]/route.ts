@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "https://tam-tac.com/api/v1";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 type CompletePickupRouteContext = {
   params: Promise<{ orderId?: string | string[] }>;
@@ -24,7 +23,7 @@ export async function PUT(
       return NextResponse.json({ error: "Missing orderId" }, { status: 400 });
     }
 
-    const url = `${BASE_URL}/orders/staff/pickup/completed/${orderId}`;
+    const url = `${API_BASE_URL}/orders/staff/pickup/completed/${orderId}`;
 
     const response = await fetch(url, {
       method: "PUT",
