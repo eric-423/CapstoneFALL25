@@ -14,6 +14,10 @@ import {
   ChevronLeft,
   ChevronRight,
   ImageIcon,
+  ChevronUp,
+  ChevronDown,
+  Filter,
+  X,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import {
@@ -24,7 +28,9 @@ import { Card } from "@/components/ui/card";
 import { FilterDropdown } from "@/components/common/FilterDropdown";
 import {
   getAllBranchProducts,
+  getProductType,
   type Product,
+  type ProductType,
   type AllBranchProductSearchParams,
 } from "@/apis/product.api";
 import { ProductForm } from "./components/ProductForm";
@@ -33,26 +39,53 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchKeyword, setSearchKeyword] = useState("");
-
-  // Pagination
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
   const [pageSize, setPageSize] = useState(10);
-
-  // Dialogs
   const [showProductForm, setShowProductForm] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+  // Sort states
+  const [sortBy, setSortBy] = useState("createdDate");
+  const [sortDirection, setSortDirection] = useState<"ASC" | "DESC">("DESC");
+
+  // Filter states
+  const [productTypes, setProductTypes] = useState<ProductType[]>([]);
+  const [selectedProductTypeId, setSelectedProductTypeId] = useState<
+    number | undefined
+  >();
+  const [isActiveFilter, setIsActiveFilter] = useState<boolean | undefined>();
+  const [showFilters, setShowFilters] = useState(false);
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+
+  // Load product types
+  useEffect(() => {
+    const loadProductTypes = async () => {
+      try {
+        const types = await getProductType();
+        setProductTypes(types.filter((t) => t.id !== 0));
+      } catch (error) {
+        console.error("Failed to load product types:", error);
+      }
+    };
+    loadProductTypes();
+  }, []);
 
   const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
       const params: AllBranchProductSearchParams = {
-        keyword: searchKeyword,
+        keyword: searchKeyword || undefined,
+        productTypeId: selectedProductTypeId,
+        isActive: isActiveFilter,
+        minPrice: minPrice ? parseFloat(minPrice) : undefined,
+        maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
         page: currentPage,
         size: pageSize,
-        sortBy: "createdDate",
-        sortDirection: "DESC",
+        sortBy,
+        sortDirection,
       };
       const response = await getAllBranchProducts(params);
       setProducts(response.content);
@@ -64,7 +97,17 @@ export default function ProductsPage() {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, pageSize, searchKeyword]);
+  }, [
+    currentPage,
+    pageSize,
+    searchKeyword,
+    sortBy,
+    sortDirection,
+    selectedProductTypeId,
+    isActiveFilter,
+    minPrice,
+    maxPrice,
+  ]);
 
   useEffect(() => {
     fetchProducts();
@@ -86,10 +129,61 @@ export default function ProductsPage() {
     }
   };
 
+  const handleSort = (column: string) => {
+    if (sortBy === column) {
+      setSortDirection(sortDirection === "ASC" ? "DESC" : "ASC");
+    } else {
+      setSortBy(column);
+      setSortDirection("ASC");
+    }
+    setCurrentPage(0);
+  };
+
+  const getSortIcon = (column: string) => {
+    if (sortBy !== column) {
+      return (
+        <div className="flex flex-col -space-y-1">
+          <ChevronUp className="h-3.5 w-3.5 text-gray-400" />
+          <ChevronDown className="h-3.5 w-3.5 text-gray-400" />
+        </div>
+      );
+    }
+    return sortDirection === "ASC" ? (
+      <ChevronUp className="h-3.5 w-3.5 text-[#78A243]" />
+    ) : (
+      <ChevronDown className="h-3.5 w-3.5 text-[#78A243]" />
+    );
+  };
+
+  const handleSearch = () => {
+    setCurrentPage(0);
+    fetchProducts();
+  };
+
+  const handleClearFilters = () => {
+    setSearchKeyword("");
+    setSelectedProductTypeId(undefined);
+    setIsActiveFilter(undefined);
+    setMinPrice("");
+    setMaxPrice("");
+    setCurrentPage(0);
+  };
+
+  const handleProductTypeChange = (value: string) => {
+    const typeId = value ? parseInt(value) : undefined;
+    setSelectedProductTypeId(typeId);
+    setCurrentPage(0);
+  };
+
+  const handleStatusChange = (value: string) => {
+    const nextStatus = value === "" ? undefined : value === "true";
+    setIsActiveFilter(nextStatus);
+    setCurrentPage(0);
+  };
+
   return (
     <AdminGuard>
       <AdminPageLayout>
-        {/* Header */}
         <AdminPageHeader
           title="Quản Lý Món Ăn"
           icon={UtensilsCrossed}
@@ -104,7 +198,6 @@ export default function ProductsPage() {
           }
         />
 
-        {/* Filters */}
         <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-white backdrop-blur-sm border-gray-300 border shadow-sm rounded-xl">
           <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[200px]">
             <div className="relative">
@@ -113,12 +206,54 @@ export default function ProductsPage() {
                 placeholder="Tìm kiếm sản phẩm..."
                 value={searchKeyword}
                 onChange={(e) => setSearchKeyword(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                 className="w-full max-w-[250px] pl-10 pr-4 py-2 border bg-white/80 border-[#78A243]/30 rounded-lg text-sm focus:border-[#78A243] focus:ring-1 focus:ring-[#78A243]/20 outline-none"
               />
             </div>
+            <FilterDropdown
+              label="Tất cả loại"
+              title="Lọc theo loại sản phẩm"
+              value={selectedProductTypeId?.toString() || ""}
+              onChange={handleProductTypeChange}
+              items={productTypes.map((type) => ({
+                value: type.id.toString(),
+                label: type.name,
+              }))}
+              className="w-[150px]"
+            />
+            <FilterDropdown
+              label="Tất cả trạng thái"
+              title="Lọc theo trạng thái"
+              value={
+                isActiveFilter === undefined ? "" : isActiveFilter.toString()
+              }
+              onChange={handleStatusChange}
+              items={[
+                { value: "true", label: "Hoạt động" },
+                { value: "false", label: "Ngừng hoạt động" },
+              ]}
+              className="w-[150px]"
+            />
+            <Button
+              onClick={() => setShowFilters(!showFilters)}
+              variant="outline"
+              className="border-[#78A243]/30 text-[#78A243] hover:bg-[#78A243]/10"
+            >
+              <Filter className="h-4 w-4 mr-2" />
+              Bộ lọc
+            </Button>
+            {(searchKeyword ||
+              selectedProductTypeId ||
+              isActiveFilter !== undefined ||
+              minPrice ||
+              maxPrice) && (
+              <Button onClick={handleClearFilters} variant="ghost" size="sm">
+                <X className="h-4 w-4 mr-1" />
+                Xóa lọc
+              </Button>
+            )}
           </div>
 
-          {/* Page Size */}
           <div className="flex items-center gap-3 justify-end">
             <label className="text-sm text-[#2D1E1A]/80 font-medium whitespace-nowrap">
               Hiển thị:
@@ -146,22 +281,72 @@ export default function ProductsPage() {
           </div>
         </div>
 
-        {/* Products Table */}
+        {showFilters && (
+          <div className="p-3 bg-white backdrop-blur-sm border-gray-300 border shadow-sm rounded-xl">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-bold mb-1 block text-[#2D1E1A]">
+                  Giá từ
+                </label>
+                <Input
+                  type="number"
+                  value={minPrice}
+                  onChange={(e) => setMinPrice(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                  placeholder="0"
+                  className="w-full px-3 py-2 border border-[#78A243]/30 rounded-lg text-sm focus:border-[#78A243] focus:ring-1 focus:ring-[#78A243]/20"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold mb-1 block text-[#2D1E1A]">
+                  Giá đến
+                </label>
+                <Input
+                  type="number"
+                  value={maxPrice}
+                  onChange={(e) => setMaxPrice(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                  placeholder="999999999"
+                  className="w-full px-3 py-2 border border-[#78A243]/30 rounded-lg text-sm focus:border-[#78A243] focus:ring-1 focus:ring-[#78A243]/20"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
         <Card className="overflow-hidden py-0">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-white border-b-2 border-grey-300">
                 <tr>
-                  <th className="px-4 py-3 text-center text-sm font-bold text-[#2D1E1A]">
-                    Sản phẩm
+                  <th
+                    className="px-4 py-3 text-center text-sm font-bold text-[#2D1E1A] cursor-pointer hover:bg-gray-50 transition-colors"
+                    onClick={() => handleSort("name")}
+                  >
+                    <div className="flex items-center justify-center gap-1.5">
+                      Sản phẩm
+                      {getSortIcon("name")}
+                    </div>
+                  </th>
+                  <th
+                    className="px-4 py-3 text-center text-sm font-bold text-[#2D1E1A] cursor-pointer hover:bg-gray-50 transition-colors"
+                    onClick={() => handleSort("productType")}
+                  >
+                    <div className="flex items-center justify-center gap-1.5">
+                      Loại
+                      {getSortIcon("productType")}
+                    </div>
+                  </th>
+                  <th
+                    className="px-4 py-3 text-center text-sm font-bold text-[#2D1E1A] cursor-pointer hover:bg-gray-50 transition-colors"
+                    onClick={() => handleSort("productPrice")}
+                  >
+                    <div className="flex items-center justify-center gap-1.5">
+                      Giá bán
+                      {getSortIcon("productPrice")}
+                    </div>
                   </th>
                   <th className="px-4 py-3 text-center text-sm font-bold text-[#2D1E1A]">
-                    Loại
-                  </th>
-                  <th className="px-4 py-3 text-center text-sm font-bold text-[#2D1E1A]">
-                    Giá bán
-                  </th>
-                  <th className="px-4 py-3 text-right text-sm font-bold text-[#2D1E1A]">
                     Thao tác
                   </th>
                 </tr>
@@ -235,7 +420,7 @@ export default function ProductsPage() {
                           }).format(product.productPrice)}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-4 py-3 text-center">
                         <Button
                           variant="outline"
                           size="sm"
@@ -253,7 +438,6 @@ export default function ProductsPage() {
             </table>
           </div>
 
-          {/* Pagination */}
           {totalPages > 1 && (
             <div className="px-4 py-3 border-t border-[#78A243]/20 bg-gradient-to-r from-[#EBD187]/10 to-[#78A243]/5">
               <div className="flex items-center justify-between">
@@ -288,7 +472,6 @@ export default function ProductsPage() {
           )}
         </Card>
 
-        {/* Product Form Dialog */}
         <ProductForm
           open={showProductForm}
           onOpenChange={setShowProductForm}
