@@ -13,6 +13,7 @@ import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DiningTablePaymentModal } from "@/components/common/payment";
 import {
   Clock,
   Users,
@@ -27,6 +28,7 @@ import {
   X,
   HandPlatter,
   AlertCircle,
+  CreditCard,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { AdminCard } from "@/app/admin/components/AdminCard";
@@ -55,14 +57,8 @@ export default function StaffTablesPage() {
   );
   const [isConfirmingAll, setIsConfirmingAll] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-  const [showPaymentMethodModal, setShowPaymentMethodModal] = useState(false);
-  const [paymentMethods, setPaymentMethods] = useState<
-    Array<{ id: number; name: string }>
-  >([]);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
-    number | null
-  >(null);
+  const [showCustomerVerificationModal, setShowCustomerVerificationModal] = useState(false);
+  const [selectedTableForPayment, setSelectedTableForPayment] = useState<TableData | null>(null);
 
   const showNotification = (message: string, type: "success" | "error") => {
     setNotification({ message, type });
@@ -238,66 +234,17 @@ export default function StaffTablesPage() {
     }
   };
 
-  const openPaymentModal = async () => {
-    try {
-      const response = await fetch("/api/payment-method");
-      if (!response.ok) {
-        throw new Error("Failed to fetch payment methods");
-      }
-      const result = await response.json();
-      setPaymentMethods(result.data || []);
-      setShowPaymentMethodModal(true);
-    } catch (error) {
-      console.error("Error fetching payment methods:", error);
-      showNotification("Không thể tải phương thức thanh toán", "error");
-    }
+
+  const openCustomerVerificationModal = (table: TableData) => {
+    setSelectedTableForPayment(table);
+    setShowCustomerVerificationModal(true);
   };
 
-  const handlePaymentWithMethod = async () => {
-    if (!selectedTableForAction?.currentOrder || !selectedPaymentMethod) {
-      showNotification("Vui lòng chọn phương thức thanh toán", "error");
-      return;
-    }
-
-    setIsProcessingPayment(true);
-
-    try {
-      const response = await fetch("/api/orders/dining-table/payment", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          orderId: selectedTableForAction.currentOrder.id,
-          paymentMethodId: selectedPaymentMethod,
-          promotionCode: "",
-          discountValue: 0,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Payment request failed");
-      }
-
-      const result = await response.json();
-      if (selectedPaymentMethod === 2 && result.data?.paymentUrl) {
-        window.location.href = result.data.paymentUrl;
-      } else {
-        showNotification("Thanh toán thành công!", "success");
-        setShowPaymentMethodModal(false);
-        closeActionModal();
-        fetchTables(true);
-      }
-    } catch (error) {
-      console.error("Error processing payment:", error);
-      showNotification(
-        "Không thể xử lý thanh toán. Vui lòng thử lại.",
-        "error"
-      );
-    } finally {
-      setIsProcessingPayment(false);
-    }
+  const closeCustomerVerificationModal = () => {
+    setShowCustomerVerificationModal(false);
+    setSelectedTableForPayment(null);
   };
+
 
   const handleDeliverSingleItem = async (item: OrderItem, index: number) => {
     if (!selectedTableForAction?.currentOrder) return;
@@ -683,31 +630,48 @@ export default function StaffTablesPage() {
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex flex-wrap gap-2 mt-auto">
-                      {/* QR button moved to top-right */}
+                    <div className="flex flex-col gap-2 mt-auto">
+                      {/* Payment Button - Only show when order exists */}
                       {hasOrder && (
                         <Button
                           onClick={(e) => {
                             e.stopPropagation();
-                            openActionModal(table);
+                            openCustomerVerificationModal(table);
                           }}
                           variant="outline"
                           size="sm"
-                          className="flex-1 min-w-[60px] text-xs h-8 border-2 border-green-500 text-green-600 hover:bg-green-500 hover:text-white"
+                          className="w-full text-xs h-9 border-2 border-gradient-to-r from-amber-500 to-amber-600 bg-gradient-to-r from-amber-50 to-amber-100 border-amber-400 text-amber-700 hover:from-amber-500 hover:to-amber-600 hover:text-white hover:shadow-md transition-all duration-200 font-semibold"
                         >
-                          <CheckCircle size={14} className="mr-1" />
-                          Xử lý
+                          <CreditCard size={14} className="mr-1.5" />
+                          Thanh toán ngay
                         </Button>
                       )}
-                      <Button
-                        onClick={() => handleTableClick(table.id)}
-                        variant="outline"
-                        size="sm"
-                        className="flex-1 min-w-[60px] text-xs h-8 border-2 border-blue-500 text-blue-600 hover:bg-blue-500 hover:text-white"
-                      >
-                        <Eye size={14} className="mr-1" />
-                        Xem
-                      </Button>
+                      <div className="flex flex-wrap gap-2">
+                        {/* QR button moved to top-right */}
+                        {hasOrder && (
+                          <Button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openActionModal(table);
+                            }}
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 min-w-[60px] text-xs h-8 border-2 border-green-500 text-green-600 hover:bg-green-500 hover:text-white"
+                          >
+                            <CheckCircle size={14} className="mr-1" />
+                            Xử lý
+                          </Button>
+                        )}
+                        <Button
+                          onClick={() => handleTableClick(table.id)}
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 min-w-[60px] text-xs h-8 border-2 border-blue-500 text-blue-600 hover:bg-blue-500 hover:text-white"
+                        >
+                          <Eye size={14} className="mr-1" />
+                          Xem
+                        </Button>
+                      </div>
                     </div>
                   </Card>
                 );
@@ -1004,7 +968,7 @@ export default function StaffTablesPage() {
               ) && (
                 <div className="border-t-2 border-gray-200 pt-4">
                   <Button
-                    onClick={openPaymentModal}
+                    onClick={() => openCustomerVerificationModal(selectedTableForAction)}
                     className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white border-0 shadow-md hover:shadow-lg"
                   >
                     <CheckCircle size={18} className="mr-2" />
@@ -1066,84 +1030,17 @@ export default function StaffTablesPage() {
         </div>
       )}
 
-      {showPaymentMethodModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/15 backdrop-blur-[1px] p-4">
-          <Card className="relative p-6 max-w-md w-full bg-white border-0 shadow-2xl rounded-2xl">
-            <button
-              aria-label="Đóng"
-              onClick={() => {
-                setShowPaymentMethodModal(false);
-                setSelectedPaymentMethod(null);
-              }}
-              className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <X className="h-5 w-5 text-gray-500" />
-            </button>
-            <div className="text-center mb-6">
-              <div className="w-14 h-14 mx-auto mb-3 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center">
-                <CheckCircle className="h-7 w-7 text-white" strokeWidth={2.5} />
-              </div>
-              <h2 className="text-xl font-bold bg-gradient-to-r from-green-500 to-green-600 bg-clip-text text-transparent mb-1">
-                Chọn phương thức thanh toán
-              </h2>
-              <p className="text-xs text-gray-600">
-                Vui lòng chọn cách thanh toán cho đơn hàng
-              </p>
-            </div>
+      {/* Payment Modal Component */}
+      <DiningTablePaymentModal
+        isOpen={showCustomerVerificationModal}
+        table={selectedTableForPayment}
+        onClose={closeCustomerVerificationModal}
+        onPaymentSuccess={() => {
+          fetchTables(true);
+        }}
+        onNotification={showNotification}
+      />
 
-            {/* Payment Methods */}
-            <div className="space-y-3 mb-6">
-              {paymentMethods.map((method) => (
-                <button
-                  key={method.id}
-                  onClick={() => setSelectedPaymentMethod(method.id)}
-                  className={`w-full p-4 rounded-lg border-2 transition-all text-left ${selectedPaymentMethod === method.id
-                    ? "border-green-500 bg-green-50"
-                    : "border-gray-200 hover:border-green-300 bg-white"
-                    }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedPaymentMethod === method.id
-                          ? "border-green-500"
-                          : "border-gray-300"
-                          }`}
-                      >
-                        {selectedPaymentMethod === method.id && (
-                          <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                        )}
-                      </div>
-                      <span className="font-semibold text-gray-900">
-                        {method.name}
-                      </span>
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-
-            {/* Confirm Button */}
-            <Button
-              onClick={handlePaymentWithMethod}
-              disabled={!selectedPaymentMethod || isProcessingPayment}
-              className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white border-0 shadow-md hover:shadow-lg disabled:opacity-50"
-            >
-              {isProcessingPayment ? (
-                <>
-                  <LoadingSpinner className="h-4 w-4 mr-2" />
-                  Đang xử lý...
-                </>
-              ) : (
-                <>
-                  <CheckCircle size={18} className="mr-2" />
-                  Xác nhận thanh toán
-                </>
-              )}
-            </Button>
-          </Card>
-        </div>
-      )}
     </div>
   );
 }

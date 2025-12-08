@@ -38,9 +38,10 @@ export interface DiningOrderRequest {
 
 export interface DiningTablePaymentRequest {
     orderId: number;
-    paymentMethodId: number; // 1 = cash, 2 = transfer
+    paymentMethodId: number;
     promotionCode?: string;
     discountValue?: number;
+    usedPoints?: number;
 }
 
 export interface UpdateDiningTableOrderRequest {
@@ -737,3 +738,24 @@ export interface CommonResponse {
     success: boolean;
     message?: string;
 }
+
+
+export const assignCustomerToOrder = async (customerId: number, orderId: number) => {
+    try {
+        const response = await fetch(`/api/orders/dining-table/assign-customer/${customerId}/${orderId}`,
+            {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error("Failed to assign customer");
+        }
+    } catch (error) {
+        console.error("Error assigning customer to order:", error);
+    }
+};
