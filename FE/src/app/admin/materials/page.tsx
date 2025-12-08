@@ -173,15 +173,13 @@ export default function MaterialsPage() {
     return matchesKeyword && matchesType;
   });
 
-  // Get unique material types for filter
   const uniqueTypes = Array.from(
     new Set(materials.map((m) => m.materialTypeName))
   ).sort();
 
-  // Helper to get unit name
   const getUnitName = (unitId: number) => {
     const unit = units.find((u) => u.id === unitId);
-    return unit ? `${unit.name} (${unit.symbols})` : `ID: ${unitId}`;
+    return unit ? ` (${unit.symbols})` : `ID: ${unitId}`;
   };
 
   const handleSort = (column: string) => {

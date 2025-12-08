@@ -1,11 +1,9 @@
 "use client";
 
-import { GraduationCap, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { GraduationCap } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { TrainingCourse, StaffRole } from "@/utils/types/training.type";
 import { TrainingCourseCard } from "./TrainingCourseCard";
-import { AddTrainingDialog } from "./AddTrainingDialog";
 
 interface TrainingCourseListProps {
   courses: TrainingCourse[];
@@ -26,7 +24,6 @@ export function TrainingCourseList({
   onDelete,
   onAssignUsers,
   onRefetch,
-  isFetching,
   getRoleColor,
   getRoleText,
 }: TrainingCourseListProps) {
@@ -53,17 +50,6 @@ export function TrainingCourseList({
             Thử điều chỉnh bộ lọc hoặc tạo khóa đào tạo mới.
           </p>
         </div>
-        <div className="flex gap-3">
-          <Button variant="outline" onClick={onRefetch}>
-            <RefreshCw
-              size={16}
-              className={`mr-2 ${isFetching ? "animate-spin" : ""}`}
-              strokeWidth={2.5}
-            />
-            Tải lại
-          </Button>
-          <AddTrainingDialog onSuccess={onRefetch} />
-        </div>
       </Card>
     );
   }
@@ -85,4 +71,3 @@ export function TrainingCourseList({
     </>
   );
 }
-

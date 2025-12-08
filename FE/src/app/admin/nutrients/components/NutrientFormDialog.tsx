@@ -106,12 +106,8 @@ export function NutrientFormDialog({
   return (
     <div className="fixed inset-0 bg-black/15 backdrop-blur-[1px] z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
       <Card className="w-full max-w-lg bg-white shadow-2xl rounded-2xl border-0 overflow-hidden flex flex-col max-h-[90vh]">
-        {/* Header */}
         <div className="bg-[#78A243] p-4 flex items-center justify-between z-10 shadow-lg shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">N</span>
-            </div>
             <h2 className="text-xl font-bold text-white">
               {nutrient ? "Chỉnh sửa dinh dưỡng" : "Thêm dinh dưỡng mới"}
             </h2>

@@ -197,10 +197,11 @@ export default function LoginForm() {
               </p>
               {globalMessage && (
                 <p
-                  className={`mt-3 sm:mt-4 text-xs sm:text-sm font-medium px-2 ${globalMessage.type === "error"
-                    ? "text-red-600"
-                    : "text-gray-700"
-                    }`}
+                  className={`mt-3 sm:mt-4 text-xs sm:text-sm font-medium px-2 ${
+                    globalMessage.type === "error"
+                      ? "text-red-600"
+                      : "text-gray-700"
+                  }`}
                 >
                   {globalMessage.text}
                 </p>
@@ -228,20 +229,22 @@ export default function LoginForm() {
 
                 {errors.phone && (
                   <>
-                    <p className="mt-1 text-xs sm:text-sm text-red-600 break-words">{errors.phone}</p>
+                    <p className="mt-1 text-xs sm:text-sm text-red-600 break-words">
+                      {errors.phone}
+                    </p>
                     {errors.phone ===
                       "Số điện thoại chưa được xác thực. Vui lòng xác thực số điện thoại trước khi đăng nhập." && (
-                        <button
-                          type="button"
-                          className="mt-2 text-xs sm:text-sm text-[#FF6B35] underline disabled:opacity-50 block"
-                          onClick={handleResendOtp}
-                          disabled={resendOtpLoading}
-                        >
-                          {resendOtpLoading
-                            ? "Đang gửi..."
-                            : "Gửi lại mã xác thực"}
-                        </button>
-                      )}
+                      <button
+                        type="button"
+                        className="mt-2 text-xs sm:text-sm text-[#FF6B35] underline disabled:opacity-50 block"
+                        onClick={handleResendOtp}
+                        disabled={resendOtpLoading}
+                      >
+                        {resendOtpLoading
+                          ? "Đang gửi..."
+                          : "Gửi lại mã xác thực"}
+                      </button>
+                    )}
                   </>
                 )}
               </div>
@@ -274,22 +277,19 @@ export default function LoginForm() {
                 </div>
 
                 {errors.password && (
-                  <p className="mt-1 text-xs sm:text-sm text-red-600 break-words">{errors.password}</p>
+                  <p className="mt-1 text-xs sm:text-sm text-red-600 break-words">
+                    {errors.password}
+                  </p>
                 )}
               </div>
 
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0 text-xs sm:text-sm">
-                <label className="inline-flex items-center gap-2 text-slate-600">
-                  <input
-                    type="checkbox"
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 text-[#FF6B35] focus:ring-[#FF6B35] flex-shrink-0"
-                  />
-                  <span className="whitespace-nowrap">Ghi nhớ đăng nhập</span>
-                </label>
                 <Link
-                  href={phone ? `/forgot-password?phone=${encodeURIComponent(phone)}` : '/forgot-password'}
+                  href={
+                    phone
+                      ? `/forgot-password?phone=${encodeURIComponent(phone)}`
+                      : "/forgot-password"
+                  }
                   className="text-[#FF6B35] font-medium hover:underline whitespace-nowrap"
                 >
                   Quên mật khẩu?

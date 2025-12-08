@@ -260,14 +260,6 @@ export default function UsersManagementPage() {
         actions={
           <div className="flex items-center gap-3">
             <Button
-              onClick={() => setShowRolesModal(true)}
-              variant="outline"
-              className="border-[#78A243] bg-[#78A243]/10 text-[#78A243] hover:bg-[#78A243]/20 font-semibold"
-            >
-              <ShieldCheck className="h-4 w-4 mr-2" />
-              Quản lý vai trò
-            </Button>
-            <Button
               onClick={handleCreateUser}
               className="bg-[#78A243] hover:bg-[#78A243]/90 text-white shadow-md hover:shadow-lg transition-all"
             >

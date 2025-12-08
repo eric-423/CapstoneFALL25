@@ -1,14 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Users, UserPlus, X, CheckCircle } from "lucide-react";
+import {
+  Users,
+  UserPlus,
+  X,
+  CheckCircle,
+  CheckSquare,
+  Square,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import {
   getAvailableUsersForTraining,
   AssignUserToTraining,
@@ -67,14 +70,40 @@ export function AssignUserDialog({
     }
   }, [open, trainingId]);
 
+  const handleSelectAll = () => {
+    type UserWithData = {
+      data?: { id: number };
+      id?: number;
+    };
+
+    const allUserIds = (availableUsers || [])
+      .map((userItem) => {
+        const user = userItem as UserWithData;
+        return user?.data?.id || user?.id;
+      })
+      .filter((id): id is number => id !== undefined && id !== null);
+
+    const allSelected = allUserIds.every((id) => selectedUserIds.has(id));
+
+    if (allSelected) {
+      setSelectedUserIds(new Set());
+    } else {
+      setSelectedUserIds(new Set(allUserIds));
+    }
+  };
+
   const handleAssign = async () => {
     if (!trainingId || selectedUserIds.size === 0) {
-      toast.warning("Vui lòng chọn ít nhất một học viên!", { toastId: "assign-warning-no-users" });
+      toast.warning("Vui lòng chọn ít nhất một học viên!", {
+        toastId: "assign-warning-no-users",
+      });
       return;
     }
 
     if (!training) {
-      toast.error("Không tìm thấy thông tin khóa đào tạo!", { toastId: "assign-error-no-training" });
+      toast.error("Không tìm thấy thông tin khóa đào tạo!", {
+        toastId: "assign-error-no-training",
+      });
       return;
     }
 
@@ -100,8 +129,7 @@ export function AssignUserDialog({
           const uid = user?.data?.id || user?.id;
           return uid === userId;
         }) as UserWithBranch | undefined;
-        const branchId =
-          userData?.data?.branchId || userData?.branchId || 1;
+        const branchId = userData?.data?.branchId || userData?.branchId || 1;
 
         if (!usersByBranch.has(branchId)) {
           usersByBranch.set(branchId, []);
@@ -153,9 +181,11 @@ export function AssignUserDialog({
                   {training.assignedRoles &&
                     training.assignedRoles.length > 0 && (
                       <span className="ml-2">
-                        ({training.assignedRoles
+                        (
+                        {training.assignedRoles
                           .map((role) => getRoleText(role))
-                          .join(", ")})
+                          .join(", ")}
+                        )
                       </span>
                     )}
                 </p>
@@ -178,13 +208,16 @@ export function AssignUserDialog({
           {loadingUsers ? (
             <div className="flex items-center justify-center py-10">
               <div className="w-5 h-5 border-2 border-[#78A243] border-t-transparent rounded-full animate-spin mr-3" />
-              <span className="text-gray-600">Đang tải danh sách học viên...</span>
+              <span className="text-gray-600">
+                Đang tải danh sách học viên...
+              </span>
             </div>
           ) : !availableUsers || availableUsers.length === 0 ? (
             <div className="text-center py-10 text-gray-500">
               <Users size={48} className="mx-auto mb-3 text-gray-400" />
               <p>
-                Không tìm thấy học viên phù hợp với vai trò của khóa đào tạo này.
+                Không tìm thấy học viên phù hợp với vai trò của khóa đào tạo
+                này.
               </p>
             </div>
           ) : (
@@ -209,9 +242,7 @@ export function AssignUserDialog({
 
                   const isSelected = selectedUserIds.has(userId);
                   const fullName =
-                    user?.data?.fullName ||
-                    user?.fullName ||
-                    `User #${userId}`;
+                    user?.data?.fullName || user?.fullName || `User #${userId}`;
                   const email = user?.data?.email || user?.email || "";
                   const phone = user?.data?.phone || user?.phone || "";
 
@@ -227,10 +258,11 @@ export function AssignUserDialog({
                         }
                         setSelectedUserIds(newSelected);
                       }}
-                      className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all bg-white ${isSelected
+                      className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all bg-white ${
+                        isSelected
                           ? "border-[#78A243] bg-[#78A243]/5"
                           : "border-gray-200 hover:border-[#78A243]/50 hover:bg-[#78A243]/5"
-                        }`}
+                      }`}
                     >
                       <Input
                         type="checkbox"
@@ -258,8 +290,6 @@ export function AssignUserDialog({
                   );
                 })}
               </div>
-
-              {/* Footer */}
               <div className="bg-gray-50 border-t border-gray-200 -mx-6 -mb-6 mt-6 p-4 flex items-center justify-between rounded-b-2xl">
                 <p className="text-sm text-gray-600">
                   Đã chọn:{" "}
@@ -268,6 +298,7 @@ export function AssignUserDialog({
                   </strong>{" "}
                   học viên
                 </p>
+
                 <div className="flex gap-3">
                   <Button
                     type="button"
@@ -279,6 +310,38 @@ export function AssignUserDialog({
                     <X className="h-4 w-4 mr-2" />
                     Hủy
                   </Button>
+                  <div className="flex items-center justify-between">
+                    <button
+                      type="button"
+                      onClick={handleSelectAll}
+                      className="flex bg-[#78A243] items-center gap-2 px-4 py-2 text-sm font-semibold text-white hover:text-white hover:bg-[#78A243]/70 rounded-lg transition-colors"
+                    >
+                      {(() => {
+                        type UserWithData = {
+                          data?: { id: number };
+                          id?: number;
+                        };
+                        const allUserIds = (availableUsers || [])
+                          .map((userItem) => {
+                            const user = userItem as UserWithData;
+                            return user?.data?.id || user?.id;
+                          })
+                          .filter(
+                            (id): id is number =>
+                              id !== undefined && id !== null
+                          );
+                        const allSelected =
+                          allUserIds.length > 0 &&
+                          allUserIds.every((id) => selectedUserIds.has(id));
+                        return allSelected ? (
+                          <>Bỏ chọn tất cả</>
+                        ) : (
+                          <>Chọn tất cả</>
+                        );
+                      })()}
+                    </button>
+                  </div>
+
                   <Button
                     type="button"
                     onClick={handleAssign}
@@ -310,4 +373,3 @@ export function AssignUserDialog({
     </Dialog>
   );
 }
-
