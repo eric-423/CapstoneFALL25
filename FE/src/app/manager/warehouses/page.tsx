@@ -33,6 +33,7 @@ const montserrat = Montserrat({
   variable: "--font-montserrat",
   display: "swap",
 });
+const PAGE_SIZE = 10;
 
 export default function WarehousesPage() {
   const [branchId, setBranchId] = useState<number | null>(null);
@@ -42,6 +43,7 @@ export default function WarehousesPage() {
   const [allMaterials, setAllMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     const branchIdFromCookie = getCookie("branchId");
@@ -64,6 +66,7 @@ export default function WarehousesPage() {
       ]);
       setWarehouseMaterials(warehouseData);
       setAllMaterials(allMaterialsResponse.data.content);
+      setPage(1);
     } catch (error) {
       console.error("fetchWarehouseMaterials error:", error);
       toast.error("Không thể tải danh sách nguyên liệu!");
@@ -93,6 +96,21 @@ export default function WarehousesPage() {
   const totalQuantity = warehouseMaterials.reduce(
     (sum, m) => sum + m.quantity,
     0
+  );
+  const totalPages =
+    warehouseMaterials.length === 0
+      ? 1
+      : Math.ceil(warehouseMaterials.length / PAGE_SIZE);
+  const currentPage = Math.min(page, totalPages);
+  const startIndex = (currentPage - 1) * PAGE_SIZE;
+  const paginatedMaterials = warehouseMaterials.slice(
+    startIndex,
+    startIndex + PAGE_SIZE
+  );
+  const displayStart = warehouseMaterials.length === 0 ? 0 : startIndex + 1;
+  const displayEnd = Math.min(
+    startIndex + PAGE_SIZE,
+    warehouseMaterials.length
   );
 
   if (loading) {
@@ -146,10 +164,10 @@ export default function WarehousesPage() {
             />
           </AdminStatsGrid>
 
-          <Card className="bg-[#FDE3CF]/70 border-0 shadow-sm rounded-xl overflow-hidden">
+          <Card className="bg-white border border-gray-300 shadow-sm rounded-xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-[#EC6426]/10 border-b-2 border-[#EC6426]/30">
+                <thead className="bg-white border border-gray-300">
                   <tr>
                     <th className="px-4 py-3 text-center text-sm font-bold text-[#2D1E1A] uppercase tracking-wider">
                       Nguyên liệu
@@ -169,7 +187,7 @@ export default function WarehousesPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#EC6426]/10">
-                  {warehouseMaterials.map((material) => {
+                  {paginatedMaterials.map((material) => {
                     const isLowStock = material.quantity < material.threshold;
                     const stockPercentage =
                       (material.quantity / material.threshold) * 100;
@@ -240,6 +258,38 @@ export default function WarehousesPage() {
                 </tbody>
               </table>
             </div>
+
+            {warehouseMaterials.length > 0 && (
+              <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-t border-gray-200">
+                <div className="text-sm text-[#2D1E1A]/80">
+                  Hiển thị {displayStart} - {displayEnd} /{" "}
+                  {warehouseMaterials.length}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={currentPage === 1}
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    className="border-gray-300"
+                  >
+                    Trước
+                  </Button>
+                  <div className="text-sm font-semibold text-[#2D1E1A]">
+                    {currentPage} / {totalPages}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={currentPage >= totalPages}
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    className="border-gray-300"
+                  >
+                    Sau
+                  </Button>
+                </div>
+              </div>
+            )}
 
             {warehouseMaterials.length === 0 && (
               <div className="text-center py-12">

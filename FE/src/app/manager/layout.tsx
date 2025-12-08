@@ -397,17 +397,11 @@ export default function ManagerLayout({
                   <Image src={logo.src} alt="logo" width={100} height={100} />
                 </div>
               )}
-
-              {!isCollapsed && (
-                <div className="relative z-10 flex-1 min-w-0 text-center transition-opacity duration-150">
-                  <h2 className="font-bold text-base sm:text-lg lg:text-xl text-white drop-shadow-md">
-                    Quản Lý
-                  </h2>
-                </div>
-              )}
-
+              <div className="relative z-10 flex-1 min-w-0 transition-opacity duration-150"></div>
               <div
-                className={`relative z-10 flex items-center ${isCollapsed ? "justify-center" : "gap-2"}`}
+                className={`relative z-10 flex items-center w-full ${
+                  isCollapsed ? "justify-center" : "justify-end gap-2"
+                }`}
               >
                 <button
                   onClick={() => setIsCollapsed((prev) => !prev)}
@@ -513,7 +507,7 @@ export default function ManagerLayout({
                 </h1>
               </div>
             </div>
-            <div className="bg-white p-4 sm:p-6 max-w-full overflow-x-hidden ml-4">
+            <div className="bg-white p-4 sm:p-6 max-w-full overflow-x-hidden ml-4 h-[100vh]">
               {children}
             </div>
           </main>

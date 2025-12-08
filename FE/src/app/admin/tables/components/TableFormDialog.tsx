@@ -116,7 +116,6 @@ export function TableFormDialog({
       fetchBranches();
       fetchTableData();
     } else {
-      // Reset form when dialog closes
       setFormData({
         name: "",
         isActive: true,

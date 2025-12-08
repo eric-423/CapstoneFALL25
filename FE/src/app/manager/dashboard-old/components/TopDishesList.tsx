@@ -20,7 +20,7 @@ export function TopDishesList({
 }: TopDishesListProps) {
   if (isLoading) {
     return (
-      <div className="bg-[#FDE3CF]/70 backdrop-blur-sm border-white/20 border shadow-sm rounded-2xl h-full flex flex-col p-4 animate-pulse">
+      <div className="bg-white backdrop-blur-sm border-white/20 border shadow-sm rounded-2xl h-full flex flex-col p-4 animate-pulse">
         <div className="h-5 bg-gray-200 rounded-md w-1/2 mb-4"></div>
         <div className="space-y-2 flex-1">
           <div className="h-8 bg-gray-200 rounded-lg w-full"></div>
@@ -35,7 +35,7 @@ export function TopDishesList({
   const topDishes = data.slice(0, 5);
 
   return (
-    <div className="bg-[#FDE3CF]/70 backdrop-blur-sm border-white/20 border shadow-sm rounded-2xl h-full flex flex-col p-4">
+    <div className="bg-white backdrop-blur-sm border-white/20 border shadow-sm rounded-2xl h-full flex flex-col p-4">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-base font-bold text-gray-800">Món bán chạy</h3>
       </div>
