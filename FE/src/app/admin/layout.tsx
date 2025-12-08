@@ -304,8 +304,8 @@ export default function AdminLayout({
               </div>
             </div>
 
-            <nav className="flex-1 overflow-y-auto p-3 sm:p-4 pt-10 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
-              <div className="space-y-1.5 relative mt-4">
+            <nav className="flex-1 overflow-y-auto p-3 sm:p-4 pt-5 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
+              <div className="space-y-1.5 relative mt-2">
                 {!isCollapsed && (
                   <div
                     className="absolute left-[9.5px] w-3 h-3 rounded-full bg-[#F8A91F] shadow-[0_0_12px_rgba(248,169,31,0.8)] border-2 border-white z-20 pointer-events-none transition-all duration-200 ease-out"
@@ -343,9 +343,9 @@ export default function AdminLayout({
               </Button>
             </div>
 
-            <div className="p-3 sm:p-4 bg-black/10 backdrop-blur border-t border-white/20 flex-shrink-0">
+            <div className="p-3 sm:p-4 bg-[#EC6426] backdrop-blur border-t border-white/20 flex-shrink-0">
               <p className="text-xs text-center text-white/70 font-medium">
-                © 2025 Tâm Tắc Restaurant
+                © 2025 Tấm Tắc Restaurant
               </p>
             </div>
           </aside>

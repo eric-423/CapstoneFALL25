@@ -36,7 +36,7 @@ export function TrainingSearchAndFilter({
   };
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-gradient-to-r from-[#EBD187]/20 to-[#78A243]/10 backdrop-blur-sm border-[#78A243]/20 border shadow-sm rounded-xl">
+    <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-white backdrop-blur-sm border-gray-300 border shadow-sm rounded-xl">
       <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[200px]">
         {/* Search Input */}
         <div className="relative">
@@ -58,10 +58,11 @@ export function TrainingSearchAndFilter({
               onClick={() => onStatusChange(status.value)}
               variant={selectedStatus === status.value ? "default" : "outline"}
               size="sm"
-              className={`whitespace-nowrap transition-all ${selectedStatus === status.value
-                ? "bg-[#78A243] text-white hover:bg-[#78A243]/90"
-                : "border-[#78A243]/30 text-[#2D1E1A] hover:bg-[#78A243]/10"
-                }`}
+              className={`whitespace-nowrap transition-all ${
+                selectedStatus === status.value
+                  ? "bg-[#78A243] text-white hover:bg-[#78A243]/90"
+                  : "border-[#78A243]/30 text-[#2D1E1A] hover:bg-[#78A243]/10"
+              }`}
             >
               {status.label}
               <span className="ml-1.5 text-xs px-1.5 py-0.5 rounded-full bg-white/20">
@@ -101,4 +102,3 @@ export function TrainingSearchAndFilter({
     </div>
   );
 }
-
