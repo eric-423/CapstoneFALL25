@@ -152,7 +152,7 @@ export default function AdminLayout({
       { href: "/admin/training", label: "Khóa đào tạo", icon: GraduationCap },
       { href: "/admin/schedule", label: "Lịch trình", icon: Calendar },
       { href: "/admin/promotions", label: "Khuyến mãi", icon: Gift },
-      { href: "/admin/feedback", label: "Phản hồi", icon: MessageSquare },
+      // { href: "/admin/feedback", label: "Phản hồi", icon: MessageSquare },
     ],
     []
   );

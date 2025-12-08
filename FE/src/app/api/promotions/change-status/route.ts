@@ -17,7 +17,7 @@ export async function PUT(req: Request) {
       );
     }
 
-    const backendUrl = `${BACKEND_BASE_URL}/api/promotions/${promotionCode}/status?status=${status}`;
+    const backendUrl = `${BACKEND_BASE_URL}/promotions/${promotionCode}/status?status=${status}`;
 
     const authorization = req.headers.get("authorization");
 

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://tam-tac.com/api/v1";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "https://tam-tac.com/api/v1";
 
 export async function GET() {
   try {

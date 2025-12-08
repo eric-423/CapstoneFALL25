@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://tam-tac.com/api/v1";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "https://tam-tac.com/api/v1";
 
 export async function GET(request: NextRequest) {
   try {
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
     if (sortDirection) queryParams.set("sortDirection", sortDirection);
 
     const response = await fetch(
-      `${API_BASE_URL}/api/promotions/all?${queryParams.toString()}`,
+      `${API_BASE_URL}/promotions/all?${queryParams.toString()}`,
       {
         method: "GET",
         headers: {

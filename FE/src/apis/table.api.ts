@@ -93,11 +93,12 @@ export interface CreateTableRequest {
 }
 
 export interface UpdateTableRequest {
-  name?: string;
-  isActive?: boolean;
-  seat?: number;
-  note?: string;
-  branchId?: number;
+  id: number;
+  name: string;
+  isActive: boolean;
+  seat: number;
+  note: string;
+  branchId: number;
 }
 
 export const getTableById = async (tableId: string): Promise<TableData> => {
@@ -153,4 +154,49 @@ export const deactivateTable = async (tableId: number): Promise<void> => {
       errorData.message || errorData.error || "Failed to deactivate table"
     );
   }
+};
+
+export const activateTable = async (tableId: number): Promise<void> => {
+  const response = await fetch(`/api/table/active/${tableId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    const errorData = await response
+      .json()
+      .catch(() => ({ error: "Failed to activate table" }));
+    throw new Error(
+      errorData.message || errorData.error || "Failed to activate table"
+    );
+  }
+};
+
+export const updateTable = async (
+  tableId: number,
+  tableData: UpdateTableRequest
+): Promise<TableData> => {
+  const response = await fetch(`/api/table/${tableId}/update-table`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify(tableData),
+  });
+
+  if (!response.ok) {
+    const errorData = await response
+      .json()
+      .catch(() => ({ error: "Failed to update table" }));
+    throw new Error(
+      errorData.message || errorData.error || "Failed to update table"
+    );
+  }
+
+  const data = await response.json();
+  return data;
 };
