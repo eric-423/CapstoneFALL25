@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { apiBaseURL } from '@/utils/configs/environment';
 
-const BASE_URL = apiBaseURL || process.env.NEXT_PUBLIC_API_URL || 'https://tam-tac.com/api';
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://tam-tac.com/api';
 
 type CompletePickupRouteContext = {
     params: Promise<{ orderId?: string | string[] }>;

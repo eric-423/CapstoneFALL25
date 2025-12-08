@@ -32,10 +32,10 @@ public class Promotion {
     private double minimumOrderValue;
 
     @Column(name = "promotion_start_date")
-    private String startDate;
+    private Date startDate;
 
     @Column(name = "promotion_end_date")
-    private String endDate;
+    private Date endDate;
 
     @Column(name = "promotion_status")
     private boolean status;

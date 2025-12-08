@@ -207,6 +207,7 @@ public class SecurityConfig {
                         .requestMatchers("/payment-method").permitAll()
                         .requestMatchers("/orders/shipping/fee").permitAll()
                         .requestMatchers("/orders/payment/webhook").permitAll()
+                        .requestMatchers("/orders/payment/cancel").permitAll()
                         .requestMatchers("/orders/dining-table/create").permitAll()
                         .requestMatchers("/orders/dining-table/update/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
@@ -241,6 +242,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/table/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/table/**").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(HttpMethod.PUT, "/table/**").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.PATCH, "/table/**").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(HttpMethod.DELETE, "/table/**").hasAnyRole("ADMIN", "MANAGER")
 
                         .requestMatchers("/orders/cheff/**").hasRole("CHEFF")

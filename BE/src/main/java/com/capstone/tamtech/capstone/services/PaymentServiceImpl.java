@@ -22,9 +22,9 @@ public class PaymentServiceImpl implements PaymentService {
     @Autowired
     private OrderRepository orderRepository;
 
-    public final String returnUrl = "http://localhost:3000/payment-success";
+    public final String returnUrl = "https://tam-tac.com/payment-success";
 
-    public final String cancelUrl = "http://localhost:3000/payment-failed";
+    public final String cancelUrl = "https://tam-tac.com/api/v1/orders/payment/cancel";
 
     public PayOS payOS;
 
