@@ -16,13 +16,12 @@ public class PromotionDTO {
     private String description;
     private int value;
     private double minimumOrderValue;
-    private String startDate;
-    private String endDate;
+    private Date startDate;
+    private Date endDate;
     private boolean status;
     private Date createdAt;
     private String promotionTypeName;
     private String createdByName;
-
     private Date receivedDate;
     private Date usedDate;
     private String userPromotionStatus;

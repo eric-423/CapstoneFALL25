@@ -22,4 +22,6 @@ public interface DiningTableService {
     boolean setDiningTableInactive(int id);
 
     DiningTableDTO updateDiningTable(int id, DiningTableRequest diningTableRequest);
+
+    boolean setDiningTableActive(int id);
 }

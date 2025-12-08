@@ -63,6 +63,15 @@ public class DiningTableController {
         return new ResponseEntity<>("Dining table set to inactive", HttpStatus.OK);
     }
 
+    @PatchMapping("/active/{id}")
+    public ResponseEntity<?> setDiningTableActive(@PathVariable int id) {
+        boolean result = diningTableService.setDiningTableActive(id);
+        if (!result) {
+            return new ResponseEntity<>("Dining table not found", HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>("Dining table set to active", HttpStatus.OK);
+    }
+
     @PutMapping("/update/{id}")
     public ResponseEntity<?> updateDiningTable(@PathVariable int id, @RequestBody DiningTableRequest diningTableRequest) {
         DiningTableDTO result = diningTableService.updateDiningTable(id, diningTableRequest);
