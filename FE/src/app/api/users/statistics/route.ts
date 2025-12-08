@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { createErrorResponse } from '@/lib/error-handler';
 
-const API_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 export async function GET(request: NextRequest) {
     try {
         const cookieStore = await cookies();
-        const accessToken = cookieStore.get('access_token')?.value || cookieStore.get('token')?.value;
+        const token = cookieStore.get('token')?.value;
 
-        if (!accessToken) {
+        if (!token) {
             return NextResponse.json(
                 { error: 'Unauthorized' },
                 { status: 401 }
@@ -19,31 +19,24 @@ export async function GET(request: NextRequest) {
         const branchId = searchParams.get('branchId');
 
         const url = branchId
-            ? `${API_URL}/users/statistics?branchId=${branchId}`
-            : `${API_URL}/users/statistics`;
+            ? `${process.env.NEXT_PUBLIC_BASE_URL}/users/statistics?branchId=${branchId}`
+            : `${process.env.NEXT_PUBLIC_BASE_URL}/users/statistics`;
 
         const response = await fetch(url, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${accessToken}`,
+                Authorization: `Bearer ${token}`,
             },
         });
 
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ error: 'Failed to fetch user statistics' }));
-            return NextResponse.json(
-                errorData,
-                { status: response.status }
-            );
+            return createErrorResponse(new Error('Failed to fetch user statistics'));
         }
 
-        const data = await response.json();
-        return NextResponse.json(data);
+        return NextResponse.json(await response.json());
     } catch (error) {
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Failed to fetch user statistics' },
-            { status: 500 }
-        );
+        console.error('Error fetching user statistics:', error);
+        return createErrorResponse(error as Error);
     }
 }

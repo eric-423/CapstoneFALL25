@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import http from '@/utils/http';
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,13 +12,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const response = await http.post('/auth/otp/verify-otp-forgot-password', {
-      channel,
-      identifier,
-      inputOtp,
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/auth/otp/verify-otp-forgot-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ channel, identifier, inputOtp }),
     });
 
-    return NextResponse.json(response.data, { status: response.status || 200 });
+    if (!response.ok) {
+      return NextResponse.json(
+        { error: 'Failed to verify OTP', desc: await response.text() },
+        { status: response.status }
+      );
+    }
+
+    const responseData = await response.json();
+
+
+    return NextResponse.json(responseData, { status: response.status });
+
   } catch (error: unknown) {
     console.error('Verify OTP Forgot Password API Error:', error);
 

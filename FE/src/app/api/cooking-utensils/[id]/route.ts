@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 export async function GET(
     request: NextRequest,
@@ -9,7 +8,7 @@ export async function GET(
     try {
         const { id } = await params;
 
-        const response = await fetch(`${API_URL}/api/cooking-utensils/${id}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/cooking-utensils/${id}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -37,7 +36,7 @@ export async function PUT(
         const { id } = await params;
         const body = await request.json();
 
-        const response = await fetch(`${API_URL}/api/cooking-utensils/${id}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/cooking-utensils/${id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -65,7 +64,7 @@ export async function DELETE(
     try {
         const { id } = await params;
 
-        const response = await fetch(`${API_URL}/api/cooking-utensils/${id}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/cooking-utensils/${id}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',

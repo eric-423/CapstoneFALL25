@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import JwtDecode from '@/utils/jwtDecode';
+import { createErrorResponse } from '@/lib/error-handler';
 
-const API_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 export async function GET(request: NextRequest) {
     try {
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
         const queryString = searchParams.toString();
 
         const response = await fetch(
-            `${API_URL}/users${queryString ? `?${queryString}` : ''}`,
+            `${process.env.NEXT_PUBLIC_BASE_URL}/users${queryString ? `?${queryString}` : ''}`,
             {
                 method: 'GET',
                 headers: {
@@ -46,20 +46,13 @@ export async function GET(request: NextRequest) {
         );
 
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ error: 'Failed to fetch users' }));
-            return NextResponse.json(
-                errorData,
-                { status: response.status }
-            );
+            return createErrorResponse(new Error('Failed to fetch users'));
         }
 
-        const data = await response.json();
-        return NextResponse.json(data);
+        return NextResponse.json(await response.json());
     } catch (error) {
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Failed to fetch users' },
-            { status: 500 }
-        );
+        console.error('Error fetching users:', error);
+        return createErrorResponse(error as Error);
     }
 }
 
@@ -78,7 +71,7 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
 
         const response = await fetch(
-            `${API_URL}/users`,
+            `${process.env.NEXT_PUBLIC_BASE_URL}/users`,
             {
                 method: 'POST',
                 headers: {
@@ -90,20 +83,12 @@ export async function POST(request: NextRequest) {
         );
 
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ error: 'Failed to create user' }));
-            return NextResponse.json(
-                errorData,
-                { status: response.status }
-            );
+            return createErrorResponse(new Error('Failed to create user'));
         }
 
-        const data = await response.json();
-        return NextResponse.json(data);
+        return NextResponse.json(await response.json());
     } catch (error) {
-        console.error('Create User API Error:', error);
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Failed to create user' },
-            { status: 500 }
-        );
+        console.error('Error creating user:', error);
+        return createErrorResponse(error as Error);
     }
 }

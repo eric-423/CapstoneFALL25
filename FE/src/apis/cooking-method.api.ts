@@ -28,9 +28,7 @@ export interface CookingMethodResponse {
   empty: boolean;
 }
 
-export const getCookingMethods = async (
-  params: CookingMethodSearchParams = {}
-) => {
+export const getCookingMethods = async (params: CookingMethodSearchParams = {}) => {
   const queryParams = new URLSearchParams();
   if (params.keyword) queryParams.append("keyword", params.keyword);
   if (params.page !== undefined)
@@ -41,15 +39,12 @@ export const getCookingMethods = async (
   if (params.sortDirection)
     queryParams.append("sortDirection", params.sortDirection);
 
-  const response = await fetch(
-    `/api/cooking-methods?${queryParams.toString()}`,
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  );
+  const response = await fetch(`/api/cooking-methods?${queryParams.toString()}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
 
   if (!response.ok) {
     throw new Error("Failed to fetch cooking methods");
@@ -58,6 +53,8 @@ export const getCookingMethods = async (
   const data = await response.json();
   return data;
 };
+
+
 
 export const getCookingMethodById = async (id: number) => {
   const response = await fetch(`/api/cooking-methods/${id}`, {
@@ -75,9 +72,9 @@ export const getCookingMethodById = async (id: number) => {
   return data.data;
 };
 
-export const createCookingMethod = async (
-  cookingMethod: CookingMethodRequest
-) => {
+
+
+export const createCookingMethod = async (cookingMethod: CookingMethodRequest) => {
   const response = await fetch("/api/cooking-methods", {
     method: "POST",
     headers: {
@@ -94,10 +91,7 @@ export const createCookingMethod = async (
   return data.data;
 };
 
-export const updateCookingMethod = async (
-  id: number,
-  cookingMethod: CookingMethodRequest
-) => {
+export const updateCookingMethod = async (id: number, cookingMethod: CookingMethodRequest) => {
   const response = await fetch(`/api/cooking-methods/${id}`, {
     method: "PUT",
     headers: {

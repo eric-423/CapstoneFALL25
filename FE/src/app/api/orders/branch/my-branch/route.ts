@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import JwtDecode from "@/utils/jwtDecode";
 import { getToken } from "@/utils/cookies.server";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 export async function GET(request: NextRequest) {
   try {

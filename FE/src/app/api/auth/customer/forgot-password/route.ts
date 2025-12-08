@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import http from '@/utils/http';
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,25 +12,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const response = await http.post('/auth/customer/forgot-password', {
-      phoneNumber,
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/auth/customer/forgot-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({ phoneNumber }),
     });
 
-    return NextResponse.json(response.data, { status: response.status || 200 });
-  } catch (error: unknown) {
+    if (!response.ok) {
+      return NextResponse.json(
+        { error: 'Failed to send OTP', desc: await response.text() },
+        { status: response.status }
+      );
+    }
+
+    return NextResponse.json(await response.json(), { status: response.status || 200 });
+  } catch (error) {
     console.error('Forgot Password API Error:', error);
-
-    const errorMessage =
-      (error as { response?: { data?: { message?: string; error?: string } } })?.response?.data?.message ||
-      (error as { response?: { data?: { message?: string; error?: string } } })?.response?.data?.error ||
-      'Không thể gửi mã OTP. Vui lòng thử lại.';
-
-    const statusCode = (error as { response?: { status?: number } })?.response?.status || 500;
-
     return NextResponse.json(
-      { error: errorMessage },
-      { status: statusCode }
+      { error: 'Failed to send OTP', desc: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
     );
   }
 }
-

@@ -1,4 +1,4 @@
-import http from "@/utils/http";
+import { getToken } from "@/utils/cookies.client";
 
 export enum OrderStatus {
     'PROCESSING' = 'Đang chuẩn bị',
@@ -403,23 +403,62 @@ export const getCustomerOrderDetail = async (orderId: number): Promise<CustomerO
 };
 
 export const cancelOrder = async (orderId: number, customerId: number) => {
-    const { data } = await http.put(`/orders/cancel/${orderId}?customerId=${customerId}`);
-    return data;
+    const token = getToken();
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/orders/cancel/${orderId}?customerId=${customerId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token && { Authorization: `Bearer ${token}` }),
+        },
+    });
+    if (!response.ok) throw new Error('Failed to cancel order');
+    const result = await response.json();
+    return result?.data ?? result;
 };
 
 export const createDiningOrder = async (orderRequest: DiningOrderRequest) => {
-    const { data } = await http.post('/orders/dining-table/create', orderRequest);
-    return data;
+    const token = getToken();
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/orders/dining-table/create`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: JSON.stringify(orderRequest),
+    });
+    if (!response.ok) throw new Error('Failed to create dining order');
+    const result = await response.json();
+    return result?.data ?? result;
 };
 
 export const payDiningTableOrder = async (paymentRequest: DiningTablePaymentRequest) => {
-    const { data } = await http.post('/orders/dining-table/payment', paymentRequest);
-    return data;
+    const token = getToken();
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/orders/dining-table/payment`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: JSON.stringify(paymentRequest),
+    });
+    if (!response.ok) throw new Error('Failed to pay dining table order');
+    const result = await response.json();
+    return result?.data ?? result;
 };
 
 export const updateDiningTableOrder = async (orderId: number, updateRequest: UpdateDiningTableOrderRequest) => {
-    const { data } = await http.put(`/orders/dining-table/update/${orderId}`, updateRequest);
-    return data;
+    const token = getToken();
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/orders/dining-table/update/${orderId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: JSON.stringify(updateRequest),
+    });
+    if (!response.ok) throw new Error('Failed to update dining table order');
+    const result = await response.json();
+    return result?.data ?? result;
 };
 
 export const getOrderStatuses = async (): Promise<OrderStatusesResponse> => {

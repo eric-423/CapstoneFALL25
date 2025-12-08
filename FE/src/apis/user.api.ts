@@ -1,4 +1,4 @@
-import http from "@/utils/http";
+import { getToken } from "@/utils/cookies.client";
 import JwtDecode from "@/utils/jwtDecode";
 import { PromotionsResponse } from "./promotion.api";
 
@@ -89,52 +89,95 @@ export interface RegisterData {
 export const USER_SIGN_UP_KEY = "USER_SIGN_UP_KEY";
 export const GET_ME_QUERY_KEY = "GET_ME_QUERY_KEY";
 
-export const signUp = (phoneNumber: string) =>
-  http.post("/customer/sign-up", { phoneNumber });
-export const sendOTP = (phoneNumber: string) =>
-  http.post("/verify-code/send?mode=", { phoneNumber });
-export const refetchToken = (refresh: string) =>
-  http.post(`/token/refresh?token=${refresh}`);
+export const signUp = async (phoneNumber: string) => {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/customer/sign-up`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phoneNumber }),
+  });
+  if (!response.ok) throw new Error('Failed to sign up');
+  return response.json();
+};
+
+export const sendOTP = async (phoneNumber: string) => {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/verify-code/send?mode=`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phoneNumber }),
+  });
+  if (!response.ok) throw new Error('Failed to send OTP');
+  return response.json();
+};
+
+export const refetchToken = async (refresh: string) => {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/token/refresh?token=${refresh}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+  });
+  if (!response.ok) throw new Error('Failed to refresh token');
+  return response.json();
+};
 
 // Register với thông tin đầy đủ
 export const registerWithOTP = async (data: RegisterData, otp: string) => {
-  const response = await http.post("/customer/register", {
-    ...data,
-    otp,
+  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/customer/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...data, otp }),
   });
-  return response;
+  if (!response.ok) throw new Error('Failed to register');
+  return response.json();
 };
 
 export const sendRegistrationOTP = async (phoneNumber: string) => {
-  const response = await http.post("/verify-code/send", {
-    phoneNumber,
-    mode: "REGISTRATION",
+  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/verify-code/send`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phoneNumber, mode: "REGISTRATION" }),
   });
-  return response;
+  if (!response.ok) throw new Error('Failed to send registration OTP');
+  return response.json();
 };
 
 export const signIn = async (data: {
   phoneNumber: string;
   password: string;
 }) => {
-  const response = await http.post("/customer/sign-in", data);
-  return response;
+  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/customer/sign-in`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) throw new Error('Failed to sign in');
+  return response.json();
 };
 
 export const signInStaff = async (data: {
   phoneNumber: string;
   password: string;
 }) => {
-  const response = await http.post("/auth/sign-in", data);
-  return response;
+  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/auth/sign-in`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) throw new Error('Failed to sign in staff');
+  return response.json();
 };
 
-export const changePassword = (userId: number, newPassword: string) =>
-  http.post(`/auth/customer/change-password/${userId}`, newPassword, {
+export const changePassword = async (userId: number, newPassword: string) => {
+  const token = getToken();
+  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/auth/customer/change-password/${userId}`, {
+    method: 'POST',
     headers: {
-      "Content-Type": "text/plain",
+      'Content-Type': 'text/plain',
+      ...(token && { Authorization: `Bearer ${token}` }),
     },
+    body: newPassword,
   });
+  if (!response.ok) throw new Error('Failed to change password');
+  return response.json();
+};
 
 // New: Customer register and OTP send
 
@@ -218,10 +261,17 @@ export const createUser = async (
   data: CreateUserData
 ): Promise<UserResponse> => {
   const token = localStorage.getItem("access_token");
-  const response = await http.post<UserResponse>("/users/admin/create", data, {
-    headers: { Authorization: `Bearer ${token}` },
+  const fetchResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/users/admin/create`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+    body: JSON.stringify(data),
   });
-  return response.data;
+  if (!fetchResponse.ok) throw new Error('Failed to create user');
+  const result = await fetchResponse.json();
+  return result?.data ?? result;
 };
 
 export const updateUser = async (
@@ -229,34 +279,46 @@ export const updateUser = async (
   data: UpdateUserData
 ): Promise<UserResponse> => {
   const token = localStorage.getItem("access_token");
-  const response = await http.put<UserResponse>(
-    `/users/admin/update/${userId}`,
-    data,
-    {
-      headers: { Authorization: `Bearer ${token}` },
-    }
-  );
-  return response.data;
+  const fetchResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/users/admin/update/${userId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+    body: JSON.stringify(data),
+  });
+  if (!fetchResponse.ok) throw new Error('Failed to update user');
+  const result = await fetchResponse.json();
+  return result?.data ?? result;
 };
 
 export const getUserDetail = async (userId: number) => {
   const token = localStorage.getItem("access_token");
-  const response = await http.get(`/users/admin/detail/${userId}`, {
-    headers: { Authorization: `Bearer ${token}` },
+  const fetchResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/users/admin/detail/${userId}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
   });
-  return response.data;
+  if (!fetchResponse.ok) throw new Error('Failed to get user detail');
+  const result = await fetchResponse.json();
+  return result?.data ?? result;
 };
 
 export const unbanUser = async (userId: number) => {
   const token = localStorage.getItem("access_token");
-  const response = await http.put(
-    `/users/admin/unban/${userId}`,
-    {},
-    {
-      headers: { Authorization: `Bearer ${token}` },
-    }
-  );
-  return response.data;
+  const fetchResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/users/admin/unban/${userId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+    body: JSON.stringify({}),
+  });
+  if (!fetchResponse.ok) throw new Error('Failed to unban user');
+  const result = await fetchResponse.json();
+  return result?.data ?? result;
 };
 
 // ========================================================
@@ -300,26 +362,57 @@ export const loginCustomerViaApiRoute = async (data: {
 
 // Gọi qua Next.js API route (mới - tự động set cookies httpOnly)
 
-export const registerCustomer = (data: {
+export const registerCustomer = async (data: {
   fullName: string;
   phoneNumber: string;
   password: string;
   dateOfBirth: string;
-}) => http.post("/auth/customer/register", data);
+}) => {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/auth/customer/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) throw new Error('Failed to register customer');
+  return response.json();
+};
 
-export const sendOtp = (channel: "email" | "zalo", indentifier: string) =>
-  http.post("/auth/otp/send", { channel, indentifier });
+export const sendOtp = async (channel: "email" | "zalo", indentifier: string) => {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/auth/otp/send`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ channel, indentifier }),
+  });
+  if (!response.ok) throw new Error('Failed to send OTP');
+  return response.json();
+};
 
-export const verifyOTP = (
+export const verifyOTP = async (
   channel: "email" | "zalo",
   identifier: string,
   inputOtp: string
-) => http.post(`/auth/otp/verify`, { channel, identifier, inputOtp });
+) => {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/auth/otp/verify`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ channel, identifier, inputOtp }),
+  });
+  if (!response.ok) throw new Error('Failed to verify OTP');
+  return response.json();
+};
 
-export const getTimeResendOtp = (
+export const getTimeResendOtp = async (
   channel: "email" | "zalo",
   identifier: string
-) => http.get(`/auth/otp/ttl?channel=${channel}&identifier=${identifier}`);
+) => {
+  const params = new URLSearchParams({ channel, identifier });
+  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/auth/otp/ttl?${params.toString()}`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  });
+  if (!response.ok) throw new Error('Failed to get OTP TTL');
+  return response.json();
+};
 
 export const forgotPassword = async (phoneNumber: string) => {
   const response = await fetch("/api/auth/customer/forgot-password", {

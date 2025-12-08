@@ -1,33 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server';
-import http from '@/utils/http';
 
 export async function GET(request: NextRequest) {
     try {
         const token = request.cookies.get('token')?.value;
 
         if (!token) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ error: 'Bạn Chưa Đăng Nhập' }, { status: 401 });
         }
 
         const userId = request.nextUrl.searchParams.get('userId');
 
         if (!userId) {
-            return NextResponse.json({ error: 'Missing userId' }, { status: 400 });
+            return NextResponse.json({ error: 'Thiếu userId' }, { status: 400 });
         }
 
-        const response = await http.get(`/customers/${userId}/informations`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/customers/${userId}/informations`, {
+            method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`,
             },
         });
 
-        return NextResponse.json(response.data);
+        if (!response.ok) {
+            const errorBody = await response.text();
+            return NextResponse.json({ error: errorBody || 'Lỗi Không Xác Định' }, { status: response.status });
+        }
+
+        const data = await response.json();
+        return NextResponse.json(data);
 
     } catch (error) {
-        console.error('Customer informations API error:', error);
+        console.error('Error fetching customer informations:', error);
         return NextResponse.json(
-            { error: 'Failed to fetch customer informations' },
+            { error: 'Internal Server Error' },
             { status: 500 },
         );
     }
@@ -38,37 +44,36 @@ export async function POST(request: NextRequest) {
         const token = request.cookies.get('token')?.value;
 
         if (!token) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ error: 'Bạn Chưa Đăng Nhập' }, { status: 401 });
         }
 
         const body = await request.json();
         const { userId, name, address, phoneNumber, isDefault } = body ?? {};
 
         if (!userId || !name || !address || !phoneNumber) {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+            return NextResponse.json({ error: 'Thiếu các trường bắt buộc' }, { status: 400 });
         }
 
-        const response = await http.post(
-            `/customers/${userId}/informations`,
-            {
-                name,
-                address,
-                phoneNumber,
-                isDefault: Boolean(isDefault),
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/customers/${userId}/informations`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
             },
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
-            },
-        );
+            body: JSON.stringify({ name, address, phoneNumber, isDefault: Boolean(isDefault) }),
+        });
 
-        return NextResponse.json(response.data);
+        if (!response.ok) {
+            const errorBody = await response.text();
+            return NextResponse.json({ error: errorBody || 'Lỗi Không Xác Định' }, { status: response.status });
+        }
+
+        const data = await response.json();
+        return NextResponse.json(data);
     } catch (error) {
-        console.error('Create customer information error:', error);
+        console.error('Error creating customer information:', error);
         return NextResponse.json(
-            { error: 'Failed to save customer information' },
+            { error: 'Internal Server Error' },
             { status: 500 },
         );
     }

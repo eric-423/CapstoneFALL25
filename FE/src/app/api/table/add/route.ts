@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { apiBaseURL } from "@/utils/configs/environment";
+import { createErrorResponse } from "@/lib/error-handler";
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,36 +13,22 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
 
-    const baseURL = apiBaseURL;
-    const fullUrl = `${baseURL}/table/add`;
-
-    const response = await fetch(fullUrl, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/table/add`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Accept: "*/*",
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(body),
     });
 
     if (!response.ok) {
-      const errorData = await response
-        .json()
-        .catch(() => ({ error: "Failed to create table" }));
-      return NextResponse.json(errorData, { status: response.status });
+      return createErrorResponse(new Error('Failed to create table'));
     }
 
-    const data = await response.json();
-    return NextResponse.json(data);
+    return NextResponse.json(await response.json());
   } catch (error) {
-    console.error("Create Table API Error:", error);
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error ? error.message : "Failed to create table",
-      },
-      { status: 500 }
-    );
+    console.error("Error creating table:", error);
+    return createErrorResponse(error as Error);
   }
 }

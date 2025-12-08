@@ -2,7 +2,7 @@
 
 import { cookies } from 'next/headers';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://tam-tac.com';
+const API_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://tam-tac.com';
 
 export async function printBillAction(orderId: number) {
     console.log('[Server Action] Bắt đầu in hóa đơn cho order:', orderId);

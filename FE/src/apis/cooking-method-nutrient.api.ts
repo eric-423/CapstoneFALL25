@@ -13,6 +13,8 @@ export interface CookingMethodNutrientRequest {
     retentionFactor: number;
 }
 
+
+
 export const getAllCookingMethodNutrients = async () => {
     const response = await fetch('/api/cooking-method-nutrients', {
         method: 'GET',
@@ -29,6 +31,8 @@ export const getAllCookingMethodNutrients = async () => {
     return data.data as CookingMethodNutrient[];
 };
 
+
+
 export const getCookingMethodNutrientById = async (cookingMethodId: number, nutrientId: number) => {
     const response = await fetch(`/api/cooking-method-nutrients/${cookingMethodId}/${nutrientId}`, {
         method: 'GET',
@@ -44,6 +48,8 @@ export const getCookingMethodNutrientById = async (cookingMethodId: number, nutr
     const data = await response.json();
     return data.data as CookingMethodNutrient;
 };
+
+
 
 export const createCookingMethodNutrient = async (request: CookingMethodNutrientRequest) => {
     const response = await fetch('/api/cooking-method-nutrients', {
@@ -62,6 +68,8 @@ export const createCookingMethodNutrient = async (request: CookingMethodNutrient
     return data.data;
 };
 
+
+
 export const updateCookingMethodNutrient = async (cookingMethodId: number, nutrientId: number, request: CookingMethodNutrientRequest) => {
     const response = await fetch(`/api/cooking-method-nutrients/${cookingMethodId}/${nutrientId}`, {
         method: 'PUT',
@@ -78,6 +86,8 @@ export const updateCookingMethodNutrient = async (cookingMethodId: number, nutri
     const data = await response.json();
     return data.data;
 };
+
+
 
 export const deleteCookingMethodNutrient = async (cookingMethodId: number, nutrientId: number) => {
     const response = await fetch(`/api/cooking-method-nutrients/${cookingMethodId}/${nutrientId}`, {

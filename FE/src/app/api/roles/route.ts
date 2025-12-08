@@ -16,7 +16,7 @@ export async function GET() {
 
 
         const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/roles`,
+            `${process.env.NEXT_PUBLIC_BASE_URL}/roles`,
             {
                 headers: {
                     'Content-Type': 'application/json',

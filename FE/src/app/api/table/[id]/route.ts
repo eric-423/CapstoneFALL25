@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createErrorResponse } from '@/lib/error-handler';
 
 export async function GET(
     request: NextRequest,
@@ -7,7 +8,6 @@ export async function GET(
     try {
         const { id } = await params;
 
-        // Forward to external API (public endpoint, no auth required)
         const response = await fetch(
             `${process.env.NEXT_PUBLIC_BASE_URL}/table/${id}`,
             {
@@ -25,9 +25,6 @@ export async function GET(
         return NextResponse.json(data);
     } catch (error) {
         console.error('Table API Error:', error);
-        return NextResponse.json(
-            { error: 'Failed to fetch table data' },
-            { status: 500 }
-        );
+        return createErrorResponse(error as Error);
     }
 }

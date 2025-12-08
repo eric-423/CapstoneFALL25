@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "https://tam-tac.com/api/v1";
+  process.env.NEXT_PUBLIC_BASE_URL || "https://tam-tac.com/api/v1";
 
 export async function GET(request: NextRequest) {
   try {

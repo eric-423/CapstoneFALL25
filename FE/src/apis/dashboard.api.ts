@@ -1,4 +1,4 @@
-import http from '@/utils/http';
+import { getToken } from '@/utils/cookies.client';
 
 export interface Product {
   productId: number;
@@ -395,93 +395,123 @@ export interface DashboardUserResponse {
 
 
 
-// ------ API Calls ------
-
-
 export const GET_TOP_PRODUCTS_QUERY_KEY = 'GET_TOP_PRODUCTS';
+
 export const getTopProducts = async (): Promise<TopProductsResponse> => {
   const token = localStorage.getItem('access_token');
-  const response = await http.get<TopProductsResponse>('/dashboard/top-products', {
+  const fetchResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/dashboard/top-products`, {
+    method: 'GET',
     headers: {
-      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
     },
   });
-  return response.data;
+  if (!fetchResponse.ok) throw new Error('Failed to fetch top products');
+  const result = await fetchResponse.json();
+  return result?.data ?? result;
 };
 
 export const getWeeklyRevenue = async (month: number, year: number): Promise<WeeklyRevenueResponse> => {
   const token = localStorage.getItem('access_token');
-  const response = await http.get<WeeklyRevenueResponse>(`/dashboard/revenue/week`, {
-    params: { month, year },
+  const params = new URLSearchParams({ month: month.toString(), year: year.toString() });
+  const fetchResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/dashboard/revenue/week?${params.toString()}`, {
+    method: 'GET',
     headers: {
-      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
     },
   });
-  return response.data;
+  if (!fetchResponse.ok) throw new Error('Failed to fetch weekly revenue');
+  const result = await fetchResponse.json();
+  return result?.data ?? result;
 };
 
 export const getMonthlyRevenue = async (year: number): Promise<MonthlyRevenueResponse> => {
   const token = localStorage.getItem('access_token');
-  const response = await http.get<MonthlyRevenueResponse>(`/dashboard/revenue/month`, {
-    params: { year },
+  const params = new URLSearchParams({ year: year.toString() });
+  const fetchResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/dashboard/revenue/month?${params.toString()}`, {
+    method: 'GET',
     headers: {
-      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
     },
   });
-  return response.data;
+  if (!fetchResponse.ok) throw new Error('Failed to fetch monthly revenue');
+  const result = await fetchResponse.json();
+  return result?.data ?? result;
 };
 
 
 export const getBranchRevenue = async (): Promise<BranchRevenueResponse> => {
   const token = localStorage.getItem('access_token');
-  const response = await http.get<BranchRevenueResponse>('/dashboard/revenue/branch', {
+  const fetchResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/dashboard/revenue/branch`, {
+    method: 'GET',
     headers: {
-      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
     },
   });
-  return response.data;
+  if (!fetchResponse.ok) throw new Error('Failed to fetch branch revenue');
+  const result = await fetchResponse.json();
+  return result?.data ?? result;
 };
 
 export const getManagerDashboard = async (): Promise<ManagerDashboardResponse> => {
   const token = localStorage.getItem('access_token');
-  const response = await http.get<ManagerDashboardResponse>('/dashboard/manager', {
+  const fetchResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/dashboard/manager`, {
+    method: 'GET',
     headers: {
-      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
     },
   });
-  return response.data;
+  if (!fetchResponse.ok) throw new Error('Failed to fetch manager dashboard');
+  const result = await fetchResponse.json();
+  return result?.data ?? result;
 };
 
 export const getLatestOrders = async (): Promise<LatestOrdersResponse> => {
   const token = localStorage.getItem('access_token');
-  const response = await http.get<LatestOrdersResponse>('/dashboard/latest-orders', {
+  const fetchResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/dashboard/latest-orders`, {
+    method: 'GET',
     headers: {
-      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
     },
   });
-  return response.data;
+  if (!fetchResponse.ok) throw new Error('Failed to fetch latest orders');
+  const result = await fetchResponse.json();
+  return result?.data ?? result;
 };
 
 export const getDashboardOrders = async (page = 0, size = 10): Promise<DashboardOrderResponse> => {
   const token = localStorage.getItem('access_token');
-  const response = await http.get<DashboardOrderResponse>(`/dashboard/order`, {
-    params: { page, size },
+  const params = new URLSearchParams({ page: page.toString(), size: size.toString() });
+  const fetchResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/dashboard/order?${params.toString()}`, {
+    method: 'GET',
     headers: {
-      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
     },
   });
-  return response.data;
+  if (!fetchResponse.ok) throw new Error('Failed to fetch dashboard orders');
+  const result = await fetchResponse.json();
+  return result?.data ?? result;
 };
 
 export const getDashboardProducts = async (page = 0, size = 10): Promise<DashboardProductResponse> => {
   const token = localStorage.getItem('access_token');
-  const response = await http.get<DashboardProductResponse>(`/dashboard/product`, {
-    params: { page, size },
+  const params = new URLSearchParams({ page: page.toString(), size: size.toString() });
+  const fetchResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/dashboard/product?${params.toString()}`, {
+    method: 'GET',
     headers: {
-      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
     },
   });
-  return response.data;
+  if (!fetchResponse.ok) throw new Error('Failed to fetch dashboard products');
+  const result = await fetchResponse.json();
+  return result?.data ?? result;
 };
 
 export interface DeleteProductResponse {
@@ -495,25 +525,37 @@ export interface DeleteProductResponse {
 
 export const deleteDashboardProduct = async (productId: number): Promise<DeleteProductResponse> => {
   const token = localStorage.getItem('access_token');
-  const response = await http.delete<DeleteProductResponse>(`/products/admin/delete/${productId}`, {
+  const fetchResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/products/admin/delete/${productId}`, {
+    method: 'DELETE',
     headers: {
-      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
     },
   });
-  return response.data;
+  if (!fetchResponse.ok) throw new Error('Failed to delete product');
+  const result = await fetchResponse.json();
+  return result?.data ?? result;
 };
 
 
 export const getDashboardUsers = async (page = 0, size = 10): Promise<DashboardUserResponse> => {
   const token = localStorage.getItem('access_token');
-  const url = `/users/admin/get-all-user?page=${page}&size=${size}&isActive=true&roleId=6`;
-
-  const response = await http.get<DashboardUserResponse>(url, {
+  const params = new URLSearchParams({ 
+    page: page.toString(), 
+    size: size.toString(), 
+    isActive: 'true', 
+    roleId: '6' 
+  });
+  const fetchResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/users/admin/get-all-user?${params.toString()}`, {
+    method: 'GET',
     headers: {
-      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
     },
   });
-  return response.data;
+  if (!fetchResponse.ok) throw new Error('Failed to fetch dashboard users');
+  const result = await fetchResponse.json();
+  return result?.data ?? result;
 };
 
 // ============ DASHBOARD TABS API CALLS ============

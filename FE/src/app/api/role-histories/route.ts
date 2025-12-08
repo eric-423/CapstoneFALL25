@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { createErrorResponse } from '@/lib/error-handler';
 
-const API_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 export async function POST(request: NextRequest) {
     try {
         const cookieStore = await cookies();
-        const accessToken = cookieStore.get('access_token')?.value || cookieStore.get('token')?.value;
+        const token = cookieStore.get('token')?.value;
 
-        if (!accessToken) {
+        if (!token) {
             return NextResponse.json(
                 { error: 'Unauthorized' },
                 { status: 401 }
@@ -18,12 +18,12 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
 
         const response = await fetch(
-            `${API_URL}/role-histories`,
+            `${process.env.NEXT_PUBLIC_BASE_URL}/role-histories`,
             {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Bearer ${accessToken}`,
+                    Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify(body),
             }
@@ -37,12 +37,9 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const data = await response.json();
-        return NextResponse.json(data);
+        return NextResponse.json(await response.json());
     } catch (error) {
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Failed to create role history' },
-            { status: 500 }
-        );
+        console.error('Error creating role history:', error);
+        return createErrorResponse(error as Error);
     }
 }

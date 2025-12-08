@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import http from '@/utils/http';
 
 export async function PUT(
     request: NextRequest,
@@ -9,53 +8,49 @@ export async function PUT(
         const token = request.cookies.get('token')?.value;
 
         if (!token) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ error: 'Bạn Chưa Đăng Nhập' }, { status: 401 });
         }
 
         const { informationId } = await params;
         const userId = request.nextUrl.searchParams.get('userId');
 
         if (!userId) {
-            return NextResponse.json({ error: 'Missing userId' }, { status: 400 });
+            return NextResponse.json({ error: 'Thiếu userId' }, { status: 400 });
         }
 
         if (!informationId) {
-            return NextResponse.json({ error: 'Missing informationId' }, { status: 400 });
+            return NextResponse.json({ error: 'Thiếu informationId' }, { status: 400 });
         }
 
         const body = await request.json();
         const { name, address, phoneNumber, isDefault } = body ?? {};
 
         if (!name || !address || !phoneNumber) {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+            return NextResponse.json({ error: 'Thiếu các trường bắt buộc' }, { status: 400 });
         }
 
-        const response = await http.put(
-            `/customers/${userId}/informations/${informationId}`,
-            {
-                name,
-                address,
-                phoneNumber,
-                isDefault: Boolean(isDefault),
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/customers/${userId}/informations/${informationId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
             },
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
-            },
-        );
+            body: JSON.stringify({ name, address, phoneNumber, isDefault: Boolean(isDefault) }),
+        });
 
-        return NextResponse.json(response.data);
+        if (!response.ok) {
+            const errorBody = await response.text();
+            return NextResponse.json({ error: errorBody || 'Lỗi Không Xác Định' }, { status: response.status });
+        }
+
+        const data = await response.json();
+        return NextResponse.json(data);
+
     } catch (error: unknown) {
         console.error('Update customer information error:', error);
-        const errorMessage =
-            (error as { response?: { data?: { error?: string; message?: string } } })?.response?.data?.error ||
-            (error as { response?: { data?: { error?: string; message?: string } } })?.response?.data?.message ||
-            'Failed to update customer information';
         return NextResponse.json(
-            { error: errorMessage },
-            { status: (error as { response?: { status?: number } })?.response?.status || 500 },
+            { error: 'Internal Server Error' },
+            { status: 500 }
         );
     }
 }
@@ -68,37 +63,40 @@ export async function DELETE(
         const token = request.cookies.get('token')?.value;
 
         if (!token) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ error: 'Bạn Chưa Đăng Nhập' }, { status: 401 });
         }
 
         const { informationId } = await params;
         const userId = request.nextUrl.searchParams.get('userId');
 
         if (!userId) {
-            return NextResponse.json({ error: 'Missing userId' }, { status: 400 });
+            return NextResponse.json({ error: 'Thiếu userId' }, { status: 400 });
         }
 
         if (!informationId) {
-            return NextResponse.json({ error: 'Missing informationId' }, { status: 400 });
+            return NextResponse.json({ error: 'Thiếu informationId' }, { status: 400 });
         }
 
-        const response = await http.delete(`/customers/${userId}/informations/${informationId}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/customers/${userId}/informations/${informationId}`, {
+            method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${token}`,
             },
         });
 
-        return NextResponse.json(response.data);
+        if (!response.ok) {
+            const errorBody = await response.text();
+            return NextResponse.json({ error: errorBody || 'Lỗi Không Xác Định' }, { status: response.status });
+        }
+
+        const data = await response.json();
+        return NextResponse.json(data);
     } catch (error: unknown) {
-        console.error('Delete customer information error:', error);
-        const errorMessage =
-            (error as { response?: { data?: { error?: string; message?: string } } })?.response?.data?.error ||
-            (error as { response?: { data?: { error?: string; message?: string } } })?.response?.data?.message ||
-            'Failed to delete customer information';
+        console.error('Error deleting customer information:', error);
         return NextResponse.json(
-            { error: errorMessage },
-            { status: (error as { response?: { status?: number } })?.response?.status || 500 },
+            { error: 'Internal Server Error' },
+            { status: 500 }
         );
     }
 }

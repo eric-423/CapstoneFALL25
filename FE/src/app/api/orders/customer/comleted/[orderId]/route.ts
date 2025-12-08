@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 
-const BASE_URL =  process.env.NEXT_PUBLIC_API_URL || 'https://tam-tac.com/api';
+const BASE_URL =  process.env.NEXT_PUBLIC_BASE_URL || 'https://tam-tac.com/api';
 
 type CompleteCustomerOrderRouteContext = {
     params: Promise<{ orderId?: string | string[] }>;

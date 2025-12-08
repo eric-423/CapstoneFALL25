@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { jwtDecode } from "jwt-decode";
-import http from "@/utils/http";
+import { cookies } from "next/headers";
+import { createErrorResponse, CustomError, ErrorCodes } from '@/lib/error-handler';
 
 interface DecodedToken {
   r?: string;
@@ -15,12 +16,15 @@ interface DecodedToken {
   [key: string]: unknown;
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const token = request.cookies.get("token")?.value;
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value;
 
     if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return createErrorResponse(
+        new CustomError('Unauthorized', 401, ErrorCodes.AUTHENTICATION_ERROR)
+      );
     }
 
     try {
@@ -28,12 +32,16 @@ export async function GET(request: NextRequest) {
 
       const currentTime = Date.now() / 1000;
       if (decodedToken.exp && decodedToken.exp < currentTime) {
-        return NextResponse.json({ error: "Token expired" }, { status: 401 });
+        return createErrorResponse(
+          new CustomError('Token expired', 401, ErrorCodes.AUTHENTICATION_ERROR)
+        );
       }
 
       const userId = decodedToken.i;
       if (!decodedToken || !userId) {
-        return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+        return createErrorResponse(
+          new CustomError('Invalid token', 401, ErrorCodes.AUTHENTICATION_ERROR)
+        );
       }
 
       let fullName = "";
@@ -47,9 +55,10 @@ export async function GET(request: NextRequest) {
       }
       if (!fullName && decodedToken.r === "CUSTOMER") {
         try {
-          const customerResponse = await http.get(
-            `/customers/${userId}/base-info`,
+          const customerResponse = await fetch(
+            `${process.env.NEXT_PUBLIC_BASE_URL}/customers/${userId}/base-info`,
             {
+              method: 'GET',
               headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`,
@@ -57,10 +66,12 @@ export async function GET(request: NextRequest) {
             }
           );
 
-          const customerData =
-            customerResponse.data?.data || customerResponse.data;
-          if (customerData) {
-            fullName = customerData.name || customerData.fullName || "";
+          if (customerResponse.ok) {
+            const customerData = await customerResponse.json();
+            const data = customerData?.data || customerData;
+            if (data) {
+              fullName = data.name || data.fullName || "";
+            }
           }
         } catch (customerError) {
           console.log("Failed to fetch customer details:", customerError);
@@ -76,17 +87,11 @@ export async function GET(request: NextRequest) {
         exp: decodedToken.exp,
       });
     } catch (decodeError) {
-      console.error('Token decode failed:', decodeError);
-      return NextResponse.json(
-        { error: "Invalid token format" },
-        { status: 401 }
+      return createErrorResponse(
+        new CustomError('Invalid token format', 401, ErrorCodes.AUTHENTICATION_ERROR)
       );
     }
   } catch (error) {
-    console.error('Failed to verify session:', error);
-    return NextResponse.json(
-      { error: "Failed to verify session" },
-      { status: 500 }
-    );
+    return createErrorResponse(error as Error);
   }
 }

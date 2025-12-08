@@ -1,5 +1,3 @@
-// Admin User Management API
-
 export interface User {
     id: number;
     fullName: string;
@@ -69,9 +67,7 @@ export interface CreateRoleHistoryRequest {
     startDate: string;
 }
 
-/**
- * Lấy danh sách users
- */
+
 export const getUsers = async (): Promise<User[]> => {
     const response = await fetch('/api/users', {
         method: 'GET',
@@ -92,9 +88,7 @@ export const getUsers = async (): Promise<User[]> => {
     return result.data;
 };
 
-/**
- * Lấy chi tiết user
- */
+
 export const getUserById = async (userId: number): Promise<User> => {
     const response = await fetch(`/api/users/${userId}`, {
         method: 'GET',
@@ -115,9 +109,7 @@ export const getUserById = async (userId: number): Promise<User> => {
     return result.data;
 };
 
-/**
- * Tạo user mới
- */
+
 export const createUser = async (data: CreateUserRequest): Promise<User> => {
     const response = await fetch('/api/users', {
         method: 'POST',
@@ -142,9 +134,6 @@ export const createUser = async (data: CreateUserRequest): Promise<User> => {
     return result.data || result;
 };
 
-/**
- * Cập nhật user
- */
 export const updateUser = async (userId: number, data: UpdateUserRequest): Promise<User> => {
     const response = await fetch(`/api/users/${userId}`, {
         method: 'PUT',
@@ -169,9 +158,6 @@ export const updateUser = async (userId: number, data: UpdateUserRequest): Promi
     return result.data || result;
 };
 
-/**
- * Ban user
- */
 export const banUser = async (userId: number): Promise<void> => {
     const response = await fetch(`/api/users/${userId}/ban`, {
         method: 'PUT',
@@ -189,9 +175,6 @@ export const banUser = async (userId: number): Promise<void> => {
     }
 };
 
-/**
- * Unban user
- */
 export const unbanUser = async (userId: number): Promise<void> => {
     const response = await fetch(`/api/users/${userId}/unban`, {
         method: 'PUT',
@@ -209,9 +192,8 @@ export const unbanUser = async (userId: number): Promise<void> => {
     }
 };
 
-/**
- * Lấy role history của user
- */
+
+
 export const getUserRoleHistory = async (userId: number): Promise<RoleHistory[]> => {
     const response = await fetch(`/api/role-histories/user/${userId}`, {
         method: 'GET',
@@ -232,9 +214,8 @@ export const getUserRoleHistory = async (userId: number): Promise<RoleHistory[]>
     return result.data;
 };
 
-/**
- * Tạo role history
- */
+
+
 export const createRoleHistory = async (data: CreateRoleHistoryRequest): Promise<RoleHistory> => {
     const response = await fetch('/api/role-histories', {
         method: 'POST',

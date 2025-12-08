@@ -1,10 +1,11 @@
+import { createErrorResponse } from '@/lib/error-handler';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET() {
     try {
         const cookieStore = await cookies();
-        const token = cookieStore.get('access_token')?.value || cookieStore.get('token')?.value;
+        const token = cookieStore.get('token')?.value;
 
         if (!token) {
             return NextResponse.json(
@@ -24,21 +25,17 @@ export async function GET() {
             }
         );
 
-        const data = await response.json();
-        return NextResponse.json(data);
+        return NextResponse.json(await response.json());
     } catch (error) {
-        console.error('Warehouses GET error:', error);
-        return NextResponse.json(
-            { error: 'Internal Server Error' },
-            { status: 500 }
-        );
+        console.error('Error fetching warehouses:', error);
+        return createErrorResponse(error as Error);
     }
 }
 
 export async function POST(request: NextRequest) {
     try {
         const cookieStore = await cookies();
-        const token = cookieStore.get('access_token')?.value || cookieStore.get('token')?.value;
+        const token = cookieStore.get('token')?.value;
 
         if (!token) {
             return NextResponse.json(
@@ -61,13 +58,9 @@ export async function POST(request: NextRequest) {
             }
         );
 
-        const data = await response.json();
-        return NextResponse.json(data);
+        return NextResponse.json(await response.json());
     } catch (error) {
-        console.error('Warehouses POST error:', error);
-        return NextResponse.json(
-            { error: 'Internal Server Error' },
-            { status: 500 }
-        );
+        console.error('Error creating warehouse:', error);
+        return createErrorResponse(error as Error);
     }
 }

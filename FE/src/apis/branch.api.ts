@@ -1,4 +1,6 @@
-import http from "@/utils/http";
+import { getToken } from "@/utils/cookies.client";
+import { TableData } from "./table.api";
+
 
 export interface Branch {
   id: number;
@@ -61,9 +63,21 @@ export const GET_BRANCHES_STALE_TIME = 1000 * 60 * 30;
 
 export const getBranches = async (): Promise<Branch[]> => {
   try {
-    const { data } = await http.get("/branches");
+    const token = getToken();
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/branches`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    });
 
-    const branchesData = data?.data ?? data;
+    if (!response.ok) {
+      throw new Error('Failed to fetch branches');
+    }
+
+    const result = await response.json();
+    const branchesData = result?.data ?? result;
 
     if (Array.isArray(branchesData)) {
       return branchesData.filter((branch: Branch) => branch.active === true) as Branch[];
@@ -104,7 +118,7 @@ export const getNearbyBranches = async (
   return [];
 };
 
-// Admin Branch Management APIs
+
 export const getBranchStatistics = async (): Promise<BranchStatistics> => {
   const response = await fetch("/api/branches/statistics", {
     method: "GET",
@@ -137,6 +151,8 @@ export const createBranch = async (
   return result.data || result;
 };
 
+
+
 export const updateBranch = async (
   branchId: number,
   data: UpdateBranchRequest
@@ -156,6 +172,8 @@ export const updateBranch = async (
   return result.data || result;
 };
 
+
+
 export const deactivateBranch = async (branchId: number): Promise<void> => {
   const response = await fetch(`/api/branches/${branchId}/deactivate`, {
     method: "PUT",
@@ -166,6 +184,8 @@ export const deactivateBranch = async (branchId: number): Promise<void> => {
     throw new Error("Failed to deactivate branch");
   }
 };
+
+
 
 export const activateBranch = async (branchId: number): Promise<void> => {
   const response = await fetch(`/api/branches/${branchId}/activate`, {
@@ -178,7 +198,8 @@ export const activateBranch = async (branchId: number): Promise<void> => {
   }
 };
 
-import { TableData } from "./table.api";
+
+
 
 export const getTablesByBranch = async (
   branchId: number

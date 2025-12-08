@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://tam-tac.com';
+import { createErrorResponse } from '@/lib/error-handler';
 
 export async function GET(request: NextRequest) {
     try {
@@ -18,12 +17,7 @@ export async function GET(request: NextRequest) {
         const { searchParams } = new URL(request.url);
         const queryString = searchParams.toString();
 
-        const baseUrl = API_BASE_URL.endsWith('/api/v1') ? API_BASE_URL : `${API_BASE_URL}/api/v1`;
-        const url = `${baseUrl}/dashboard/overview/revenue-chart${queryString ? `?${queryString}` : ''}`;
-
-        console.log('🔄 Fetching Revenue Chart:', url);
-
-        const response = await fetch(url, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/dashboard/overview/revenue-chart${queryString ? `?${queryString}` : ''}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -33,35 +27,13 @@ export async function GET(request: NextRequest) {
             cache: 'no-store',
         });
 
-        console.log('📥 Response status:', response.status, response.statusText);
-
         if (!response.ok) {
-            const errorText = await response.text();
-            console.error('❌ Error response:', errorText);
-            let errorData;
-            try {
-                errorData = JSON.parse(errorText);
-            } catch {
-                errorData = { error: errorText || 'Failed to fetch revenue chart' };
-            }
-            return NextResponse.json(errorData, { status: response.status });
+            return createErrorResponse(new Error('Failed to fetch revenue chart'));
         }
 
-        const responseText = await response.text();
-        let data;
-        try {
-            data = responseText ? JSON.parse(responseText) : { data: [] };
-        } catch (parseError) {
-            console.error('❌ Failed to parse JSON:', parseError);
-            data = { data: [] };
-        }
-
-        return NextResponse.json(data);
+        return NextResponse.json(await response.json());
     } catch (error) {
-        console.error('Revenue Chart API Error:', error);
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Internal server error' },
-            { status: 500 }
-        );
+        console.error('Error fetching revenue chart:', error);
+        return createErrorResponse(error as Error);
     }
 }

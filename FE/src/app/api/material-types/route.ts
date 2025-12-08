@@ -1,16 +1,14 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
+import { createErrorResponse } from '@/lib/error-handler';
 
 export async function GET(request: NextRequest) {
     try {
         const cookieStore = await cookies();
-        const token = cookieStore.get('access_token')?.value || cookieStore.get('token')?.value;
+        const token = cookieStore.get('token')?.value;
 
         if (!token) {
-            return NextResponse.json(
-                { error: 'Unauthorized' },
-                { status: 401 }
-            );
+            return createErrorResponse(new Error('Unauthorized'));
         }
 
         const { searchParams } = new URL(request.url);
@@ -27,27 +25,24 @@ export async function GET(request: NextRequest) {
             }
         );
 
-        const data = await response.json();
-        return NextResponse.json(data);
+        if (!response.ok) {
+            return createErrorResponse(new Error('Failed to fetch material types'));
+        }
+
+        return NextResponse.json(await response.json());
     } catch (error) {
         console.error('Material types GET error:', error);
-        return NextResponse.json(
-            { error: 'Internal Server Error' },
-            { status: 500 }
-        );
+        return createErrorResponse(error as Error);
     }
 }
 
 export async function POST(request: NextRequest) {
     try {
         const cookieStore = await cookies();
-        const token = cookieStore.get('access_token')?.value || cookieStore.get('token')?.value;
+        const token = cookieStore.get('token')?.value;
 
         if (!token) {
-            return NextResponse.json(
-                { error: 'Unauthorized' },
-                { status: 401 }
-            );
+            return createErrorResponse(new Error('Unauthorized'));
         }
 
         const body = await request.json();
@@ -64,13 +59,13 @@ export async function POST(request: NextRequest) {
             }
         );
 
-        const data = await response.json();
-        return NextResponse.json(data);
+        if (!response.ok) {
+            return createErrorResponse(new Error('Failed to create material type'));
+        }
+
+        return NextResponse.json(await response.json());
     } catch (error) {
         console.error('Material types POST error:', error);
-        return NextResponse.json(
-            { error: 'Internal Server Error' },
-            { status: 500 }
-        );
+        return createErrorResponse(error as Error);
     }
 }
