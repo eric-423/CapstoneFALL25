@@ -22,4 +22,6 @@ public interface InformationService {
     CustomerBaseInfoDTO getBaseInfo(int customerId);
 
     Integer getTotalPoints(int customerId);
+
+    CustomerDTO getCustomerByPhone(String phone);
 }
