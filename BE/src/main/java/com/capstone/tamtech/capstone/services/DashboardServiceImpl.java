@@ -32,21 +32,44 @@ public class DashboardServiceImpl implements DashboardService {
             fromDate = getDefaultFromDate();
         if (toDate == null)
             toDate = getDefaultToDate();
+        else {
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(toDate);
+            cal.set(Calendar.HOUR_OF_DAY, 23);
+            cal.set(Calendar.MINUTE, 59);
+            cal.set(Calendar.SECOND, 59);
+            cal.set(Calendar.MILLISECOND, 999);
+            toDate = cal.getTime();
+        }
         return orderRepository.findCompletedOrdersByFilters(branchId, fromDate, toDate);
+    }
+
+    private Date normalizeToEndOfDay(Date date) {
+        if (date == null)
+            return null;
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.set(Calendar.HOUR_OF_DAY, 23);
+        cal.set(Calendar.MINUTE, 59);
+        cal.set(Calendar.SECOND, 59);
+        cal.set(Calendar.MILLISECOND, 999);
+        return cal.getTime();
     }
 
     @Override
     public List<DashboardKPIDTO> getKPIs(Integer branchId, Date fromDate, Date toDate) {
-        List<Order> orders = getFilteredOrders(branchId, fromDate, toDate);
-
-        if (toDate == null)
-            toDate = getDefaultToDate();
         if (fromDate == null)
             fromDate = getDefaultFromDate();
+        if (toDate == null)
+            toDate = getDefaultToDate();
+        else
+            toDate = normalizeToEndOfDay(toDate);
+
+        List<Order> orders = getFilteredOrders(branchId, fromDate, toDate);
 
         long periodDays = (toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24);
         Date prevFromDate = new Date(fromDate.getTime() - (periodDays + 1) * 24 * 60 * 60 * 1000);
-        Date prevToDate = new Date(fromDate.getTime() - 24 * 60 * 60 * 1000);
+        Date prevToDate = normalizeToEndOfDay(new Date(fromDate.getTime() - 24 * 60 * 60 * 1000));
         List<Order> prevOrders = orderRepository.findCompletedOrdersByFilters(branchId, prevFromDate, prevToDate);
 
         double totalRevenue = orders.stream().mapToDouble(Order::getAmount).sum();
