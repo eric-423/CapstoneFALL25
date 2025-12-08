@@ -134,26 +134,20 @@ export default function CompletedPage() {
         });
     };
 
-    const getTotalAmount = (order: ChefOrderResponse) => {
-        return order.orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    };
+
 
     const totalCompleted = orders.length;
 
-    // Tính thời gian trung bình chế biến: lấy cookedAt - confirmAt cho từng order (từ đầu list đến cuối), cộng lại và chia đều
     let totalProcessingTime = 0;
     let totalOrdersWithCookedAt = 0;
 
     orders.forEach(order => {
-        // Lấy confirmAt từ item đầu tiên trong order
         const firstItem = order.orderItems[0];
         if (!firstItem?.confirmAt) return;
 
-        // Tìm item có cookedAt (có thể là item cuối cùng hoặc bất kỳ item nào có cookedAt)
         const cookedItem = order.orderItems.find(item => item.cookedAt);
         if (!cookedItem?.cookedAt) return;
 
-        // Tính thời gian: cookedAt - confirmAt
         const processingTime = getProcessingTime(firstItem.confirmAt, cookedItem.cookedAt);
         if (processingTime > 0) {
             totalProcessingTime += processingTime;
@@ -237,10 +231,7 @@ export default function CompletedPage() {
                     ) : (
                         <div className='grid gap-4'>
                             {sortByDate(orders).map((order) => {
-                                const totalAmount = getTotalAmount(order);
                                 const totalItems = order.orderItems.reduce((sum, item) => sum + item.quantity, 0);
-                                const cookedItem = order.orderItems.find(item => item.cookedAt);
-                                const cookedAt = cookedItem?.cookedAt;
 
                                 return (
                                     <Card key={order.orderId} className='bg-green-50 border-green-200 transition-all duration-200 hover:shadow-md'>
@@ -303,10 +294,14 @@ export default function CompletedPage() {
                                                                                         <div className='flex-1'>
                                                                                             <div className='flex items-center justify-between'>
                                                                                                 <div className='flex items-center gap-2'>
-                                                                                                    <p className='font-medium text-gray-800'>{item.productName}</p>
-                                                                                                    <Badge className='bg-blue-50 text-blue-700 border-blue-200 text-xs'>
-                                                                                                        Combo
-                                                                                                    </Badge>
+                                                                                                    <p className='font-medium text-gray-800'>
+                                                                                                        {item.comboDTO ? item.comboDTO.name : item.productName}
+                                                                                                    </p>
+                                                                                                    {item.comboDTO && (
+                                                                                                        <Badge className='bg-blue-50 text-blue-700 border-blue-200 text-xs'>
+                                                                                                            Combo
+                                                                                                        </Badge>
+                                                                                                    )}
                                                                                                 </div>
                                                                                                 <p className='text-sm text-gray-600'>
                                                                                                     {item.price.toLocaleString('vi-VN')} đ × {item.quantity}
@@ -317,17 +312,23 @@ export default function CompletedPage() {
                                                                                                     Ghi chú: {item.note}
                                                                                                 </p>
                                                                                             )}
+
                                                                                         </div>
                                                                                     </div>
 
                                                                                     {item.comboDTO.comboItems && item.comboDTO.comboItems.length > 0 && (
                                                                                         <div className='ml-4 mt-2 space-y-2 border-l-2 border-blue-300 pl-4'>
+                                                                                            {item.comboDTO.description && (
+                                                                                                <p className='text-sm text-gray-600 mb-2 italic'>
+                                                                                                    {item.comboDTO.description}
+                                                                                                </p>
+                                                                                            )}
                                                                                             {item.comboDTO.comboItems.map((comboItem, idx) => (
                                                                                                 <div key={idx} className='flex items-start gap-3 p-3 bg-white rounded-lg'>
                                                                                                     <div className='flex-1'>
                                                                                                         <div className='flex items-center justify-between'>
                                                                                                             <p className='font-medium text-gray-800'>
-                                                                                                                {comboItem.note || `Sản phẩm #${comboItem.productId}`}
+                                                                                                                {comboItem.productName || comboItem.note || `Sản phẩm #${comboItem.productId}`}
                                                                                                             </p>
                                                                                                             <p className='text-sm text-gray-600'>
                                                                                                                 × {comboItem.quantity}
@@ -335,7 +336,17 @@ export default function CompletedPage() {
                                                                                                         </div>
                                                                                                     </div>
                                                                                                 </div>
+
+
                                                                                             ))}
+
+                                                                                            {item.cookedAt && (
+                                                                                                <p className='text-xs text-gray-500 mt-1 flex items-center gap-1'>
+                                                                                                    <CheckCircle className='h-3 w-3 text-green-500' />
+                                                                                                    Hoàn thành: {formatDate(item.cookedAt)}
+                                                                                                </p>
+                                                                                            )}
+
                                                                                         </div>
                                                                                     )}
                                                                                 </div>
@@ -367,6 +378,13 @@ export default function CompletedPage() {
                                                                                             Ghi chú: {item.note}
                                                                                         </p>
                                                                                     )}
+
+                                                                                    {item.cookedAt && (
+                                                                                        <p className='text-xs text-gray-500 mt-1 flex items-center gap-1'>
+                                                                                            <CheckCircle className='h-3 w-3 text-green-500' />
+                                                                                            Hoàn thành: {formatDate(item.cookedAt)}
+                                                                                        </p>
+                                                                                    )}
                                                                                 </div>
                                                                             </div>
                                                                         ))}
@@ -376,23 +394,7 @@ export default function CompletedPage() {
                                                         </div>
                                                     </div>
 
-                                                    <div className='mt-3 flex items-center gap-4'>
-                                                        {cookedAt && (
-                                                            <div className='flex items-center text-sm'>
-                                                                <CheckCircle className='h-4 w-4 text-green-500 mr-1' />
-                                                                <span className='text-gray-600'>Hoàn thành:</span>
-                                                                <span className='ml-1 font-medium text-green-600'>
-                                                                    {formatDate(cookedAt)}
-                                                                </span>
-                                                            </div>
-                                                        )}
-                                                        <div className='flex items-center text-sm'>
-                                                            <span className='text-gray-600'>Tổng tiền:</span>
-                                                            <span className='ml-1 font-medium text-green-600'>
-                                                                {totalAmount.toLocaleString('vi-VN')} đ
-                                                            </span>
-                                                        </div>
-                                                    </div>
+
                                                 </div>
 
                                                 <div className='ml-6'>

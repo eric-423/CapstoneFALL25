@@ -316,11 +316,13 @@ export default function ChefPage() {
                                                                   <div className='flex items-center justify-between gap-4'>
                                                                      <div className='flex items-center gap-2'>
                                                                         <p className='font-medium text-gray-800'>
-                                                                           {item.productName}
+                                                                           {item.comboDTO ? item.comboDTO.name : item.productName}
                                                                         </p>
-                                                                        <Badge className='bg-blue-50 text-blue-700 border-blue-200 text-xs'>
-                                                                           Combo
-                                                                        </Badge>
+                                                                        {item.comboDTO && (
+                                                                           <Badge className='bg-blue-50 text-blue-700 border-blue-200 text-xs'>
+                                                                              Combo
+                                                                           </Badge>
+                                                                        )}
                                                                      </div>
                                                                      <div className='flex items-center gap-3'>
                                                                         <p className='text-md text-primary text-bold'>
@@ -352,12 +354,17 @@ export default function ChefPage() {
 
                                                             {item.comboDTO.comboItems && item.comboDTO.comboItems.length > 0 && (
                                                                <div className='ml-4 mt-2 space-y-2 border-l-2 border-blue-300 pl-4'>
+                                                                  {item.comboDTO.description && (
+                                                                     <p className='text-sm text-gray-600 mb-2 italic'>
+                                                                        {item.comboDTO.description}
+                                                                     </p>
+                                                                  )}
                                                                   {item.comboDTO.comboItems.map((comboItem, idx) => (
                                                                      <div key={idx} className='flex items-start gap-3 p-3 bg-gray-50 rounded-lg'>
                                                                         <div className='flex-1'>
                                                                            <div className='flex items-center justify-between gap-4'>
                                                                               <p className='font-medium text-gray-800'>
-                                                                                 {comboItem.note || `Sản phẩm #${comboItem.productId}`}
+                                                                                 {comboItem.productName || comboItem.note || `Sản phẩm #${comboItem.productId}`}
                                                                               </p>
                                                                               <p className='text-md text-primary text-bold'>
                                                                                  × {comboItem.quantity}
