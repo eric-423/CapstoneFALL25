@@ -43,6 +43,9 @@ public class Combo {
     @Column(name = "updated_at")
     private Date updatedAt;
 
+    @Column(name = "image_url")
+    private String imageUrl;
+
     @ManyToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH })
     @JoinColumn(name = "branch_id")
     private Branch branch;
