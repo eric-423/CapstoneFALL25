@@ -1065,6 +1065,7 @@ public class OrderServiceImpl implements OrderService {
         for (ComboItem comboItem : comboItems) {
             ComboItemDTO comboItemDTO = new ComboItemDTO();
             comboItemDTO.setProductId(comboItem.getProduct().getId());
+            comboItemDTO.setProductName(comboItem.getProduct().getName());
             comboItemDTO.setComboId(comboItem.getCombo().getId());
             comboItemDTO.setQuantity(comboItem.getQuantity());
             comboItemDTO.setNote(comboItem.getNote());
