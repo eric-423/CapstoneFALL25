@@ -66,6 +66,10 @@ public class PaymentServiceImpl implements PaymentService {
                 paymentLinkItemList.add(paymentLinkItem);
             }
 
+            long nowMillis = System.currentTimeMillis();
+            long expireMillis = nowMillis + 10 * 60 * 1000;
+            int expiredAtSeconds = (int) (expireMillis / 1000L);
+
             CreatePaymentLinkRequest paymentData =
                 CreatePaymentLinkRequest.builder()
                     .orderCode(orderCode)
@@ -74,6 +78,7 @@ public class PaymentServiceImpl implements PaymentService {
                     .items(paymentLinkItemList)
                     .returnUrl(returnUrl)
                     .cancelUrl(cancelUrl)
+                    .expiredAt((long) expiredAtSeconds)
                     .build();
 
             CreatePaymentLinkResponse data = payOS.paymentRequests().create(paymentData);

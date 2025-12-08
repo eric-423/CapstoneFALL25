@@ -54,7 +54,7 @@ public class ProductServiceImpl implements ProductService {
     private MaterialWarehouseRepository materialWarehouseRepository;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public PagedResponse<ProductSearchDTO> searchProducts(ProductSearchRequest searchRequest) {
         if (searchRequest.getBranchId() == null) {
             throw new IllegalArgumentException("Branch ID là bắt buộc");
@@ -74,6 +74,13 @@ public class ProductServiceImpl implements ProductService {
                 searchRequest.getMinPrice(),
                 searchRequest.getMaxPrice(),
                 pageable);
+
+        productPage.stream().forEach(product ->{
+            if (product.getCaloriesCache() == null || product.getCaloriesCache() == 0.0) {
+                product.setCaloriesCache(reCalculateCaloriesForProduct(product.getId()));
+                productRepository.save(product);
+            }
+        });
 
         Map<Integer, Integer> productQuantityMap = new HashMap<>();
 

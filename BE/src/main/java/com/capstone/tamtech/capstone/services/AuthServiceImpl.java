@@ -47,7 +47,7 @@ public class AuthServiceImpl implements AuthService {
     @Autowired
     private MemberAssociationRepository memberAssociationRepository;
 
-    private static final long TOKEN_EXPIRATION_TIME = 86400000L; // 24 hours
+    private static final long TOKEN_EXPIRATION_TIME = 86400000L;
 
 
     @Transactional(readOnly = true)
