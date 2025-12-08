@@ -89,14 +89,15 @@ public class MaterialNutrientServiceImpl implements MaterialNutrientService {
 
     @Override
     public MaterialNutrientDTO updateManyMaterialNutrient(int materialId, List<MaterialNutrientRequest> request) {
+        List<MaterialNutrients> materialNutrients = materialNutritionRepository.findByMaterial_Id(materialId);
+        materialNutritionRepository.deleteAll(materialNutrients);
+
         for(MaterialNutrientRequest item : request){
+            MaterialNutrients materialNutrient = new MaterialNutrients();
             KeyMaterialNutrient key = new KeyMaterialNutrient();
             key.setMaterialId(materialId);
             key.setNutrientId(item.getNutrientId());
-
-            MaterialNutrients materialNutrient = materialNutritionRepository.findById(key)
-                    .orElseThrow(() -> new ResourceNotFoundException("Material Nutrient not found for nutrient id: " + item.getNutrientId()));
-
+            materialNutrient.setKeyMaterialNutrient(key);
             materialNutrient.setAmountPer100Unit(item.getAmountPer100Unit());
 
             materialNutritionRepository.save(materialNutrient);
