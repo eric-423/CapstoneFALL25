@@ -8,6 +8,8 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
@@ -38,7 +40,8 @@ export default function CookingMethodsPage() {
 
   // Filter states
   const [searchKeyword, setSearchKeyword] = useState("");
-  const [sortDirection] = useState<"ASC" | "DESC">("ASC");
+  const [sortBy, setSortBy] = useState("name");
+  const [sortDirection, setSortDirection] = useState<"ASC" | "DESC">("ASC");
 
   // Dialog states
   const [showFormDialog, setShowFormDialog] = useState(false);
@@ -60,6 +63,7 @@ export default function CookingMethodsPage() {
         keyword: searchKeyword,
         page: currentPage,
         size: pageSize,
+        sortBy,
         sortDirection,
       };
 
@@ -73,7 +77,7 @@ export default function CookingMethodsPage() {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, pageSize, searchKeyword, sortDirection]);
+  }, [currentPage, pageSize, searchKeyword, sortBy, sortDirection]);
 
   useEffect(() => {
     fetchCookingMethods();
@@ -92,12 +96,35 @@ export default function CookingMethodsPage() {
   const handleFormSuccess = () => {
     fetchCookingMethods();
   };
-
-  // Handle page change
   const handlePageChange = (newPage: number) => {
     if (newPage >= 0 && newPage < totalPages) {
       setCurrentPage(newPage);
     }
+  };
+  const handleSort = (column: string) => {
+    if (sortBy === column) {
+      setSortDirection(sortDirection === "ASC" ? "DESC" : "ASC");
+    } else {
+      setSortBy(column);
+      setSortDirection("ASC");
+    }
+    setCurrentPage(0);
+  };
+
+  const getSortIcon = (column: string) => {
+    if (sortBy !== column) {
+      return (
+        <div className="flex flex-col -space-y-1">
+          <ChevronUp className="h-3.5 w-3.5 text-gray-400" />
+          <ChevronDown className="h-3.5 w-3.5 text-gray-400" />
+        </div>
+      );
+    }
+    return sortDirection === "ASC" ? (
+      <ChevronUp className="h-3.5 w-3.5 text-[#78A243]" />
+    ) : (
+      <ChevronDown className="h-3.5 w-3.5 text-[#78A243]" />
+    );
   };
 
   if (loading && cookingMethods.length === 0) {
@@ -176,11 +203,23 @@ export default function CookingMethodsPage() {
           <table className="w-full">
             <thead className="bg-white border-b-2 border-grey-300">
               <tr>
-                <th className="px-6 py-4 text-left text-sm font-bold text-[#2D1E1A]">
-                  Tên phương pháp
+                <th
+                  className="px-6 py-4 text-center text-sm font-bold text-[#2D1E1A] cursor-pointer hover:bg-gray-50 transition-colors"
+                  onClick={() => handleSort("name")}
+                >
+                  <div className="flex items-center justify-center gap-1.5">
+                    Tên phương pháp
+                    {getSortIcon("name")}
+                  </div>
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-bold text-[#2D1E1A]">
-                  Mô tả
+                <th
+                  className="px-6 py-4 text-center text-sm font-bold text-[#2D1E1A] cursor-pointer hover:bg-gray-50 transition-colors"
+                  onClick={() => handleSort("description")}
+                >
+                  <div className="flex items-center justify-center gap-1.5">
+                    Mô tả
+                    {getSortIcon("description")}
+                  </div>
                 </th>
                 <th className="px-6 py-4 text-center text-sm font-bold text-[#2D1E1A]">
                   Thao tác
@@ -195,12 +234,6 @@ export default function CookingMethodsPage() {
                 >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-[#78A243]/20 rounded-lg flex items-center justify-center">
-                        <Flame
-                          className="h-5 w-5 text-[#78A243]"
-                          strokeWidth={2}
-                        />
-                      </div>
                       <span className="font-semibold text-[#2D1E1A]">
                         {method.name}
                       </span>
@@ -249,8 +282,6 @@ export default function CookingMethodsPage() {
             </p>
           </div>
         )}
-
-        {/* Pagination */}
         {totalPages > 1 && (
           <div className="px-4 py-3 border-t border-[#78A243]/20 bg-gradient-to-r from-[#EBD187]/10 to-[#78A243]/5">
             <div className="flex items-center justify-between">

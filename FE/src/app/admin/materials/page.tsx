@@ -10,6 +10,8 @@ import {
   Tag,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
+  ChevronDown,
   Ruler,
   Beaker,
 } from "lucide-react";
@@ -56,8 +58,8 @@ export default function MaterialsPage() {
   const [searchKeyword, setSearchKeyword] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("");
   const [includeDeleted] = useState(false);
-  const [sortBy] = useState("name");
-  const [sortDirection] = useState<"ASC" | "DESC">("ASC");
+  const [sortBy, setSortBy] = useState("name");
+  const [sortDirection, setSortDirection] = useState<"ASC" | "DESC">("ASC");
 
   // Dialog states
   const [showFormDialog, setShowFormDialog] = useState(false);
@@ -182,6 +184,32 @@ export default function MaterialsPage() {
     return unit ? `${unit.name} (${unit.symbols})` : `ID: ${unitId}`;
   };
 
+  const handleSort = (column: string) => {
+    if (sortBy === column) {
+      setSortDirection(sortDirection === "ASC" ? "DESC" : "ASC");
+    } else {
+      setSortBy(column);
+      setSortDirection("ASC");
+    }
+    setCurrentPage(0);
+  };
+
+  const getSortIcon = (column: string) => {
+    if (sortBy !== column) {
+      return (
+        <div className="flex flex-col -space-y-1">
+          <ChevronUp className="h-3.5 w-3.5 text-gray-400" />
+          <ChevronDown className="h-3.5 w-3.5 text-gray-400" />
+        </div>
+      );
+    }
+    return sortDirection === "ASC" ? (
+      <ChevronUp className="h-3.5 w-3.5 text-[#78A243]" />
+    ) : (
+      <ChevronDown className="h-3.5 w-3.5 text-[#78A243]" />
+    );
+  };
+
   if (loading) {
     return (
       <AdminPageLayout>
@@ -298,14 +326,32 @@ export default function MaterialsPage() {
           <table className="w-full">
             <thead className="bg-white border-b-2 border-grey-300">
               <tr>
-                <th className="px-6 py-4 text-left text-sm font-bold text-[#2D1E1A]">
-                  Nguyên liệu
+                <th
+                  className="px-6 py-4 text-left text-sm font-bold text-[#2D1E1A] cursor-pointer hover:bg-gray-50 transition-colors"
+                  onClick={() => handleSort("name")}
+                >
+                  <div className="flex items-center gap-1.5">
+                    Nguyên liệu
+                    {getSortIcon("name")}
+                  </div>
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-bold text-[#2D1E1A]">
-                  Loại
+                <th
+                  className="px-6 py-4 text-left text-sm font-bold text-[#2D1E1A] cursor-pointer hover:bg-gray-50 transition-colors"
+                  onClick={() => handleSort("materialTypeName")}
+                >
+                  <div className="flex items-center gap-1.5">
+                    Loại
+                    {getSortIcon("materialTypeName")}
+                  </div>
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-bold text-[#2D1E1A]">
-                  Tổng tồn kho
+                <th
+                  className="px-6 py-4 text-left text-sm font-bold text-[#2D1E1A] cursor-pointer hover:bg-gray-50 transition-colors"
+                  onClick={() => handleSort("quantity")}
+                >
+                  <div className="flex items-center gap-1.5">
+                    Tổng tồn kho
+                    {getSortIcon("quantity")}
+                  </div>
                 </th>
                 <th className="px-6 py-4 text-center text-sm font-bold text-[#2D1E1A]">
                   Thao tác

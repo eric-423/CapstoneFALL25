@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AdminCard } from "../components/AdminCard";
@@ -52,7 +53,7 @@ export default function UsersManagementPage() {
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [branchFilter, setBranchFilter] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(0);
-  const [pageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(10);
   const [sortBy, setSortBy] = useState("id");
   const [sortDirection, setSortDirection] = useState<"ASC" | "DESC">("ASC");
   const [showRolesModal, setShowRolesModal] = useState(false);
@@ -320,16 +321,15 @@ export default function UsersManagementPage() {
         />
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-white backdrop-blur-sm border-[#78A243]/20 border shadow-sm rounded-xl">
+      <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-white backdrop-blur-sm border-gray-300 border shadow-sm rounded-xl">
         <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[200px]">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#2D1E1A]/60" />
-            <input
-              type="text"
+            <Input
               placeholder="Tìm kiếm người dùng..."
               value={searchKeyword}
               onChange={(e) => setSearchKeyword(e.target.value)}
-              className="w-full max-w-[200px] pl-10 pr-4 py-2 border bg-white/80 border-[#78A243]/30 rounded-lg text-sm focus:border-[#78A243] focus:ring-1 focus:ring-[#78A243]/20 outline-none transition-colors"
+              className="w-full max-w-[250px] pl-10 pr-4 py-2 border bg-white/80 border-[#78A243]/30 rounded-lg text-sm focus:border-[#78A243] focus:ring-1 focus:ring-[#78A243]/20 outline-none"
             />
             {searchKeyword && searchKeyword !== debouncedSearchKeyword && (
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -378,16 +378,38 @@ export default function UsersManagementPage() {
           />
 
           {(searchKeyword || roleFilter || statusFilter || branchFilter) && (
-            <Button
-              onClick={handleClearFilters}
-              variant="ghost"
-              size="sm"
-              className="text-[#2D1E1A]/70 hover:text-[#2D1E1A] hover:bg-[#EBD187]/30"
-            >
+            <Button onClick={handleClearFilters} variant="ghost" size="sm">
               <X className="h-4 w-4 mr-1" />
               Xóa lọc
             </Button>
           )}
+        </div>
+
+        <div className="flex items-center gap-3">
+          <label className="text-sm text-[#2D1E1A] font-medium whitespace-nowrap">
+            Hiển thị:
+          </label>
+          <FilterDropdown
+            label="Hiển thị"
+            title="Số lượng hiển thị"
+            value={pageSize.toString()}
+            onChange={(value) => {
+              setPageSize(parseInt(value));
+              setCurrentPage(0);
+            }}
+            items={[
+              { value: "5", label: "5" },
+              { value: "10", label: "10" },
+              { value: "20", label: "20" },
+              { value: "50", label: "50" },
+            ]}
+            showAllOption={false}
+            className="w-[80px]"
+          />
+          <span className="text-sm text-[#2D1E1A]/80 whitespace-nowrap">
+            Tổng:{" "}
+            <span className="font-bold text-[#78A243]">{totalElements}</span>
+          </span>
         </div>
       </div>
       <Card className="overflow-hidden py-0">

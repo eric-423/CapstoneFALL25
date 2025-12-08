@@ -9,6 +9,8 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
@@ -40,7 +42,8 @@ export default function NutrientsPage() {
 
   // Filter states
   const [searchKeyword, setSearchKeyword] = useState("");
-  const [sortDirection] = useState<"ASC" | "DESC">("ASC");
+  const [sortBy, setSortBy] = useState("name");
+  const [sortDirection, setSortDirection] = useState<"ASC" | "DESC">("ASC");
 
   // Dialog states
   const [showFormDialog, setShowFormDialog] = useState(false);
@@ -60,6 +63,7 @@ export default function NutrientsPage() {
         keyword: searchKeyword,
         page: currentPage,
         size: pageSize,
+        sortBy,
         sortDirection,
       };
 
@@ -74,7 +78,7 @@ export default function NutrientsPage() {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, pageSize, searchKeyword, sortDirection]);
+  }, [currentPage, pageSize, searchKeyword, sortBy, sortDirection]);
 
   useEffect(() => {
     fetchNutrients();
@@ -122,6 +126,32 @@ export default function NutrientsPage() {
     if (newPage >= 0 && newPage < totalPages) {
       setCurrentPage(newPage);
     }
+  };
+
+  const handleSort = (column: string) => {
+    if (sortBy === column) {
+      setSortDirection(sortDirection === "ASC" ? "DESC" : "ASC");
+    } else {
+      setSortBy(column);
+      setSortDirection("ASC");
+    }
+    setCurrentPage(0);
+  };
+
+  const getSortIcon = (column: string) => {
+    if (sortBy !== column) {
+      return (
+        <div className="flex flex-col -space-y-1">
+          <ChevronUp className="h-3.5 w-3.5 text-gray-400" />
+          <ChevronDown className="h-3.5 w-3.5 text-gray-400" />
+        </div>
+      );
+    }
+    return sortDirection === "ASC" ? (
+      <ChevronUp className="h-3.5 w-3.5 text-[#78A243]" />
+    ) : (
+      <ChevronDown className="h-3.5 w-3.5 text-[#78A243]" />
+    );
   };
 
   if (loading && nutrients.length === 0) {
@@ -193,23 +223,46 @@ export default function NutrientsPage() {
         </div>
       </div>
 
-      {/* Nutrients Table */}
       <div className="bg-white rounded-xl border border-[#78A243]/20 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-white border-b-2 border-grey-300">
               <tr>
-                <th className="px-6 py-4 text-left text-sm font-bold text-[#2D1E1A]">
-                  Tên dinh dưỡng
+                <th
+                  className="px-6 py-4 text-center text-sm font-bold text-[#2D1E1A] cursor-pointer hover:bg-gray-50 transition-colors"
+                  onClick={() => handleSort("name")}
+                >
+                  <div className="flex items-center justify-center gap-1.5">
+                    Tên dinh dưỡng
+                    {getSortIcon("name")}
+                  </div>
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-bold text-[#2D1E1A]">
-                  Mã
+                <th
+                  className="px-6 py-4 text-center text-sm font-bold text-[#2D1E1A] cursor-pointer hover:bg-gray-50 transition-colors"
+                  onClick={() => handleSort("code")}
+                >
+                  <div className="flex items-center justify-center gap-1.5">
+                    Mã
+                    {getSortIcon("code")}
+                  </div>
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-bold text-[#2D1E1A]">
-                  Đơn vị
+                <th
+                  className="px-6 py-4 text-center text-sm font-bold text-[#2D1E1A] cursor-pointer hover:bg-gray-50 transition-colors"
+                  onClick={() => handleSort("unit")}
+                >
+                  <div className="flex items-center justify-center gap-1.5">
+                    Đơn vị
+                    {getSortIcon("unit")}
+                  </div>
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-bold text-[#2D1E1A]">
-                  Năng lượng / Đơn vị
+                <th
+                  className="px-6 py-4 text-center text-sm font-bold text-[#2D1E1A] cursor-pointer hover:bg-gray-50 transition-colors"
+                  onClick={() => handleSort("energyPerUnit")}
+                >
+                  <div className="flex items-center justify-center gap-1.5">
+                    Năng lượng / Đơn vị
+                    {getSortIcon("energyPerUnit")}
+                  </div>
                 </th>
                 <th className="px-6 py-4 text-center text-sm font-bold text-[#2D1E1A]">
                   Thao tác
