@@ -909,6 +909,22 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public Boolean assignCustomerToOrder(int customerId, int orderId) {
+        Users users = usersRepository.findById(customerId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
+
+        if(!order.getIsTable()){
+            throw new RuntimeException("Only dining table orders can be assigned to customers");
+        }
+
+        order.setCustomer(users);
+
+        orderRepository.save(order);
+        return true;
+    }
+
+    @Override
     public double calculateShippingFee(String customerAddress, String branchAddress) throws BadRequestException {
         double shippingFee = 0.0;
         long meters = distanceService.getDistanceInMeters(branchAddress, customerAddress);
@@ -1121,6 +1137,22 @@ public class OrderServiceImpl implements OrderService {
         double percentDiscountAmount = 0.0;
         if (discountPercent > 0) {
             percentDiscountAmount = subTotal * ((double) discountPercent / 100.0);
+        }
+
+        if (paymentRequest.getUsedPoints() > 0 && order.getCustomer() != null) {
+            Users customer = order.getCustomer();
+            int availablePoints = customer.getMemberPoint();
+            int pointsToUse = Math.min(paymentRequest.getUsedPoints(), availablePoints);
+            double pointsValue = pointsToUse;
+            if (pointsValue > (subTotal - discountValue - percentDiscountAmount)) {
+                pointsToUse = (int) (subTotal - discountValue - percentDiscountAmount);
+                pointsValue = pointsToUse;
+            }
+            order.setPointUsed(pointsToUse);
+            discountValue += pointsValue;
+            customer.setMemberPoint(availablePoints - pointsToUse);
+            memberAssociationService.updateMemberAssiociationForCustomer(customer.getId());
+            usersRepository.save(customer);
         }
         double amount = subTotal - discountValue - percentDiscountAmount;
         if (amount < 0) {

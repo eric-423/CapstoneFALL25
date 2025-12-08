@@ -15,6 +15,8 @@ public interface UsersRepository extends JpaRepository<Users, Integer> {
 
         Optional<Users> findByPhoneNumber(String phoneNumber);
 
+
+
         Optional<Users> findByEmail(String email);
 
         @Query("SELECT u FROM Users u LEFT JOIN FETCH u.roleHistories rh LEFT JOIN FETCH rh.role WHERE u.phoneNumber = :phoneNumber AND rh.isActive = true")

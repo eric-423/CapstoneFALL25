@@ -256,9 +256,12 @@ public class SecurityConfig {
 
                         .requestMatchers("/orders/customer/pickup").hasAnyRole("CUSTOMER", "STAFF")
                         .requestMatchers("/orders/customer/**").hasRole("CUSTOMER")
+                        .requestMatchers("/customers/find/by-phone").hasAnyRole("STAFF","MANAGER","ADMIN","WAITER")
                         .requestMatchers("/customers/**").hasRole("CUSTOMER")
                         .requestMatchers(HttpMethod.POST, "/orders/dining-table/payment/**")
                         .hasAnyRole("WAITER", "ADMIN", "MANAGER", "STAFF")
+                        .requestMatchers("/orders/dining-table/assign-customer/**").hasAnyRole( "STAFF", "WAITER", "MANAGER", "ADMIN")
+
                         .requestMatchers("/orders/dining-table/**").hasRole("CUSTOMER")
                         .requestMatchers("/promotions/customer/**").hasRole("CUSTOMER")
 
