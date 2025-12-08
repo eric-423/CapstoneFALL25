@@ -22,7 +22,7 @@ export function OrderChannelsChart({ data }: OrderChannelsChartProps) {
     data?.totalOrders ?? chartData.reduce((sum, item) => sum + item.value, 0);
 
   return (
-    <Card className="p-4 bg-[#FDE3CF]/70 backdrop-blur-sm border-white/20 border shadow-sm rounded-2xl h-full flex flex-col">
+    <Card className="p-4 bg-white backdrop-blur-sm border-white/20 border shadow-sm rounded-2xl h-full flex flex-col">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-base font-bold text-gray-800">Kênh đặt hàng</h3>
       </div>

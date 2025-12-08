@@ -22,7 +22,7 @@ interface RevenueChartProps {
 
 export function RevenueChart({ data }: RevenueChartProps) {
   return (
-    <Card className="p-4 bg-[#FDE3CF]/70 backdrop-blur-sm border-white/20 border shadow-sm rounded-2xl h-full">
+    <Card className="p-4 bg-white backdrop-blur-sm border-white/20 border shadow-sm rounded-2xl h-full">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-base font-bold text-gray-800">Doanh thu 7 ngày</h3>
       </div>
