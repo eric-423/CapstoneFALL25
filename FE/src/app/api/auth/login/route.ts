@@ -1,33 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server';
-import http from '@/utils/http';
+import { cookies } from 'next/headers';
+import { createErrorResponse, CustomError, ErrorCodes } from '@/lib/error-handler';
 
 export async function POST(request: NextRequest) {
+  const cookieStore = await cookies();
 
   try {
     const body = await request.json();
     const { phoneNumber, password } = body;
 
     if (!phoneNumber || !password) {
-      return NextResponse.json(
-        { error: 'Phone number and password are required' },
-        { status: 400 }
+      return createErrorResponse(
+        new CustomError('Phone number and password are required', 400, ErrorCodes.VALIDATION_ERROR)
       );
     }
 
-    const response = await http.post('/auth/customer/login', {
-      phoneNumber,
-      password,
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/auth/customer/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({ phoneNumber, password }),
     });
 
-    const responseData = NextResponse.json(response.data);
+    if (!response.ok) {
+      return createErrorResponse(
+        new CustomError('Failed to login', response.status, ErrorCodes.AUTHENTICATION_ERROR)
+      );
+    }
 
-    if (response.data?.token) {
+    const responseData = await response.json();
 
-
-      const expiresIn = response.data.expiresIn || 7 * 24 * 60 * 60 * 1000;
+    if (responseData?.token) {
+      const expiresIn = responseData.expiresIn || 7 * 24 * 60 * 60 * 1000;
       const maxAgeInSeconds = Math.floor(expiresIn / 1000);
 
-      responseData.cookies.set('token', response.data.token, {
+      cookieStore.set('token', responseData.token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
@@ -35,12 +44,10 @@ export async function POST(request: NextRequest) {
         maxAge: maxAgeInSeconds,
       });
 
+      if (responseData.userInfo?.role) {
+        const role = responseData.userInfo.role;
 
-      if (response.data.userInfo?.role) {
-        const role = response.data.userInfo.role;
-
-
-        responseData.cookies.set('role', role, {
+        cookieStore.set('role', role, {
           httpOnly: false,
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'strict',
@@ -48,34 +55,26 @@ export async function POST(request: NextRequest) {
           maxAge: maxAgeInSeconds,
         });
 
-
-        responseData.cookies.set('userRole', role, {
+        cookieStore.set('userRole', role, {
           httpOnly: false,
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'strict',
           path: '/',
           maxAge: maxAgeInSeconds,
         });
-
       }
     }
 
-    return responseData;
+    return NextResponse.json(responseData);
 
   } catch (error: unknown) {
-    console.error('Login API Error:', error);
-
-    const errorMessage = (error as { response?: { data?: { message?: string; error?: string } } })?.response?.data?.message
-      || (error as { response?: { data?: { message?: string; error?: string } } })?.response?.data?.error
-      || 'Đăng nhập thất bại. Vui lòng thử lại.';
-
-    const statusCode = (error as { response?: { status?: number } })?.response?.status || 401;
-
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: statusCode }
-    );
-
-
+    if (error instanceof Error) {
+      if (error.message.includes('ECONNREFUSED') || error.message.includes('fetch failed')) {
+        return createErrorResponse(
+          new CustomError('Không thể kết nối đến server. Vui lòng kiểm tra lại.', 503, ErrorCodes.NETWORK_ERROR)
+        );
+      }
+    }
+    return createErrorResponse(error as Error);
   }
 }

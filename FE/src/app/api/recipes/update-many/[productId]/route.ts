@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://tam-tac.com';
+const API_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://tam-tac.com';
 
 // PUT /api/recipes/update-many/{productId}
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ productId: string }> }) {

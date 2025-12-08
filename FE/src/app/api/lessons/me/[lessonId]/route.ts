@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+import { createErrorResponse } from '@/lib/error-handler';
 
 export async function GET(
   request: NextRequest,
@@ -17,7 +16,7 @@ export async function GET(
 
     const { lessonId } = await params;
 
-    const response = await fetch(`${API_URL}/lessons/me/lessons/${lessonId}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/lessons/me/lessons/${lessonId}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -26,26 +25,13 @@ export async function GET(
       },
     });
 
-    const payload = await response.json().catch(() => null);
-
     if (!response.ok) {
-      return NextResponse.json(
-        payload ?? { error: "Failed to fetch lesson detail" },
-        { status: response.status }
-      );
+      return createErrorResponse(new Error('Failed to fetch lesson detail'));
     }
 
-    return NextResponse.json(payload ?? {});
+    return NextResponse.json(await response.json());
   } catch (error) {
-    console.error("Get My Lesson Detail API Error:", error);
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to fetch lesson detail",
-      },
-      { status: 500 }
-    );
+    console.error("Error fetching lesson detail:", error);
+    return createErrorResponse(error as Error);
   }
 }

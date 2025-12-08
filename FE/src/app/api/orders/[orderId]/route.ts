@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { getToken } from "@/utils/cookies.server";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 const buildUpstreamUrl = (orderId: string) => {
   return `${API_BASE_URL}/orders/${orderId}`;

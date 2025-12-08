@@ -1,22 +1,14 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://tam-tac.com';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const cookieStore = await cookies();
         const token = cookieStore.get('token')?.value;
 
-        if (!token) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
         const { id } = await params;
-        const baseUrl = API_BASE_URL.endsWith('/api/v1') ? API_BASE_URL : `${API_BASE_URL}/api/v1`;
-        const url = `${baseUrl}/cooking-methods/${id}`;
-
-        const response = await fetch(url, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/cooking-methods/${id}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -46,16 +38,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         const cookieStore = await cookies();
         const token = cookieStore.get('token')?.value;
 
-        if (!token) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
         const { id } = await params;
         const body = await request.json();
-        const baseUrl = API_BASE_URL.endsWith('/api/v1') ? API_BASE_URL : `${API_BASE_URL}/api/v1`;
-        const url = `${baseUrl}/cooking-methods/${id}`;
 
-        const response = await fetch(url, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/cooking-methods/${id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',

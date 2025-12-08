@@ -1,6 +1,5 @@
 "use server";
 
-import http from "@/utils/http";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -33,15 +32,25 @@ export async function createOrderAction(formData: FormData) {
       paymentMethod,
     };
 
-    const response = await http.post("/orders", orderData, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/orders`, {
+      method: 'POST',
       headers: {
+        'Content-Type': 'application/json',
         Authorization: `Bearer ${accessToken}`,
       },
+      body: JSON.stringify(orderData),
     });
 
+    if (!response.ok) {
+      return { error: "Đặt hàng thất bại" };
+    }
+
+    const responseData = await response.json();
+    const data = responseData?.data || responseData;
+
     // Redirect to payment or order confirmation
-    if (response.data.data.orderId) {
-      redirect(`/payment-success?orderId=${response.data.data.orderId}`);
+    if (data?.orderId) {
+      redirect(`/payment-success?orderId=${data.orderId}`);
     }
 
     return { error: "Đặt hàng thất bại" };

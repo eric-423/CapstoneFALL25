@@ -1,4 +1,3 @@
-// Material Type interfaces
 export interface MaterialType {
     id: number;
     name: string;
@@ -13,8 +12,7 @@ export interface UpdateMaterialTypeRequest {
     name: string;
 }
 
-// Material interfaces
-// Material interfaces
+
 export interface Material {
     id: number;
     name: string;
@@ -60,7 +58,7 @@ export interface PaginatedMaterialResponse {
     };
 }
 
-// Warehouse interfaces
+
 export interface Warehouse {
     id: number;
     address: string;
@@ -82,7 +80,7 @@ export interface UpdateWarehouseRequest {
     isActive: boolean;
 }
 
-// Warehouse Material interfaces
+
 export interface WarehouseMaterial {
     materialId: number;
     materialName: string;
@@ -102,7 +100,7 @@ export interface AddMaterialsToWarehouseRequest {
     }[];
 }
 
-// ==================== Material Type API ====================
+
 
 export async function getMaterialTypes(includeDeleted: boolean = false): Promise<MaterialType[]> {
     const response = await fetch(
@@ -118,9 +116,10 @@ export async function getMaterialTypes(includeDeleted: boolean = false): Promise
     }
 
     const result = await response.json();
-    // API returns paginated response, extract content array
     return result.data.content || result.data;
 }
+
+
 
 export async function createMaterialType(request: CreateMaterialTypeRequest): Promise<void> {
     const response = await fetch('/api/material-types', {
@@ -137,6 +136,8 @@ export async function createMaterialType(request: CreateMaterialTypeRequest): Pr
     }
 }
 
+
+
 export async function updateMaterialType(id: number, request: UpdateMaterialTypeRequest): Promise<void> {
     const response = await fetch(`/api/material-types/${id}`, {
         method: 'PUT',
@@ -151,6 +152,7 @@ export async function updateMaterialType(id: number, request: UpdateMaterialType
         throw new Error('Failed to update material type');
     }
 }
+
 
 export async function deleteMaterialType(id: number): Promise<void> {
     const response = await fetch(`/api/material-types/${id}`, {
@@ -168,7 +170,6 @@ export async function deleteMaterialType(id: number): Promise<void> {
     }
 }
 
-// ==================== Material API ====================
 
 export async function getMaterials(searchRequest?: MaterialSearchRequest): Promise<PaginatedMaterialResponse> {
     const params = new URLSearchParams();

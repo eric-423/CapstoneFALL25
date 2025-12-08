@@ -9,10 +9,6 @@ export async function PUT(
         const cookieStore = await cookies();
         const token = cookieStore.get('token')?.value;
 
-        if (!token) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
         const { branchId } = await params;
 
         const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/branches/${branchId}/activate`, {

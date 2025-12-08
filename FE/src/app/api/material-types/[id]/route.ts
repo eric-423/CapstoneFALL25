@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
+import { createErrorResponse } from '@/lib/error-handler';
 
 export async function PUT(
     request: NextRequest,
@@ -7,13 +8,10 @@ export async function PUT(
 ) {
     try {
         const cookieStore = await cookies();
-        const token = cookieStore.get('access_token')?.value || cookieStore.get('token')?.value;
+        const token = cookieStore.get('token')?.value;
 
         if (!token) {
-            return NextResponse.json(
-                { error: 'Unauthorized' },
-                { status: 401 }
-            );
+            return createErrorResponse(new Error('Unauthorized'));
         }
 
         const { id } = await params;
@@ -31,14 +29,10 @@ export async function PUT(
             }
         );
 
-        const data = await response.json();
-        return NextResponse.json(data);
+        return NextResponse.json(await response.json());
     } catch (error) {
         console.error('Material type PUT error:', error);
-        return NextResponse.json(
-            { error: 'Internal Server Error' },
-            { status: 500 }
-        );
+        return createErrorResponse(error as Error);
     }
 }
 
@@ -48,13 +42,10 @@ export async function DELETE(
 ) {
     try {
         const cookieStore = await cookies();
-        const token = cookieStore.get('access_token')?.value || cookieStore.get('token')?.value;
+        const token = cookieStore.get('token')?.value;
 
         if (!token) {
-            return NextResponse.json(
-                { error: 'Unauthorized' },
-                { status: 401 }
-            );
+            return createErrorResponse(new Error('Unauthorized'));
         }
 
         const { id } = await params;
@@ -69,13 +60,9 @@ export async function DELETE(
             }
         );
 
-        const data = await response.json();
-        return NextResponse.json(data);
+        return NextResponse.json(await response.json());
     } catch (error) {
         console.error('Material type DELETE error:', error);
-        return NextResponse.json(
-            { error: 'Internal Server Error' },
-            { status: 500 }
-        );
+        return createErrorResponse(error as Error);
     }
 }

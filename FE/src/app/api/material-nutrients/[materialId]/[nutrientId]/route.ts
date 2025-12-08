@@ -1,7 +1,6 @@
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+import { createErrorResponse } from '@/lib/error-handler';
 
 export async function DELETE(
   request: NextRequest,
@@ -16,7 +15,7 @@ export async function DELETE(
     }
 
     const { materialId, nutrientId } = await params;
-    const url = `${API_BASE_URL}/material-nutrients/${materialId}/${nutrientId}`;
+    const url = `${process.env.NEXT_PUBLIC_BASE_URL}/material-nutrients/${materialId}/${nutrientId}`;
 
     const response = await fetch(url, {
       method: "DELETE",
@@ -27,22 +26,14 @@ export async function DELETE(
     });
 
     if (!response.ok) {
-      const errorBody = await response.text();
-      console.error("Backend error:", errorBody);
-      return NextResponse.json(
-        { error: errorBody || "Failed to delete material nutrient" },
-        { status: response.status }
-      );
+      return createErrorResponse(new Error('Failed to delete material nutrient'));
     }
 
     const data = await response.json();
     return NextResponse.json(data);
   } catch (error) {
     console.error("Error deleting material nutrient:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
+    return createErrorResponse(error as Error);
   }
 }
 
@@ -60,7 +51,7 @@ export async function GET(
     }
 
     const { materialId, nutrientId } = await params;
-    const url = `${API_BASE_URL}/material-nutrients/${materialId}/${nutrientId}`;
+    const url = `${process.env.NEXT_PUBLIC_BASE_URL}/material-nutrients/${materialId}/${nutrientId}`;
 
     const response = await fetch(url, {
       method: "GET",
@@ -71,21 +62,13 @@ export async function GET(
     });
 
     if (!response.ok) {
-      const errorBody = await response.text();
-      console.error("Backend error:", errorBody);
-      return NextResponse.json(
-        { error: errorBody || "Failed to fetch material nutrient" },
-        { status: response.status }
-      );
+      return createErrorResponse(new Error('Failed to fetch material nutrient'));
     }
 
     const data = await response.json();
     return NextResponse.json(data);
   } catch (error) {
     console.error("Error fetching material nutrient:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
+    return createErrorResponse(error as Error);
   }
 }

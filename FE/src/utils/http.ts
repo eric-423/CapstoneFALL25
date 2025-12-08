@@ -1,26 +1,13 @@
-import configs from "@/utils/configs";
+import axios, { AxiosInstance } from "axios";
 
-import axios, { AxiosError, AxiosInstance } from "axios";
-
-import { HTTP_STATUS } from "./constants";
-import {
-  getAccessToken,
-  getRefreshToken,
-  removeAccessToken,
-  removeRefreshToken,
-  setRefreshToken,
-  getToken,
-  setToken,
-  removeToken,
-} from "./cookies.client";
+import { getToken } from "./cookies.client";
 
 class Http {
-  private accessToken: string | null = null;
-  private refreshToken: string | null = null;
+  private token: string | null = null;
   instance: AxiosInstance;
 
   constructor() {
-    const baseURL = process.env.NEXT_PUBLIC_API_URL;
+    const baseURL = process.env.NEXT_PUBLIC_BASE_URL;
 
     this.instance = axios.create({
       baseURL: baseURL,
@@ -30,82 +17,24 @@ class Http {
       },
     });
 
-    console.log("  - axios.defaults.baseURL:", this.instance.defaults.baseURL);
-
     this.instance.interceptors.request.use(
       (config) => {
-        if (!this.accessToken) {
+        if (!this.token) {
           try {
             const token = getToken();
-            const accessToken = getAccessToken();
-            this.accessToken = token || accessToken || null;
-            this.refreshToken = getRefreshToken() || null;
+            this.token = token || null;
           } catch (error) {
             console.error("Error getting token:", error);
           }
         }
 
-        if (this.accessToken && config.headers) {
-          config.headers.Authorization = `Bearer ${this.accessToken}`;
+        if (this.token && config.headers) {
+          config.headers.Authorization = `Bearer ${this.token}`;
         }
         return config;
       },
 
       (error) => {
-        return Promise.reject(error);
-      }
-    );
-
-    this.instance.interceptors.response.use(
-      (response) => {
-        const { url, method } = response.config;
-        if (method === "post" && url?.includes("token/refresh")) {
-          if (response.data.access_token) {
-            this.accessToken = response.data.access_token;
-            this.refreshToken = response.data.refresh_token || null;
-            if (this.accessToken) {
-              setToken(this.accessToken);
-            }
-            if (this.refreshToken) {
-              setRefreshToken(this.refreshToken);
-            }
-          }
-        } else if (method === "post" && url?.includes("employee/login")) {
-          if (response.data?.token) {
-            this.accessToken = response.data.token;
-            if (this.accessToken) {
-              setToken(this.accessToken);
-            }
-          }
-        } else if (method === "post" && url?.includes("sign-in")) {
-          if (response.data.data?.access_token) {
-            this.accessToken = response.data.data.access_token;
-            this.refreshToken = response.data.data.refresh_token || null;
-            if (this.accessToken) {
-              setToken(this.accessToken);
-            }
-            if (this.refreshToken) {
-              setRefreshToken(this.refreshToken);
-            }
-          }
-        } else if (url === configs.routes.logout) {
-          this.accessToken = null;
-          this.refreshToken = null;
-          removeToken();
-          removeAccessToken();
-          removeRefreshToken();
-        }
-        return response;
-      },
-      (error: AxiosError) => {
-        if (error.response?.status === HTTP_STATUS.UNAUTHORIZED) {
-          this.accessToken = null;
-          this.refreshToken = null;
-          removeToken();
-          removeAccessToken();
-          removeRefreshToken();
-        }
-
         return Promise.reject(error);
       }
     );

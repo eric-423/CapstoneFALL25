@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://tam-tac.com/api";
+import { createErrorResponse } from '@/lib/error-handler';
 
 export async function GET(
   request: NextRequest,
@@ -19,7 +18,7 @@ export async function GET(
     const searchParams = request.nextUrl.searchParams;
     const queryString = searchParams.toString();
 
-    const backendUrl = `${API_URL}/lessons/me/trainings/${trainingId}/lessons${queryString ? `?${queryString}` : ""}`;
+    const backendUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/lessons/me/trainings/${trainingId}/lessons${queryString ? `?${queryString}` : ""}`;
     const response = await fetch(backendUrl, {
       method: "GET",
       headers: {
@@ -29,25 +28,13 @@ export async function GET(
       },
     });
 
-    const payload = await response.json().catch(() => null);
-
     if (!response.ok) {
-      return NextResponse.json(
-        payload ?? { error: "Failed to fetch my training lessons" },
-        { status: response.status }
-      );
+      return createErrorResponse(new Error('Failed to fetch my training lessons'));
     }
 
-    return NextResponse.json(payload ?? {});
+    return NextResponse.json(await response.json());
   } catch (error) {
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to fetch my training lessons",
-      },
-      { status: 500 }
-    );
+    console.error('Error fetching my training lessons:', error);
+    return createErrorResponse(error as Error);
   }
 }

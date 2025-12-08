@@ -7,25 +7,18 @@ export async function GET(
 ) {
     try {
         const cookieStore = await cookies();
-        const accessToken = cookieStore.get('access_token')?.value || cookieStore.get('token')?.value;
+        const token = cookieStore.get('token')?.value;
 
-        if (!accessToken) {
-            return NextResponse.json(
-                { error: 'Unauthorized' },
-                { status: 401 }
-            );
-        }
 
         const { comboId } = await params;
 
-        // Forward to external API
         const response = await fetch(
             `${process.env.NEXT_PUBLIC_BASE_URL}/combos/${comboId}`,
             {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Bearer ${accessToken}`,
+                    Authorization: `Bearer ${token}`,
                 },
             }
         );

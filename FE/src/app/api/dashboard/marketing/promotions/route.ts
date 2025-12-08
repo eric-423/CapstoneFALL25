@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { createErrorResponse } from '@/lib/error-handler';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://tam-tac.com';
 
 export async function GET(request: NextRequest) {
     try {
@@ -18,10 +18,8 @@ export async function GET(request: NextRequest) {
         const { searchParams } = new URL(request.url);
         const queryString = searchParams.toString();
 
-        const baseUrl = API_BASE_URL.endsWith('/api/v1') ? API_BASE_URL : `${API_BASE_URL}/api/v1`;
-        const url = `${baseUrl}/dashboard/marketing/promotions${queryString ? `?${queryString}` : ''}`;
+        const url = `${process.env.NEXT_PUBLIC_BASE_URL}/dashboard/marketing/promotions${queryString ? `?${queryString}` : ''}`;
 
-        console.log('🔄 Fetching Promotion Effectiveness:', url);
 
         const response = await fetch(url, {
             method: 'GET',
@@ -33,35 +31,15 @@ export async function GET(request: NextRequest) {
             cache: 'no-store',
         });
 
-        console.log('📥 Response status:', response.status, response.statusText);
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('❌ Error response:', errorText);
-            let errorData;
-            try {
-                errorData = JSON.parse(errorText);
-            } catch {
-                errorData = { error: errorText || 'Failed to fetch promotion effectiveness' };
-            }
-            return NextResponse.json(errorData, { status: response.status });
+            return NextResponse.json({ error: errorText || 'Lỗi Không Xác Định' }, { status: response.status });
         }
 
-        const responseText = await response.text();
-        let data;
-        try {
-            data = responseText ? JSON.parse(responseText) : { data: [] };
-        } catch (parseError) {
-            console.error('❌ Failed to parse JSON:', parseError);
-            data = { data: [] };
-        }
-
-        return NextResponse.json(data);
+        return NextResponse.json(await response.json());
     } catch (error) {
-        console.error('Promotion Effectiveness API Error:', error);
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Internal server error' },
-            { status: 500 }
-        );
+        console.error('Error fetching promotion effectiveness:', error);
+        return createErrorResponse(error as Error);
     }
 }

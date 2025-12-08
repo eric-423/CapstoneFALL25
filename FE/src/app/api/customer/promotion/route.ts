@@ -1,33 +1,28 @@
-import { NextRequest, NextResponse } from "next/server";
-import http from "@/utils/http";
+import { NextResponse } from "next/server";
 import { PromotionsResponse } from "@/apis/promotion.api";
+import { cookies } from "next/headers";
+import { createErrorResponse } from "@/lib/error-handler";
 
-export async function GET(
-  request: NextRequest
-): Promise<NextResponse<PromotionsResponse>> {
+export async function GET(): Promise<NextResponse<PromotionsResponse | { error: string; code: string }>> {
   try {
-    const token = request.cookies.get("token")?.value;
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value;
 
-    if (!token) {
-      return NextResponse.json(
-        { status: 401, desc: "Unauthorized", data: [] },
-        { status: 401 }
-      );
-    }
-
-    const response = await http.get(`/promotions/customer/my-promotions`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/promotions/customer/my-promotions`, {
+      method: "GET",
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
     });
 
-    return NextResponse.json(response.data);
+    if (!response.ok) {
+      return createErrorResponse(new Error('Failed to fetch customer promotions')) as NextResponse<{ error: string; code: string }>;
+    }
+
+    return NextResponse.json(await response.json());
   } catch (error) {
-    console.log("Customer promotions API error:", error);
-    return NextResponse.json(
-      { status: 500, desc: "Failed to fetch customer promotions", data: [] },
-      { status: 500 }
-    );
+    console.error("Error fetching customer promotions:", error);
+    return createErrorResponse(error as Error) as NextResponse<{ error: string; code: string }>;
   }
 }
