@@ -304,11 +304,8 @@ export default function UsersManagementPage() {
           }
         />
       </div>
-
-      {/* Filters Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-gradient-to-r from-[#EBD187]/20 to-[#78A243]/10 backdrop-blur-sm border-[#78A243]/20 border shadow-sm rounded-xl">
+      <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-white backdrop-blur-sm border-gray-300 border shadow-sm rounded-xl">
         <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[200px]">
-          {/* Main Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#2D1E1A]/60" />
             <input
@@ -381,24 +378,24 @@ export default function UsersManagementPage() {
           <>
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gradient-to-r from-[#78A243]/10 to-[#EBD187]/20 border-b-2 border-[#78A243]/30">
+                <thead className="bg-white border-b-2 border-grey-300">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-bold text-[#2D1E1A]">
+                    <th className="px-4 py-3 text-center text-sm font-bold text-[#2D1E1A]">
                       ID
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-bold text-[#2D1E1A]">
+                    <th className="px-4 py-3 text-center text-sm font-bold text-[#2D1E1A]">
                       Họ tên
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-bold text-[#2D1E1A]">
+                    <th className="px-4 py-3 text-center text-sm font-bold text-[#2D1E1A]">
                       Email
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-bold text-[#2D1E1A]">
+                    <th className="px-4 py-3 text-center text-sm font-bold text-[#2D1E1A]">
                       SĐT
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-bold text-[#2D1E1A]">
+                    <th className="px-4 py-3 text-center text-sm font-bold text-[#2D1E1A]">
                       Vai trò
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-bold text-[#2D1E1A]">
+                    <th className="px-4 py-3 text-center text-sm font-bold text-[#2D1E1A]">
                       Trạng thái
                     </th>
                     <th className="px-4 py-3 text-right text-sm font-bold text-[#2D1E1A]">
@@ -587,7 +584,6 @@ export default function UsersManagementPage() {
               </table>
             </div>
 
-            {/* Pagination */}
             {totalPages > 1 && (
               <div className="px-4 py-3 border-t border-[#78A243]/20 bg-gradient-to-r from-[#EBD187]/10 to-[#78A243]/5">
                 <div className="flex items-center justify-between">
@@ -624,7 +620,6 @@ export default function UsersManagementPage() {
         )}
       </Card>
 
-      {/* User Form Dialog */}
       <UserFormDialog
         open={showDialog}
         onOpenChange={setShowDialog}
@@ -632,7 +627,6 @@ export default function UsersManagementPage() {
         onSuccess={handleDialogSuccess}
       />
 
-      {/* Confirm Dialog */}
       <ConfirmDialog
         open={confirmDialog.open}
         onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}
@@ -662,7 +656,6 @@ export default function UsersManagementPage() {
         loading={actionLoading}
       />
 
-      {/* Roles Management Modal */}
       <RolesManagementModal
         open={showRolesModal}
         onOpenChange={setShowRolesModal}

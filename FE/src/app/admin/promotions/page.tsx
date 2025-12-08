@@ -28,7 +28,7 @@ import {
   AdminPageHeader,
 } from "../components/AdminPageLayout";
 import { AdminCard } from "../components/AdminCard";
-import { FilterDropdown } from '@/components/common/FilterDropdown';
+import { FilterDropdown } from "@/components/common/FilterDropdown";
 import { Button } from "@/components/ui/button";
 
 export default function PromotionsPage() {
@@ -156,7 +156,8 @@ export default function PromotionsPage() {
       (statusFilter === "inactive" && !promo.status);
 
     const matchesType =
-      !promotionTypeFilter || (promo.promotionTypeName || "") === promotionTypeFilter;
+      !promotionTypeFilter ||
+      (promo.promotionTypeName || "") === promotionTypeFilter;
 
     return matchesKeyword && matchesStatus && matchesType;
   });
@@ -173,7 +174,12 @@ export default function PromotionsPage() {
         <AdminPageHeader
           title="Quản Lý Khuyến Mãi"
           icon={Gift}
-          actions={<AddPromotionDialog onSuccess={fetchPromotions} availablePromotionTypes={promotionTypes} />}
+          actions={
+            <AddPromotionDialog
+              onSuccess={fetchPromotions}
+              availablePromotionTypes={promotionTypes}
+            />
+          }
         />
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -203,7 +209,7 @@ export default function PromotionsPage() {
         </div>
 
         {/* Filters */}
-        <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-gradient-to-r from-[#EBD187]/20 to-[#78A243]/10 backdrop-blur-sm border-[#78A243]/20 border shadow-sm rounded-xl">
+        <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-white backdrop-blur-sm border-gray-300 border shadow-sm rounded-xl">
           <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[200px]">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#2D1E1A]/60" />
@@ -231,7 +237,10 @@ export default function PromotionsPage() {
               title="Lọc theo loại"
               value={promotionTypeFilter}
               onChange={(value) => setPromotionTypeFilter(value)}
-              items={promotionTypes.map((t) => ({ value: t.name, label: t.name }))}
+              items={promotionTypes.map((t) => ({
+                value: t.name,
+                label: t.name,
+              }))}
               className="w-[200px]"
             />
 

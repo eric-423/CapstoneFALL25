@@ -65,7 +65,7 @@ export default function WarehousesPage() {
       setWarehouseMaterials(warehouseData);
       setAllMaterials(allMaterialsResponse.data.content);
     } catch (error) {
-      console.error('fetchWarehouseMaterials error:', error);
+      console.error("fetchWarehouseMaterials error:", error);
       toast.error("Không thể tải danh sách nguyên liệu!");
     } finally {
       setLoading(false);
@@ -98,9 +98,7 @@ export default function WarehousesPage() {
   if (loading) {
     return (
       <ManagerGuard>
-        <div
-          className={`${montserrat.className}`}
-        >
+        <div className={`${montserrat.className}`}>
           <AdminPageLayout>
             <div className="flex items-center justify-center h-64">
               <div className="w-8 h-8 border-4 border-[#78A243]/30 border-t-[#78A243] rounded-full animate-spin"></div>
@@ -113,9 +111,7 @@ export default function WarehousesPage() {
 
   return (
     <ManagerGuard>
-      <div
-        className={`${montserrat.className}`}
-      >
+      <div className={`${montserrat.className}`}>
         <AdminPageLayout>
           <AdminPageHeader
             title="Kho & Nguyên liệu"
@@ -155,19 +151,19 @@ export default function WarehousesPage() {
               <table className="w-full">
                 <thead className="bg-[#EC6426]/10 border-b-2 border-[#EC6426]/30">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-bold text-[#2D1E1A] uppercase tracking-wider">
+                    <th className="px-4 py-3 text-center text-sm font-bold text-[#2D1E1A] uppercase tracking-wider">
                       Nguyên liệu
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-bold text-[#2D1E1A] uppercase tracking-wider">
+                    <th className="px-4 py-3 text-center text-sm font-bold text-[#2D1E1A] uppercase tracking-wider">
                       Loại
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-bold text-[#2D1E1A] uppercase tracking-wider">
+                    <th className="px-4 py-3 text-center text-sm font-bold text-[#2D1E1A] uppercase tracking-wider">
                       Tồn kho
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-bold text-[#2D1E1A] uppercase tracking-wider">
+                    <th className="px-4 py-3 text-center text-sm font-bold text-[#2D1E1A] uppercase tracking-wider">
                       Ngưỡng
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-bold text-[#2D1E1A] uppercase tracking-wider">
+                    <th className="px-4 py-3 text-center text-sm font-bold text-[#2D1E1A] uppercase tracking-wider">
                       Trạng thái
                     </th>
                   </tr>
@@ -207,12 +203,13 @@ export default function WarehousesPage() {
                             </p>
                             <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
                               <div
-                                className={`h-2 rounded-full ${stockPercentage >= 100
-                                  ? "bg-[#78A243]"
-                                  : stockPercentage >= 50
-                                    ? "bg-[#EBD187]"
-                                    : "bg-[#DA7339]"
-                                  }`}
+                                className={`h-2 rounded-full ${
+                                  stockPercentage >= 100
+                                    ? "bg-[#78A243]"
+                                    : stockPercentage >= 50
+                                      ? "bg-[#EBD187]"
+                                      : "bg-[#DA7339]"
+                                }`}
                                 style={{
                                   width: `${Math.min(stockPercentage, 100)}%`,
                                 }}
