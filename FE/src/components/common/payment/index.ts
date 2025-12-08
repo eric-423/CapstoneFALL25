@@ -1,0 +1,2 @@
+export { DiningTablePaymentModal } from './DiningTablePaymentModal';
+

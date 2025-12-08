@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://tam-tac.com';
+
 
 export async function POST(request: NextRequest) {
     try {
@@ -17,27 +17,19 @@ export async function POST(request: NextRequest) {
 
         const body = await request.json();
 
-        const baseUrl = API_BASE_URL.endsWith('/api/v1') ? API_BASE_URL : `${API_BASE_URL}/api/v1`;
-        const url = `${baseUrl}/orders/dining-table/payment`;
-
-        console.log('🔄 Processing dining table payment:', body);
-
-        const response = await fetch(url, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/orders/dining-table/payment`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`,
-                'accept': '*/*',
             },
             body: JSON.stringify(body),
             cache: 'no-store',
         });
 
-        console.log('📥 Response status:', response.status, response.statusText);
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('❌ Error response:', errorText);
             let errorData;
             try {
                 errorData = JSON.parse(errorText);
@@ -51,8 +43,8 @@ export async function POST(request: NextRequest) {
         let data;
         try {
             data = responseText ? JSON.parse(responseText) : { success: true };
-        } catch (parseError) {
-            console.error('❌ Failed to parse JSON:', parseError);
+        } catch (error) {
+            console.log('Failed to parse JSON:', error);
             data = { success: true };
         }
 
