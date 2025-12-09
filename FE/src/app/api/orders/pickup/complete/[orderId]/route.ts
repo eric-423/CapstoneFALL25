@@ -1,6 +1,6 @@
+import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 type CompletePickupRouteContext = {
   params: Promise<{ orderId?: string | string[] }>;
@@ -11,7 +11,9 @@ export async function PUT(
   context: CompletePickupRouteContext
 ) {
   try {
-    const token = request.cookies.get("token")?.value;
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value;
+
     if (!token) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -23,15 +25,13 @@ export async function PUT(
       return NextResponse.json({ error: "Missing orderId" }, { status: 400 });
     }
 
-    const url = `${API_BASE_URL}/orders/staff/pickup/completed/${orderId}`;
 
-    const response = await fetch(url, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/orders/staff/pickup/comleted/${orderId}`, {
       method: "PUT",
       headers: {
-        accept: "*/*",
-        Authorization: `Bearer ${token}`,
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
       },
-      cache: "no-store",
     });
 
     const responseText = await response.text();
@@ -45,6 +45,12 @@ export async function PUT(
           error: responseText || "Failed to complete pickup order",
         };
       }
+
+      console.error("[Complete Pickup Order API] Backend error:", {
+        status: response.status,
+        statusText: response.statusText,
+        errorBody,
+      });
 
       return NextResponse.json(
         {
@@ -61,7 +67,11 @@ export async function PUT(
   } catch (error) {
     console.error("[Complete Pickup Order API] Unexpected error:", error);
     return NextResponse.json(
-      { error: "Failed to complete pickup order", type: "UnexpectedError" },
+      {
+        error: "Failed to complete pickup order",
+        type: "UnexpectedError",
+        message: error instanceof Error ? error.message : String(error)
+      },
       { status: 500 }
     );
   }
