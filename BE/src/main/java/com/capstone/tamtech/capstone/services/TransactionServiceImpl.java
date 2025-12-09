@@ -37,6 +37,9 @@ public class TransactionServiceImpl implements TransactionService {
             List<TransactionDTO> transactionDTOS = new ArrayList<>();
 
             for (Order order : orders) {
+                if (order.getIsTable() && order.getPaymentTime() == null) {
+                    continue;
+                }
                 TransactionDTO transactionDTO = new TransactionDTO();
                 transactionDTO.setPaymentCode(order.getPaymentCode());
                 transactionDTO.setAmount(order.getAmount());
@@ -72,4 +75,5 @@ public class TransactionServiceImpl implements TransactionService {
 
         return PageRequest.of(page, size, sort);
     }
+
 }
