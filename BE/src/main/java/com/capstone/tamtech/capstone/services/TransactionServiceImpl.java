@@ -37,7 +37,7 @@ public class TransactionServiceImpl implements TransactionService {
             List<TransactionDTO> transactionDTOS = new ArrayList<>();
 
             for (Order order : orders) {
-                if (order.getIsTable() && order.getPaymentTime() == null) {
+                if (order.getIsTable()==null && order.getPaymentTime() == null) {
                     continue;
                 }
                 TransactionDTO transactionDTO = new TransactionDTO();
