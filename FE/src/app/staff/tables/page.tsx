@@ -647,30 +647,30 @@ export default function StaffTablesPage() {
                         </Button>
                       )}
                       <div className="flex flex-wrap gap-2">
-                        {/* QR button moved to top-right */}
-                        {hasOrder && (
-                          <Button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openActionModal(table);
-                            }}
-                            variant="outline"
-                            size="sm"
-                            className="flex-1 min-w-[60px] text-xs h-8 border-2 border-green-500 text-green-600 hover:bg-green-500 hover:text-white"
-                          >
-                            <CheckCircle size={14} className="mr-1" />
-                            Xử lý
-                          </Button>
-                        )}
+                      {/* QR button moved to top-right */}
+                      {hasOrder && (
                         <Button
-                          onClick={() => handleTableClick(table.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openActionModal(table);
+                          }}
                           variant="outline"
                           size="sm"
-                          className="flex-1 min-w-[60px] text-xs h-8 border-2 border-blue-500 text-blue-600 hover:bg-blue-500 hover:text-white"
+                          className="flex-1 min-w-[60px] text-xs h-8 border-2 border-green-500 text-green-600 hover:bg-green-500 hover:text-white"
                         >
-                          <Eye size={14} className="mr-1" />
-                          Xem
+                          <CheckCircle size={14} className="mr-1" />
+                          Xử lý
                         </Button>
+                      )}
+                      <Button
+                        onClick={() => handleTableClick(table.id)}
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 min-w-[60px] text-xs h-8 border-2 border-blue-500 text-blue-600 hover:bg-blue-500 hover:text-white"
+                      >
+                        <Eye size={14} className="mr-1" />
+                        Xem
+                      </Button>
                       </div>
                     </div>
                   </Card>
