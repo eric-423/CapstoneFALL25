@@ -480,11 +480,7 @@ export function OrdersBoard({ variant }: OrdersBoardProps) {
         className={`bg-white -mb-6 -mr-4 sm:-mr-4 ml-4 ${montserrat.className}`}
       >
         <AdminPageLayout>
-          <AdminPageHeader
-            title="Quản Lý Đơn Hàng"
-            description="Theo dõi và xử lý đơn hàng"
-            icon={ShoppingBag}
-          />
+          <AdminPageHeader title="Quản Lý Đơn Hàng" icon={ShoppingBag} />
 
           <AdminStatsGrid>
             <AdminStatsCard
@@ -542,9 +538,6 @@ export function OrdersBoard({ variant }: OrdersBoardProps) {
                 <Package className="mx-auto h-16 w-16 text-gray-400 mb-4" />
                 <p className="text-gray-600 font-semibold text-lg">
                   Không có đơn hàng nào
-                </p>
-                <p className="text-gray-500 text-sm mt-2">
-                  Thử chọn trạng thái khác để xem thêm đơn hàng
                 </p>
               </div>
             ) : (
