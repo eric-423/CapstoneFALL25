@@ -117,8 +117,11 @@ export function DiningTablePaymentModal({
                 setCustomerVerificationError(null);
 
                 // Auto-fill usedPoints from memberPoint when customer is found (only if > 0)
+                // Nhưng không được vượt quá số điểm tối đa tính từ subTotal
                 if (response.data.memberPoint && response.data.memberPoint > 0) {
-                    setUsedPoints(response.data.memberPoint);
+                    const maxPointsFromSubTotal = table?.currentOrder?.subTotal ? Math.floor(table.currentOrder.subTotal / 1000) : 0;
+                    const maxPoints = Math.min(response.data.memberPoint, maxPointsFromSubTotal);
+                    setUsedPoints(maxPoints > 0 ? maxPoints : 0);
                 } else {
                     setUsedPoints(0);
                 }
@@ -156,7 +159,10 @@ export function DiningTablePaymentModal({
             return;
         }
         const parsedValue = parseInt(value) || 0;
-        const maxPoints = customerInfo?.memberPoint || 0;
+
+        const maxPointsFromSubTotal = table?.currentOrder?.subTotal ? Math.floor(table.currentOrder.subTotal / 1000) : 0;
+        const customerAvailablePoints = customerInfo?.memberPoint || 0;
+        const maxPoints = Math.min(customerAvailablePoints, maxPointsFromSubTotal);
 
         if (parsedValue < 0) {
             setUsedPoints(0);
@@ -170,6 +176,11 @@ export function DiningTablePaymentModal({
     const handlePayment = async () => {
         if (!table?.currentOrder || !selectedPaymentMethod) {
             onNotification("Vui lòng chọn phương thức thanh toán", "error");
+            return;
+        }
+
+        if (table.currentOrder.paymentUrl) {
+            window.location.href = table.currentOrder.paymentUrl;
             return;
         }
 
@@ -232,9 +243,8 @@ export function DiningTablePaymentModal({
                     <h2 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight">
                         Thanh toán
                     </h2>
-                    <p className="text-sm text-gray-600">
-                        Bàn: <span className="font-semibold text-gray-900">{table.name}</span>
-                    </p>
+
+
                 </div>
 
                 {/* Customer Info Display - Below Header */}
@@ -414,7 +424,11 @@ export function DiningTablePaymentModal({
                                         value={usedPoints > 0 ? usedPoints : ""}
                                         onChange={handleValidateUsedPoints}
                                         min="0"
-                                        max={customerInfo?.memberPoint || undefined}
+                                        max={(() => {
+                                            const maxPointsFromSubTotal = table?.currentOrder?.subTotal ? Math.floor(table.currentOrder.subTotal / 1000) : 0;
+                                            const customerAvailablePoints = customerInfo?.memberPoint || 0;
+                                            return Math.min(customerAvailablePoints, maxPointsFromSubTotal);
+                                        })()}
                                         className="h-9 text-sm"
                                     />
                                 </div>
@@ -454,7 +468,7 @@ export function DiningTablePaymentModal({
                             ))
                         ) : (
                             <div className="text-center py-4 text-gray-500 text-sm">
-                                Đang tải phương thức thanh toán...
+                                Đang tải ...
                             </div>
                         )}
 
