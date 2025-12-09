@@ -51,6 +51,7 @@ export interface UpdateDiningTableOrderRequest {
 
 export interface ComboItemDTO {
     productId: number;
+    productName?: string;
     comboId: number;
     quantity: number;
     note: string;

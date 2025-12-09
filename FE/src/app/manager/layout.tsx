@@ -481,11 +481,6 @@ export default function ManagerLayout({
               </Button>
             </div>
 
-            <div className="p-3 sm:p-4 bg-[#EC6426] backdrop-blur border-t border-white/20 flex-shrink-0">
-              <p className="text-xs text-center text-white/70 font-medium">
-                © 2025 Tấm Tắc Restaurant
-              </p>
-            </div>
           </aside>
 
           <main

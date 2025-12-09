@@ -386,7 +386,7 @@ export default function StaffTablesPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#EFE6DB]">
+      <div className="min-h-screen flex items-center justify-center bg-transparent">
         <div className="text-center">
           <LoadingSpinner className="h-12 w-12 mx-auto mb-4" />
           <p className="text-gray-600 font-semibold">Đang tải dữ liệu...</p>
@@ -415,7 +415,7 @@ export default function StaffTablesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#EFE6DB]">
+    <div className="min-h-screen bg-white px-3">
       {/* Notification Toast */}
       {notification && (
         <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-top-2">
@@ -603,9 +603,6 @@ export default function StaffTablesPage() {
                       {/* Order Summary */}
                       {hasOrder && table.currentOrder && (
                         <div className="mb-3 p-2 bg-white/60 rounded-lg text-xs space-y-1">
-                          <div className="font-semibold text-gray-900 truncate">
-                            {table.currentOrder.customerName}
-                          </div>
                           <div className="text-gray-600">
                             {table.currentOrder.orderItems.reduce(
                               (sum, item) => sum + item.quantity,
@@ -629,10 +626,8 @@ export default function StaffTablesPage() {
                       )}
                     </div>
 
-                    {/* Action Buttons */}
                     <div className="flex flex-col gap-2 mt-auto">
-                      {/* Payment Button - Only show when order exists */}
-                      {hasOrder && (
+                      {hasOrder && userRole === "STAFF" && (
                         <Button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -640,14 +635,15 @@ export default function StaffTablesPage() {
                           }}
                           variant="outline"
                           size="sm"
-                          className="w-full text-xs h-9 border-2 border-gradient-to-r from-amber-500 to-amber-600 bg-gradient-to-r from-amber-50 to-amber-100 border-amber-400 text-amber-700 hover:from-amber-500 hover:to-amber-600 hover:text-white hover:shadow-md transition-all duration-200 font-semibold"
+                          className="w-full text-xs h-9 border-2 border-primary text-primary hover:text-primary/70 hover:shadow-md transition-all duration-200 font-semibold"
                         >
                           <CreditCard size={14} className="mr-1.5" />
                           Thanh toán ngay
                         </Button>
                       )}
                       <div className="flex flex-wrap gap-2">
-                        {/* QR button moved to top-right */}
+
+
                         {hasOrder && (
                           <Button
                             onClick={(e) => {
@@ -656,7 +652,7 @@ export default function StaffTablesPage() {
                             }}
                             variant="outline"
                             size="sm"
-                            className="flex-1 min-w-[60px] text-xs h-8 border-2 border-green-500 text-green-600 hover:bg-green-500 hover:text-white"
+                            className="flex-1 min-w-[60px] text-xs h-8 border-2 border-green-500 text-green-600 hover:bg-green-500 hover:text-green-500"
                           >
                             <CheckCircle size={14} className="mr-1" />
                             Xử lý
@@ -666,7 +662,7 @@ export default function StaffTablesPage() {
                           onClick={() => handleTableClick(table.id)}
                           variant="outline"
                           size="sm"
-                          className="flex-1 min-w-[60px] text-xs h-8 border-2 border-blue-500 text-blue-600 hover:bg-blue-500 hover:text-white"
+                          className="flex-1 min-w-[60px] text-xs h-8 border-2 border-blue-500 text-blue-600 hover:bg-blue-500 hover:blue-500"
                         >
                           <Eye size={14} className="mr-1" />
                           Xem
@@ -696,10 +692,10 @@ export default function StaffTablesPage() {
 
             {/* Header */}
             <div className="text-center mb-4">
-              <div className="w-14 h-14 mx-auto mb-3 bg-gradient-to-br from-[#EC6426] to-[#F8A91F] rounded-full flex items-center justify-center">
+              <div className="w-14 h-14 mx-auto mb-3 bg-primary rounded-full flex items-center justify-center">
                 <QrCode className="h-7 w-7 text-white" strokeWidth={2.5} />
               </div>
-              <h2 className="text-xl font-bold bg-gradient-to-r from-[#EC6426] to-[#F8A91F] bg-clip-text text-transparent mb-1">
+              <h2 className="text-xl font-bold bg-primary bg-clip-text text-transparent mb-1">
                 QR Code {selectedTableForQR.name}
               </h2>
               <p className="text-xs text-gray-600">
@@ -747,7 +743,7 @@ export default function StaffTablesPage() {
             <div className="flex gap-3">
               <Button
                 onClick={downloadQRCode}
-                className="flex-1 bg-gradient-to-r from-[#EC6426] to-[#F8A91F] text-white border-0 shadow-md hover:shadow-lg"
+                className="flex-1 bg-primary text-primary-foreground border-0 shadow-md hover:shadow-lg"
               >
                 <Download size={18} className="mr-2" />
                 Tải xuống
@@ -787,10 +783,10 @@ export default function StaffTablesPage() {
 
             {/* Header */}
             <div className="text-center mb-6">
-              <div className="w-14 h-14 mx-auto mb-3 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center">
+              <div className="w-14 h-14 mx-auto mb-3 bg-primary rounded-full flex items-center justify-center">
                 <CheckCircle className="h-7 w-7 text-white" strokeWidth={2.5} />
               </div>
-              <h2 className="text-xl font-bold bg-gradient-to-r from-green-500 to-green-600 bg-clip-text text-transparent mb-1">
+              <h2 className="text-xl font-bold bg-primary bg-clip-text text-transparent mb-1">
                 Xử lý order - {selectedTableForAction.name}
               </h2>
               <p className="text-xs text-gray-600">
@@ -912,7 +908,7 @@ export default function StaffTablesPage() {
                                 }
                                 disabled={processingItemKey === itemKey}
                                 size="sm"
-                                className="bg-gradient-to-r from-blue-500 to-blue-600 text-white border-0 hover:shadow-md disabled:opacity-50"
+                                className="bg-primary text-primary-foreground border-0 hover:shadow-md disabled:opacity-50"
                               >
                                 {processingItemKey === itemKey ? (
                                   <LoadingSpinner className="h-3 w-3" />
@@ -940,7 +936,7 @@ export default function StaffTablesPage() {
                   <Button
                     onClick={handleConfirmAllUnconfirmed}
                     disabled={isConfirmingAll}
-                    className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 text-white border-0 shadow-md hover:shadow-lg disabled:opacity-50"
+                    className="w-full bg-primary text-primary-foreground border-0 shadow-md hover:shadow-lg disabled:opacity-50"
                   >
                     {isConfirmingAll ? (
                       <>
@@ -969,7 +965,7 @@ export default function StaffTablesPage() {
                 <div className="border-t-2 border-gray-200 pt-4">
                   <Button
                     onClick={() => openCustomerVerificationModal(selectedTableForAction)}
-                    className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white border-0 shadow-md hover:shadow-lg"
+                    className="w-full bg-primary text-primary-foreground border-0 shadow-md hover:shadow-lg"
                   >
                     <CheckCircle size={18} className="mr-2" />
                     Thanh toán
@@ -1030,16 +1026,17 @@ export default function StaffTablesPage() {
         </div>
       )}
 
-      {/* Payment Modal Component */}
-      <DiningTablePaymentModal
-        isOpen={showCustomerVerificationModal}
-        table={selectedTableForPayment}
-        onClose={closeCustomerVerificationModal}
-        onPaymentSuccess={() => {
-          fetchTables(true);
-        }}
-        onNotification={showNotification}
-      />
+      {userRole === "STAFF" && (
+        <DiningTablePaymentModal
+          isOpen={showCustomerVerificationModal}
+          table={selectedTableForPayment}
+          onClose={closeCustomerVerificationModal}
+          onPaymentSuccess={() => {
+            fetchTables(true);
+          }}
+          onNotification={showNotification}
+        />
+      )}
 
     </div>
   );

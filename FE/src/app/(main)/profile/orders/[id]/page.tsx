@@ -56,7 +56,6 @@ const mapCustomerOrderDetail = (
 
   const subTotal = detail.subTotal ?? fallback?.subTotal ?? 0;
 
-  const calculatedPointEarned = Math.floor(subTotal / 10000);
 
   const mergedBase: OrderResponse = {
     id: detail.id ?? fallback?.id ?? 0,
@@ -103,7 +102,7 @@ const mapCustomerOrderDetail = (
       typeof detail.pointUsed === "number"
         ? detail.pointUsed
         : fallback?.pointUsed,
-    pointEarned: calculatedPointEarned,
+    pointEarned: detail.pointEarned ?? fallback?.pointEarned ?? 0,
     shipperName: detail.shipperName ?? fallback?.shipperName,
     waiterName: detail.waiterName ?? fallback?.waiterName,
     chefName: detail.chefName ?? fallback?.chefName,
@@ -223,7 +222,6 @@ export default function CustomerOrderDetailPage() {
     try {
       const result = await completeCustomerOrder(orderId);
       if (result.success) {
-        // Refresh order data after completion
         await fetchOrder(false);
       }
     } catch (error) {
