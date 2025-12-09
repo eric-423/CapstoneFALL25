@@ -289,11 +289,9 @@ export default function ChefPage() {
 
                                              return (
                                                 <>
-                                                   {/* Hiển thị combo items */}
                                                    {comboItems.map((item) => {
                                                       if (!item.comboDTO) return null;
 
-                                                      // Chỉ hiển thị combo 1 lần cho mỗi comboId
                                                       if (processedComboIds.has(item.comboDTO.id)) {
                                                          return null;
                                                       }
@@ -301,7 +299,6 @@ export default function ChefPage() {
 
                                                       return (
                                                          <div key={`combo-${item.comboDTO.id}`}>
-                                                            {/* Header combo */}
                                                             <div className='flex items-start gap-3 p-3 bg-gray-50 rounded-lg'>
                                                                {item.productImg && (
                                                                   <Image
@@ -326,7 +323,7 @@ export default function ChefPage() {
                                                                      </div>
                                                                      <div className='flex items-center gap-3'>
                                                                         <p className='text-md text-primary text-bold'>
-                                                                           {item.price.toLocaleString('vi-VN')} đ × {item.quantity}
+                                                                           {item.comboDTO?.price.toLocaleString('vi-VN')} đ × {item.quantity}
                                                                         </p>
                                                                         {
                                                                            item.isCooked ? (
