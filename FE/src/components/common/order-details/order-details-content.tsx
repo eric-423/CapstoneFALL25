@@ -49,6 +49,8 @@ export function OrderDetailsContent({
     table?: boolean;
     pickUp?: boolean;
     itemCount?: number;
+    isTable?: boolean;
+    isPickUp?: boolean;
   };
   const orderItems = Array.isArray(order?.items) ? order.items : [];
   const totalItemQuantity = orderItems.reduce(
@@ -56,19 +58,19 @@ export function OrderDetailsContent({
     0
   );
   const orderTypeBadges = [
-    extendedOrder.table
+    extendedOrder.table || extendedOrder.isTable
       ? {
         label: "Dùng tại bàn",
         color: "bg-blue-50 text-blue-700 border-blue-200",
       }
       : null,
-    extendedOrder.pickUp
+    extendedOrder.pickUp || extendedOrder.isPickUp
       ? {
-        label: "Tự đến lấy",
+        label: "Nhận tại quán",
         color: "bg-purple-50 text-purple-700 border-purple-200",
       }
       : null,
-    !extendedOrder.table && !extendedOrder.pickUp
+    !extendedOrder.table && !extendedOrder.pickUp && !extendedOrder.isTable && !extendedOrder.isPickUp
       ? {
         label: "Giao tận nơi",
         color: "bg-green-50 text-green-700 border-green-200",
@@ -458,14 +460,17 @@ export function OrderDetailsContent({
                   Điểm nhận được:
                 </span>
                 <span className="font-medium">
-                  {order.pointEarned && `+${order.pointEarned?.toLocaleString("vi-VN")} điểm`}
+                  {order.pointEarned ? `+${order.pointEarned.toLocaleString("vi-VN")} điểm` : "0 điểm"}
                 </span>
               </div>
-              {order.subTotal !== undefined && order.subTotal !== null && (
+
+
+              {order.orderStatus?.toUpperCase?.() !== 'COMPLETED' || order.orderStatus?.toUpperCase?.() !== 'PAID' &&
                 <div className="text-xs text-muted-foreground mt-0.5 ml-5">
-                  điểm dự kiến nhận được
+                  Điểm dự kiến nhận được: {Math.floor((order.amount ?? 0) / 10000).toLocaleString("vi-VN")} điểm
                 </div>
-              )}
+              }
+
             </div>
 
             <div className="flex justify-between pt-2 border-t-2 border-gray-300 mt-2">
