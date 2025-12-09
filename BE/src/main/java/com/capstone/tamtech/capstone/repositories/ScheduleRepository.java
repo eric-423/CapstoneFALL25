@@ -16,14 +16,16 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Integer> {
 
     List<Schedule> findByUser(Users user);
 
-    @Query("SELECT s FROM Schedule s WHERE s.user = :user AND s.date = :date")
+    @Query("SELECT s FROM Schedule s WHERE s.user = :user AND FUNCTION('DATE', s.date) = FUNCTION('DATE', :date)")
     List<Schedule> findByUserAndDate(@Param("user") Users user, @Param("date") Date date);
 
-    @Query("SELECT s FROM Schedule s WHERE s.user.id = :userId AND s.date = :date")
+    @Query("SELECT s FROM Schedule s WHERE s.user.id = :userId AND FUNCTION('DATE', s.date) = FUNCTION('DATE', :date)")
     List<Schedule> findByUserIdAndDate(@Param("userId") int userId, @Param("date") Date date);
 
     @Query("SELECT s FROM Schedule s JOIN RoleHistory rh ON s.user.id = rh.user.id WHERE rh.isActive = true AND (:branchId IS NULL OR rh.branch.id = :branchId)")
     List<Schedule> findByBranchId(@Param("branchId") Integer branchId);
 
-    boolean existsByUserAndShiftAndDate(Users user, Shift shift, java.util.Date date);
+    @Query("SELECT COUNT(s) > 0 FROM Schedule s WHERE s.user = :user AND s.shift = :shift AND FUNCTION('DATE', s.date) = FUNCTION('DATE', :date)")
+    boolean existsByUserAndShiftAndDate(@Param("user") Users user, @Param("shift") Shift shift,
+            @Param("date") java.util.Date date);
 }
