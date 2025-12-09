@@ -804,7 +804,7 @@ public class OrderServiceImpl implements OrderService {
         Users shipper = order.getShipper();
         Users customer = order.getCustomer();
 
-        customer.setMemberPoint(customer.getMemberPoint() + (int) (order.getAmount() / 1000));
+        customer.setMemberPoint(customer.getMemberPoint() + (int) (order.getAmount() / 10000));
         shipper.setIsBusy(false);
         usersRepository.save(shipper);
         usersRepository.save(customer);
@@ -914,7 +914,7 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
 
-        if(!order.getIsTable()){
+        if (!order.getIsTable()) {
             throw new RuntimeException("Only dining table orders can be assigned to customers");
         }
 
@@ -1140,22 +1140,19 @@ public class OrderServiceImpl implements OrderService {
             percentDiscountAmount = subTotal * ((double) discountPercent / 100.0);
         }
 
+        int pointsToUse = 0;
         if (paymentRequest.getUsedPoints() > 0 && order.getCustomer() != null) {
             Users customer = order.getCustomer();
             int availablePoints = customer.getMemberPoint();
-            int pointsToUse = Math.min(paymentRequest.getUsedPoints(), availablePoints);
-            double pointsValue = pointsToUse;
-            if (pointsValue > (subTotal - discountValue - percentDiscountAmount)) {
-                pointsToUse = (int) (subTotal - discountValue - percentDiscountAmount);
-                pointsValue = pointsToUse;
-            }
+            pointsToUse = Math.min(paymentRequest.getUsedPoints(), availablePoints);
+
+
             order.setPointUsed(pointsToUse);
-            discountValue += pointsValue;
             customer.setMemberPoint(availablePoints - pointsToUse);
             memberAssociationService.updateMemberAssiociationForCustomer(customer.getId());
             usersRepository.save(customer);
         }
-        double amount = subTotal - discountValue - percentDiscountAmount;
+        double amount = subTotal - discountValue - percentDiscountAmount - 1000 * pointsToUse;
         if (amount < 0) {
             amount = 0;
         }
