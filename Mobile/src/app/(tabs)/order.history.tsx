@@ -606,7 +606,14 @@ const OrderPage = () => {
               ))
             )}
           </ScrollView>
-          <Pressable onPress={() => router.navigate("/(auth)/qrcode" as any)}>
+          <Pressable
+            onPress={() =>
+              router.push({
+                pathname: "/(auth)/qrcode",
+                params: { mode: "order", redirect: "/(user)/order/[id]" },
+              } as any)
+            }
+          >
             <View
               style={{
                 position: "absolute",
