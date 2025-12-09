@@ -506,21 +506,6 @@ const SearchPage = () => {
                     <Text style={styles.itemPrice}>
                       {currencyFormatter(item.price)}
                     </Text>
-                    <Text
-                      style={[
-                        styles.itemPrice,
-                        {
-                          textDecorationLine: "line-through",
-                          fontFamily: FONTS.regular,
-                          fontSize: 13,
-                          color: APP_COLOR.BROWN,
-                          position: "relative",
-                          bottom: -10,
-                        },
-                      ]}
-                    >
-                      {currencyFormatter(item.price - 3000)}
-                    </Text>
                   </View>
                 </View>
                 <View style={styles.quantityContainer}>

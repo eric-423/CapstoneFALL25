@@ -168,7 +168,7 @@ const CartPage = () => {
         <View
           style={{
             marginHorizontal: "auto",
-            marginTop: 10,
+            marginBottom: 50,
           }}
         >
           <ShareButton

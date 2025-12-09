@@ -42,7 +42,7 @@ interface IOrderItem {
 }
 
 const PlaceOrderPage = () => {
-  const { restaurant, cart, appState } = useCurrentApp();
+  const { restaurant, cart, appState, locationReal } = useCurrentApp();
   const orderItems: IOrderItem[] =
     restaurant?._id && cart?.[restaurant._id]?.items
       ? Object.values(cart[restaurant._id].items).map((item) => ({
@@ -97,7 +97,8 @@ const PlaceOrderPage = () => {
         setDistance(null);
         return;
       }
-      if (!customerInformation?.address || !branchAddress) {
+      const addressToUse = customerInformation?.address || locationReal || "";
+      if (!addressToUse || !branchAddress) {
         setDistance(null);
         return;
       }
@@ -107,9 +108,7 @@ const PlaceOrderPage = () => {
           setDistance(parseFloat(storedDistance));
         } else {
           try {
-            const branchRes = await GetBranchNearLocation(
-              customerInformation.address
-            );
+            const branchRes = await GetBranchNearLocation(addressToUse);
             const branches = branchRes.data?.data || branchRes.data || [];
             const currentBranch = branches.find((b: any) => b.id === branchId);
             if (currentBranch?.distanceInMeters) {
@@ -122,10 +121,7 @@ const PlaceOrderPage = () => {
           }
         }
 
-        const res = await GetShippingFee(
-          customerInformation.address,
-          branchAddress
-        );
+        const res = await GetShippingFee(addressToUse, branchAddress);
         const fee = res.data.data || 0;
         setShippingFee(fee);
         setOriginalShippingFee(fee);
@@ -136,7 +132,13 @@ const PlaceOrderPage = () => {
       }
     };
     fetchShippingFee();
-  }, [customerInformation?.address, branchName, branchId, orderMode]);
+  }, [
+    customerInformation?.address,
+    locationReal,
+    branchName,
+    branchId,
+    orderMode,
+  ]);
   const orderDetails: { productId: number; quantity: number }[] =
     restaurant?._id && cart?.[restaurant._id]?.items
       ? Object.values(cart[restaurant._id].items).map((item) => ({
@@ -156,10 +158,22 @@ const PlaceOrderPage = () => {
         setAllAddresses(data);
         const defaultAddress =
           data.find((item: any) => item.isDefault === true) || data[0];
-        setCustomerInformation(defaultAddress || null);
+
+        if (!defaultAddress && locationReal && appState?.userInfo) {
+          const autoCustomerInfo = {
+            fullName:
+              appState.userInfo.fullName || appState.userInfo.fullName || "",
+            phone: appState.userInfo.phoneNumber || "",
+            address: locationReal,
+            isDefault: false,
+          };
+          setCustomerInformation(autoCustomerInfo);
+        } else {
+          setCustomerInformation(defaultAddress || null);
+        }
       };
       fetchCustomerInformation();
-    }, [appState?.userInfo?.id])
+    }, [appState?.userInfo?.id, appState?.userInfo, locationReal])
   );
 
   const fetchAvailablePromotions = useCallback(async () => {
@@ -187,11 +201,11 @@ const PlaceOrderPage = () => {
       return;
     }
     if (orderMode === "SHIPPING") {
-      if (!customerInformation?.address) {
+      if (!customerInformation?.address && !locationReal) {
         console.error("Địa chỉ giao hàng không tồn tại");
         return;
       }
-      if (!customerInformation?.phone) {
+      if (!customerInformation?.phone && !appState?.userInfo?.phoneNumber) {
         console.error("Số điện thoại không tồn tại");
         return;
       }
@@ -217,18 +231,28 @@ const PlaceOrderPage = () => {
           };
         }
       );
+      const shippingAddress =
+        orderMode === "SHIPPING"
+          ? customerInformation?.address || locationReal || ""
+          : branchAddress || "";
+
+      const shippingPhoneNumber =
+        orderMode === "SHIPPING"
+          ? customerInformation?.phone || appState?.userInfo?.phoneNumber || ""
+          : appState?.userInfo?.phoneNumber || "";
+
+      const shippingName =
+        orderMode === "SHIPPING"
+          ? customerInformation?.fullName || appState?.userInfo?.fullName || ""
+          : appState?.userInfo?.fullName || "";
+
       const payload = {
         customerId: appState.userInfo.id,
         promotionCode: selectedPromotion?.id || "",
         discountValue: discountAmount,
-        shippingAddress:
-          orderMode === "SHIPPING"
-            ? customerInformation.address
-            : branchAddress || "",
-        shippingPhoneNumber:
-          orderMode === "SHIPPING"
-            ? customerInformation.phone
-            : appState?.userInfo?.phoneNumber || "",
+        shippingAddress,
+        shippingPhoneNumber,
+        shippingName,
         orderItemList,
         mode: orderMode === "SHIPPING" ? "SHIPPING" : "PICKUP",
         diningTableId: 0,
@@ -393,7 +417,9 @@ const PlaceOrderPage = () => {
                       color: APP_COLOR.BROWN,
                     }}
                   >
-                    {customerInformation?.fullName}
+                    {customerInformation?.fullName ||
+                      appState?.userInfo?.fullName ||
+                      "Chưa có tên"}
                   </Text>
                   <Text style={{ fontSize: 14, color: APP_COLOR.GRAY }}>|</Text>
                   <Text
@@ -403,7 +429,9 @@ const PlaceOrderPage = () => {
                       fontFamily: FONTS.regular,
                     }}
                   >
-                    {customerInformation?.phone}
+                    {customerInformation?.phone ||
+                      appState?.userInfo?.phoneNumber ||
+                      "Chưa có số điện thoại"}
                   </Text>
                 </View>
                 <Text
@@ -413,7 +441,9 @@ const PlaceOrderPage = () => {
                     color: APP_COLOR.BROWN,
                   }}
                 >
-                  {customerInformation?.address}
+                  {customerInformation?.address ||
+                    locationReal ||
+                    "Chưa có địa chỉ"}
                 </Text>
               </Pressable>
             )}
@@ -1326,29 +1356,6 @@ const PlaceOrderPage = () => {
                             >
                               Chưa có địa chỉ nào. Vui lòng thêm địa chỉ mới.
                             </Text>
-                            <Pressable
-                              onPress={() => {
-                                setShowAddressModal(false);
-                                router.navigate("/(user)/order/address.create");
-                              }}
-                              style={{
-                                marginTop: 15,
-                                paddingVertical: 10,
-                                paddingHorizontal: 20,
-                                backgroundColor: APP_COLOR.ORANGE,
-                                borderRadius: 8,
-                              }}
-                            >
-                              <Text
-                                style={{
-                                  fontFamily: FONTS.semiBold,
-                                  fontSize: 14,
-                                  color: APP_COLOR.WHITE,
-                                }}
-                              >
-                                Thêm địa chỉ mới
-                              </Text>
-                            </Pressable>
                           </View>
                         ) : (
                           allAddresses.map((address: any, index: number) => (
@@ -1459,7 +1466,7 @@ const PlaceOrderPage = () => {
                         <Pressable
                           onPress={() => {
                             setShowAddressModal(false);
-                            router.navigate("/(user)/order/address.create");
+                            router.navigate("/(user)/order/address.new");
                           }}
                           style={{
                             paddingVertical: 12,
@@ -1475,7 +1482,7 @@ const PlaceOrderPage = () => {
                               color: APP_COLOR.WHITE,
                             }}
                           >
-                            + Thêm địa chỉ mới
+                            Thêm địa chỉ mới
                           </Text>
                         </Pressable>
                       </View>

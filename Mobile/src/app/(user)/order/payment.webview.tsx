@@ -1,9 +1,8 @@
 import { View, StyleSheet, ActivityIndicator, Text } from "react-native";
 import { WebView } from "react-native-webview";
 import { router, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { APP_COLOR } from "@/utils/constant";
-import { AntDesign } from "@expo/vector-icons";
 import HeaderHome from "@/components/home/header.home";
 import { FONTS } from "@/theme/typography";
 import { useCurrentApp } from "@/context/app.context";
@@ -11,97 +10,72 @@ import { useCurrentApp } from "@/context/app.context";
 const PaymentWebViewPage = () => {
   const { paymentUrl } = useLocalSearchParams<{ paymentUrl: string }>();
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [showWebView, setShowWebView] = useState(true);
   const { setCart } = useCurrentApp();
+
+  const webViewRef = useRef<WebView>(null);
+  const isNavigating = useRef(false);
+
   const handleNavigationStateChange = (navState: any) => {
     const url = (navState.url || "").toLowerCase();
+
+    if (isNavigating.current) return;
+    const handleRedirect = (targetRoute: string, shouldClearCart: boolean) => {
+      isNavigating.current = true;
+
+      if (webViewRef.current) webViewRef.current.stopLoading();
+      setShowWebView(false);
+
+      if (shouldClearCart) setCart({});
+
+      setTimeout(() => {
+        router.replace(targetRoute as any);
+      }, 500);
+    };
     if (url.includes("success") || url.includes("callback")) {
-      console.log("Payment success detected:", url);
-      router.replace("/(auth)/order.success");
-    } else if (url.includes("payment-cancel") || url.includes("cancel")) {
-      setCart({});
-      router.replace("/(tabs)");
+      handleRedirect("/(auth)/order.success", true);
+    } else if (
+      url.includes("payment-cancel") ||
+      url.includes("cancel") ||
+      url.includes("status=cancelled") ||
+      url.includes("failed") ||
+      url.includes("error")
+    ) {
+      handleRedirect("/(auth)/order.failure", false);
     }
   };
-
-  if (!paymentUrl) {
-    return (
-      <View style={styles.container}>
-        <HeaderHome pageName="paymentWebView" />
-        <View style={styles.errorContainer}>
-          <AntDesign name="close-circle" size={48} color={APP_COLOR.CANCEL} />
-          <Text
-            style={{
-              fontFamily: FONTS.regular,
-              fontSize: 16,
-              color: APP_COLOR.BROWN,
-              marginTop: 16,
-            }}
-          >
-            Không tìm thấy URL thanh toán
-          </Text>
-        </View>
-      </View>
-    );
-  }
+  if (!paymentUrl) return null;
 
   return (
     <View style={styles.container}>
       <HeaderHome pageName="paymentWebView" />
-      <WebView
-        source={{ uri: paymentUrl }}
-        style={styles.webview}
-        onLoadStart={() => {
-          setLoading(true);
-          setError(null);
-        }}
-        onLoadEnd={() => setLoading(false)}
-        onError={(syntheticEvent) => {
-          const { nativeEvent } = syntheticEvent;
-          console.error("WebView error: ", nativeEvent);
-          setLoading(false);
-          setError("Không thể tải trang thanh toán. Vui lòng thử lại.");
-        }}
-        onNavigationStateChange={handleNavigationStateChange}
-        javaScriptEnabled={true}
-        domStorageEnabled={true}
-        startInLoadingState={true}
-        scalesPageToFit={true}
-        allowsBackForwardNavigationGestures={true}
-      />
-      {loading && (
+
+      {showWebView ? (
+        <WebView
+          ref={webViewRef}
+          source={{ uri: paymentUrl }}
+          style={[styles.webview, { opacity: loading ? 0 : 1 }]}
+          onLoadStart={() => setLoading(true)}
+          onLoadEnd={() => setLoading(false)}
+          onNavigationStateChange={handleNavigationStateChange}
+          javaScriptEnabled={true}
+          domStorageEnabled={true}
+          startInLoadingState={true}
+          scalesPageToFit={true}
+          androidLayerType="hardware"
+        />
+      ) : (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={APP_COLOR.ORANGE} />
-          <Text
-            style={{
-              fontFamily: FONTS.regular,
-              fontSize: 14,
-              color: APP_COLOR.BROWN,
-              marginTop: 12,
-            }}
-          >
-            Đang tải trang thanh toán...
+          <Text style={{ marginTop: 10, fontFamily: FONTS.regular }}>
+            Đang xử lý kết quả...
           </Text>
         </View>
       )}
-      {error && (
-        <View style={styles.errorContainer}>
-          <AntDesign
-            name="exclamation-circle"
-            size={48}
-            color={APP_COLOR.CANCEL}
-          />
-          <Text
-            style={{
-              fontFamily: FONTS.regular,
-              fontSize: 16,
-              color: APP_COLOR.BROWN,
-              marginTop: 16,
-              textAlign: "center",
-            }}
-          >
-            {error}
-          </Text>
+
+      {loading && showWebView && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={APP_COLOR.ORANGE} />
         </View>
       )}
     </View>
@@ -124,12 +98,8 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.8)",
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,1)",
+    zIndex: 99,
   },
 });
 

@@ -186,54 +186,42 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
           const dataSource = nearbyBranches.length > 0 ? nearbyBranches : [];
           setBranchInfo(dataSource);
           if (dataSource.length > 0) {
-            setSelectedBranch((prevSelected: any) => {
-              if (prevSelected?.id || prevSelected?.branchId) {
-                const foundBranch = dataSource.find(
-                  (b: any) =>
-                    b.id === prevSelected.id ||
-                    b.branchId === prevSelected.branchId ||
-                    b.id === prevSelected.branchId
-                );
-                if (foundBranch) {
-                  const branchIdToSet = foundBranch.branchId || foundBranch.id;
-                  if (branchIdToSet) {
-                    setBranchId(branchIdToSet);
-                  }
-                  if (foundBranch.name) {
-                    setBranchName(foundBranch.name);
-                  }
-                  return foundBranch;
-                }
+            const storedBranchId = await AsyncStorage.getItem(
+              "selectedBranchId"
+            );
+
+            let foundBranch = null;
+
+            if (storedBranchId) {
+              foundBranch = dataSource.find(
+                (b: any) =>
+                  b.id?.toString() === storedBranchId ||
+                  b.branchId?.toString() === storedBranchId
+              );
+            }
+
+            if (!foundBranch && branchId) {
+              foundBranch = dataSource.find(
+                (b: any) =>
+                  b.id?.toString() === branchId?.toString() ||
+                  b.branchId?.toString() === branchId?.toString()
+              );
+            }
+
+            if (!foundBranch) {
+              foundBranch = dataSource[0];
+            }
+
+            if (foundBranch) {
+              const branchIdToSet = foundBranch.branchId || foundBranch.id;
+              if (branchIdToSet) {
+                setBranchId(branchIdToSet);
               }
-              if (branchId) {
-                const foundBranchByContextId = dataSource.find(
-                  (b: any) => b.id === branchId || b.branchId === branchId
-                );
-                if (foundBranchByContextId) {
-                  const branchIdToSet =
-                    foundBranchByContextId.branchId ||
-                    foundBranchByContextId.id;
-                  if (branchIdToSet) {
-                    setBranchId(branchIdToSet);
-                  }
-                  if (foundBranchByContextId.name) {
-                    setBranchName(foundBranchByContextId.name);
-                  }
-                  return foundBranchByContextId;
-                }
+              if (foundBranch.name) {
+                setBranchName(foundBranch.name);
               }
-              const firstBranch = dataSource[0];
-              if (firstBranch) {
-                const branchIdToSet = firstBranch.branchId || firstBranch.id;
-                if (branchIdToSet) {
-                  setBranchId(branchIdToSet);
-                }
-                if (firstBranch.name) {
-                  setBranchName(firstBranch.name);
-                }
-              }
-              return firstBranch;
-            });
+              setSelectedBranch(foundBranch);
+            }
           }
         } catch (error) {
           console.error("Error fetching branch data:", error);
@@ -256,10 +244,14 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
 
   const handleSelectBranch = async (branch: any) => {
     setSelectedBranch(branch);
-    if (branch.branchId) {
-      setBranchId(branch.branchId);
+    const branchIdToSave = branch.branchId || branch.id;
+    if (branchIdToSave) {
+      setBranchId(branchIdToSave);
       setBranchName(branch.name);
-      await AsyncStorage.setItem("distance", branch.distanceText);
+      await AsyncStorage.setItem("selectedBranchId", branchIdToSave.toString());
+      if (branch.distanceText) {
+        await AsyncStorage.setItem("distance", branch.distanceText);
+      }
     }
     setIsBranchDropdownOpen(false);
   };

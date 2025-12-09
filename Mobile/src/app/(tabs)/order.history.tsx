@@ -68,13 +68,12 @@ interface ApiOrderResponse {
 const mapOrderStatus = (status: string): string => {
   const statusMap: Record<string, string> = {
     CREATED: "Chờ thanh toán",
-    IN_PROCESS: "Đã thanh toán",
-    APPROVED: "Đã xác nhận",
-    PREPARING: "Đang chuẩn bị",
+    IN_PROCESS: "Đang xử lý",
+    COOKING: "Đang nấu",
     COOKED: "Đã nấu xong",
     SHIPPING: "Đang giao",
     DELIVERED: "Đã giao",
-    COMPLETED: "Đã hoàn thành",
+    COMPLETED: "Hoàn thành",
     CANCEL: "Đã hủy",
   };
   return statusMap[status] || status;
@@ -90,17 +89,15 @@ const OrderPage = () => {
   const [isSearching, setIsSearching] = useState(false);
   const { appState } = useCurrentApp();
   const statusMap: Record<string, StatusInfo> = {
-    CREATED: { text: "Chờ thanh toán", color: STATUS_COLORS.PENDING },
-    PAID: { text: "Đã thanh toán", color: STATUS_COLORS.APPROVED },
-    IN_PROCESS: { text: "Đã xác nhận", color: STATUS_COLORS.APPROVED },
-    APPROVED: { text: "Đã xác nhận", color: STATUS_COLORS.APPROVED },
-    PREPARING: { text: "Đang chuẩn bị", color: STATUS_COLORS.PREPARING },
-    COOKING: { text: "Đang chuẩn bị", color: STATUS_COLORS.COOKING },
+    CREATED: { text: "Đã tạo đơn", color: STATUS_COLORS.PENDING },
+    IN_PROCESS: { text: "Đang xử lý", color: STATUS_COLORS.APPROVED },
+    COOKING: { text: "Đang nấu", color: STATUS_COLORS.COOKING },
     COOKED: { text: "Đã nấu xong", color: STATUS_COLORS.COOKED },
     SHIPPING: { text: "Đang giao hàng", color: STATUS_COLORS.DELIVERING },
-    DELIVERED: { text: "Đã giao hàng", color: STATUS_COLORS.DELIVERED },
-    COMPLETED: { text: "Đã hoàn thành", color: STATUS_COLORS.DONE },
+    DELIVERED: { text: "Đã giao", color: STATUS_COLORS.DELIVERED },
+    COMPLETED: { text: "Hoàn thành", color: STATUS_COLORS.DONE },
     CANCEL: { text: "Đã hủy", color: STATUS_COLORS.CANCELED },
+    PAID: { text: "Đã thanh toán", color: STATUS_COLORS.APPROVED },
   };
 
   const fetchOrderHistoryWithToken = useCallback(async () => {
@@ -415,7 +412,7 @@ const OrderPage = () => {
                             </TouchableOpacity>
                           )}
 
-                          {item.status === "Paid" && (
+                          {item.status === "CREATED" && (
                             <TouchableOpacity
                               style={[
                                 styles.button,
@@ -579,7 +576,7 @@ const OrderPage = () => {
                               </Text>
                             </TouchableOpacity>
                           )}
-                          {item.status === "Paid" && (
+                          {item.status === "CREATED" && (
                             <TouchableOpacity
                               style={[
                                 styles.button,

@@ -243,31 +243,7 @@ const AddExtraFoodContent = () => {
             <ItemExtra productId={item.id} branchId={branchId ?? 0} />
           </View>
         ))}
-        <View>
-          <Text
-            style={{
-              fontSize: 18,
-              fontFamily: FONTS.bold,
-              color: APP_COLOR.BROWN,
-              marginHorizontal: 10,
-              marginTop: 10,
-            }}
-          >
-            Ghi chú
-          </Text>
-          <TextInput
-            placeholder="Nhập yêu cầu của bạn"
-            placeholderTextColor={APP_COLOR.BUTTON_YELLOW}
-            style={{
-              borderWidth: 1,
-              borderColor: APP_COLOR.BROWN,
-              borderRadius: 10,
-              padding: 10,
-              marginVertical: 10,
-              marginHorizontal: 10,
-            }}
-          />
-        </View>
+
         <View
           style={{
             borderTopColor: APP_COLOR.BROWN,
@@ -279,7 +255,12 @@ const AddExtraFoodContent = () => {
             justifyContent: "space-around",
           }}
         >
-          <View style={[styles.quantityContainer, { marginHorizontal: 10 }]}>
+          <View
+            style={[
+              styles.quantityContainer,
+              { marginHorizontal: 10, marginBottom: 50 },
+            ]}
+          >
             <Pressable
               onPress={() => handleQuantityChange(item, "MINUS")}
               style={({ pressed }) => ({
