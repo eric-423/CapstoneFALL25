@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import JwtDecode from "@/utils/jwtDecode";
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+import { createErrorResponse, CustomError, ErrorCodes } from "@/lib/error-handler";
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ chefId: string }> }
@@ -12,23 +13,22 @@ export async function GET(
     const token = cookieStore.get("token")?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { error: "Unauthorized - No token found" },
-        { status: 401 }
+      return createErrorResponse(
+        new CustomError("Unauthorized - No token found", 401, ErrorCodes.AUTHENTICATION_ERROR)
       );
     }
+
     const decodedToken = JwtDecode(token);
     if (!decodedToken) {
-      return NextResponse.json(
-        { error: "Unauthorized - Invalid token" },
-        { status: 401 }
+      return createErrorResponse(
+        new CustomError("Unauthorized - Invalid token", 401, ErrorCodes.AUTHENTICATION_ERROR)
       );
     }
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
 
-    let url = `${API_BASE_URL}/orders/cheff/view/${chefId}`;
+    let url = `${process.env.NEXT_PUBLIC_BASE_URL}/orders/cheff/view/${chefId}`;
 
     if (status && status.trim() !== "" && status !== "ALL") {
       const params = new URLSearchParams();
@@ -58,40 +58,28 @@ export async function GET(
         };
       }
 
-      return NextResponse.json(
-        {
-          error:
-            errorData.error ||
-            errorData.message ||
-            "Failed to fetch chef orders",
-          details: errorData,
-          status: response.status,
-        },
-        { status: response.status }
+      return createErrorResponse(
+        new CustomError(
+          errorData.error || errorData.message || "Failed to fetch chef orders",
+          response.status
+        )
       );
     }
 
     const responseText = await response.text();
     let data;
     try {
-      data = JSON.parse(responseText);
+      data = responseText ? JSON.parse(responseText) : { data: [] };
     } catch (parseError) {
       console.error("❌ Failed to parse JSON:", parseError);
-      throw new Error("Invalid JSON response from server");
+      return createErrorResponse(
+        new CustomError("Invalid JSON response from server", 500, ErrorCodes.INTERNAL_ERROR)
+      );
     }
 
     return NextResponse.json(data);
   } catch (error) {
     console.error("Get Chef Orders API Error:", error);
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to fetch chef orders",
-        type: "UnexpectedError",
-      },
-      { status: 500 }
-    );
+    return createErrorResponse(error as Error);
   }
 }
