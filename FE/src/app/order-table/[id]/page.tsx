@@ -506,7 +506,6 @@ export default function OrderTablePage() {
         <div className="p-4">
           <h2 className="text-xl font-bold mb-6">Danh mục món ăn</h2>
           <div className="space-y-2">
-            {/* Combo Button */}
             <Button
               variant={activeCategoryId === -1 ? "default" : "ghost"}
               className={`w-full justify-start ${

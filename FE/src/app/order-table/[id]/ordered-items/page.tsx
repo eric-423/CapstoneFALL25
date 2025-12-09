@@ -44,7 +44,7 @@ export default function OrderedItemsPage() {
   const total = subtotal - discount;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white h-full">
       <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>
