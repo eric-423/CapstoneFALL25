@@ -57,18 +57,19 @@ export function PaymentResultContent({ isSuccess = true, orderCode }: PaymentRes
           </h1>
 
           <p className="text-muted-foreground text-lg">
-            {isSuccess ? (
+            {isSuccess && userRole !== 'STAFF' ? (
               <>Đơn hàng của bạn đã được xác nhận và đang được chuẩn bị.</>
             ) : (
-              "Có lỗi xảy ra trong quá trình thanh toán. Vui lòng thử lại."
+              ""
             )}
           </p>
         </div>
         <div className="space-y-3">
           {isSuccess ? (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {userRole === "STAFF" || userRole === "WAITER" ? (
+              {userRole === "STAFF" || userRole === "WAITER" ? (
+                // Chỉ hiển thị nút "Quay về quản lý bàn" và căn giữa cho STAFF/WAITER
+                <div className="flex justify-center">
                   <Button
                     variant="outline"
                     className="py-3 bg-gradient-to-r from-[#EC6426] to-[#F8A91F] hover:opacity-90 text-white border-0"
@@ -77,27 +78,27 @@ export function PaymentResultContent({ isSuccess = true, orderCode }: PaymentRes
                     <ClipboardList className="h-6 w-4 mr-2" />
                     Quay về quản lý bàn
                   </Button>
-                ) : (
-                  <>
-                    <Button
-                      variant="outline"
-                      className="py-3 bg-black/30 hover:bg-black/70"
-                      onClick={() => router.push("/")}
-                    >
-                      <Home className="h-6 w-4 mr-2" />
-                      Về trang chủ
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="py-3 bg-black/30 hover:bg-black/70"
-                      onClick={() => router.push("/menu")}
-                    >
-                      <ShoppingBag className="h-6 w-4 mr-2" />
-                      Tiếp tục đặt hàng
-                    </Button>
-                  </>
-                )}
-              </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <Button
+                    variant="outline"
+                    className="py-3 bg-black/30 hover:bg-black/70"
+                    onClick={() => router.push("/")}
+                  >
+                    <Home className="h-6 w-4 mr-2" />
+                    Về trang chủ
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="py-3 bg-black/30 hover:bg-black/70"
+                    onClick={() => router.push("/menu")}
+                  >
+                    <ShoppingBag className="h-6 w-4 mr-2" />
+                    Tiếp tục đặt hàng
+                  </Button>
+                </div>
+              )}
             </>
           ) : (
             <>
@@ -124,20 +125,22 @@ export function PaymentResultContent({ isSuccess = true, orderCode }: PaymentRes
             </>
           )}
         </div>
-        <Card
-          className="shadow-sm bg-primary/90 mb-20 mt-5 cursor-pointer hover:bg-primary transition-colors"
-          onClick={() => {
-            if (orderCode) {
-              router.push(`/profile/orders/${orderCode}`);
-            } else {
-              router.push("/profile?tab=orders");
-            }
-          }}
-        >
-          <CardContent className=" text-center py-3">
-            <p className="text-lg text-white">Theo dõi đơn hàng</p>
-          </CardContent>
-        </Card>
+        {!(userRole === "STAFF" || userRole === "WAITER") && (
+          <Card
+            className="shadow-sm bg-primary/90 mb-20 mt-5 cursor-pointer hover:bg-primary transition-colors"
+            onClick={() => {
+              if (orderCode) {
+                router.push(`/profile/orders/${orderCode}`);
+              } else {
+                router.push("/profile?tab=orders");
+              }
+            }}
+          >
+            <CardContent className=" text-center py-3">
+              <p className="text-lg text-white">Theo dõi đơn hàng</p>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

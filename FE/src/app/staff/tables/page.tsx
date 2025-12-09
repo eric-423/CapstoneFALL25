@@ -603,9 +603,6 @@ export default function StaffTablesPage() {
                       {/* Order Summary */}
                       {hasOrder && table.currentOrder && (
                         <div className="mb-3 p-2 bg-white/60 rounded-lg text-xs space-y-1">
-                          <div className="font-semibold text-gray-900 truncate">
-                            {table.currentOrder.customerName}
-                          </div>
                           <div className="text-gray-600">
                             {table.currentOrder.orderItems.reduce(
                               (sum, item) => sum + item.quantity,
