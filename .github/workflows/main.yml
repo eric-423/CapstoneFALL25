@@ -1,4 +1,4 @@
-name: Build Mobile APK and upload to Google Drive
+name: Build React Native Android (Mobile) and upload to Google Drive
 
 on:
   push:
@@ -10,16 +10,25 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx1536m"
+
     steps:
-      - name: Checkout repo
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
+      - name: Set up Android SDK (cmdline tools, platform-tools)
+        uses: android-actions/setup-android@v3
+        with:
+          api-levels: 33
+          build-tools: "33.0.2"
+          ndk: 23.1.7779620
+          components: "platform-tools,platforms;android-33,build-tools;33.0.2"
+      
       - name: Cache Gradle
         uses: actions/cache@v4
         with:
@@ -31,50 +40,33 @@ jobs:
             ${{ runner.os }}-gradle-
 
       - name: Make gradlew executable
-        run: chmod +x ./gradlew
-
-      - name: Build debug APK for module Mobile
-        # Nếu module của bạn tên khác (Internal_Mobile), đổi thành :Internal_Mobile:assembleDebug
         run: |
-          ./gradlew clean :Mobile:assembleDebug --no-daemon --stacktrace
+          if [ -f "./Mobile/android/gradlew" ]; then chmod +x ./Mobile/android/gradlew; fi
 
-      - name: Find APK path (module Mobile)
+      - name: Build debug APK (React Native Mobile)
+        run: |
+          # nếu project React Native root is repository root and android folder is Mobile/android
+          cd Mobile/android
+          ./gradlew clean assembleDebug --no-daemon --stacktrace
+        working-directory: .
+
+      - name: Find APK path
         id: find_apk
         run: |
-          # ưu tiên đường dẫn chuẩn của Gradle outputs
-          expected_paths=(
-            "$GITHUB_WORKSPACE/Mobile/build/outputs/apk/debug/app-debug.apk"
-            "$GITHUB_WORKSPACE/Mobile/build/outputs/apk/debug/*-debug.apk"
-            "$GITHUB_WORKSPACE/Mobile/build/outputs/apk/*/debug/*.apk"
-          )
-          apk_path=""
-          for p in "${expected_paths[@]}"; do
-            # expand possible glob
-            files=( $p )
-            if [ ${#files[@]} -gt 0 ] && [ -f "${files[0]}" ]; then
-              apk_path="${files[0]}"
-              break
-            fi
-          done
-
-          # nếu vẫn chưa tìm thấy, fallback tìm toàn repo
-          if [ -z "$apk_path" ]; then
-            apk_path=$(find "$GITHUB_WORKSPACE" -type f -name "*.apk" | grep "/Mobile/" | head -n 1)
-          fi
-
-          if [ -z "$apk_path" ]; then
-            echo "No APK found under Mobile module. Listing build folder for debug:"
-            ls -la Mobile/build || true
+          # thường apk sẽ ở Mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          APK="$(find $GITHUB_WORKSPACE -type f -path '*/Mobile/android/app/build/outputs/apk/*/debug/*.apk' | head -n 1 || true)"
+          if [ -z "$APK" ]; then
+            echo "No APK found in Mobile/android outputs; listing Mobile/android/app/build:"
+            ls -la Mobile/android/app/build || true
             exit 1
           fi
-
-          echo "Found APK: $apk_path"
-          echo "::set-output name=apk::$apk_path"
+          echo "Found APK: $APK"
+          echo "::set-output name=apk::$APK"
 
       - name: Upload artifact to Actions (backup)
         uses: actions/upload-artifact@v4
         with:
-          name: mobile-apk
+          name: rn-mobile-apk
           path: ${{ steps.find_apk.outputs.apk }}
 
       - name: Install rclone
@@ -97,7 +89,7 @@ jobs:
         env:
           DRIVE_FOLDER_ID: ${{ secrets.DRIVE_FOLDER_ID }}
         run: |
-          # create a new remote 'gdrive' using the service account file
+          # configure non-interactive remote 'gdrive'
           if [ -n "$DRIVE_FOLDER_ID" ]; then
             rclone config create gdrive drive service_account_file=service-account.json root_folder_id=$DRIVE_FOLDER_ID scope=drive.file --drive-acknowledge-abuse
           else
@@ -110,11 +102,8 @@ jobs:
           APK="${{ steps.find_apk.outputs.apk }}"
           echo "Uploading $APK to Google Drive..."
           if [ -n "${{ secrets.DRIVE_FOLDER_ID }}" ]; then
-            # upload to the folder id
-            # rclone supports --drive-root-folder-id for target folder
             rclone copy "$APK" gdrive: --drive-root-folder-id=${{ secrets.DRIVE_FOLDER_ID }} -P
           else
-            # upload into Apps/Builds (will create folder)
             rclone copy "$APK" gdrive:Apps/Builds -P
           fi
           echo "Upload finished."
