@@ -68,7 +68,6 @@ export function PaymentResultContent({ isSuccess = true, orderCode }: PaymentRes
           {isSuccess ? (
             <>
               {userRole === "STAFF" || userRole === "WAITER" ? (
-                // Chỉ hiển thị nút "Quay về quản lý bàn" và căn giữa cho STAFF/WAITER
                 <div className="flex justify-center">
                   <Button
                     variant="outline"
