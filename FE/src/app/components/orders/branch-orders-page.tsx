@@ -24,12 +24,8 @@ import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { FilterDropdown } from "@/components/common/FilterDropdown";
 import {
   Dialog,
   DialogContent,
@@ -54,6 +50,11 @@ import {
   CreditCard,
   Building2,
   ChefHat,
+  Search,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
   ChevronDown,
 } from "lucide-react";
 import { toast } from "react-toastify";
@@ -145,16 +146,6 @@ const formatCurrency = (amount: number): string => {
   return new Intl.NumberFormat("vi-VN").format(amount) + "đ";
 };
 
-const getOrderTypeLabel = (type: string): string => {
-  const typeMap: Record<string, string> = {
-    ALL: "Tất cả loại",
-    PICKUP: "Nhận tại quán",
-    TABLE: "Dùng tại bàn",
-    DELIVERY: "Giao hàng",
-  };
-  return typeMap[type] || type;
-};
-
 const focusBarcodeScanner = () => {
   window.focus();
   document.body.focus();
@@ -207,6 +198,11 @@ export function BranchOrdersPage({ variant }: BranchOrdersPageProps) {
   const [orderTypeFilter, setOrderTypeFilter] = useState<string>("ALL");
   const [orders, setOrders] = useState<BranchOrderResponse[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const [sortBy, setSortBy] = useState("id");
+  const [sortDirection, setSortDirection] = useState<"ASC" | "DESC">("DESC");
   const [assigningShipper, setAssigningShipper] = useState<Set<number>>(
     new Set()
   );
@@ -464,26 +460,129 @@ export function BranchOrdersPage({ variant }: BranchOrdersPageProps) {
   };
 
   const filteredOrders = useMemo(() => {
-    if (orderTypeFilter === "ALL") {
-      return orders;
+    let filtered = orders;
+
+    if (selectedStatus !== "ALL") {
+      filtered = filtered.filter(
+        (order) => order.orderStatus === selectedStatus
+      );
     }
 
-    return orders.filter((order) => {
-      const isPickUp = order.pickUp;
-      const isTable = order.table;
+    if (orderTypeFilter !== "ALL") {
+      filtered = filtered.filter((order) => {
+        const isPickUp = order.pickUp;
+        const isTable = order.table;
 
-      switch (orderTypeFilter) {
-        case "PICKUP":
-          return isPickUp === true;
-        case "TABLE":
-          return isTable === true;
-        case "DELIVERY":
-          return !isPickUp && !isTable;
+        switch (orderTypeFilter) {
+          case "PICKUP":
+            return isPickUp === true;
+          case "TABLE":
+            return isTable === true;
+          case "DELIVERY":
+            return !isPickUp && !isTable;
+          default:
+            return true;
+        }
+      });
+    }
+
+    if (searchKeyword) {
+      const keyword = searchKeyword.toLowerCase();
+      filtered = filtered.filter(
+        (order) =>
+          order.id.toString().includes(keyword) ||
+          order.customerName?.toLowerCase().includes(keyword) ||
+          order.customerPhone?.toLowerCase().includes(keyword) ||
+          order.address?.toLowerCase().includes(keyword)
+      );
+    }
+
+    filtered = [...filtered].sort((a, b) => {
+      let aValue: string | number;
+      let bValue: string | number;
+
+      switch (sortBy) {
+        case "id":
+          aValue = a.id;
+          bValue = b.id;
+          break;
+        case "customerName":
+          aValue = a.customerName || "";
+          bValue = b.customerName || "";
+          break;
+        case "amount":
+          aValue = a.amount;
+          bValue = b.amount;
+          break;
+        case "orderDate":
+          aValue = new Date(a.orderDate || 0).getTime();
+          bValue = new Date(b.orderDate || 0).getTime();
+          break;
         default:
-          return true;
+          return 0;
       }
+
+      if (aValue < bValue) return sortDirection === "ASC" ? -1 : 1;
+      if (aValue > bValue) return sortDirection === "ASC" ? 1 : -1;
+      return 0;
     });
-  }, [orders, orderTypeFilter]);
+
+    return filtered;
+  }, [
+    orders,
+    selectedStatus,
+    orderTypeFilter,
+    searchKeyword,
+    sortBy,
+    sortDirection,
+  ]);
+
+  const paginatedOrders = useMemo(() => {
+    const start = currentPage * pageSize;
+    const end = start + pageSize;
+    return filteredOrders.slice(start, end);
+  }, [filteredOrders, currentPage, pageSize]);
+
+  const totalPages = Math.ceil(filteredOrders.length / pageSize);
+
+  const handleSort = (column: string) => {
+    if (sortBy === column) {
+      setSortDirection(sortDirection === "ASC" ? "DESC" : "ASC");
+    } else {
+      setSortBy(column);
+      setSortDirection("ASC");
+    }
+    setCurrentPage(0);
+  };
+
+  const getSortIcon = (column: string) => {
+    if (sortBy !== column) {
+      return (
+        <div className="flex flex-col -space-y-1">
+          <ChevronUp className="h-3.5 w-3.5 text-gray-400" />
+          <ChevronDown className="h-3.5 w-3.5 text-gray-400" />
+        </div>
+      );
+    }
+    return sortDirection === "ASC" ? (
+      <ChevronUp className="h-3.5 w-3.5 text-[#EC6426]" />
+    ) : (
+      <ChevronDown className="h-3.5 w-3.5 text-[#EC6426]" />
+    );
+  };
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 0 && newPage < totalPages) {
+      setCurrentPage(newPage);
+    }
+  };
+
+  const handleClearFilters = () => {
+    setSearchKeyword("");
+    setSelectedStatus("ALL");
+    setOrderTypeFilter("ALL");
+    setCurrentPage(0);
+  };
 
   const stats = useMemo(() => {
     const total = filteredOrders.length;
@@ -515,11 +614,7 @@ export function BranchOrdersPage({ variant }: BranchOrdersPageProps) {
     <>
       <div className={`${montserrat.className}`}>
         <AdminPageLayout>
-          <AdminPageHeader
-            title="Quản Lý Đơn Hàng"
-            description="Theo dõi và xử lý đơn hàng"
-            icon={ShoppingBag}
-          />
+          <AdminPageHeader title="Quản Lý Đơn Hàng" icon={ShoppingBag} />
 
           <AdminStatsGrid>
             <AdminStatsCard
@@ -547,305 +642,331 @@ export function BranchOrdersPage({ variant }: BranchOrdersPageProps) {
             />
           </AdminStatsGrid>
 
-          <Card className="p-4 sm:p-6 bg-white border-0 shadow-sm rounded-xl">
-            <div className="flex flex-col gap-4 mb-6">
-              <div className="flex flex-wrap gap-2 items-center justify-between">
-                <div className="flex flex-wrap gap-2 items-center">
-                  {orderStatuses.map((status) => (
-                    <Button
-                      key={status}
-                      onClick={() => setSelectedStatus(status)}
-                      variant={
-                        selectedStatus === status ? "default" : "outline"
-                      }
-                      className={`transition-all duration-300 rounded-xl font-semibold whitespace-nowrap px-4 py-2 ${
-                        selectedStatus === status
-                          ? "bg-[#EC6426] text-white border-0 shadow-md hover:from-[#E05522] hover:to-[#E6991A]"
-                          : "border-2 border-[#EC6426]/30 text-[#EC6426] bg-white hover:border-[#EC6426] hover:bg-[#EC6426]/5"
-                      }`}
-                    >
-                      {getStatusLabel(status)}
-                    </Button>
-                  ))}
-                </div>
-                {isManager && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild className="min-w-[130px]">
-                      <Button
-                        variant="outline"
-                        className="transition-all duration-300 text-sm font-semibold  px-4 py-2 border-2 bg-white "
-                      >
-                        {getOrderTypeLabel(orderTypeFilter)}
-                        <ChevronDown className="ml-2 h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="min-w-[130px]">
-                      <DropdownMenuItem
-                        onClick={() => setOrderTypeFilter("ALL")}
-                        className={`cursor-pointer ${orderTypeFilter === "ALL" ? "bg-blue-50 font-semibold" : ""}`}
-                      >
-                        Tất cả loại
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => setOrderTypeFilter("PICKUP")}
-                        className={`cursor-pointer ${orderTypeFilter === "PICKUP" ? "bg-blue-50 font-semibold" : ""}`}
-                      >
-                        Nhận tại quán
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => setOrderTypeFilter("DELIVERY")}
-                        className={`cursor-pointer ${orderTypeFilter === "DELIVERY" ? "bg-blue-50 font-semibold" : ""}`}
-                      >
-                        Giao hàng
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
+          <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-white backdrop-blur-sm border-gray-300 border shadow-sm rounded-xl">
+            <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[200px]">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#2D1E1A]/60" />
+                <Input
+                  placeholder="Tìm kiếm đơn hàng..."
+                  value={searchKeyword}
+                  onChange={(e) => setSearchKeyword(e.target.value)}
+                  className="w-full max-w-[250px] pl-10 pr-4 py-2 border bg-white/80 border-[#EC6426]/30 rounded-lg text-sm focus:border-[#EC6426] focus:ring-1 focus:ring-[#EC6426]/20 outline-none"
+                />
               </div>
+              <FilterDropdown
+                label="Tất cả trạng thái"
+                title="Lọc theo trạng thái"
+                value={selectedStatus}
+                onChange={(value) => {
+                  setSelectedStatus(value);
+                  setCurrentPage(0);
+                }}
+                items={orderStatuses.map((status) => ({
+                  value: status,
+                  label: getStatusLabel(status),
+                }))}
+                className="w-[150px]"
+              />
+              {isManager && (
+                <FilterDropdown
+                  label="Tất cả loại"
+                  title="Lọc theo loại đơn"
+                  value={orderTypeFilter}
+                  onChange={(value) => {
+                    setOrderTypeFilter(value);
+                    setCurrentPage(0);
+                  }}
+                  items={[
+                    { value: "ALL", label: "Tất cả loại" },
+                    { value: "PICKUP", label: "Nhận tại quán" },
+                    { value: "TABLE", label: "Dùng tại bàn" },
+                    { value: "DELIVERY", label: "Giao hàng" },
+                  ]}
+                  className="w-[150px]"
+                />
+              )}
+              {(searchKeyword ||
+                selectedStatus !== "ALL" ||
+                orderTypeFilter !== "ALL") && (
+                <Button onClick={handleClearFilters} variant="ghost" size="sm">
+                  <X className="h-4 w-4 mr-1" />
+                  Xóa lọc
+                </Button>
+              )}
             </div>
 
+            <div className="flex items-center gap-3">
+              <label className="text-sm text-[#2D1E1A] font-medium whitespace-nowrap">
+                Hiển thị:
+              </label>
+              <FilterDropdown
+                label="Hiển thị"
+                title="Số lượng hiển thị"
+                value={pageSize.toString()}
+                onChange={(value) => {
+                  setPageSize(parseInt(value));
+                  setCurrentPage(0);
+                }}
+                items={[
+                  { value: "5", label: "5" },
+                  { value: "10", label: "10" },
+                  { value: "20", label: "20" },
+                  { value: "50", label: "50" },
+                ]}
+                showAllOption={false}
+                className="w-[80px]"
+              />
+              <span className="text-sm text-[#2D1E1A]/80 whitespace-nowrap">
+                Tổng:{" "}
+                <span className="font-bold text-[#EC6426]">
+                  {filteredOrders.length}
+                </span>
+              </span>
+            </div>
+          </div>
+
+          <Card className="overflow-hidden py-0">
             {shouldShowInitialLoader ? (
-              <div className="text-center py-12">
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#EC6426]"></div>
-                <p className="mt-4 text-gray-600 font-semibold">
-                  Đang tải dữ liệu...
-                </p>
+              <div className="p-12 text-center text-[#2D1E1A]/70">
+                <div className="w-12 h-12 border-4 border-[#EBD187] border-t-[#EC6426] rounded-full animate-spin mx-auto mb-4"></div>
+                <p>Đang tải danh sách đơn hàng...</p>
               </div>
             ) : shouldShowEmptyState ? (
-              <div className="text-center py-12">
-                <Package className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-                <p className="text-gray-600 font-semibold text-lg">
-                  Không có đơn hàng nào
-                </p>
-                <p className="text-gray-500 text-sm mt-2">
+              <div className="p-12 text-center text-[#2D1E1A]/70">
+                <Package className="h-16 w-16 mx-auto mb-4 text-[#EC6426]/30" />
+                <p className="font-semibold">Không tìm thấy đơn hàng nào</p>
+                <p className="text-sm text-gray-500 mt-2">
                   Thử chọn trạng thái khác để xem thêm đơn hàng
                 </p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {filteredOrders.map((order) => (
-                  <Card
-                    key={order.id}
-                    className="p-4 sm:p-6 border-2 border-gray-100 hover:border-[#EC6426]/30 hover:shadow-lg transition-all duration-300 rounded-xl"
-                  >
-                    <div className="flex flex-col lg:flex-row lg:items-start gap-4">
-                      <div className="flex-1 min-w-0 space-y-4">
-                        <div className="flex flex-wrap items-center gap-3">
-                          <div className="flex items-center gap-2">
-                            <span className="text-lg font-bold text-[#EC6426]">
-                              #{order.id}
-                            </span>
+              <>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-center">
+                    <thead className="bg-white border-b-2 border-grey-300">
+                      <tr>
+                        <th
+                          className="px-4 py-3 text-center text-sm font-bold text-[#2D1E1A] cursor-pointer hover:bg-gray-50 transition-colors"
+                          onClick={() => handleSort("id")}
+                        >
+                          <div className="flex items-center justify-center gap-1.5">
+                            ID
+                            {getSortIcon("id")}
+                          </div>
+                        </th>
+                        <th
+                          className="px-4 py-3 text-center text-sm font-bold text-[#2D1E1A] cursor-pointer hover:bg-gray-50 transition-colors"
+                          onClick={() => handleSort("customerName")}
+                        >
+                          <div className="flex items-center justify-center gap-1.5">
+                            Khách hàng
+                            {getSortIcon("customerName")}
+                          </div>
+                        </th>
+                        <th className="px-4 py-3 text-center text-sm font-bold text-[#2D1E1A]">
+                          Trạng thái
+                        </th>
+                        <th className="px-4 py-3 text-center text-sm font-bold text-[#2D1E1A]">
+                          Loại đơn
+                        </th>
+                        <th
+                          className="px-4 py-3 text-center text-sm font-bold text-[#2D1E1A] cursor-pointer hover:bg-gray-50 transition-colors"
+                          onClick={() => handleSort("amount")}
+                        >
+                          <div className="flex items-center justify-center gap-1.5">
+                            Tổng tiền
+                            {getSortIcon("amount")}
+                          </div>
+                        </th>
+                        <th
+                          className="px-4 py-3 text-center text-sm font-bold text-[#2D1E1A] cursor-pointer hover:bg-gray-50 transition-colors"
+                          onClick={() => handleSort("orderDate")}
+                        >
+                          <div className="flex items-center justify-center gap-1.5">
+                            Ngày đặt
+                            {getSortIcon("orderDate")}
+                          </div>
+                        </th>
+                        <th className="px-4 py-3 text-center text-sm font-bold text-[#2D1E1A]">
+                          Thao tác
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#EC6426]/10">
+                      {paginatedOrders.map((order) => (
+                        <tr
+                          key={order.id}
+                          className="hover:bg-[#EBD187]/10 transition-colors"
+                        >
+                          <td className="px-4 py-3 text-sm font-semibold text-[#2D1E1A]">
+                            #{order.id}
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex flex-col items-start text-left">
+                              <span className="text-sm font-semibold text-[#2D1E1A]">
+                                {order.customerName}
+                              </span>
+                              <div className="flex items-center gap-2 mt-1">
+                                <Phone size={12} className="text-gray-400" />
+                                <span className="text-xs text-gray-500">
+                                  {order.customerPhone}
+                                </span>
+                              </div>
+                              {order.address && (
+                                <div className="flex items-center gap-1 mt-1">
+                                  <MapPin size={12} className="text-gray-400" />
+                                  <span className="text-xs text-gray-500 line-clamp-1 max-w-[200px]">
+                                    {order.address}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
                             <Badge
-                              className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-lg border-2 ${getStatusBadgeClass(
+                              className={`inline-flex items-center gap-1.5 px-2 py-1 text-xs font-bold rounded-lg border ${getStatusBadgeClass(
                                 order.orderStatus
                               )}`}
                             >
                               {getStatusIcon(order.orderStatus)}
                               {getStatusLabel(order.orderStatus)}
                             </Badge>
-                          </div>
-
-                          {(order.isTable === true || order.table === true) && (
-                            <Badge className="bg-blue-100 text-blue-700 border-blue-200 border-2 px-3 py-1 text-xs font-bold rounded-lg">
-                              Dùng tại bàn
-                            </Badge>
-                          )}
-                          {(order.isPickUp === true ||
-                            order.pickUp === true) && (
-                            <Badge className="bg-purple-100 text-purple-700 border-purple-200 border-2 px-3 py-1 text-xs font-bold rounded-lg">
-                              Nhận tại quán
-                            </Badge>
-                          )}
-                          {!order.isTable &&
-                            !order.isPickUp &&
-                            !order.table &&
-                            !order.pickUp && (
-                              <Badge className="bg-green-100 text-green-700 border-green-200 border-2 px-3 py-1 text-xs font-bold rounded-lg">
-                                <Truck size={12} className="mr-1" />
-                                Giao hàng
-                              </Badge>
-                            )}
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-2 min-w-0">
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                              <User size={16} className="flex-shrink-0" />
-                              <span className="font-semibold truncate">
-                                {order.customerName}
-                              </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex flex-wrap gap-1 justify-center">
+                              {(order.isTable === true ||
+                                order.table === true) && (
+                                <Badge className="bg-blue-100 text-blue-700 border-blue-200 border px-2 py-0.5 text-xs font-bold rounded-lg">
+                                  Tại bàn
+                                </Badge>
+                              )}
+                              {(order.isPickUp === true ||
+                                order.pickUp === true) && (
+                                <Badge className="bg-purple-100 text-purple-700 border-purple-200 border px-2 py-0.5 text-xs font-bold rounded-lg">
+                                  Nhận tại quán
+                                </Badge>
+                              )}
+                              {!order.isTable &&
+                                !order.isPickUp &&
+                                !order.table &&
+                                !order.pickUp && (
+                                  <Badge className="bg-green-100 text-green-700 border-green-200 border px-2 py-0.5 text-xs font-bold rounded-lg">
+                                    <Truck size={10} className="mr-1 inline" />
+                                    Giao hàng
+                                  </Badge>
+                                )}
                             </div>
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                              <Phone size={16} className="flex-shrink-0" />
-                              <span className="truncate">
-                                {order.customerPhone}
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="text-right">
+                              <span className="text-sm font-bold text-[#EC6426]">
+                                {formatCurrency(order.amount)}
                               </span>
+                              {order.discountValue > 0 && (
+                                <div className="text-xs text-green-600 mt-0.5">
+                                  Giảm: {formatCurrency(order.discountValue)}
+                                </div>
+                              )}
                             </div>
-                            {order.address && (
-                              <div className="flex items-start gap-2 text-sm text-gray-600">
-                                <MapPin
-                                  size={16}
-                                  className="mt-0.5 flex-shrink-0"
-                                />
-                                <span className="line-clamp-2 min-w-0">
-                                  {order.address}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="space-y-2 min-w-0">
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                              <Calendar size={16} className="flex-shrink-0" />
-                              <span className="font-semibold">Đặt:</span>
-                              <span className="truncate">
+                          </td>
+                          <td className="px-4 py-3 text-sm text-[#2D1E1A]">
+                            <div className="flex flex-col items-center">
+                              <span className="text-xs">
                                 {formatDate(order.orderDate)}
                               </span>
+                              {order.paymentTime && (
+                                <span className="text-xs text-gray-500 mt-1">
+                                  Thanh toán: {formatDate(order.paymentTime)}
+                                </span>
+                              )}
                             </div>
-                            {order.paymentTime && (
-                              <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <CreditCard
-                                  size={16}
-                                  className="flex-shrink-0"
-                                />
-                                <span className="font-semibold">
-                                  Thanh toán:
-                                </span>
-                                <span className="truncate">
-                                  {formatDate(order.paymentTime)}
-                                </span>
-                              </div>
-                            )}
-                            {order.deliveryAt && (
-                              <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <Truck size={16} className="flex-shrink-0" />
-                                <span className="font-semibold">Giao:</span>
-                                <span className="truncate">
-                                  {formatDate(order.deliveryAt)}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {(order.waiterName ||
-                          order.chefName ||
-                          order.shipperName) && (
-                          <div className="flex flex-wrap gap-3 pt-2">
-                            {order.waiterName && (
-                              <div className="text-sm text-gray-600">
-                                <span className="font-semibold">
-                                  Nhân viên:
-                                </span>{" "}
-                                {order.waiterName}
-                              </div>
-                            )}
-                            {order.chefName && (
-                              <div className="text-xs text-gray-600">
-                                <span className="font-semibold">Đầu bếp:</span>{" "}
-                                {order.chefName}
-                              </div>
-                            )}
-                            {order.shipperName && (
-                              <div className="text-xs text-gray-600">
-                                <span className="font-semibold">Shipper:</span>{" "}
-                                {order.shipperName}
-                              </div>
-                            )}
-                          </div>
-                        )}
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center justify-end gap-2">
+                              {order.orderStatus === "COOKED" &&
+                                !(
+                                  order.isPickUp ||
+                                  order.pickUp ||
+                                  order.isTable ||
+                                  order.table
+                                ) && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() =>
+                                      handleAssignShipper(order.id)
+                                    }
+                                    disabled={assigningShipper.has(order.id)}
+                                    className="text-green-600 border-green-500 hover:bg-green-500 hover:text-white transition-all"
+                                    title="Giao hàng ngay"
+                                  >
+                                    <Truck size={14} strokeWidth={2.5} />
+                                  </Button>
+                                )}
+                              {["IN_PROCESS", "COOKED"].includes(
+                                order.orderStatus
+                              ) && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handlePrint(order)}
+                                  className="text-[#EC6426] border-[#EC6426] hover:bg-[#EC6426] hover:text-white transition-all"
+                                  title="In hóa đơn"
+                                >
+                                  <Printer size={14} strokeWidth={2.5} />
+                                </Button>
+                              )}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-[#EC6426] border-[#EC6426]/30 hover:bg-[#EC6426]/10 transition-all"
+                                onClick={() => handleViewOrderDetail(order)}
+                                title="Xem chi tiết"
+                              >
+                                <Eye size={14} strokeWidth={2.5} />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {totalPages > 1 && (
+                  <div className="px-4 py-3 border-t border-[#EC6426]/20 bg-gradient-to-r from-[#EBD187]/10 to-[#EC6426]/5">
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-[#2D1E1A]/80">
+                        Trang{" "}
+                        <span className="font-semibold">{currentPage + 1}</span>{" "}
+                        / {totalPages} (Hiển thị {paginatedOrders.length} /{" "}
+                        {filteredOrders.length} đơn hàng)
                       </div>
-
-                      <div className="flex flex-col items-end gap-3 lg:w-[240px] lg:flex-shrink-0">
-                        <div className="text-right">
-                          <div className="text-xs text-gray-500 mb-1">
-                            Số lượng món
-                          </div>
-                          <div className="text-lg font-bold text-gray-900">
-                            {order.itemCount}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-xs text-gray-500 mb-1">
-                            Tổng tiền
-                          </div>
-                          <div className="text-2xl font-bold text-[#EC6426]">
-                            {formatCurrency(order.amount)}
-                          </div>
-                          {order.discountValue > 0 && (
-                            <div className="text-xs text-green-600 mt-1">
-                              Giảm: {formatCurrency(order.discountValue)}
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="flex gap-2 w-full lg:w-auto">
-                          {order.orderStatus === "COOKED" &&
-                            !(
-                              order.isPickUp ||
-                              order.pickUp ||
-                              order.isTable ||
-                              order.table
-                            ) && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleAssignShipper(order.id)}
-                                disabled={assigningShipper.has(order.id)}
-                                className="w-full lg:w-auto whitespace-nowrap border-2 border-green-500 text-green-600 hover:bg-green-500 hover:text-white transition-all duration-300 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                <Truck
-                                  size={16}
-                                  className="mr-1 flex-shrink-0"
-                                  strokeWidth={2.5}
-                                />
-                                <span className="truncate">
-                                  {assigningShipper.has(order.id)
-                                    ? "Đang xử lý..."
-                                    : "Giao hàng ngay"}
-                                </span>
-                              </Button>
-                            )}
-
-                          <div className="flex gap-2 w-full lg:w-auto ">
-                            {["IN_PROCESS", "COOKED"].includes(
-                              order.orderStatus
-                            ) && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handlePrint(order)}
-                                className="flex-1 lg:flex-none whitespace-nowrap border-2 border-[#EC6426] text-[#EC6426] hover:bg-[#EC6426] hover:text-white transition-all duration-300 rounded-xl font-semibold"
-                              >
-                                <Printer
-                                  size={16}
-                                  className="mr-1 flex-shrink-0"
-                                  strokeWidth={2.5}
-                                />
-                                <span className="truncate">In hóa đơn</span>
-                              </Button>
-                            )}
-
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="flex-1 lg:flex-none whitespace-nowrap border-2 border-gray-300 text-gray-700 hover:bg-gray-100 transition-all duration-300 rounded-xl font-semibold"
-                              onClick={() => handleViewOrderDetail(order)}
-                            >
-                              <Eye
-                                size={16}
-                                className="mr-1 flex-shrink-0"
-                                strokeWidth={2.5}
-                              />
-                              <span className="truncate">Chi tiết</span>
-                            </Button>
-                          </div>
-                        </div>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => handlePageChange(currentPage - 1)}
+                          disabled={currentPage === 0}
+                          variant="outline"
+                          size="sm"
+                          className="border-[#EC6426]/30 text-[#2D1E1A] hover:bg-[#EC6426]/10"
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                          Trước
+                        </Button>
+                        <Button
+                          onClick={() => handlePageChange(currentPage + 1)}
+                          disabled={currentPage >= totalPages - 1}
+                          variant="outline"
+                          size="sm"
+                          className="border-[#EC6426]/30 text-[#2D1E1A] hover:bg-[#EC6426]/10"
+                        >
+                          Sau
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
-                  </Card>
-                ))}
-              </div>
+                  </div>
+                )}
+              </>
             )}
           </Card>
         </AdminPageLayout>

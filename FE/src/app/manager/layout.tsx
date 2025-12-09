@@ -391,10 +391,10 @@ export default function ManagerLayout({
               <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent"></div>
               <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#F8A91F]/20 rounded-full blur-3xl"></div>
               <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
-
+              <div className="relative z-10 flex-1 min-w-0 transition-opacity duration-150"></div>
               {!isCollapsed && (
                 <div className="relative z-10 flex-shrink-0">
-                  <Image src={logo.src} alt="logo" width={100} height={100} />
+                  <Image src={logo.src} alt="logo" width={150} height={150} />
                 </div>
               )}
               <div className="relative z-10 flex-1 min-w-0 transition-opacity duration-150"></div>
