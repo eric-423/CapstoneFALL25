@@ -27,6 +27,7 @@ import {
     BookOpen,
     Table,
 } from "lucide-react";
+import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 import logo from "@/assets/logo.png";
 
 
@@ -129,7 +130,7 @@ export default function StaffLayout({
     const pathname = usePathname();
     const router = useRouter();
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [isCollapsed] = useState(false);
+    const [isCollapsed, setIsCollapsed] = useState(false);
 
     const menuItems = useMemo(() => {
         const items = [
@@ -357,7 +358,7 @@ export default function StaffLayout({
 
     return (
         <AdminProvider>
-            <div className="min-h-screen bg-[#EFE6DB]">
+            <div className="min-h-screen bg-white">
                 <div className="flex relative">
                     {sidebarOpen && (
                         <div
@@ -369,7 +370,7 @@ export default function StaffLayout({
                     <aside
                         className={`
                         fixed top-0 left-0 h-screen z-50 lg:z-40
-                        ${isCollapsed ? "w-20" : "w-64 lg:w-56 xl:w-64"}
+                        ${isCollapsed ? "w-20" : "w-64 lg:w-72 xl:w-72"}
                         bg-gradient-to-b from-[#EC6426] via-[#EC6426]/95 to-[#EC6426]/90
                         shadow-xl
                         flex flex-col
@@ -377,30 +378,42 @@ export default function StaffLayout({
                         ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
                     `}
                     >
-                        <div className="relative p-2 border-b border-white/20 flex-shrink-0 flex items-center overflow-hidden">
+                        <div className={`relative p-2 border-b border-white/20 flex-shrink-0 flex items-center ${isCollapsed ? "justify-center" : ""} overflow-hidden`}>
                             <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent"></div>
                             <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#F8A91F]/20 rounded-full blur-3xl"></div>
                             <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
 
-                            <div className="relative z-10 flex-shrink-0">
-                                <Image src={logo.src} alt="logo" width={100} height={100} />
-                            </div>
-
                             {!isCollapsed && (
-                                <div className="relative z-10 flex-1 min-w-0 transition-opacity duration-150">
-                                    <p className="text-[15px] text-white/100 font-semibold tracking-widest uppercase">
-                                        {user?.role?.toUpperCase() === "WAITER" ? "Waiter Panel" : "Staff Panel"}
-                                    </p>
+                                <div className="relative z-10 flex-shrink-0">
+                                    <Image src={logo.src} alt="logo" width={100} height={100} />
                                 </div>
                             )}
 
-                            <button
-                                onClick={() => setSidebarOpen(false)}
-                                className="lg:hidden absolute top-4 right-4 p-2 hover:bg-white/10 rounded-lg transition-colors z-20"
-                                aria-label="Close sidebar"
+                            <div
+                                className={`relative z-10 flex items-center w-full ${isCollapsed ? "justify-center" : "justify-end gap-2"
+                                    }`}
                             >
-                                <X className="w-5 h-5 text-white" />
-                            </button>
+                                <button
+                                    onClick={() => setIsCollapsed((prev) => !prev)}
+                                    className="hidden lg:flex p-2 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0"
+                                    aria-label={
+                                        isCollapsed ? "Mở rộng sidebar" : "Thu gọn sidebar"
+                                    }
+                                >
+                                    {isCollapsed ? (
+                                        <MenuUnfoldOutlined className="w-4 h-4 text-white" />
+                                    ) : (
+                                        <MenuFoldOutlined className="w-4 h-4 text-white" />
+                                    )}
+                                </button>
+                                <button
+                                    onClick={() => setSidebarOpen(false)}
+                                    className="lg:hidden p-2 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0"
+                                    aria-label="Close sidebar"
+                                >
+                                    <X className="w-5 h-5 text-white" />
+                                </button>
+                            </div>
                         </div>
 
                         <nav className="flex-1 overflow-y-auto p-3 sm:p-4 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
@@ -459,7 +472,7 @@ export default function StaffLayout({
                     </aside>
 
                     <main
-                        className={`flex-1 w-full bg-[#EFE6DB] min-w-0 transition-[margin] duration-200 ease-out will-change-[margin] ${isCollapsed ? "lg:ml-20" : "lg:ml-56 xl:ml-64"}`}
+                        className={`flex-1 w-full bg-white min-w-0 transition-[margin] duration-200 ease-out will-change-[margin] h-screen overflow-y-auto ${isCollapsed ? "lg:ml-12" : "lg:ml-56 xl:ml-64"}`}
                     >
                         <div className="lg:hidden sticky top-0 z-30 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 shadow-sm">
                             <button
@@ -476,7 +489,7 @@ export default function StaffLayout({
                             </div>
                         </div>
 
-                        <div className="p-4 sm:p-6 max-w-full overflow-x-hidden">
+                        <div className="bg-white p-4 sm:p-6 max-w-full overflow-x-hidden ml-4 h-[100vh]">
                             {children}
                         </div>
                     </main>

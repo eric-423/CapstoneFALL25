@@ -77,7 +77,7 @@ export function AdminStatsCard({
 }: AdminStatsCardProps) {
   return (
     <div
-      className={`relative overflow-hidden p-3 bg-white border-0 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl group ${className}`}
+      className={`relative overflow-hidden p-3 bg-white border-0 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-xl group ${className}`}
     >
       <div className="absolute inset-0 bg-gradient-to-br from-[#EC6426]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
       <div className="relative flex items-center justify-between">
