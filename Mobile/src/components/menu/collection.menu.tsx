@@ -458,24 +458,6 @@ const CollectionMenu = (props: IProps) => {
                           >
                             {currencyFormatter(item.price)}
                           </Text>
-                          <Text
-                            style={[
-                              styles.itemPrice,
-                              {
-                                textDecorationLine: "line-through",
-                                fontFamily: FONTS.regular,
-                                fontSize: 13,
-                                color: APP_COLOR.BROWN,
-                                position: "relative",
-                                bottom: -20,
-                              },
-                              item.inStock === false && {
-                                opacity: 0.5,
-                              },
-                            ]}
-                          >
-                            {currencyFormatter(item.price - 3000)}
-                          </Text>
                         </View>
                       </View>
                       <View
@@ -713,24 +695,6 @@ const CollectionMenu = (props: IProps) => {
                             ]}
                           >
                             {currencyFormatter(item.price)}
-                          </Text>
-                          <Text
-                            style={[
-                              styles.itemPrice,
-                              {
-                                textDecorationLine: "line-through",
-                                fontFamily: FONTS.regular,
-                                fontSize: 13,
-                                color: APP_COLOR.BROWN,
-                                position: "relative",
-                                bottom: -20,
-                              },
-                              item.inStock === false && {
-                                opacity: 0.5,
-                              },
-                            ]}
-                          >
-                            {currencyFormatter(item.price - 3000)}
                           </Text>
                         </View>
                       </View>

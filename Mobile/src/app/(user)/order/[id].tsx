@@ -23,18 +23,15 @@ interface StatusInfo {
 }
 
 const statusMap: Record<string, StatusInfo> = {
-  CREATED: { text: "Chờ thanh toán", color: STATUS_COLORS.PENDING },
-  PAID: { text: "Đã thanh toán", color: STATUS_COLORS.APPROVED },
-  IN_PROCESS: { text: "Đã xác nhận", color: STATUS_COLORS.APPROVED },
-  APPROVED: { text: "Đã xác nhận", color: STATUS_COLORS.APPROVED },
-  PREPARING: { text: "Đang chuẩn bị", color: STATUS_COLORS.PREPARING },
-  COOKING: { text: "Đang chuẩn bị", color: STATUS_COLORS.COOKING },
+  CREATED: { text: "Đã tạo đơn", color: STATUS_COLORS.PENDING },
+  IN_PROCESS: { text: "Đang xử lý", color: STATUS_COLORS.APPROVED },
+  COOKING: { text: "Đang nấu", color: STATUS_COLORS.COOKING },
   COOKED: { text: "Đã nấu xong", color: STATUS_COLORS.COOKED },
   SHIPPING: { text: "Đang giao hàng", color: STATUS_COLORS.DELIVERING },
-  DELIVERING: { text: "Đang giao hàng", color: STATUS_COLORS.DELIVERING },
-  DELIVERED: { text: "Đã giao hàng", color: STATUS_COLORS.DELIVERED },
-  COMPLETED: { text: "Đã hoàn thành", color: STATUS_COLORS.DONE },
-  DEFAULT: { text: "Đang cập nhật", color: STATUS_COLORS.DEFAULT },
+  DELIVERED: { text: "Đã giao", color: STATUS_COLORS.DELIVERED },
+  COMPLETED: { text: "Hoàn thành", color: STATUS_COLORS.DONE },
+  CANCEL: { text: "Đã hủy", color: STATUS_COLORS.CANCELED },
+  PAID: { text: "Đã thanh toán", color: STATUS_COLORS.APPROVED },
 };
 
 interface IOrderDetails {
@@ -115,6 +112,7 @@ const OrderDetailsPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isCompleting, setIsCompleting] = useState(false);
+  const [pointEarned, setPointEarned] = useState(0);
   const orderIdParam = Array.isArray(id) ? id[0] : id;
   useEffect(() => {
     if (!orderIdParam) return;
@@ -125,8 +123,8 @@ const OrderDetailsPage = () => {
         const response = await GetOrderById(Number(orderIdParam));
         const data = response.data?.data || response.data;
         if (data) {
-          console.log(data);
           setOrderDetails(mapApiOrderToState(data));
+          setPointEarned(data?.pointEarned ?? 0);
         }
       } catch (fetchError) {
         setError("Không thể tải thông tin đơn hàng. Vui lòng thử lại.");
@@ -144,23 +142,26 @@ const OrderDetailsPage = () => {
 
   const statusProgression = [
     "CREATED",
-    "PAID",
     "IN_PROCESS",
-    "APPROVED",
-    "PREPARING",
     "COOKING",
     "COOKED",
     "SHIPPING",
-    "DELIVERING",
     "DELIVERED",
     "COMPLETED",
   ];
 
+  const processingStatusIndex = statusProgression.indexOf("IN_PROCESS");
+  const completedStatusIndex = statusProgression.indexOf("COMPLETED");
+
   const getCurrentStatusIndex = (status: string) => {
-    if (status === "CANCEL" || status === "CANCELED") {
-      return statusProgression.length;
+    const normalized = status === "CANCELED" ? "CANCEL" : status;
+    if (normalized === "CANCEL") {
+      return processingStatusIndex;
     }
-    return statusProgression.indexOf(status);
+    if (normalized === "PAID") {
+      return completedStatusIndex;
+    }
+    return statusProgression.indexOf(normalized);
   };
 
   const currentStatusIndex =
@@ -187,8 +188,6 @@ const OrderDetailsPage = () => {
             Alert.alert("Thành công", "Đơn hàng đã được xác nhận hoàn thành!");
             const response = await GetOrderById(Number(orderIdParam));
             const data = response.data?.data || response.data;
-            console.log(data);
-
             if (data) {
               setOrderDetails(mapApiOrderToState(data));
             }
@@ -272,72 +271,139 @@ const OrderDetailsPage = () => {
               }}
             >
               <View style={{ alignItems: "center", marginRight: 8 }}>
-                {statusProgression.map((status, idx) => (
-                  <View key={status} style={{ alignItems: "center" }}>
-                    <View
-                      style={{
-                        width: 16,
-                        height: 16,
-                        borderRadius: 8,
-                        backgroundColor:
-                          idx <= currentStatusIndex &&
-                          normalizedStatus !== "CANCEL" &&
-                          normalizedStatus !== "CANCELED"
-                            ? APP_COLOR.BROWN
-                            : APP_COLOR.BACKGROUND_ORANGE,
-                        borderWidth: 2,
-                        borderColor: APP_COLOR.BROWN,
-                        zIndex: 2,
-                      }}
-                    />
-                    {idx < statusProgression.length - 1 && (
+                {statusProgression.map((status, idx) => {
+                  const isOrderCanceled =
+                    normalizedStatus === "CANCEL" ||
+                    normalizedStatus === "CANCELED";
+                  const isOrderPaid = normalizedStatus === "PAID";
+
+                  if (isOrderCanceled && idx > processingStatusIndex) {
+                    return null;
+                  }
+
+                  if (isOrderPaid && idx > completedStatusIndex) {
+                    return null;
+                  }
+
+                  const isActive =
+                    idx <= currentStatusIndex && currentStatusIndex >= 0;
+                  const isCancelPosition =
+                    isOrderCanceled && idx === processingStatusIndex;
+                  const isPaidPosition =
+                    isOrderPaid && idx === completedStatusIndex;
+
+                  return (
+                    <View key={status} style={{ alignItems: "center" }}>
                       <View
                         style={{
-                          width: 3,
-                          height: 24,
-                          backgroundColor: APP_COLOR.BROWN,
-                          zIndex: 1,
+                          width: 16,
+                          height: 16,
+                          borderRadius: 8,
+                          backgroundColor: isActive
+                            ? isCancelPosition
+                              ? APP_COLOR.CANCEL
+                              : isPaidPosition
+                              ? STATUS_COLORS.APPROVED
+                              : APP_COLOR.BROWN
+                            : APP_COLOR.BACKGROUND_ORANGE,
+                          borderWidth: 2,
+                          borderColor:
+                            isCancelPosition && isActive
+                              ? APP_COLOR.CANCEL
+                              : isPaidPosition && isActive
+                              ? STATUS_COLORS.APPROVED
+                              : APP_COLOR.BROWN,
+                          zIndex: 2,
                         }}
                       />
-                    )}
-                  </View>
-                ))}
+                      {/* Chỉ hiển thị đường nối nếu không phải là bước cuối cùng được hiển thị */}
+                      {idx < statusProgression.length - 1 &&
+                        (!isOrderCanceled || idx < processingStatusIndex) &&
+                        (!isOrderPaid || idx < completedStatusIndex) && (
+                          <View
+                            style={{
+                              width: 3,
+                              height: 24,
+                              backgroundColor:
+                                isActive && !isCancelPosition && !isPaidPosition
+                                  ? APP_COLOR.BROWN
+                                  : APP_COLOR.BACKGROUND_ORANGE,
+                              zIndex: 1,
+                            }}
+                          />
+                        )}
+                    </View>
+                  );
+                })}
               </View>
               <View>
-                {statusProgression.map((status, idx) => (
-                  <Text
-                    key={status}
-                    style={{
-                      color:
-                        idx === currentStatusIndex &&
-                        normalizedStatus !== "CANCEL" &&
-                        normalizedStatus !== "CANCELED"
+                {statusProgression.map((status, idx) => {
+                  const isOrderCanceled =
+                    normalizedStatus === "CANCEL" ||
+                    normalizedStatus === "CANCELED";
+                  const isOrderPaid = normalizedStatus === "PAID";
+
+                  if (isOrderCanceled && idx > processingStatusIndex) {
+                    return null;
+                  }
+
+                  if (isOrderPaid && idx > completedStatusIndex) {
+                    return null;
+                  }
+
+                  const isCancelPosition =
+                    isOrderCanceled && idx === processingStatusIndex;
+                  const isPaidPosition =
+                    isOrderPaid && idx === completedStatusIndex;
+                  const isCurrentStatus = idx === currentStatusIndex;
+
+                  if (isCancelPosition) {
+                    return (
+                      <Text
+                        key={`cancel-${status}`}
+                        style={{
+                          color: APP_COLOR.CANCEL,
+                          fontFamily: FONTS.bold,
+                          marginBottom: Platform.OS === "android" ? 18 : 22,
+                        }}
+                      >
+                        {statusMap.CANCEL?.text || "Đã hủy"}
+                      </Text>
+                    );
+                  }
+
+                  if (isPaidPosition) {
+                    return (
+                      <Text
+                        key={`paid-${status}`}
+                        style={{
+                          color: STATUS_COLORS.APPROVED,
+                          fontFamily: FONTS.bold,
+                          marginBottom: Platform.OS === "android" ? 18 : 22,
+                        }}
+                      >
+                        {statusMap.PAID?.text || "Đã thanh toán"}
+                      </Text>
+                    );
+                  }
+
+                  return (
+                    <Text
+                      key={status}
+                      style={{
+                        color: isCurrentStatus
                           ? APP_COLOR.ORANGE
                           : APP_COLOR.BROWN,
-                      fontFamily:
-                        idx === currentStatusIndex &&
-                        normalizedStatus !== "CANCEL" &&
-                        normalizedStatus !== "CANCELED"
+                        fontFamily: isCurrentStatus
                           ? FONTS.bold
                           : FONTS.regular,
-                      marginBottom: Platform.OS === "android" ? 18 : 22,
-                    }}
-                  >
-                    {statusMap[status]?.text || status}
-                  </Text>
-                ))}
-                {(normalizedStatus === "CANCEL" ||
-                  normalizedStatus === "CANCELED") && (
-                  <Text
-                    style={{
-                      color: APP_COLOR.ORANGE,
-                      fontFamily: FONTS.bold,
-                      marginBottom: Platform.OS === "android" ? 18 : 22,
-                    }}
-                  >
-                    {statusMap.CANCEL?.text || "Đã hủy"}
-                  </Text>
-                )}
+                        marginBottom: Platform.OS === "android" ? 18 : 22,
+                      }}
+                    >
+                      {statusMap[status]?.text || status}
+                    </Text>
+                  );
+                })}
               </View>
             </View>
             <View
@@ -488,14 +554,7 @@ const OrderDetailsPage = () => {
           </View>
           <View style={styles.detailsContainer}>
             <Text style={styles.totalLabel}>Điểm tích lũy</Text>
-            <Text style={styles.totalLabel}>
-              {(orderDetails?.order_amount ||
-                0 +
-                  (orderDetails?.order_shipping_fee || 0) -
-                  (orderDetails?.order_discount_value || 0) ||
-                0 / 1000) / 1000}{" "}
-              điểm
-            </Text>
+            <Text style={styles.totalLabel}>{pointEarned} điểm</Text>
           </View>
           <Text style={styles.label}>Ghi chú</Text>
           <Text style={styles.value}>

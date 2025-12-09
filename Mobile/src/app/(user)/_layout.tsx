@@ -49,6 +49,12 @@ export default function UserLayout() {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="order/address.new"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }

@@ -79,6 +79,12 @@ export default function AuthLayout() {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="order.failure"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }
