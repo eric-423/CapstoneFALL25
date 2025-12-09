@@ -1,7 +1,8 @@
+import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
 
-const BASE_URL =  process.env.NEXT_PUBLIC_BASE_URL || 'https://tam-tac.com/api';
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://tam-tac.com/api';
 
 type CompleteCustomerOrderRouteContext = {
     params: Promise<{ orderId?: string | string[] }>;
@@ -9,10 +10,9 @@ type CompleteCustomerOrderRouteContext = {
 
 export async function PUT(request: NextRequest, context: CompleteCustomerOrderRouteContext) {
     try {
-        const token = request.cookies.get('token')?.value;
-        if (!token) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
+        const cookieStore = await cookies();
+        const token = cookieStore.get("token")?.value;
+
 
         const resolvedParams = await context.params;
         const rawOrderId = resolvedParams?.orderId;
@@ -21,14 +21,12 @@ export async function PUT(request: NextRequest, context: CompleteCustomerOrderRo
             return NextResponse.json({ error: 'Missing orderId' }, { status: 400 });
         }
 
-        const upstreamBase = BASE_URL.endsWith('/api') ? BASE_URL : `${BASE_URL}/api`;
-        const url = `${upstreamBase}/orders/customer/comleted/${orderId}`;
 
-        const response = await fetch(url, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/orders/customer/comleted/${orderId}`, {
             method: 'PUT',
             headers: {
-                accept: '*/*',
-                Authorization: `Bearer ${token}`,
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
             },
             cache: 'no-store',
         });
