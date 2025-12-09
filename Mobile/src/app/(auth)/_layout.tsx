@@ -73,6 +73,12 @@ export default function AuthLayout() {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="qrcode"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }

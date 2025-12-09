@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   itemName: {
-    fontFamily: FONTS.semiBold,
+    fontFamily: FONTS.bold,
     fontSize: 15,
     color: APP_COLOR.BROWN,
     marginBottom: 5,
@@ -338,7 +338,7 @@ const styles = StyleSheet.create({
   },
   itemQuantitySold: {
     color: APP_COLOR.ORANGE,
-    fontFamily: FONTS.regular,
+    fontFamily: FONTS.semiBold,
     fontSize: 15,
     position: "relative",
     bottom: 10,

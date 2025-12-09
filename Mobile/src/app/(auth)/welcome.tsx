@@ -217,6 +217,7 @@ const WelcomePage = () => {
                   style={{
                     alignItems: "center",
                     marginTop: 10,
+                    zIndex: 1000,
                   }}
                 >
                   <Text style={styles.normalText}>Chưa có tài khoản?</Text>
