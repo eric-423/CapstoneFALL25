@@ -118,11 +118,9 @@ export default function FinancePage() {
     }
   }, [branchId, fetchTransactions]);
 
-  // Filter transactions (client-side filtering for search and payment method)
   const filteredTransactions = useMemo(() => {
     let filtered = [...transactions];
 
-    // Filter by search keyword
     if (searchKeyword) {
       const keyword = searchKeyword.toLowerCase();
       filtered = filtered.filter(
@@ -133,7 +131,6 @@ export default function FinancePage() {
       );
     }
 
-    // Filter by payment method
     if (paymentMethodFilter) {
       filtered = filtered.filter(
         (t) => t.paymentMethod === paymentMethodFilter
@@ -143,7 +140,6 @@ export default function FinancePage() {
     return filtered;
   }, [transactions, searchKeyword, paymentMethodFilter]);
 
-  // Get unique payment methods for filter
   const uniquePaymentMethods = useMemo(() => {
     const methods = new Set<string>();
     transactions.forEach((t) => {
@@ -154,7 +150,6 @@ export default function FinancePage() {
     return Array.from(methods).sort();
   }, [transactions]);
 
-  // Calculate stats from all transactions (not filtered)
   const stats = useMemo(() => {
     const total = transactions.length;
     const totalAmount = transactions.reduce((sum, t) => sum + t.amount, 0);
