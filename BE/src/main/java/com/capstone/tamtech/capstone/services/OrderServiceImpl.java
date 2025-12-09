@@ -980,7 +980,7 @@ public class OrderServiceImpl implements OrderService {
         orderDTO.setAddress(order.getAddress() != null ? order.getAddress() : "");
         orderDTO.setPhone(order.getPhone() != null ? order.getPhone() : "");
         orderDTO.setPointUsed(order.getPointUsed() != 0 ? order.getPointUsed() : 0);
-        orderDTO.setPointEarned(order.getPointEarned() != 0 ? order.getPointUsed() : 0);
+        orderDTO.setPointEarned(order.getPointEarned() != 0 ? order.getPointEarned() : 0);
         orderDTO.setCreatedAt(order.getCreatedAt());
 
         List<OrderItem> orderItems = order.getOrderItems();
