@@ -629,10 +629,8 @@ export default function StaffTablesPage() {
                       )}
                     </div>
 
-                    {/* Action Buttons */}
                     <div className="flex flex-col gap-2 mt-auto">
-                      {/* Payment Button - Only show when order exists */}
-                      {hasOrder && (
+                      {hasOrder && userRole === "STAFF" && (
                         <Button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -647,30 +645,30 @@ export default function StaffTablesPage() {
                         </Button>
                       )}
                       <div className="flex flex-wrap gap-2">
-                      {/* QR button moved to top-right */}
-                      {hasOrder && (
+                        {/* QR button moved to top-right */}
+                        {hasOrder && (
+                          <Button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openActionModal(table);
+                            }}
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 min-w-[60px] text-xs h-8 border-2 border-green-500 text-green-600 hover:bg-green-500 hover:text-white"
+                          >
+                            <CheckCircle size={14} className="mr-1" />
+                            Xử lý
+                          </Button>
+                        )}
                         <Button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openActionModal(table);
-                          }}
+                          onClick={() => handleTableClick(table.id)}
                           variant="outline"
                           size="sm"
-                          className="flex-1 min-w-[60px] text-xs h-8 border-2 border-green-500 text-green-600 hover:bg-green-500 hover:text-white"
+                          className="flex-1 min-w-[60px] text-xs h-8 border-2 border-blue-500 text-blue-600 hover:bg-blue-500 hover:text-white"
                         >
-                          <CheckCircle size={14} className="mr-1" />
-                          Xử lý
+                          <Eye size={14} className="mr-1" />
+                          Xem
                         </Button>
-                      )}
-                      <Button
-                        onClick={() => handleTableClick(table.id)}
-                        variant="outline"
-                        size="sm"
-                        className="flex-1 min-w-[60px] text-xs h-8 border-2 border-blue-500 text-blue-600 hover:bg-blue-500 hover:text-white"
-                      >
-                        <Eye size={14} className="mr-1" />
-                        Xem
-                      </Button>
                       </div>
                     </div>
                   </Card>
@@ -1031,15 +1029,17 @@ export default function StaffTablesPage() {
       )}
 
       {/* Payment Modal Component */}
-      <DiningTablePaymentModal
-        isOpen={showCustomerVerificationModal}
-        table={selectedTableForPayment}
-        onClose={closeCustomerVerificationModal}
-        onPaymentSuccess={() => {
-          fetchTables(true);
-        }}
-        onNotification={showNotification}
-      />
+      {userRole === "STAFF" && (
+        <DiningTablePaymentModal
+          isOpen={showCustomerVerificationModal}
+          table={selectedTableForPayment}
+          onClose={closeCustomerVerificationModal}
+          onPaymentSuccess={() => {
+            fetchTables(true);
+          }}
+          onNotification={showNotification}
+        />
+      )}
 
     </div>
   );
