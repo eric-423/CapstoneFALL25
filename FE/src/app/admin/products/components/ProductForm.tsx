@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useForm, useFieldArray, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -109,6 +109,7 @@ export function ProductForm({
   const [units, setUnits] = useState<Unit[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fetchedRecipesRef = useRef<number | null>(null);
 
   const {
     register,
@@ -208,7 +209,7 @@ export function ProductForm({
   }, []);
 
   useEffect(() => {
-    if (open && materials.length > 0) {
+    if (open) {
       if (product) {
         let typeId = product.productTypeId || 0;
         if (!typeId && product.productType && productTypes.length > 0) {
@@ -229,6 +230,28 @@ export function ProductForm({
           recipesRequests: [],
         });
         setPreviewUrl(product.productImage || null);
+      } else {
+        fetchedRecipesRef.current = null;
+        reset({
+          name: "",
+          description: "",
+          price: 0,
+          imageUrl: "",
+          typeId: 0,
+          recipesRequests: [],
+        });
+        setPreviewUrl(null);
+      }
+      setSelectedFile(null);
+    }
+  }, [open, product, reset, productTypes]);
+
+  // Fetch recipes riêng biệt, chỉ 1 lần khi mở form với product mới
+  useEffect(() => {
+    if (open && product && materials.length > 0) {
+      // Chỉ fetch recipes 1 lần khi mở form với product này
+      if (fetchedRecipesRef.current !== product.productId) {
+        fetchedRecipesRef.current = product.productId;
         import("@/apis/recipe.api").then(({ getRecipesByProductId }) => {
           getRecipesByProductId(product.productId)
             .then((recipes: ProductRecipes[]) => {
@@ -267,20 +290,12 @@ export function ProductForm({
             })
             .catch((err) => console.error("Failed to load recipes", err));
         });
-      } else {
-        reset({
-          name: "",
-          description: "",
-          price: 0,
-          imageUrl: "",
-          typeId: 0,
-          recipesRequests: [],
-        });
-        setPreviewUrl(null);
       }
-      setSelectedFile(null);
+    } else if (!open) {
+      // Reset ref khi đóng form
+      fetchedRecipesRef.current = null;
     }
-  }, [open, product, reset, setValue, productTypes, materials]);
+  }, [open, product?.productId, setValue]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
