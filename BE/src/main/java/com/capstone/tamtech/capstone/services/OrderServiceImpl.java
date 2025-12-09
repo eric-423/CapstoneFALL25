@@ -551,10 +551,9 @@ public class OrderServiceImpl implements OrderService {
         order.setSubTotal(newSubTotal);
         order.setStatus(orderStatusRepository.findByName("COOKING")
                 .orElseThrow(() -> new RuntimeException("OrderStatus CONFIRMED not found")));
-        if (order.getWorker() != null) {
+        if (order.getWorker() == null) {
             assignOrderToCheff(order.getId());
         }
-        assignOrderToCheff(order.getId());
         inventoryService.consumeMaterialsForOrderItems(order.getOrderItems(), branchId);
         orderRepository.save(order);
         return true;
@@ -730,7 +729,6 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.save(order);
 
         return true;
-
     }
 
     private boolean checkAllItemsCooked(Order order) {
@@ -811,6 +809,7 @@ public class OrderServiceImpl implements OrderService {
         memberAssociationService.updateMemberAssiociationForCustomer(customer.getId());
         order.setStatus(orderStatusRepository.findByName("COMPLETED")
                 .orElseThrow(() -> new RuntimeException("OrderStatus COMPLETED not found")));
+        order.setPointEarned((int) (order.getAmount() / 10000));
         orderRepository.save(order);
 
         return true;
