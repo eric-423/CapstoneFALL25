@@ -108,7 +108,7 @@ public class PdfBillService {
             addInfoRow(infoTable, "Địa chỉ giao hàng:", order.getAddress());
         }
 
-        if (order.getIsTable()) {
+        if (order.getIsTable()!=null) {
             String tableInfo = "Bàn " + (order.getDiningTable() != null ? order.getDiningTable().getName() : "N/A");
             addInfoRow(infoTable, "Đặt tại:", tableInfo);
         } else {
