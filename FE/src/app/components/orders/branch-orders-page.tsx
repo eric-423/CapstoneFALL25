@@ -665,6 +665,7 @@ export function BranchOrdersPage({ variant }: BranchOrdersPageProps) {
                   value: status,
                   label: getStatusLabel(status),
                 }))}
+                showAllOption={false}
                 className="w-[150px]"
               />
               {isManager && (
@@ -688,11 +689,11 @@ export function BranchOrdersPage({ variant }: BranchOrdersPageProps) {
               {(searchKeyword ||
                 selectedStatus !== "ALL" ||
                 orderTypeFilter !== "ALL") && (
-                <Button onClick={handleClearFilters} variant="ghost" size="sm">
-                  <X className="h-4 w-4 mr-1" />
-                  Xóa lọc
-                </Button>
-              )}
+                  <Button onClick={handleClearFilters} variant="ghost" size="sm">
+                    <X className="h-4 w-4 mr-1" />
+                    Xóa lọc
+                  </Button>
+                )}
             </div>
 
             <div className="flex items-center gap-3">
@@ -836,16 +837,16 @@ export function BranchOrdersPage({ variant }: BranchOrdersPageProps) {
                             <div className="flex flex-wrap gap-1 justify-center">
                               {(order.isTable === true ||
                                 order.table === true) && (
-                                <Badge className="bg-blue-100 text-blue-700 border-blue-200 border px-2 py-0.5 text-xs font-bold rounded-lg">
-                                  Tại bàn
-                                </Badge>
-                              )}
+                                  <Badge className="bg-blue-100 text-blue-700 border-blue-200 border px-2 py-0.5 text-xs font-bold rounded-lg">
+                                    Tại bàn
+                                  </Badge>
+                                )}
                               {(order.isPickUp === true ||
                                 order.pickUp === true) && (
-                                <Badge className="bg-purple-100 text-purple-700 border-purple-200 border px-2 py-0.5 text-xs font-bold rounded-lg">
-                                  Nhận tại quán
-                                </Badge>
-                              )}
+                                  <Badge className="bg-purple-100 text-purple-700 border-purple-200 border px-2 py-0.5 text-xs font-bold rounded-lg">
+                                    Nhận tại quán
+                                  </Badge>
+                                )}
                               {!order.isTable &&
                                 !order.isPickUp &&
                                 !order.table &&
@@ -906,16 +907,16 @@ export function BranchOrdersPage({ variant }: BranchOrdersPageProps) {
                               {["IN_PROCESS", "COOKED"].includes(
                                 order.orderStatus
                               ) && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handlePrint(order)}
-                                  className="text-[#EC6426] border-[#EC6426] hover:bg-[#EC6426] hover:text-white transition-all"
-                                  title="In hóa đơn"
-                                >
-                                  <Printer size={14} strokeWidth={2.5} />
-                                </Button>
-                              )}
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handlePrint(order)}
+                                    className="text-[#EC6426] border-[#EC6426] hover:bg-[#EC6426] hover:text-white transition-all"
+                                    title="In hóa đơn"
+                                  >
+                                    <Printer size={14} strokeWidth={2.5} />
+                                  </Button>
+                                )}
                               <Button
                                 variant="outline"
                                 size="sm"
@@ -1096,18 +1097,18 @@ export function BranchOrdersPage({ variant }: BranchOrdersPageProps) {
                         {(orderDetail?.delivery_at ||
                           orderDetail?.deliveryAt ||
                           selectedOrder.deliveryAt) && (
-                          <div className="flex items-center gap-2">
-                            <Truck size={16} />
-                            <span className="font-semibold">Giao:</span>
-                            <span>
-                              {formatDate(
-                                orderDetail?.delivery_at ??
+                            <div className="flex items-center gap-2">
+                              <Truck size={16} />
+                              <span className="font-semibold">Giao:</span>
+                              <span>
+                                {formatDate(
+                                  orderDetail?.delivery_at ??
                                   orderDetail?.deliveryAt ??
                                   selectedOrder.deliveryAt
-                              )}
-                            </span>
-                          </div>
-                        )}
+                                )}
+                              </span>
+                            </div>
+                          )}
                       </div>
                     </Card>
                   </div>
@@ -1115,41 +1116,41 @@ export function BranchOrdersPage({ variant }: BranchOrdersPageProps) {
                   {(selectedOrder.waiterName ||
                     selectedOrder.chefName ||
                     selectedOrder.shipperName) && (
-                    <Card className="p-4 border border-gray-100 rounded-xl">
-                      <h3 className="font-semibold text-gray-800 mb-3">
-                        Nhân sự liên quan
-                      </h3>
-                      <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                        {selectedOrder.waiterName && (
-                          <div className="flex items-center gap-2">
-                            <User size={14} />
-                            <span>
-                              <span className="font-semibold">Nhân viên:</span>{" "}
-                              {selectedOrder.waiterName}
-                            </span>
-                          </div>
-                        )}
-                        {selectedOrder.chefName && (
-                          <div className="flex items-center gap-2">
-                            <ChefHat size={14} />
-                            <span>
-                              <span className="font-semibold">Đầu bếp:</span>{" "}
-                              {selectedOrder.chefName}
-                            </span>
-                          </div>
-                        )}
-                        {selectedOrder.shipperName && (
-                          <div className="flex items-center gap-2">
-                            <Truck size={14} />
-                            <span>
-                              <span className="font-semibold">Shipper:</span>{" "}
-                              {selectedOrder.shipperName}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </Card>
-                  )}
+                      <Card className="p-4 border border-gray-100 rounded-xl">
+                        <h3 className="font-semibold text-gray-800 mb-3">
+                          Nhân sự liên quan
+                        </h3>
+                        <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                          {selectedOrder.waiterName && (
+                            <div className="flex items-center gap-2">
+                              <User size={14} />
+                              <span>
+                                <span className="font-semibold">Nhân viên:</span>{" "}
+                                {selectedOrder.waiterName}
+                              </span>
+                            </div>
+                          )}
+                          {selectedOrder.chefName && (
+                            <div className="flex items-center gap-2">
+                              <ChefHat size={14} />
+                              <span>
+                                <span className="font-semibold">Đầu bếp:</span>{" "}
+                                {selectedOrder.chefName}
+                              </span>
+                            </div>
+                          )}
+                          {selectedOrder.shipperName && (
+                            <div className="flex items-center gap-2">
+                              <Truck size={14} />
+                              <span>
+                                <span className="font-semibold">Shipper:</span>{" "}
+                                {selectedOrder.shipperName}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </Card>
+                    )}
 
                   <Card className="p-4 border border-gray-100 rounded-xl">
                     <h3 className="font-semibold text-gray-800 mb-3">
@@ -1173,8 +1174,8 @@ export function BranchOrdersPage({ variant }: BranchOrdersPageProps) {
                             <span className="font-semibold">
                               {formatCurrency(
                                 orderDetail?.shippingFee ??
-                                  selectedOrder.shippingFee ??
-                                  0
+                                selectedOrder.shippingFee ??
+                                0
                               )}
                             </span>
                           </div>
@@ -1190,27 +1191,27 @@ export function BranchOrdersPage({ variant }: BranchOrdersPageProps) {
                                 selectedOrder.discountValue) === 0
                                 ? "0đ"
                                 : `-${formatCurrency(
-                                    orderDetail?.discountValue ??
-                                      selectedOrder.discountValue ??
-                                      0
-                                  )}`}
+                                  orderDetail?.discountValue ??
+                                  selectedOrder.discountValue ??
+                                  0
+                                )}`}
                             </span>
                           </div>
                         )}
                       {(orderDetail?.promotionCode ??
                         selectedOrder.promotionCode) && (
-                        <div className="flex justify-between text-gray-600">
-                          <span>Mã khuyến mãi:</span>
-                          <span className="font-semibold">
-                            {orderDetail?.promotionCode ??
-                              selectedOrder.promotionCode}
-                          </span>
-                        </div>
-                      )}
+                          <div className="flex justify-between text-gray-600">
+                            <span>Mã khuyến mãi:</span>
+                            <span className="font-semibold">
+                              {orderDetail?.promotionCode ??
+                                selectedOrder.promotionCode}
+                            </span>
+                          </div>
+                        )}
                       {(orderDetail?.pointUsed ?? selectedOrder.pointUsed) !==
                         undefined &&
                         (orderDetail?.pointUsed ?? selectedOrder.pointUsed) !==
-                          null && (
+                        null && (
                           <div className="flex justify-between text-gray-600">
                             <span>Điểm đã dùng:</span>
                             <span className="font-semibold">
@@ -1218,10 +1219,10 @@ export function BranchOrdersPage({ variant }: BranchOrdersPageProps) {
                                 selectedOrder.pointUsed) === 0
                                 ? "0 điểm"
                                 : `-${(
-                                    orderDetail?.pointUsed ??
-                                    selectedOrder.pointUsed ??
-                                    0
-                                  ).toLocaleString("vi-VN")} điểm`}
+                                  orderDetail?.pointUsed ??
+                                  selectedOrder.pointUsed ??
+                                  0
+                                ).toLocaleString("vi-VN")} điểm`}
                             </span>
                           </div>
                         )}
@@ -1236,10 +1237,10 @@ export function BranchOrdersPage({ variant }: BranchOrdersPageProps) {
                                 selectedOrder.pointEarned) === 0
                                 ? "0 điểm"
                                 : `+${(
-                                    orderDetail?.pointEarned ??
-                                    selectedOrder.pointEarned ??
-                                    0
-                                  ).toLocaleString("vi-VN")} điểm`}
+                                  orderDetail?.pointEarned ??
+                                  selectedOrder.pointEarned ??
+                                  0
+                                ).toLocaleString("vi-VN")} điểm`}
                             </span>
                           </div>
                         )}
@@ -1261,7 +1262,7 @@ export function BranchOrdersPage({ variant }: BranchOrdersPageProps) {
                       Danh sách món
                     </h3>
                     {orderDetail?.orderItems &&
-                    orderDetail.orderItems.length > 0 ? (
+                      orderDetail.orderItems.length > 0 ? (
                       <div className="space-y-3 max-h-72 overflow-y-auto pr-2">
                         {orderDetail.orderItems.map((item, index) => {
                           const isCombo =
@@ -1282,9 +1283,8 @@ export function BranchOrdersPage({ variant }: BranchOrdersPageProps) {
 
                           return (
                             <div
-                              key={`${
-                                isCombo ? "combo" : "product"
-                              }-${item.productId}-${index}`}
+                              key={`${isCombo ? "combo" : "product"
+                                }-${item.productId}-${index}`}
                               className="flex items-start justify-between gap-3 border-b border-dashed border-gray-200 pb-3"
                             >
                               <div className="flex-1">

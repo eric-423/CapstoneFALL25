@@ -1028,7 +1028,6 @@ export default function StaffTablesPage() {
         </div>
       )}
 
-      {/* Payment Modal Component */}
       {userRole === "STAFF" && (
         <DiningTablePaymentModal
           isOpen={showCustomerVerificationModal}
