@@ -17,16 +17,9 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useMemo, memo, useCallback } from "react";
+import { useState, useEffect, useMemo, memo, useCallback } from "react";
 import { toast } from "react-toastify";
-import {
-  ShoppingBag,
-  LogOut,
-  Menu,
-  X,
-  BookOpen,
-  Table,
-} from "lucide-react";
+import { ShoppingBag, LogOut, Menu, X, BookOpen, Table } from "lucide-react";
 import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 import logo from "@/assets/logo.png";
 
@@ -84,10 +77,11 @@ const MenuItem = memo(
                     flex items-center gap-3 py-2.5 sm:py-3 rounded-xl 
                     transition-all duration-150 relative group flex-1
                     ${isCollapsed ? "justify-center px-3" : "px-4 ml-10"}
-                    ${isActive
-                ? "bg-white/20 text-white shadow-lg font-semibold backdrop-blur-sm"
-                : "text-white/80 hover:bg-white/10 hover:text-white"
-              }
+                    ${
+                      isActive
+                        ? "bg-white/20 text-white shadow-lg font-semibold backdrop-blur-sm"
+                        : "text-white/80 hover:bg-white/10 hover:text-white"
+                    }
                 `}
           >
             {isActive && isCollapsed && (
