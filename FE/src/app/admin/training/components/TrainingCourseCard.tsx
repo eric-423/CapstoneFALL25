@@ -34,7 +34,7 @@ export function TrainingCourseCard({
   getRoleText,
 }: TrainingCourseCardProps) {
   return (
-    <Card className="bg-white border border-gray-300 hover:border-gray-400 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden py-0">
+    <Card className="bg-white border border-gray-300 hover:border-gray-400 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl py-0">
       <div className="p-5">
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex items-center gap-3 flex-1 min-w-0">

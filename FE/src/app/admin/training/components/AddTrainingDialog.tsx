@@ -140,6 +140,7 @@ export function AddTrainingDialog({
 
       setOpen(false);
       resetForm();
+      console.log("Training created successfully, calling onSuccess callback");
       onSuccess?.();
     } catch (error) {
       const serverDesc =

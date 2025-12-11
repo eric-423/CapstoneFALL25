@@ -17,9 +17,16 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useEffect, useMemo, memo, useCallback } from "react";
+import { useState, useMemo, memo, useCallback } from "react";
 import { toast } from "react-toastify";
-import { ShoppingBag, LogOut, Menu, X, BookOpen, Table } from "lucide-react";
+import {
+  ShoppingBag,
+  LogOut,
+  Menu,
+  X,
+  BookOpen,
+  Table,
+} from "lucide-react";
 import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 import logo from "@/assets/logo.png";
 
@@ -77,11 +84,10 @@ const MenuItem = memo(
                     flex items-center gap-3 py-2.5 sm:py-3 rounded-xl 
                     transition-all duration-150 relative group flex-1
                     ${isCollapsed ? "justify-center px-3" : "px-4 ml-10"}
-                    ${
-                      isActive
-                        ? "bg-white/20 text-white shadow-lg font-semibold backdrop-blur-sm"
-                        : "text-white/80 hover:bg-white/10 hover:text-white"
-                    }
+                    ${isActive
+                ? "bg-white/20 text-white shadow-lg font-semibold backdrop-blur-sm"
+                : "text-white/80 hover:bg-white/10 hover:text-white"
+              }
                 `}
           >
             {isActive && isCollapsed && (
@@ -463,7 +469,7 @@ export default function StaffLayout({
           </aside>
 
           <main
-            className={`flex-1 w-full bg-white min-w-0 transition-[margin] duration-200 ease-out will-change-[margin] ${isCollapsed ? "lg:ml-20" : "lg:ml-56 xl:ml-64"}`}
+            className={`flex-1 w-full bg-white min-w-0 transition-[margin] duration-200 ease-out will-change-[margin] h-screen overflow-y-auto ${isCollapsed ? "lg:ml-20" : "lg:ml-64 xl:ml-72"}`}
           >
             <div className="lg:hidden sticky top-0 z-30 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 shadow-sm">
               <button

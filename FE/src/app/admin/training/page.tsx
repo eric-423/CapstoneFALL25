@@ -3,13 +3,11 @@
 import { useState, useMemo, useEffect } from "react";
 import { GraduationCap } from "lucide-react";
 import { toast } from "react-toastify";
+import { useSearchParams } from "next/navigation";
 
-import Link from "next/link";
 import { AdminGuard } from "@/components/guards";
 import { deleteTraining } from "@/apis/trainning.api";
 import { TrainingCourse, StaffRole } from "@/utils/types/training.type";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 import {
   AdminPageLayout,
   AdminPageHeader,
@@ -19,12 +17,14 @@ import {
   TrainingSearchAndFilter,
   TrainingCourseList,
   AssignUserDialog,
+  AddTrainingDialog,
 } from "./components";
 import { useTrainingData } from "./components/hook/useTrainingData";
 import { useBodyScrollLock } from "../components/useBodyScrollLock";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 
 export default function TrainingPage() {
+  const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -115,9 +115,9 @@ export default function TrainingPage() {
       const payload = await deleteTraining(confirmDialog.training.id);
       const message =
         payload &&
-        typeof payload === "object" &&
-        "desc" in payload &&
-        typeof payload.desc === "string"
+          typeof payload === "object" &&
+          "desc" in payload &&
+          typeof payload.desc === "string"
           ? payload.desc
           : "Xoá khóa đào tạo thành công";
       toast.success(message, {
@@ -166,10 +166,26 @@ export default function TrainingPage() {
 
   useEffect(() => {
     if (shouldRefetch) {
-      refetch();
-      setShouldRefetch(false);
+      console.log("shouldRefetch is true, calling refetch...");
+      refetch().then(() => {
+        console.log("Refetch completed from shouldRefetch");
+        setShouldRefetch(false);
+      });
     }
   }, [shouldRefetch, refetch]);
+
+  // Tự động refetch khi quay lại từ trang create
+  useEffect(() => {
+    const refetchParam = searchParams.get("refetch");
+    if (refetchParam === "true") {
+      console.log("Refetch param detected, calling refetch...");
+      refetch().then(() => {
+        console.log("Refetch completed from URL param");
+      });
+      // Xóa query param để tránh refetch lại
+      window.history.replaceState({}, "", "/admin/training");
+    }
+  }, [searchParams, refetch]);
 
   return (
     <AdminGuard>
@@ -179,12 +195,16 @@ export default function TrainingPage() {
           description="Tạo và quản lý khóa học cho nhân viên"
           icon={GraduationCap}
           actions={
-            <Link href="/admin/training/create">
-              <Button className="bg-[#78A243] hover:bg-[#78A243]/90 text-white shadow-md hover:shadow-lg transition-all font-semibold">
-                <Plus size={18} className="mr-2" />
-                Tạo Khóa Đào Tạo
-              </Button>
-            </Link>
+            <>
+              <AddTrainingDialog
+                onSuccess={async () => {
+                  console.log("AddTrainingDialog onSuccess called, refetching...");
+                  setShouldRefetch(true);
+                  await refetch();
+                  console.log("Refetch completed");
+                }}
+              />
+            </>
           }
         />
 
@@ -205,11 +225,11 @@ export default function TrainingPage() {
           isFetching={isFetchingTrainings}
         />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 pb-4">
           <TrainingCourseList
             courses={filteredCourses}
             isLoading={isLoadingTrainings}
-            onView={() => {}}
+            onView={() => { }}
             onDelete={openDeleteDialog}
             onAssignUsers={handleOpenAssignUserDialog}
             onRefetch={() => {
