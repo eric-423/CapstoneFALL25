@@ -347,7 +347,7 @@ export default function StaffLayout({
 
   return (
     <AdminProvider>
-      <div className="min-h-screen bg-[#EFE6DB]">
+      <div className="min-h-screen bg-white">
         <div className="flex relative">
           {sidebarOpen && (
             <div
