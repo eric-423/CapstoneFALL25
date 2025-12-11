@@ -236,7 +236,7 @@ export default function AdminLayout({
   return (
     <AdminProvider>
       <BranchesLoader />
-      <div className="min-h-screen bg-[#EFE6DB]">
+      <div className="min-h-screen bg-white">
         <div className="flex relative">
           {sidebarOpen && (
             <div
