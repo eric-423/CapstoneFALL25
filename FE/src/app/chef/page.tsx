@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Clock, CheckCircle, ChefHat, Loader2, AlertCircle } from 'lucide-react';
 import { getChefOrders, markOrderAsCooked, ChefOrderResponse } from '@/apis/order.api';
 import { useAuthContext } from '@/utils/contexts/AuthContext';
-import WaitingLayout from './components/WaitingLayout';
+import ChefLayout from './components/CompleteLayout';
 
 export default function ChefPage() {
    const { user } = useAuthContext();
@@ -168,7 +168,7 @@ export default function ChefPage() {
    };
 
    return (
-      <WaitingLayout>
+      <ChefLayout>
          <div className='max-w-6xl mx-auto'>
             <div className='grid grid-cols-1 md:grid-cols-2 gap-6 mb-8'>
                <Card>
@@ -445,6 +445,6 @@ export default function ChefPage() {
                )}
             </div>
          </div>
-      </WaitingLayout >
+      </ChefLayout>
    );
 }
