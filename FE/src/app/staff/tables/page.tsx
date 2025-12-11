@@ -57,8 +57,10 @@ export default function StaffTablesPage() {
   );
   const [isConfirmingAll, setIsConfirmingAll] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
-  const [showCustomerVerificationModal, setShowCustomerVerificationModal] = useState(false);
-  const [selectedTableForPayment, setSelectedTableForPayment] = useState<TableData | null>(null);
+  const [showCustomerVerificationModal, setShowCustomerVerificationModal] =
+    useState(false);
+  const [selectedTableForPayment, setSelectedTableForPayment] =
+    useState<TableData | null>(null);
 
   const showNotification = (message: string, type: "success" | "error") => {
     setNotification({ message, type });
@@ -74,7 +76,6 @@ export default function StaffTablesPage() {
       }
       setError(null);
 
-      // Get branchId from cookie
       const branchId = document.cookie
         .split("; ")
         .find((row) => row.startsWith("branchId="))
@@ -87,7 +88,6 @@ export default function StaffTablesPage() {
 
       const data = await getTablesByBranch(parseInt(branchId));
 
-      // Get ALL tables, not just ones with orders
       setAllTables(data);
     } catch (err) {
       console.error("Error fetching tables:", err);
@@ -107,8 +107,15 @@ export default function StaffTablesPage() {
 
     fetchTables();
 
-    const interval = setInterval(() => fetchTables(true), 10000);
-    return () => clearInterval(interval);
+    const handleFocus = () => {
+      fetchTables(true);
+    };
+
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+    };
   }, []);
 
   const handleTableClick = (tableId: number) => {
@@ -118,10 +125,8 @@ export default function StaffTablesPage() {
   const generateQRCode = async (table: TableData) => {
     setSelectedTableForQR(table);
 
-    // Generate order URL
     const orderUrl = `${window.location.origin}/order-table/${table.id}`;
 
-    // Use QR Server API to generate QR code
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(orderUrl)}`;
     setQrCodeUrl(qrUrl);
   };
@@ -130,7 +135,6 @@ export default function StaffTablesPage() {
     if (!selectedTableForQR || !qrCodeUrl) return;
 
     try {
-      // Fetch the image as blob to avoid cross-origin issues
       const response = await fetch(qrCodeUrl);
       const blob = await response.blob();
       const blobUrl = URL.createObjectURL(blob);
@@ -141,8 +145,6 @@ export default function StaffTablesPage() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
-      // Clean up blob URL
       URL.revokeObjectURL(blobUrl);
     } catch (error) {
       console.error("Error downloading QR code:", error);
@@ -189,7 +191,6 @@ export default function StaffTablesPage() {
       return;
     }
 
-    // Get all unconfirmed items that are NOT excluded
     const unconfirmedItems = selectedTableForAction.currentOrder.orderItems
       .map((item, index) => ({ item, index }))
       .filter(({ item, index }) => {
@@ -234,7 +235,6 @@ export default function StaffTablesPage() {
     }
   };
 
-
   const openCustomerVerificationModal = (table: TableData) => {
     setSelectedTableForPayment(table);
     setShowCustomerVerificationModal(true);
@@ -244,7 +244,6 @@ export default function StaffTablesPage() {
     setShowCustomerVerificationModal(false);
     setSelectedTableForPayment(null);
   };
-
 
   const handleDeliverSingleItem = async (item: OrderItem, index: number) => {
     if (!selectedTableForAction?.currentOrder) return;
@@ -280,7 +279,6 @@ export default function StaffTablesPage() {
 
       await waiterDeliveredOrder(request);
 
-      // Update local state immediately
       setSelectedTableForAction((prev) => {
         if (!prev?.currentOrder) return prev;
 
@@ -302,7 +300,6 @@ export default function StaffTablesPage() {
         };
       });
 
-      // Also update allTables state
       setAllTables((prevTables) =>
         prevTables.map((table) => {
           if (table.id === selectedTableForAction.id && table.currentOrder) {
@@ -386,7 +383,7 @@ export default function StaffTablesPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#EFE6DB]">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
           <LoadingSpinner className="h-12 w-12 mx-auto mb-4" />
           <p className="text-gray-600 font-semibold">Đang tải dữ liệu...</p>
@@ -420,10 +417,11 @@ export default function StaffTablesPage() {
       {notification && (
         <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-top-2">
           <Card
-            className={`p-4 min-w-[300px] shadow-xl border-2 ${notification.type === "success"
-              ? "bg-green-50 border-green-500"
-              : "bg-red-50 border-red-500"
-              }`}
+            className={`p-4 min-w-[300px] shadow-xl border-2 ${
+              notification.type === "success"
+                ? "bg-green-50 border-green-500"
+                : "bg-red-50 border-red-500"
+            }`}
           >
             <div className="flex items-center gap-3">
               {notification.type === "success" ? (
@@ -432,10 +430,11 @@ export default function StaffTablesPage() {
                 <AlertCircle className="h-5 w-5 text-red-600" />
               )}
               <p
-                className={`font-semibold ${notification.type === "success"
-                  ? "text-green-900"
-                  : "text-red-900"
-                  }`}
+                className={`font-semibold ${
+                  notification.type === "success"
+                    ? "text-green-900"
+                    : "text-red-900"
+                }`}
               >
                 {notification.message}
               </p>
@@ -444,11 +443,10 @@ export default function StaffTablesPage() {
         </div>
       )}
 
-      <div className="max-w-[1800px] mx-auto space-y-4">
-        {/* Header - Compact */}
+      <div className="h-[100vh] bg-white mx-auto space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-[#EC6426] to-[#F8A91F] bg-clip-text text-transparent mb-1">
+            <h1 className="text-2xl font-bold bg-orange-500 bg-clip-text text-transparent mb-1">
               Sơ đồ bàn ăn
             </h1>
             <p className="text-gray-600 text-sm">
@@ -541,10 +539,11 @@ export default function StaffTablesPage() {
                 return (
                   <Card
                     key={table.id}
-                    className={`relative flex flex-col p-4 transition-all duration-300 border-2 rounded-xl ${hasOrder
-                      ? "bg-gradient-to-br from-orange-50 to-orange-100 border-orange-300 hover:border-orange-400 hover:shadow-lg"
-                      : "bg-white border-gray-200 hover:border-[#EC6426]/30 hover:shadow-md"
-                      }`}
+                    className={`relative flex flex-col p-4 transition-all duration-300 border-2 rounded-xl ${
+                      hasOrder
+                        ? "bg-gradient-to-br from-orange-50 to-orange-100 border-orange-300 hover:border-orange-400 hover:shadow-lg"
+                        : "bg-white border-gray-200 hover:border-[#EC6426]/30 hover:shadow-md"
+                    }`}
                   >
                     {/* Table Status and QR - Top Right */}
                     <div className="absolute top-2 right-2">
@@ -831,10 +830,11 @@ export default function StaffTablesPage() {
                   return (
                     <div
                       key={itemKey}
-                      className={`p-4 rounded-lg border-2 transition-all ${isExcluded
-                        ? "bg-red-50 border-red-300 opacity-60"
-                        : "bg-white border-gray-200 hover:border-gray-300"
-                        }`}
+                      className={`p-4 rounded-lg border-2 transition-all ${
+                        isExcluded
+                          ? "bg-red-50 border-red-300 opacity-60"
+                          : "bg-white border-gray-200 hover:border-gray-300"
+                      }`}
                     >
                       {/* Item Details */}
                       <div className="flex items-start justify-between gap-3 mb-3">
@@ -896,10 +896,11 @@ export default function StaffTablesPage() {
                                 onClick={() => toggleExcludeItem(itemKey)}
                                 size="sm"
                                 variant="outline"
-                                className={`border-2 ${isExcluded
-                                  ? "border-green-500 text-green-600 hover:bg-green-500 hover:text-white"
-                                  : "border-red-500 text-red-600 hover:bg-red-500 hover:text-white"
-                                  }`}
+                                className={`border-2 ${
+                                  isExcluded
+                                    ? "border-green-500 text-green-600 hover:bg-green-500 hover:text-white"
+                                    : "border-red-500 text-red-600 hover:bg-red-500 hover:text-white"
+                                }`}
                               >
                                 <X size={14} className="mr-1" />
                                 {isExcluded ? "Hoàn tác" : "Loại bỏ"}
@@ -968,7 +969,9 @@ export default function StaffTablesPage() {
               ) && (
                 <div className="border-t-2 border-gray-200 pt-4">
                   <Button
-                    onClick={() => openCustomerVerificationModal(selectedTableForAction)}
+                    onClick={() =>
+                      openCustomerVerificationModal(selectedTableForAction)
+                    }
                     className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white border-0 shadow-md hover:shadow-lg"
                   >
                     <CheckCircle size={18} className="mr-2" />
@@ -984,10 +987,11 @@ export default function StaffTablesPage() {
       {notification && (
         <div className="fixed top-4 right-4 z-[100] animate-in slide-in-from-top-2 duration-300">
           <Card
-            className={`p-4 min-w-[300px] shadow-lg border-2 ${notification.type === "success"
-              ? "bg-green-50 border-green-500"
-              : "bg-red-50 border-red-500"
-              }`}
+            className={`p-4 min-w-[300px] shadow-lg border-2 ${
+              notification.type === "success"
+                ? "bg-green-50 border-green-500"
+                : "bg-red-50 border-red-500"
+            }`}
           >
             <div className="flex items-start gap-3">
               {notification.type === "success" ? (
@@ -997,18 +1001,20 @@ export default function StaffTablesPage() {
               )}
               <div className="flex-grow">
                 <p
-                  className={`font-semibold ${notification.type === "success"
-                    ? "text-green-900"
-                    : "text-red-900"
-                    }`}
+                  className={`font-semibold ${
+                    notification.type === "success"
+                      ? "text-green-900"
+                      : "text-red-900"
+                  }`}
                 >
                   {notification.type === "success" ? "Thành công" : "Lỗi"}
                 </p>
                 <p
-                  className={`text-sm ${notification.type === "success"
-                    ? "text-green-700"
-                    : "text-red-700"
-                    }`}
+                  className={`text-sm ${
+                    notification.type === "success"
+                      ? "text-green-700"
+                      : "text-red-700"
+                  }`}
                 >
                   {notification.message}
                 </p>
@@ -1019,10 +1025,11 @@ export default function StaffTablesPage() {
                 className="flex-shrink-0 hover:opacity-70"
               >
                 <X
-                  className={`h-4 w-4 ${notification.type === "success"
-                    ? "text-green-600"
-                    : "text-red-600"
-                    }`}
+                  className={`h-4 w-4 ${
+                    notification.type === "success"
+                      ? "text-green-600"
+                      : "text-red-600"
+                  }`}
                 />
               </button>
             </div>
@@ -1040,7 +1047,6 @@ export default function StaffTablesPage() {
         }}
         onNotification={showNotification}
       />
-
     </div>
   );
 }

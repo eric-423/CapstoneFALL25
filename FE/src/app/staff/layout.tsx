@@ -466,7 +466,7 @@ export default function StaffLayout({
               </div>
             </div>
 
-            <div className="p-4 sm:p-6 max-w-full overflow-x-hidden">
+            <div className="p-4 sm:p-6 max-w-full overflow-x-hidden h-[100vh]">
               {children}
             </div>
           </main>
