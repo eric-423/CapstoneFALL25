@@ -20,6 +20,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect, useMemo, memo, useCallback } from "react";
 import { toast } from "react-toastify";
 import { ShoppingBag, LogOut, Menu, X, BookOpen, Table } from "lucide-react";
+import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 import logo from "@/assets/logo.png";
 
 const MenuItem = memo(
@@ -122,7 +123,7 @@ export default function StaffLayout({
   const pathname = usePathname();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const menuItems = useMemo(() => {
     const items = [
@@ -366,32 +367,45 @@ export default function StaffLayout({
                         ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
                     `}
           >
-            <div className="relative p-2 border-b border-white/20 flex-shrink-0 flex items-center overflow-hidden">
+            <div
+              className={`relative p-2 border-b border-white/20 flex-shrink-0 flex items-center ${isCollapsed ? "justify-center" : ""} overflow-hidden`}
+            >
               <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent"></div>
               <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#F8A91F]/20 rounded-full blur-3xl"></div>
               <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
 
-              <div className="relative z-10 flex-shrink-0">
-                <Image src={logo.src} alt="logo" width={100} height={100} />
-              </div>
-
               {!isCollapsed && (
-                <div className="relative z-10 flex-1 min-w-0 transition-opacity duration-150">
-                  <p className="text-[15px] text-white/100 font-semibold tracking-widest uppercase">
-                    {user?.role?.toUpperCase() === "WAITER"
-                      ? "Waiter Panel"
-                      : "Staff Panel"}
-                  </p>
+                <div className="relative z-10 flex-shrink-0">
+                  <Image src={logo.src} alt="logo" width={100} height={100} />
                 </div>
               )}
 
-              <button
-                onClick={() => setSidebarOpen(false)}
-                className="lg:hidden absolute top-4 right-4 p-2 hover:bg-white/10 rounded-lg transition-colors z-20"
-                aria-label="Close sidebar"
+              <div
+                className={`relative z-10 flex items-center w-full ${
+                  isCollapsed ? "justify-center" : "justify-end gap-2"
+                }`}
               >
-                <X className="w-5 h-5 text-white" />
-              </button>
+                <button
+                  onClick={() => setIsCollapsed((prev) => !prev)}
+                  className="hidden lg:flex p-2 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0"
+                  aria-label={
+                    isCollapsed ? "Mở rộng sidebar" : "Thu gọn sidebar"
+                  }
+                >
+                  {isCollapsed ? (
+                    <MenuUnfoldOutlined className="w-4 h-4 text-white" />
+                  ) : (
+                    <MenuFoldOutlined className="w-4 h-4 text-white" />
+                  )}
+                </button>
+                <button
+                  onClick={() => setSidebarOpen(false)}
+                  className="lg:hidden p-2 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0"
+                  aria-label="Close sidebar"
+                >
+                  <X className="w-5 h-5 text-white" />
+                </button>
+              </div>
             </div>
 
             <nav className="flex-1 overflow-y-auto p-3 sm:p-4 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">

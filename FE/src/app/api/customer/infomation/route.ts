@@ -1,58 +1,55 @@
+import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
+import { createErrorResponse, CustomError, ErrorCodes } from '@/lib/error-handler';
 
 export async function GET(request: NextRequest) {
     try {
-        const token = request.cookies.get('token')?.value;
+        const cookieStore = await cookies();
+        const token = cookieStore.get('token')?.value;
 
         if (!token) {
-            return NextResponse.json({ error: 'Bạn Chưa Đăng Nhập' }, { status: 401 });
+            return createErrorResponse(new CustomError('Bạn chưa đăng nhập', 401, ErrorCodes.AUTHENTICATION_ERROR));
         }
 
         const userId = request.nextUrl.searchParams.get('userId');
-
         if (!userId) {
-            return NextResponse.json({ error: 'Thiếu userId' }, { status: 400 });
+            return createErrorResponse(new CustomError('Thiếu userId', 400, ErrorCodes.VALIDATION_ERROR));
         }
 
         const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/customers/${userId}/informations`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
+                Authorization: `Bearer ${token}`,
             },
         });
 
         if (!response.ok) {
-            const errorBody = await response.text();
-            return NextResponse.json({ error: errorBody || 'Lỗi Không Xác Định' }, { status: response.status });
+            const contentType = response.headers.get('content-type');
+            const errorBody = contentType?.includes('application/json') ? await response.json() : await response.text();
+            const message = typeof errorBody === 'string' ? errorBody : errorBody?.message || 'Lỗi không xác định';
+            return createErrorResponse(new CustomError(message, response.status, ErrorCodes.NETWORK_ERROR));
         }
 
         const data = await response.json();
         return NextResponse.json(data);
-
     } catch (error) {
         console.error('Error fetching customer informations:', error);
-        return NextResponse.json(
-            { error: 'Internal Server Error' },
-            { status: 500 },
-        );
+        return createErrorResponse(new CustomError('Internal Server Error', 500, ErrorCodes.INTERNAL_ERROR));
     }
 }
 
 export async function POST(request: NextRequest) {
     try {
-        const token = request.cookies.get('token')?.value;
+        const cookieStore = await cookies();
+        const token = cookieStore.get('token')?.value;
 
         if (!token) {
-            return NextResponse.json({ error: 'Bạn Chưa Đăng Nhập' }, { status: 401 });
+            return createErrorResponse(new CustomError('Bạn chưa đăng nhập', 401, ErrorCodes.AUTHENTICATION_ERROR));
         }
 
         const body = await request.json();
         const { userId, name, address, phoneNumber, isDefault } = body ?? {};
-
-        if (!userId || !name || !address || !phoneNumber) {
-            return NextResponse.json({ error: 'Thiếu các trường bắt buộc' }, { status: 400 });
-        }
 
         const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/customers/${userId}/informations`, {
             method: 'POST',
@@ -63,18 +60,34 @@ export async function POST(request: NextRequest) {
             body: JSON.stringify({ name, address, phoneNumber, isDefault: Boolean(isDefault) }),
         });
 
+        const contentType = response.headers.get('content-type') ?? '';
+        const rawBody = await response.text();
+
+        const parseJsonSafely = () => {
+            if (!contentType.includes('application/json')) return null;
+            try {
+                return JSON.parse(rawBody);
+            } catch {
+                return null;
+            }
+        };
+
+        const parsed = parseJsonSafely();
+
         if (!response.ok) {
-            const errorBody = await response.text();
-            return NextResponse.json({ error: errorBody || 'Lỗi Không Xác Định' }, { status: response.status });
+            const message = typeof parsed === 'object' && parsed !== null && 'message' in parsed
+                ? (parsed as { message?: string }).message ?? 'Lỗi không xác định'
+                : rawBody || 'Lỗi không xác định';
+            return createErrorResponse(new CustomError(message, response.status, ErrorCodes.NETWORK_ERROR));
         }
 
-        const data = await response.json();
-        return NextResponse.json(data);
+        if (parsed !== null) {
+            return NextResponse.json(parsed);
+        }
+
+        // If backend returned non-JSON, forward as text payload
+        return new NextResponse(rawBody, { status: response.status, headers: { 'content-type': contentType || 'text/plain' } });
     } catch (error) {
-        console.error('Error creating customer information:', error);
-        return NextResponse.json(
-            { error: 'Internal Server Error' },
-            { status: 500 },
-        );
+        return createErrorResponse(new CustomError((error as Error).message, 500, ErrorCodes.INTERNAL_ERROR));
     }
 }

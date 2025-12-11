@@ -117,8 +117,11 @@ export function DiningTablePaymentModal({
                 setCustomerVerificationError(null);
 
                 // Auto-fill usedPoints from memberPoint when customer is found (only if > 0)
+                // Nhưng không được vượt quá số điểm tối đa tính từ subTotal
                 if (response.data.memberPoint && response.data.memberPoint > 0) {
-                    setUsedPoints(response.data.memberPoint);
+                    const maxPointsFromSubTotal = table?.currentOrder?.subTotal ? Math.floor(table.currentOrder.subTotal / 1000) : 0;
+                    const maxPoints = Math.min(response.data.memberPoint, maxPointsFromSubTotal);
+                    setUsedPoints(maxPoints > 0 ? maxPoints : 0);
                 } else {
                     setUsedPoints(0);
                 }
@@ -156,7 +159,10 @@ export function DiningTablePaymentModal({
             return;
         }
         const parsedValue = parseInt(value) || 0;
-        const maxPoints = customerInfo?.memberPoint || 0;
+
+        const maxPointsFromSubTotal = table?.currentOrder?.subTotal ? Math.floor(table.currentOrder.subTotal / 1000) : 0;
+        const customerAvailablePoints = customerInfo?.memberPoint || 0;
+        const maxPoints = Math.min(customerAvailablePoints, maxPointsFromSubTotal);
 
         if (parsedValue < 0) {
             setUsedPoints(0);
@@ -170,6 +176,11 @@ export function DiningTablePaymentModal({
     const handlePayment = async () => {
         if (!table?.currentOrder || !selectedPaymentMethod) {
             onNotification("Vui lòng chọn phương thức thanh toán", "error");
+            return;
+        }
+
+        if (table.currentOrder.paymentUrl) {
+            window.location.href = table.currentOrder.paymentUrl;
             return;
         }
 
@@ -226,15 +237,14 @@ export function DiningTablePaymentModal({
 
                 {/* Header */}
                 <div className="text-center mb-6">
-                    <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <div className="w-16 h-16 mx-auto mb-4 bg-primary rounded-2xl flex items-center justify-center shadow-lg">
                         <CreditCard className="h-8 w-8 text-white" strokeWidth={2} />
                     </div>
                     <h2 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight">
                         Thanh toán
                     </h2>
-                    <p className="text-sm text-gray-600">
-                        Bàn: <span className="font-semibold text-gray-900">{table.name}</span>
-                    </p>
+
+
                 </div>
 
                 {/* Customer Info Display - Below Header */}
@@ -269,7 +279,7 @@ export function DiningTablePaymentModal({
                     {!showPhoneInput && !customerInfo && (
                         <button
                             onClick={() => setShowPhoneInput(true)}
-                            className="w-10 h-10 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 text-white border-0 shadow-lg hover:shadow-xl flex items-center justify-center transition-all hover:scale-110"
+                            className="w-10 h-10 rounded-full bg-primary text-white border-0 shadow-lg hover:shadow-xl flex items-center justify-center transition-all hover:scale-110"
                             title="Xác minh khách hàng (Tùy chọn)"
                         >
                             <Phone size={18} />
@@ -307,7 +317,7 @@ export function DiningTablePaymentModal({
                                     onClick={handleVerifyCustomer}
                                     disabled={isVerifyingCustomer || !customerPhone.trim()}
                                     size="sm"
-                                    className="flex-1 h-8 text-xs bg-gradient-to-r from-amber-500 to-amber-600 text-white border-0 rounded-lg shadow-sm hover:shadow-md disabled:opacity-50"
+                                    className="flex-1 h-8 text-xs bg-primary text-white border-0 rounded-lg shadow-sm hover:shadow-md disabled:opacity-50"
                                 >
                                     {isVerifyingCustomer ? (
                                         <>
@@ -414,7 +424,11 @@ export function DiningTablePaymentModal({
                                         value={usedPoints > 0 ? usedPoints : ""}
                                         onChange={handleValidateUsedPoints}
                                         min="0"
-                                        max={customerInfo?.memberPoint || undefined}
+                                        max={(() => {
+                                            const maxPointsFromSubTotal = table?.currentOrder?.subTotal ? Math.floor(table.currentOrder.subTotal / 1000) : 0;
+                                            const customerAvailablePoints = customerInfo?.memberPoint || 0;
+                                            return Math.min(customerAvailablePoints, maxPointsFromSubTotal);
+                                        })()}
                                         className="h-9 text-sm"
                                     />
                                 </div>
@@ -429,7 +443,7 @@ export function DiningTablePaymentModal({
                                     key={method.id}
                                     onClick={() => setSelectedPaymentMethod(method.id)}
                                     className={`w-full p-4 rounded-xl border-2 transition-all text-left ${selectedPaymentMethod === method.id
-                                        ? "border-amber-500 bg-amber-50 shadow-md"
+                                        ? "border-primary bg-primary/10 shadow-md"
                                         : "border-gray-200 hover:border-amber-300 bg-white"
                                         }`}
                                 >
@@ -437,12 +451,12 @@ export function DiningTablePaymentModal({
                                         <div className="flex items-center gap-3">
                                             <div
                                                 className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedPaymentMethod === method.id
-                                                    ? "border-amber-500"
+                                                    ? "border-primary"
                                                     : "border-gray-300"
                                                     }`}
                                             >
                                                 {selectedPaymentMethod === method.id && (
-                                                    <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+                                                    <div className="w-3 h-3 rounded-full bg-primary"></div>
                                                 )}
                                             </div>
                                             <span className="font-semibold text-gray-900">
@@ -454,7 +468,7 @@ export function DiningTablePaymentModal({
                             ))
                         ) : (
                             <div className="text-center py-4 text-gray-500 text-sm">
-                                Đang tải phương thức thanh toán...
+                                Đang tải ...
                             </div>
                         )}
 
@@ -467,7 +481,7 @@ export function DiningTablePaymentModal({
                     <Button
                         onClick={handlePayment}
                         disabled={!selectedPaymentMethod || isProcessingPayment || paymentMethods.length === 0}
-                        className="w-full h-12 bg-gradient-to-r from-amber-500 to-amber-600 text-white border-0 rounded-xl shadow-md hover:shadow-lg disabled:opacity-50 font-semibold text-base transition-all duration-200"
+                        className="w-full h-12 bg-primary text-primary-foreground border-0 rounded-xl shadow-md hover:shadow-lg disabled:opacity-50 font-semibold text-base transition-all duration-200"
                     >
                         {isProcessingPayment ? (
                             <>

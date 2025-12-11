@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
+import { createErrorResponse, CustomError, ErrorCodes } from "@/lib/error-handler";
 
 type RouteContext = {
   params: Promise<{ id?: string | string[] }>;
@@ -16,9 +17,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const id = await resolveProductId(context);
 
     if (!id) {
-      return NextResponse.json(
-        { error: "Product ID is required" },
-        { status: 400 }
+      return createErrorResponse(
+        new CustomError("Product ID is required", 400, ErrorCodes.VALIDATION_ERROR)
       );
     }
 
@@ -26,29 +26,23 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const { searchParams } = new URL(request.url);
     const branchIdFromCookie = cookieStore.get("branchId")?.value;
     const branchId = searchParams.get("branchId") || branchIdFromCookie || "1";
+    const token = cookieStore.get("token")?.value;
 
-    const baseUrl =
-      process.env.NEXT_PUBLIC_BASE_URL ||
-      process.env.NEXT_PUBLIC_BASE_URL ||
-      "https://tam-tac.com/api";
-
-    const apiUrl = baseUrl.endsWith("/api")
-      ? `${baseUrl}/products/detail/${branchId}/${id}`
-      : `${baseUrl}/api/products/detail/${branchId}/${id}`;
-
-    const response = await fetch(apiUrl, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/products/detail/${branchId}/${id}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Product API Error:", response.status, errorText);
-      return NextResponse.json(
-        { error: errorText || "Failed to fetch product" },
-        { status: response.status }
+      const contentType = response.headers.get("content-type");
+      const errorBody = contentType?.includes("application/json") ? await response.json() : await response.text();
+      const message = typeof errorBody === "string" ? errorBody : errorBody?.message || "Failed to fetch product";
+      console.error("Product API Error:", response.status, message);
+      return createErrorResponse(
+        new CustomError(message, response.status, ErrorCodes.NETWORK_ERROR)
       );
     }
 
@@ -56,13 +50,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
     return NextResponse.json(data);
   } catch (error) {
     console.error("Product API Error:", error);
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error ? error.message : "Failed to fetch product",
-      },
-      { status: 500 }
-    );
+    const message = error instanceof Error ? error.message : "Failed to fetch product";
+    return createErrorResponse(new CustomError(message, 500, ErrorCodes.INTERNAL_ERROR));
   }
 }
 

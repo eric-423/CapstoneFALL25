@@ -93,7 +93,7 @@ public class PdfBillService {
                 .setMarginTop(10)
                 .setMarginBottom(10));
 
-        Table infoTable = new Table(new float[] { 200, 300 });
+        Table infoTable = new Table(new float[]{200, 300});
         infoTable.setWidth(UnitValue.createPercentValue(100));
 
         addInfoRow(infoTable, "Mã đơn hàng:", "#" + order.getId());
@@ -108,8 +108,12 @@ public class PdfBillService {
             addInfoRow(infoTable, "Địa chỉ giao hàng:", order.getAddress());
         }
 
-        addInfoRow(infoTable, "Loại đơn:", order.isPickUp() ? "Tại quán" : "Giao hàng");
-
+        if (order.getIsTable()!=null) {
+            String tableInfo = "Bàn " + (order.getDiningTable() != null ? order.getDiningTable().getName() : "N/A");
+            addInfoRow(infoTable, "Đặt tại:", tableInfo);
+        } else {
+            addInfoRow(infoTable, "Loại đơn:", order.isPickUp() ? "Nhận Tại quán" : "Giao hàng");
+        }
         document.add(infoTable);
 
         document.add(new Paragraph("CHI TIẾT ĐƠN HÀNG")
@@ -118,7 +122,7 @@ public class PdfBillService {
                 .setMarginTop(20)
                 .setMarginBottom(10));
 
-        Table itemsTable = new Table(new float[] { 50, 250, 80, 100, 120 });
+        Table itemsTable = new Table(new float[]{50, 250, 80, 100, 120});
         itemsTable.setWidth(UnitValue.createPercentValue(100));
 
         addTableHeader(itemsTable, "STT");
@@ -144,7 +148,7 @@ public class PdfBillService {
                 .setMarginTop(20)
                 .setMarginBottom(10));
 
-        Table summaryTable = new Table(new float[] { 300, 200 });
+        Table summaryTable = new Table(new float[]{300, 200});
         summaryTable.setWidth(UnitValue.createPercentValue(100));
 
         addSummaryRow(summaryTable, "Tạm tính:", currencyFormat.format(order.getSubTotal()));
