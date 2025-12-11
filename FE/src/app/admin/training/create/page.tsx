@@ -93,7 +93,8 @@ export default function CreateTrainingPage() {
       toast.success("Tạo khóa đào tạo mới thành công!", {
         toastId: "create-training",
       });
-      router.push("/admin/training");
+      // Chuyển về trang training, danh sách sẽ tự động refetch
+      router.push("/admin/training?refetch=true");
     } catch (error) {
       const serverDesc =
         (error as { response?: { data?: { desc?: string; error?: string } } })

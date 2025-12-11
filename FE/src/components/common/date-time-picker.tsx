@@ -121,6 +121,7 @@ const ControlledDateTimePicker = ({
                   Giờ giao hàng
                 </p>
                 <select
+                  title="Giờ giao hàng"
                   className="w-full rounded-xl border bg-[#FFFCF7] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                   value={selectedDate?.getHours() ?? ""}
                   onChange={(e) => handleHourChange(Number(e.target.value))}
@@ -141,6 +142,8 @@ const ControlledDateTimePicker = ({
                   Phút
                 </p>
                 <select
+                  title="Phút"
+
                   className="w-full rounded-xl border bg-[#FFFCF7] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                   value={selectedDate?.getMinutes() ?? ""}
                   onChange={(e) => handleMinuteChange(Number(e.target.value))}

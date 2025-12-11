@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getTrainnings,
   GetTrainningsData,
@@ -16,6 +16,7 @@ const TRAINING_PAGE_SIZE = 50;
 
 export function useTrainingData(searchQuery: string) {
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -51,6 +52,17 @@ export function useTrainingData(searchQuery: string) {
     placeholderData: (previousData) => previousData,
     refetchOnWindowFocus: false,
   });
+
+  // Function để force refetch với invalidate cache
+  const forceRefetch = async () => {
+    // Invalidate cache trước
+    await queryClient.invalidateQueries({
+      queryKey: ["admin-trainings"],
+      refetchType: "active",
+    });
+    // Sau đó refetch
+    return refetch();
+  };
 
   useEffect(() => {
     if (trainingsError) {
@@ -142,7 +154,7 @@ export function useTrainingData(searchQuery: string) {
     totalLessonPoints,
     isLoadingTrainings,
     isFetchingTrainings,
-    refetch,
+    refetch: forceRefetch,
   };
 }
 

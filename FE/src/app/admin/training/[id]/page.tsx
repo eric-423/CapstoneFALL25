@@ -70,7 +70,7 @@ export default function TrainingDetailPage() {
   const [lessonsPagination, setLessonsPagination] = useState({
     page: 0,
     size: TRAINING_LESSON_PAGE_SIZE,
-    includeDeleted: true,
+    includeDeleted: false,
   });
   const [lessonsRefreshKey, setLessonsRefreshKey] = useState(0);
 
@@ -261,11 +261,10 @@ export default function TrainingDetailPage() {
                   {training.name}
                 </h2>
                 <span
-                  className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    training.isActive
-                      ? "bg-[#78A243]/10 text-[#78A243]"
-                      : "bg-gray-200 text-gray-600"
-                  }`}
+                  className={`px-3 py-1 rounded-full text-xs font-semibold ${training.isActive
+                    ? "bg-[#78A243]/10 text-[#78A243]"
+                    : "bg-gray-200 text-gray-600"
+                    }`}
                 >
                   {training.isActive ? "Đang hoạt động" : "Ngưng hoạt động"}
                 </span>
@@ -281,11 +280,10 @@ export default function TrainingDetailPage() {
                 return (
                   <Card
                     key={stat.label}
-                    className={`p-4 border-2 border-[#78A243]/20 shadow-none ${
-                      stat.isClickable
-                        ? "hover:border-[#78A243] hover:shadow-sm transition-all"
-                        : ""
-                    }`}
+                    className={`p-4 border-2 border-[#78A243]/20 shadow-none ${stat.isClickable
+                      ? "hover:border-[#78A243] hover:shadow-sm transition-all"
+                      : ""
+                      }`}
                   >
                     <div className="flex items-center gap-2 mb-1">
                       <IconComponent size={14} className="text-[#78A243]" />
@@ -346,11 +344,10 @@ export default function TrainingDetailPage() {
                   <button
                     type="button"
                     onClick={toggleIncludeDeletedLessons}
-                    className={`px-3 py-1 rounded-full text-xs font-semibold border ${
-                      lessonsPagination.includeDeleted
-                        ? "border-gray-200 text-gray-500 bg-white"
-                        : "border-[#78A243] text-[#78A243] bg-[#78A243]/10"
-                    }`}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold border ${lessonsPagination.includeDeleted
+                      ? "border-gray-200 text-gray-500 bg-white"
+                      : "border-[#78A243] text-[#78A243] bg-[#78A243]/10"
+                      }`}
                   >
                     {lessonsPagination.includeDeleted
                       ? "Bài học đang ẩn"

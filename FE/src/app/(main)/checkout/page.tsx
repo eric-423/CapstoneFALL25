@@ -74,7 +74,6 @@ type CustomerInformationResponse = {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  Clock,
   Loader2,
   MapPin,
   Phone,
@@ -95,7 +94,6 @@ import { z } from "zod";
 import { useRouter } from "next/navigation";
 import CheckoutSection from "./components/checkout-section";
 import { CheckoutFormData, checkoutSchema } from "./schema";
-import ControlledDateTimePicker from "@/components/common/date-time-picker";
 import { Promotion, getAvailablePromotions } from "@/apis/promotion.api";
 import { getCustomerDetails } from "@/apis/user.api";
 
@@ -181,12 +179,12 @@ export default function CheckoutPage() {
     () =>
       Array.isArray(customerInformationData)
         ? customerInformationData.map((info: CustomerInformationResponse) => ({
-            informationId: info.informationId,
-            fullName: info.fullName,
-            address: info.address,
-            phone: info.phone,
-            isDefault: info.isDefault,
-          }))
+          informationId: info.informationId,
+          fullName: info.fullName,
+          address: info.address,
+          phone: info.phone,
+          isDefault: info.isDefault,
+        }))
         : [],
     [customerInformationData]
   );
@@ -275,14 +273,14 @@ export default function CheckoutPage() {
     () =>
       Array.isArray(branchesData)
         ? branchesData.map(
-            (branch): Branch => ({
-              branchId: branch.id,
-              branchName: branch.name,
-              address: branch.address ?? "",
-              phone: branch.phone ?? "",
-              isActive: branch.active,
-            })
-          )
+          (branch): Branch => ({
+            branchId: branch.id,
+            branchName: branch.name,
+            address: branch.address ?? "",
+            phone: branch.phone ?? "",
+            isActive: branch.active,
+          })
+        )
         : [],
     [branchesData]
   );
@@ -291,15 +289,15 @@ export default function CheckoutPage() {
     () =>
       Array.isArray(nearbyBranchesData)
         ? nearbyBranchesData.map(
-            (branch): Branch => ({
-              branchId: branch.branchId,
-              branchName: branch.name,
-              address: branch.address ?? "",
-              phone: branch.phoneNumber ?? "",
-              isActive: true,
-              distanceText: branch.distanceText,
-            })
-          )
+          (branch): Branch => ({
+            branchId: branch.branchId,
+            branchName: branch.name,
+            address: branch.address ?? "",
+            phone: branch.phoneNumber ?? "",
+            isActive: true,
+            distanceText: branch.distanceText,
+          })
+        )
         : [],
     [nearbyBranchesData]
   );
@@ -1151,7 +1149,7 @@ export default function CheckoutPage() {
                                           type="button"
                                           variant={
                                             selectedInfoId ===
-                                            info.informationId
+                                              info.informationId
                                               ? "default"
                                               : "outline"
                                           }
@@ -1261,7 +1259,7 @@ export default function CheckoutPage() {
                       </CheckoutSection>
                     )}
 
-                    <Separator className="mt-6 bg-foreground/20" />
+
                   </CardContent>
                   <CardContent className="space-y-4">
                     <div className="flex items-center gap-2">
@@ -1415,8 +1413,8 @@ export default function CheckoutPage() {
                                 const totalBeforePoints =
                                   isDelivery && shippingFee !== null
                                     ? orderSubtotal +
-                                      shippingFee -
-                                      discountValue
+                                    shippingFee -
+                                    discountValue
                                     : orderSubtotal - discountValue;
                                 const finalTotal = Math.max(
                                   0,
@@ -1439,7 +1437,7 @@ export default function CheckoutPage() {
                               className={cn(
                                 "w-[80%]",
                                 pointError &&
-                                  "border-red-500 focus-visible:ring-red-500"
+                                "border-red-500 focus-visible:ring-red-500"
                               )}
                             />
                             <Button
@@ -1506,8 +1504,8 @@ export default function CheckoutPage() {
                                   const totalBeforePoints =
                                     isDelivery && shippingFee !== null
                                       ? orderSubtotal +
-                                        shippingFee -
-                                        discountValue
+                                      shippingFee -
+                                      discountValue
                                       : orderSubtotal - discountValue;
                                   return Math.max(
                                     0,
@@ -1560,7 +1558,7 @@ export default function CheckoutPage() {
                           <MapPin className="h-4 w-4 text-primary mt-0.5" />
                           <span>
                             {typeof deliveryAddressValue === "string" &&
-                            deliveryAddressValue.trim()
+                              deliveryAddressValue.trim()
                               ? deliveryAddressValue
                               : "Vui lòng nhập địa chỉ giao hàng trong biểu mẫu bên trái."}
                           </span>
@@ -1636,7 +1634,7 @@ export default function CheckoutPage() {
                                   <div className="flex items-center gap-4 text-xs">
                                     <span className="font-bold text-primary">
                                       {promotion.promotionTypeName ===
-                                      "Giảm giá theo %" ? (
+                                        "Giảm giá theo %" ? (
                                         <>Giảm {promotion.value}%</>
                                       ) : promotion.promotionTypeName ===
                                         "Miễn phí vận chuyển" ? (
@@ -1836,13 +1834,13 @@ export default function CheckoutPage() {
                         <div className="flex justify-between text-green-600">
                           <span>
                             {selectedPromotion.promotionTypeName ===
-                            "Miễn phí vận chuyển"
+                              "Miễn phí vận chuyển"
                               ? "Miễn phí vận chuyển"
                               : `Giảm giá (${selectedPromotion.name})`}
                           </span>
                           <span className="font-medium">
                             {selectedPromotion.promotionTypeName ===
-                            "Miễn phí vận chuyển" ? (
+                              "Miễn phí vận chuyển" ? (
                               <>Miễn phí</>
                             ) : (
                               <>-{discountValue.toLocaleString("vi-VN")}₫</>

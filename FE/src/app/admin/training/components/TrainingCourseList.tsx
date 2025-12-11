@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { GraduationCap } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { TrainingCourse, StaffRole } from "@/utils/types/training.type";
@@ -24,9 +25,33 @@ export function TrainingCourseList({
   onDelete,
   onAssignUsers,
   onRefetch,
+  isFetching,
   getRoleColor,
   getRoleText,
 }: TrainingCourseListProps) {
+  const [displayedCourses, setDisplayedCourses] = useState<TrainingCourse[]>([]);
+  const [previousCourseIds, setPreviousCourseIds] = useState<string>("");
+
+  // Hiệu ứng mượt mà khi courses thay đổi
+  useEffect(() => {
+    const currentCourseIds = courses.map(c => c.id).sort().join(',');
+    
+    // Chỉ animate khi danh sách thay đổi và không đang fetch
+    if (!isFetching && currentCourseIds !== previousCourseIds) {
+      // Reset để trigger animation lại
+      setDisplayedCourses([]);
+      const timer = setTimeout(() => {
+        setDisplayedCourses(courses);
+        setPreviousCourseIds(currentCourseIds);
+      }, 50);
+      return () => clearTimeout(timer);
+    } else if (!isFetching && displayedCourses.length === 0 && courses.length > 0) {
+      // Initial load
+      setDisplayedCourses(courses);
+      setPreviousCourseIds(currentCourseIds);
+    }
+  }, [courses, isFetching, previousCourseIds]);
+
   if (isLoading && courses.length === 0) {
     return (
       <Card className="col-span-full flex items-center justify-center py-16">
@@ -56,18 +81,38 @@ export function TrainingCourseList({
 
   return (
     <>
-      {courses.map((course) => (
-        <TrainingCourseCard
+      {displayedCourses.map((course, index) => (
+        <div
           key={course.id}
-          course={course}
-          onView={onView}
-          onDelete={onDelete}
-          onAssignUsers={onAssignUsers}
-          onRefetch={onRefetch}
-          getRoleColor={getRoleColor}
-          getRoleText={getRoleText}
-        />
+          className="opacity-0 translate-y-4 animate-fade-in-up"
+          style={{
+            animationDelay: `${index * 50}ms`,
+            animationDuration: '500ms',
+            animationFillMode: 'forwards',
+            animationTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+          }}
+        >
+          <div className="h-full">
+            <TrainingCourseCard
+              course={course}
+              onView={onView}
+              onDelete={onDelete}
+              onAssignUsers={onAssignUsers}
+              onRefetch={onRefetch}
+              getRoleColor={getRoleColor}
+              getRoleText={getRoleText}
+            />
+          </div>
+        </div>
       ))}
+      {isFetching && displayedCourses.length > 0 && (
+        <div className="col-span-full flex items-center justify-center py-4">
+          <div className="flex items-center gap-3 text-gray-500">
+            <div className="w-4 h-4 border-2 border-gray-300 border-t-primary rounded-full animate-spin" />
+            <span className="text-sm">Đang cập nhật...</span>
+          </div>
+        </div>
+      )}
     </>
   );
 }
