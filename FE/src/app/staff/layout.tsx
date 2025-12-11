@@ -147,14 +147,42 @@ export default function StaffLayout({
   }, [user?.role]);
 
   const activeIndex = useMemo(() => {
-    return menuItems.findIndex((item) => item.href === pathname);
-  }, [menuItems, pathname]);
+    const index = menuItems.findIndex((item) => pathname === item.href);
+    return index >= 0 ? index : 0;
+  }, [pathname, menuItems]);
 
-  const processScannedOrder: ProcessOrderFn = useCallback(
+  const handleLogout = useCallback(() => {
+    logout();
+  }, [logout]);
+
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!sidebarOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (window.innerWidth < 1024) {
+        const target = event.target as HTMLElement;
+        if (
+          !target.closest("aside") &&
+          !target.closest('button[aria-label="Toggle sidebar"]')
+        ) {
+          setSidebarOpen(false);
+        }
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [sidebarOpen]);
+
+  const processScannedOrder = useCallback<ProcessOrderFn>(
     async (orderId: number) => {
-      const ordersResponse = await getBranchOrders();
-      const orders = ordersResponse?.data || [];
-      const order = orders.find((o) => o.id === orderId);
+      const response = await getBranchOrders();
+      const branchOrders = Array.isArray(response?.data) ? response.data : [];
+      const order = branchOrders.find((item) => item.id === orderId);
 
       if (!order) {
         throw new Error(
@@ -293,21 +321,39 @@ export default function StaffLayout({
     });
   }, []);
 
-  const handleLogout = useCallback(() => {
-    logout();
-    router.push("/login");
-  }, [logout, router]);
+  const handleBarcodeAlreadyHandled = useCallback(
+    (orderId: number, context?: BarcodeProcessContext) => {
+      if (context?.action === "no-action") {
+        toast.info(
+          context?.message ||
+            `Đơn #${orderId} đang ở trạng thái ${context?.status || "không xác định"}`,
+          {
+            position: "top-right",
+            autoClose: 4000,
+          }
+        );
+        return;
+      }
+
+      toast.warning(`Đơn hàng #${orderId} đã được xử lý trước đó`, {
+        position: "top-right",
+        autoClose: 3000,
+      });
+    },
+    []
+  );
 
   useBarcodeScanner({
     enabled: true,
     processOrder: processScannedOrder,
     onSuccess: handleBarcodeSuccess,
     onError: handleBarcodeError,
+    onAlreadyHandled: handleBarcodeAlreadyHandled,
   });
 
   return (
     <AdminProvider>
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-[#EFE6DB]">
         <div className="flex relative">
           {sidebarOpen && (
             <div
@@ -319,7 +365,7 @@ export default function StaffLayout({
           <aside
             className={`
                         fixed top-0 left-0 h-screen z-50 lg:z-40
-                        ${isCollapsed ? "w-20" : "w-64 lg:w-72 xl:w-72"}
+                        ${isCollapsed ? "w-20" : "w-64 lg:w-56 xl:w-64"}
                         bg-gradient-to-b from-[#EC6426] via-[#EC6426]/95 to-[#EC6426]/90
                         shadow-xl
                         flex flex-col
@@ -327,7 +373,9 @@ export default function StaffLayout({
                         ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
                     `}
           >
-            <div className={`relative p-2 border-b border-white/20 flex-shrink-0 flex items-center ${isCollapsed ? "justify-center" : ""} overflow-hidden`}>
+            <div
+              className={`relative p-2 border-b border-white/20 flex-shrink-0 flex items-center ${isCollapsed ? "justify-center" : ""} overflow-hidden`}
+            >
               <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent"></div>
               <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#F8A91F]/20 rounded-full blur-3xl"></div>
               <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
@@ -339,8 +387,9 @@ export default function StaffLayout({
               )}
 
               <div
-                className={`relative z-10 flex items-center w-full ${isCollapsed ? "justify-center" : "justify-end gap-2"
-                  }`}
+                className={`relative z-10 flex items-center w-full ${
+                  isCollapsed ? "justify-center" : "justify-end gap-2"
+                }`}
               >
                 <button
                   onClick={() => setIsCollapsed((prev) => !prev)}
@@ -437,7 +486,7 @@ export default function StaffLayout({
               </div>
             </div>
 
-            <div className="p-4 sm:p-6 max-w-full overflow-x-hidden">
+            <div className="p-4 sm:p-6 max-w-full overflow-x-hidden h-[100vh]">
               {children}
             </div>
           </main>

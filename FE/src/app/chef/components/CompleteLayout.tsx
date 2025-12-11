@@ -1,21 +1,120 @@
 "use client";
 
+import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 import { Button } from "@/components/ui/button";
 import { useAuthContext } from "@/utils/contexts/AuthContext";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   ChefHat,
   Clock,
   LogOut,
-  User,
   CheckCircle,
   BookOpen,
   LucideIcon,
+  Menu,
+  X,
 } from "lucide-react";
 import Image from "next/image";
-import logo from "@/assets/full-logo-white.svg";
+import logo from "@/assets/logo.png";
 import RealTimeClock from "./RealTimeClock";
+import { useState, useEffect, useMemo, memo, useCallback } from "react";
+
+const MenuItem = memo(
+  ({
+    item,
+    isActive,
+    isCollapsed,
+    index,
+    totalItems,
+  }: {
+    item: { href: string; label: string; icon: React.ElementType };
+    isActive: boolean;
+    isCollapsed: boolean;
+    index: number;
+    totalItems: number;
+  }) => {
+    const Icon = item.icon;
+    const isFirst = index === 0;
+    const isLast = index === totalItems - 1;
+
+    return (
+      <Link
+        href={item.href}
+        prefetch={true}
+        className="block"
+        title={isCollapsed ? item.label : undefined}
+      >
+        <div
+          className={`relative flex items-center ${
+            isCollapsed ? "justify-center" : ""
+          }`}
+          style={{ minHeight: "48px" }}
+        >
+          {!isCollapsed && (
+            <>
+              <div
+                className={`
+                             absolute left-[15px] w-[2px] bg-white/30
+                             ${isFirst ? "top-1/2" : "top-0"}
+                             ${isLast ? "bottom-1/2" : "bottom-0"}
+                         `}
+              ></div>
+              <div className="absolute left-[15px] top-1/2 w-[20px] h-[2px] bg-white/30"></div>
+              {!isActive && (
+                <div className="absolute left-[11px] top-1/2 -translate-y-1/2 z-10">
+                  <div className="w-2 h-2 rounded-full bg-white/50 border-2 border-[#EC6426]/50"></div>
+                </div>
+              )}
+            </>
+          )}
+
+          <div
+            className={`
+                     flex items-center gap-3 py-2.5 sm:py-3 rounded-xl 
+                     transition-all duration-200 relative group flex-1
+                     ${isCollapsed ? "justify-center px-3" : "px-4 ml-10"}
+                     ${
+                       isActive
+                         ? "bg-white/20 text-white shadow-lg font-semibold backdrop-blur-sm"
+                         : "text-white/80 hover:bg-white/10 hover:text-white"
+                     }
+                 `}
+          >
+            {isActive && isCollapsed && (
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-[#F8A91F] rounded-l-full shadow-lg"></div>
+            )}
+            <Icon
+              size={20}
+              className={`flex-shrink-0 ${
+                isActive
+                  ? "text-white"
+                  : "text-white/80 group-hover:text-[#F8A91F]"
+              } transition-colors`}
+              strokeWidth={isActive ? 2.5 : 2}
+            />
+            {!isCollapsed && (
+              <>
+                <span
+                  className={`text-sm sm:text-base ${
+                    isActive ? "font-semibold" : "font-medium"
+                  } truncate`}
+                >
+                  {item.label}
+                </span>
+                {isActive && (
+                  <div className="ml-auto w-2 h-2 bg-[#F8A91F] rounded-full animate-pulse shadow-lg flex-shrink-0"></div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      </Link>
+    );
+  }
+);
+
+MenuItem.displayName = "MenuItem";
 
 export default function ChefLayout({
   children,
@@ -27,86 +126,206 @@ export default function ChefLayout({
   icon?: LucideIcon;
   description?: string;
 }) {
-  const { logout, user } = useAuthContext();
+  const { logout } = useAuthContext();
   const pathname = usePathname();
+  const router = useRouter();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const menuItems = [
-    { href: "/chef", label: "Danh sách món chờ", icon: Clock },
-    { href: "/chef/completed", label: "Đã hoàn thành", icon: CheckCircle },
-    { href: "/chef/training-courses", label: "Khóa học", icon: BookOpen },
-  ];
+  const menuItems = useMemo(
+    () => [
+      { href: "/chef", label: "Danh sách món chờ", icon: Clock },
+      { href: "/chef/completed", label: "Đã hoàn thành", icon: CheckCircle },
+    ],
+    []
+  );
+
+  const activeIndex = useMemo(() => {
+    const index = menuItems.findIndex((item) => pathname === item.href);
+    return index >= 0 ? index : 0;
+  }, [pathname, menuItems]);
+
+  const handleLogout = useCallback(() => {
+    logout();
+  }, [logout]);
+
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!sidebarOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (window.innerWidth < 1024) {
+        const target = event.target as HTMLElement;
+        if (
+          !target.closest("aside") &&
+          !target.closest('button[aria-label="Toggle sidebar"]')
+        ) {
+          setSidebarOpen(false);
+        }
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [sidebarOpen]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="fixed left-0 top-0 w-64 h-full bg-[#D97B41] shadow-lg z-50">
-        <div className="p-6 border-b border-[#E9C97B]">
-          <div className="flex items-center justify-center">
-            <Image
-              src={logo}
-              alt="Tấm Tắc Logo"
-              className="max-w-[200px] h-auto"
-            />
-          </div>
-        </div>
+    <div className="h-screen bg-[#EFE6DB] overflow-hidden">
+      <div className="flex relative h-full">
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden transition-opacity"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
 
-        <nav className="mt-6">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href;
-
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center px-6 py-3 text-white transition-colors duration-200 ${
-                  isActive
-                    ? "bg-[#E9C97B] text-[#8D572A] font-semibold"
-                    : "hover:bg-[#E9C97B]/50"
-                }`}
-              >
-                <Icon className="w-5 h-5 mr-3" />
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-[#E9C97B]">
-          <div className="flex items-center mb-4">
-            <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center mr-3">
-              <User className="w-4 h-4 text-[#D97B41]" />
-            </div>
-            <div>
-              <p className="text-white font-medium text-sm">
-                {user?.phoneNumber || "Chef"}
-              </p>
-              <p className="text-white/70 text-xs">Đầu Bếp</p>
-            </div>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={logout}
-            className="w-full text-white hover:bg-[#E9C97B]/50 justify-start"
+        <aside
+          className={`
+                        fixed top-0 left-0 h-screen z-50 overflow-hidden
+                        ${isCollapsed ? "w-20" : "w-64 lg:w-72 xl:w-72"}
+                        bg-gradient-to-b from-[#EC6426] via-[#EC6426]/95 to-[#EC6426]/90
+                        shadow-xl lg:shadow-none
+                        flex flex-col
+                        transition-[width,transform] duration-300 ease-in-out
+                        ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+                    `}
+        >
+          <div
+            className={`relative border-b border-white/20 flex-shrink-0 flex items-center ${
+              isCollapsed ? "p-2 justify-center" : "p-2"
+            } overflow-visible`}
           >
-            <LogOut className="w-4 h-4 mr-2" />
-            Đăng xuất
-          </Button>
-        </div>
-      </div>
-
-      <div className="ml-64">
-        <header className="bg-white shadow-sm border-b px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <Icon className="w-6 h-6 text-[#D97B41] mr-2" />
-              <h1 className="text-xl font-bold text-gray-800">{title}</h1>
+            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent"></div>
+            <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#F8A91F]/20 rounded-full blur-3xl"></div>
+            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
+            <div className="relative z-10 flex-1 min-w-0 transition-opacity duration-150"></div>
+            {!isCollapsed && (
+              <div className="relative z-10 flex-shrink-0">
+                <Image src={logo.src} alt="logo" width={150} height={150} />
+              </div>
+            )}
+            <div className="relative z-10 flex-1 min-w-0 transition-opacity duration-150"></div>
+            <div
+              className={`relative z-10 flex items-center w-full ${
+                isCollapsed ? "justify-center" : "justify-end gap-2"
+              }`}
+            >
+              <button
+                onClick={() => setIsCollapsed((prev) => !prev)}
+                className="hidden lg:flex p-2 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0"
+                aria-label={isCollapsed ? "Mở rộng sidebar" : "Thu gọn sidebar"}
+              >
+                {isCollapsed ? (
+                  <MenuUnfoldOutlined className="w-4 h-4 text-white" />
+                ) : (
+                  <MenuFoldOutlined className="w-4 h-4 text-white" />
+                )}
+              </button>
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="lg:hidden p-2 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0"
+                aria-label="Close sidebar"
+              >
+                <X className="w-5 h-5 text-white" />
+              </button>
             </div>
-            <RealTimeClock />
           </div>
-        </header>
 
-        <main className="p-6">{children}</main>
+          <nav className="flex-1 overflow-hidden p-3 sm:p-4">
+            <div className="space-y-1.5 relative">
+              {!isCollapsed && (
+                <div
+                  className="absolute left-[9.5px] w-3 h-3 rounded-full bg-[#F8A91F] shadow-[0_0_12px_rgba(248,169,31,0.8)] border-2 border-white z-20 pointer-events-none transition-all duration-200 ease-out"
+                  style={{
+                    top: `${activeIndex * 48 + activeIndex * 6 + 24}px`,
+                    transform: "translateY(-50%)",
+                  }}
+                ></div>
+              )}
+              {menuItems.map((item, index) => (
+                <MenuItem
+                  key={item.href}
+                  item={item}
+                  isActive={pathname === item.href}
+                  isCollapsed={isCollapsed}
+                  index={index}
+                  totalItems={menuItems.length}
+                />
+              ))}
+            </div>
+          </nav>
+
+          <div className="p-3 sm:p-4 flex-shrink-0 border-t border-white/20 bg-[#EC6426]">
+            <Button
+              className={`w-full ${
+                isCollapsed ? "justify-center px-2" : "justify-start gap-3"
+              } hover:bg-[#EC6426]/90 text-white font-semibold transition-all duration-200 hover:shadow-xl py-2.5 sm:py-3 mb-2`}
+              onClick={() => router.push("/chef/training-courses")}
+              title={isCollapsed ? "Khóa học của tôi" : undefined}
+            >
+              <BookOpen size={18} className="flex-shrink-0" />
+              {!isCollapsed && (
+                <span className="text-sm sm:text-base font-semibold">
+                  Khóa học của tôi
+                </span>
+              )}
+            </Button>
+            <Button
+              className={`w-full ${
+                isCollapsed ? "justify-center px-2" : "justify-start gap-3"
+              } hover:bg-[#EC6426]/90 text-white font-semibold transition-all duration-200 hover:shadow-xl py-2.5 sm:py-3`}
+              onClick={handleLogout}
+              title={isCollapsed ? "Đăng xuất" : undefined}
+            >
+              <LogOut size={18} className="flex-shrink-0" />
+              {!isCollapsed && (
+                <span className="text-sm sm:text-base font-semibold">
+                  Đăng xuất
+                </span>
+              )}
+            </Button>
+          </div>
+
+          <div className="p-3 sm:p-4 bg-[#EC6426] backdrop-blur border-t border-white/20 flex-shrink-0">
+            <p className="text-xs text-center text-white/70 font-medium">
+              © 2025 Tấm Tắc Restaurant
+            </p>
+          </div>
+        </aside>
+
+        <main
+          className={`flex-1 w-full bg-[#EFE6DB] min-w-0 transition-[margin] duration-200 ease-out h-screen overflow-y-auto ${
+            isCollapsed ? "lg:ml-12" : "lg:ml-56 xl:ml-64"
+          }`}
+        >
+          <div className="lg:hidden sticky top-0 z-30 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 shadow-sm">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              aria-label="Toggle sidebar"
+            >
+              <Menu className="w-6 h-6 text-gray-700" />
+            </button>
+            <div className="flex-1">
+              <h1 className="text-lg font-bold text-gray-900">TamTech Chef</h1>
+            </div>
+          </div>
+          <div className="bg-white p-4 sm:p-6 max-w-full overflow-x-hidden ml-4 h-[100vh]">
+            <header className="bg-white shadow-sm border-b px-6 py-4 mb-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <Icon className="w-6 h-6 text-[#EC6426] mr-2" />
+                  <h1 className="text-xl font-bold text-gray-800">{title}</h1>
+                </div>
+                <RealTimeClock />
+              </div>
+            </header>
+            {children}
+          </div>
+        </main>
       </div>
     </div>
   );
