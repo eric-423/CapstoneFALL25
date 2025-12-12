@@ -36,7 +36,7 @@ class WebSocketService {
       }, 20000);
 
       const baseUrlWithoutApi = this.baseUrl.replace("/api", "");
-      const wsUrl = `${baseUrlWithoutApi}/ws`;
+      const wsUrl = `${baseUrlWithoutApi}/api/v1/ws`;
 
       if (!SockJS) {
         try {
@@ -101,9 +101,9 @@ class WebSocketService {
         const wsUrl = baseUrlWithoutApi
           .replace("https://", "wss://")
           .replace("http://", "ws://");
-        let brokerURL = `${wsUrl}/ws`;
+        let brokerURL = `${wsUrl}/api/v1/ws`;
         if (token) {
-          brokerURL = `${wsUrl}/ws?token=${encodeURIComponent(token)}`;
+          brokerURL = `${wsUrl}/api/v1/ws?token=${encodeURIComponent(token)}`;
         }
 
         const headers: any = {};

@@ -266,7 +266,7 @@ const OrderCard = (props: IConfirmOrder) => {
   return (
     <ScrollView>
       <View style={{ marginHorizontal: 10 }}>
-        <Text style={[styles.boldText, { fontSize: 22, marginTop: 10 }]}>
+        <Text style={[styles.boldText, { fontSize: 16, marginTop: 10 }]}>
           Đơn hàng cần giao
         </Text>
       </View>
@@ -285,7 +285,7 @@ const OrderCard = (props: IConfirmOrder) => {
 const styles = StyleSheet.create({
   cardShadow: {
     marginHorizontal: 10,
-    marginTop: 20,
+    marginTop: 10,
     borderRadius: 10,
     backgroundColor: APP_COLOR.WHITE,
     shadowColor: "#000",
@@ -310,7 +310,7 @@ const styles = StyleSheet.create({
   orderIdText: {
     color: APP_COLOR.BROWN,
     fontFamily: APP_FONT.SEMIBOLD,
-    fontSize: 19,
+    fontSize: 16,
     flex: 1,
   },
   iconContainer: {},
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
   customerNameText: {
     color: APP_COLOR.BROWN,
     fontFamily: APP_FONT.MEDIUM,
-    fontSize: 15,
+    fontSize: 14,
   },
   statusBadge: {
     height: 30,
@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontFamily: APP_FONT.REGULAR,
-    fontSize: 11,
+    fontSize: 10,
     color: "#065F46",
   },
   detailsView: {
@@ -372,13 +372,13 @@ const styles = StyleSheet.create({
   boldText: {
     color: APP_COLOR.BROWN,
     fontFamily: APP_FONT.BOLD,
-    fontSize: 17,
+    fontSize: 15,
   },
   text: {
     color: APP_COLOR.BROWN,
     fontFamily: APP_FONT.REGULAR,
-    fontSize: 13,
-    lineHeight: 20,
+    fontSize: 12,
+    lineHeight: 18,
   },
 });
 
