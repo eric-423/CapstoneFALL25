@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
   text: {
     fontFamily: APP_FONT.REGULAR,
     color: APP_COLOR.BROWN,
-    fontSize: 17,
+    fontSize: 15,
   },
   infoContent: { flexDirection: "row", gap: 10, marginVertical: 2.5 },
 });
