@@ -13,6 +13,8 @@ import {
   FileSpreadsheet,
   ChevronUp,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
@@ -62,18 +64,8 @@ export default function WarehouseMaterialsPage({
   const [sortBy, setSortBy] = useState<string>("materialName");
   const [sortDirection, setSortDirection] = useState<"ASC" | "DESC">("ASC");
 
-  // // Hide main page scrollbar when any dialog is open
-  // useEffect(() => {
-  //     const isAnyDialogOpen = showAddDialog || showEditDialog || showImportDialog;
-  //     if (isAnyDialogOpen) {
-  //         document.body.style.overflow = 'hidden';
-  //     } else {
-  //         document.body.style.overflow = '';
-  //     }
-  //     return () => {
-  //         document.body.style.overflow = '';
-  //     };
-  // }, [showAddDialog, showEditDialog, showImportDialog]);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   useEffect(() => {
     params.then((p) => {
@@ -135,7 +127,6 @@ export default function WarehouseMaterialsPage({
     router.push("/admin/warehouses");
   };
 
-  // Calculate statistics
   const totalMaterials = warehouseMaterials.length;
   const lowStockMaterials = warehouseMaterials.filter(
     (m) => m.quantity < m.threshold
@@ -147,7 +138,6 @@ export default function WarehouseMaterialsPage({
 
   const warehouseAddress = warehouseMaterials[0]?.warehouseAddress || "Kho";
 
-  // Get unique material types for filter dropdown
   const materialTypes = useMemo(() => {
     const types = [
       ...new Set(warehouseMaterials.map((m) => m.materialTypeName)),
@@ -155,7 +145,6 @@ export default function WarehouseMaterialsPage({
     return types.map((type) => ({ value: type, label: type }));
   }, [warehouseMaterials]);
 
-  // Filter materials
   const filteredMaterials = useMemo(() => {
     const filtered = warehouseMaterials.filter((material) => {
       const matchesKeyword =
@@ -209,9 +198,23 @@ export default function WarehouseMaterialsPage({
     });
   }, [warehouseMaterials, searchKeyword, typeFilter, sortBy, sortDirection]);
 
+  const totalPages =
+    filteredMaterials.length === 0
+      ? 1
+      : Math.ceil(filteredMaterials.length / PAGE_SIZE);
+  const currentPage = Math.min(page, totalPages);
+  const startIndex = (currentPage - 1) * PAGE_SIZE;
+  const paginatedMaterials = filteredMaterials.slice(
+    startIndex,
+    startIndex + PAGE_SIZE
+  );
+  const displayStart = filteredMaterials.length === 0 ? 0 : startIndex + 1;
+  const displayEnd = Math.min(startIndex + PAGE_SIZE, filteredMaterials.length);
+
   const handleClearFilters = () => {
     setSearchKeyword("");
     setTypeFilter("");
+    setPage(1);
   };
 
   const handleSort = (column: string) => {
@@ -221,6 +224,7 @@ export default function WarehouseMaterialsPage({
       setSortBy(column);
       setSortDirection("ASC");
     }
+    setPage(1);
   };
 
   const getSortIcon = (column: string) => {
@@ -312,7 +316,10 @@ export default function WarehouseMaterialsPage({
               type="text"
               placeholder="Tìm theo tên nguyên liệu..."
               value={searchKeyword}
-              onChange={(e) => setSearchKeyword(e.target.value)}
+              onChange={(e) => {
+                setSearchKeyword(e.target.value);
+                setPage(1);
+              }}
               className="w-full max-w-[280px] pl-10 pr-4 py-2 border bg-white/80 border-[#78A243]/30 rounded-lg text-sm focus:border-[#78A243] focus:ring-1 focus:ring-[#78A243]/20 outline-none"
             />
           </div>
@@ -320,7 +327,10 @@ export default function WarehouseMaterialsPage({
             label="Tất cả loại"
             title="Lọc theo loại nguyên liệu"
             value={typeFilter}
-            onChange={(value) => setTypeFilter(value)}
+            onChange={(value) => {
+              setTypeFilter(value);
+              setPage(1);
+            }}
             items={materialTypes}
             className="w-[180px]"
           />
@@ -389,7 +399,7 @@ export default function WarehouseMaterialsPage({
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredMaterials.map((material) => {
+              {paginatedMaterials.map((material) => {
                 const isLowStock = material.quantity < material.threshold;
                 const stockPercentage =
                   (material.quantity / material.threshold) * 100;
@@ -473,6 +483,42 @@ export default function WarehouseMaterialsPage({
             </tbody>
           </table>
         </div>
+
+        {filteredMaterials.length > 0 && totalPages > 1 && (
+          <div className="px-4 py-3 border-t border-[#78A243]/20 bg-gradient-to-r from-[#EBD187]/10 to-[#78A243]/5">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-[#2D1E1A]/80">
+                Hiển thị {displayStart} - {displayEnd} /{" "}
+                {filteredMaterials.length}
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={currentPage === 1}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  className="border-[#78A243]/30 text-[#2D1E1A] hover:bg-[#78A243]/10"
+                >
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  Trước
+                </Button>
+                <div className="text-sm font-semibold text-[#2D1E1A]">
+                  {currentPage} / {totalPages}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={currentPage >= totalPages}
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  className="border-[#78A243]/30 text-[#2D1E1A] hover:bg-[#78A243]/10"
+                >
+                  Sau
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {filteredMaterials.length === 0 && (
           <div className="text-center py-12">
