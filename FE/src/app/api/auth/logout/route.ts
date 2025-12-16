@@ -22,6 +22,7 @@ export async function POST() {
 
     response.cookies.set('token', '', httpOnlyCookieConfig);
     response.cookies.set('role', '', publicCookieConfig);
+    response.cookies.set('branchId', '', publicCookieConfig);
 
     return response;
   } catch (error) {

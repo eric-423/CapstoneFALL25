@@ -27,12 +27,9 @@ export async function POST(request: NextRequest) {
 
 
         if (!response.ok) {
-            const errorText = await response.text();
-            console.error('API Error Response:', errorText);
-            return NextResponse.json(
-                { error: 'Failed to login', desc: errorText },
-                { status: response.status }
-            );
+            const errorData = await response.json();
+            const errorMessage = errorData?.message || errorData?.error || 'Đăng nhập thất bại. Vui lòng thử lại.';
+            return NextResponse.json(errorMessage, { status: response.status });
         }
 
         const responseData = await response.json();

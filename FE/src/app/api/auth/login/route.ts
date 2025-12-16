@@ -25,9 +25,9 @@ export async function POST(request: NextRequest) {
     });
 
     if (!response.ok) {
-      return createErrorResponse(
-        new CustomError('Failed to login', response.status, ErrorCodes.AUTHENTICATION_ERROR)
-      );
+      const errorData = await response.json();
+      const errorMessage = errorData?.message || errorData?.error || 'Đăng nhập thất bại. Vui lòng thử lại.';
+      return NextResponse.json(errorMessage, { status: response.status });
     }
 
     const responseData = await response.json();
@@ -54,18 +54,13 @@ export async function POST(request: NextRequest) {
           path: '/',
           maxAge: maxAgeInSeconds,
         });
-
-        cookieStore.set('userRole', role, {
-          httpOnly: false,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'strict',
-          path: '/',
-          maxAge: maxAgeInSeconds,
-        });
       }
     }
 
-    return NextResponse.json(responseData);
+    return NextResponse.json({
+      success: true,
+      role: responseData?.userInfo?.role || 'CUSTOMER',
+    });
 
   } catch (error: unknown) {
     if (error instanceof Error) {
