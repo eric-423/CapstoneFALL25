@@ -205,6 +205,7 @@ public class SecurityConfig {
                         .requestMatchers("/products/all-branch/search").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers("/product-types", "/product-types/{id}").permitAll()
                         .requestMatchers("/payment-method").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/orders/*/chat-messages").hasAnyRole("SHIPPER", "CUSTOMER")
                         .requestMatchers("/orders/shipping/fee").permitAll()
                         .requestMatchers("/orders/payment/webhook").permitAll()
                         .requestMatchers("/orders/payment/cancel").permitAll()

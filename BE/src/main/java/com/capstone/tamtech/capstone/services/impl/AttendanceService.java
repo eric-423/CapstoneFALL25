@@ -15,4 +15,6 @@ public interface AttendanceService {
     List<AttendanceDTO> getAttendanceList(Integer userId, Integer branchId, Date fromDate, Date toDate);
 
     AttendanceSummaryDTO getAttendanceSummary(Integer userId, Integer year, Integer month);
+
+    AttendanceDTO checkAttendance(Integer userId, Date date);
 }

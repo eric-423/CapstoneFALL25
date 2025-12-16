@@ -27,6 +27,10 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
             WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
 
+        if (attributes == null) {
+            return false;
+        }
+
         if (request instanceof ServletServerHttpRequest) {
             ServletServerHttpRequest servletRequest = (ServletServerHttpRequest) request;
             HttpServletRequest httpRequest = servletRequest.getServletRequest();
@@ -50,9 +54,9 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
                     String principal = email != null && !email.isEmpty() ? email : phone;
 
                     if (role != null && principal != null) {
-                        attributes.put("userId", userId);
-                        attributes.put("email", email);
-                        attributes.put("phone", phone);
+                        attributes.put("userId", userId != null ? userId : 0);
+                        attributes.put("email", email != null ? email : "");
+                        attributes.put("phone", phone != null ? phone : "");
                         attributes.put("role", role);
                         attributes.put("principal", principal);
 
@@ -66,9 +70,13 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
 
                         System.out.println("✅ WebSocket authentication successful for user: " + principal);
                         return true;
+                    } else {
+                        System.out.println("⚠️ Missing role or principal in token");
+                        return true;
                     }
                 } catch (Exception e) {
                     System.out.println("❌ WebSocket JWT Auth Failed: " + e.getMessage());
+                    e.printStackTrace();
                     return true;
                 }
             } else {
