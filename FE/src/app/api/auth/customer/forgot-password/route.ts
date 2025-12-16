@@ -22,13 +22,53 @@ export async function POST(request: NextRequest) {
     });
 
     if (!response.ok) {
+      let errorDesc = 'Đăng nhập thất bại. Vui lòng thử lại.';
+      try {
+        const contentType = response.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const errorData = await response.json();
+          errorDesc = errorData?.message || errorData?.error || errorData?.desc || errorDesc;
+        } else {
+          const errorText = await response.text();
+          if (errorText) {
+            errorDesc = errorText;
+          }
+        }
+      } catch (parseError) {
+        console.error('Error parsing error response:', parseError);
+      }
+
       return NextResponse.json(
-        { error: 'Failed to send OTP', desc: await response.text() },
+        { error: 'Failed to send OTP', desc: errorDesc },
         { status: response.status }
       );
     }
 
-    return NextResponse.json(await response.json(), { status: response.status || 200 });
+    const contentType = response.headers.get('content-type') || '';
+    let responseData;
+
+    try {
+      if (contentType.includes('application/json')) {
+        const text = await response.text();
+        if (text && text.trim()) {
+          try {
+            responseData = JSON.parse(text);
+          } catch {
+            responseData = { message: text };
+          }
+        } else {
+          responseData = { message: 'OTP đã được gửi thành công' };
+        }
+      } else {
+        const text = await response.text();
+        responseData = text ? { message: text } : { message: 'OTP đã được gửi thành công' };
+      }
+    } catch (parseError) {
+      console.error('Error parsing success response:', parseError);
+      responseData = { message: 'OTP đã được gửi thành công' };
+    }
+
+    return NextResponse.json(responseData, { status: response.status || 200 });
   } catch (error) {
     console.error('Forgot Password API Error:', error);
     return NextResponse.json(

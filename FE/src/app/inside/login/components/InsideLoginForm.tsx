@@ -44,7 +44,6 @@ export default function InsideLoginForm() {
     }
   }, []);
 
-  // Countdown timer for resend OTP
   useEffect(() => {
     if (countdown > 0) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
@@ -71,50 +70,33 @@ export default function InsideLoginForm() {
     try {
       const response = await loginEmployeeViaApiRoute({ email, password });
       if (response.status === 200 && response.data?.token) {
-        if (rememberMe) {
-          localStorage.setItem("insideRememberedEmail", email);
-          localStorage.setItem("insideRememberMe", "true");
-        } else {
-          localStorage.removeItem("insideRememberedEmail");
-          localStorage.setItem("insideRememberMe", "false");
-        }
-
-        // localStorage.setItem('token', response.data.token);
-
         const role = response.data.userInfo?.role;
-
         redirectAfterLogin(role);
       }
     } catch (error: unknown) {
-      const errorMessage =
-        (
-          error as {
-            response?: { data?: { message?: string; error?: string } };
-          }
-        )?.response?.data?.message ||
-        (
-          error as {
-            response?: { data?: { message?: string; error?: string } };
-          }
-        )?.response?.data?.error ||
-        "Email hoặc mật khẩu không đúng";
+      const errorData = (error as { response?: { data?: string | { message?: string; error?: string } } })?.response?.data;
 
-      // Check if email is not verified
+      let errorMessage: string;
+      if (typeof errorData === 'string') {
+        errorMessage = errorData;
+      } else if (errorData && typeof errorData === 'object') {
+        errorMessage = errorData.message || errorData.error || "Email hoặc mật khẩu không đúng";
+      } else {
+        errorMessage = "Email hoặc mật khẩu không đúng";
+      }
       if (
         errorMessage.toLowerCase().includes("chưa được xác thực") ||
         errorMessage.toLowerCase().includes("chưa xác thực") ||
         errorMessage.toLowerCase().includes("email not verified") ||
         errorMessage.toLowerCase().includes("email chưa verify")
       ) {
-        // Switch to OTP step and send OTP
         setStep("otp");
         setErrors((prev) => ({
           ...prev,
           email:
             "Email chưa được xác thực. Vui lòng xác thực email trước khi đăng nhập.",
         }));
-        setLoading(false); // Reset loading before sending OTP
-        // Send OTP after state updates
+        setLoading(false);
         setTimeout(() => {
           handleSendOtp();
         }, 100);
@@ -339,14 +321,14 @@ export default function InsideLoginForm() {
                   )}
                 </div>
 
-                <div className="flex items-center justify-between text-sm">
+                {/* <div className="flex items-center justify-between text-sm">
                   <Link
                     href="mailto:it@tam-tac.com"
                     className="text-[#FF6B35] font-medium hover:underline"
                   >
-                    Quên mật khẩu?
+
                   </Link>
-                </div>
+                </div> */}
 
                 <button
                   type="submit"
@@ -365,11 +347,10 @@ export default function InsideLoginForm() {
                   </p>
                   {otpFeedback && (
                     <p
-                      className={`text-sm font-medium ${
-                        otpFeedback.type === "error"
-                          ? "text-red-600"
-                          : "text-green-600"
-                      } mb-4`}
+                      className={`text-sm font-medium ${otpFeedback.type === "error"
+                        ? "text-red-600"
+                        : "text-green-600"
+                        } mb-4`}
                     >
                       {otpFeedback.text}
                     </p>

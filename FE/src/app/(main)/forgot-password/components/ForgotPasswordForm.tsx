@@ -68,6 +68,7 @@ export default function ForgotPasswordForm() {
         handleSubmit: handleSubmitPhone,
         formState: { errors: phoneErrors },
         setValue: setPhoneValue,
+        setError: setPhoneError,
     } = useForm<PhoneFormData>({
         resolver: zodResolver(phoneSchema),
     });
@@ -80,7 +81,6 @@ export default function ForgotPasswordForm() {
         resolver: zodResolver(resetPasswordSchema),
     });
 
-    // Check if phone is passed from login page (only run once on mount)
     useEffect(() => {
         if (typeof window !== 'undefined' && !hasProcessedPhoneFromQuery.current) {
             const phoneFromQuery = searchParams?.get('phone');
@@ -88,7 +88,6 @@ export default function ForgotPasswordForm() {
                 hasProcessedPhoneFromQuery.current = true;
                 setPhoneNumber(phoneFromQuery);
                 setPhoneValue('phone', phoneFromQuery);
-                // If phone is provided, skip phone step and trigger forgot password
                 const triggerForgotPassword = async () => {
                     setLoading(true);
                     setOtpFeedback(null);
@@ -98,7 +97,6 @@ export default function ForgotPasswordForm() {
                         setStep('otp');
                         setCountdown(0);
 
-                        // Get countdown time for resend
                         try {
                             const timeResendResponse = await getTimeResendOtp('zalo', phoneFromQuery);
                             setCountdown(timeResendResponse.data.ttl || 0);
@@ -106,10 +104,16 @@ export default function ForgotPasswordForm() {
                             console.error('Failed to get resend time:', error);
                         }
 
-                        toast.success('Mã OTP đã được gửi qua Zalo. Vui lòng kiểm tra thông báo.');
                     } catch (error: unknown) {
                         const errorMessage = getErrorMessage(error) || 'Không thể gửi mã OTP. Vui lòng thử lại.';
-                        toast.error(errorMessage);
+
+                        const lowerErrorMessage = errorMessage.toLowerCase();
+                        if (lowerErrorMessage.includes('đợi') || lowerErrorMessage.includes('vừa yêu cầu') || lowerErrorMessage.includes('gần đây')) {
+                            setPhoneError('phone', {
+                                type: 'manual',
+                                message: errorMessage,
+                            });
+                        }
                     } finally {
                         setLoading(false);
                     }
@@ -121,7 +125,6 @@ export default function ForgotPasswordForm() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Countdown timer
     useEffect(() => {
         if (countdown > 0) {
             const timer = setTimeout(() => {
@@ -147,7 +150,6 @@ export default function ForgotPasswordForm() {
             setStep('otp');
             setCountdown(0);
 
-            // Get countdown time for resend
             try {
                 const timeResendResponse = await getTimeResendOtp('zalo', phoneToUse);
                 setCountdown(timeResendResponse.data.ttl || 0);
@@ -155,10 +157,18 @@ export default function ForgotPasswordForm() {
                 console.error('Failed to get resend time:', error);
             }
 
-            toast.success('Mã OTP đã được gửi qua Zalo. Vui lòng kiểm tra thông báo.');
         } catch (error: unknown) {
             const errorMessage = getErrorMessage(error) || 'Không thể gửi mã OTP. Vui lòng thử lại.';
-            toast.error(errorMessage);
+
+            const lowerErrorMessage = errorMessage.toLowerCase();
+            if (lowerErrorMessage.includes('đợi') || lowerErrorMessage.includes('vừa yêu cầu') || lowerErrorMessage.includes('gần đây')) {
+                setPhoneError('phone', {
+                    type: 'manual',
+                    message: errorMessage,
+                });
+            } else {
+                toast.error(errorMessage);
+            }
         } finally {
             setLoading(false);
         }
@@ -216,19 +226,16 @@ export default function ForgotPasswordForm() {
         setLoading(true);
 
         try {
-            // Call forgot-password API again to resend OTP
             await forgotPassword(phoneNumber);
             setOtp('');
 
-            // Get countdown time
             try {
                 const timeResendResponse = await getTimeResendOtp('zalo', phoneNumber);
                 setCountdown(timeResendResponse.data.ttl || 60);
             } catch {
-                setCountdown(60); // Default 60 seconds
+                setCountdown(60);
             }
 
-            toast.success('Mã OTP mới đã được gửi');
         } catch (error: unknown) {
             const errorMessage = getErrorMessage(error) || 'Không thể gửi lại mã OTP. Vui lòng thử lại.';
             setOtpFeedback({
@@ -242,7 +249,7 @@ export default function ForgotPasswordForm() {
 
     const handleResetPassword = async (data: ResetPasswordFormData) => {
         if (!phoneNumber || !verifiedOtp) {
-            toast.error('Thông tin không hợp lệ');
+
             return;
         }
 
@@ -255,7 +262,6 @@ export default function ForgotPasswordForm() {
                 newPassword: data.password,
             });
 
-            toast.success('Đặt lại mật khẩu thành công. Vui lòng đăng nhập lại.');
             router.push('/login');
         } catch (error: unknown) {
             const errorMessage = getErrorMessage(error) || 'Không thể đặt lại mật khẩu. Vui lòng thử lại.';

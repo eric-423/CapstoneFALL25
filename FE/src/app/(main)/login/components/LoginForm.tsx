@@ -5,7 +5,7 @@ import { loginCustomerViaApiRoute, sendOtp } from "@/apis/user.api";
 import { Input } from "@/components/ui/input";
 import { useAuthContext } from "@/utils/contexts/AuthContext";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import headerText from "@/assets/images/headerText.png";
@@ -15,7 +15,6 @@ export default function LoginForm() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [resendOtpLoading, setResendOtpLoading] = useState(false);
   const [errors, setErrors] = useState<{ phone?: string; password?: string }>(
     {}
@@ -25,16 +24,6 @@ export default function LoginForm() {
     text: string;
   } | null>(null);
   const { redirectAfterLogin } = useAuthContext();
-
-  useEffect(() => {
-    const savedPhone = localStorage.getItem("rememberedPhone");
-    const savedRememberMe = localStorage.getItem("rememberMe") === "true";
-
-    if (savedPhone && savedRememberMe) {
-      setPhone(savedPhone);
-      setRememberMe(true);
-    }
-  }, []);
 
   const validatePhone = (phoneNumber: string) => {
     const phoneRegex = /^[0-9]{10}$/;
@@ -61,43 +50,28 @@ export default function LoginForm() {
         password,
       });
 
-      if (response.status === 200 && response.data?.token) {
-        if (rememberMe) {
-          localStorage.setItem("rememberedPhone", phone);
-          localStorage.setItem("rememberMe", "true");
-        } else {
-          localStorage.removeItem("rememberedPhone");
-          localStorage.setItem("rememberMe", "false");
-        }
 
-        localStorage.setItem("access_token", response.data.token);
-
-        const role = response.data.userInfo?.role || "CUSTOMER";
-        redirectAfterLogin(role);
+      if (response.status === 200 && response.data?.success) {
+        redirectAfterLogin("CUSTOMER");
       }
     } catch (error: unknown) {
-      const apiErrorMessage =
-        (
-          error as {
-            response?: { data?: { error?: string; message?: string } };
-          }
-        )?.response?.data?.error ||
-        (
-          error as {
-            response?: { data?: { error?: string; message?: string } };
-          }
-        )?.response?.data?.message ||
+      const errorMessage =
+        (error as { response?: { data?: string } })?.response?.data ||
         "Đăng nhập thất bại. Vui lòng thử lại.";
 
-      let feedbackMessage: string | null = apiErrorMessage;
-
-      if (apiErrorMessage.includes("Số điện thoại chưa được xác thực")) {
-        setErrors((prev) => ({ ...prev, phone: apiErrorMessage }));
-        feedbackMessage = null;
-      }
-
-      if (feedbackMessage) {
-        setGlobalMessage({ type: "error", text: feedbackMessage });
+      if (
+        typeof errorMessage === 'string' &&
+        errorMessage.includes("chưa được xác thực")
+      ) {
+        setErrors((prev) => ({
+          ...prev,
+          phone: "Số điện thoại này chưa được xác thực. Vui lòng xác thực tại đây",
+        }));
+      } else {
+        setGlobalMessage({
+          type: "error",
+          text: typeof errorMessage === 'string' ? errorMessage : "Đăng nhập thất bại. Vui lòng thử lại.",
+        });
       }
     } finally {
       setLoading(false);
@@ -197,11 +171,10 @@ export default function LoginForm() {
               </p>
               {globalMessage && (
                 <p
-                  className={`mt-3 sm:mt-4 text-xs sm:text-sm font-medium px-2 ${
-                    globalMessage.type === "error"
-                      ? "text-red-600"
-                      : "text-gray-700"
-                  }`}
+                  className={`mt-3 sm:mt-4 text-xs sm:text-sm font-medium px-2 ${globalMessage.type === "error"
+                    ? "text-red-600"
+                    : "text-gray-700"
+                    }`}
                 >
                   {globalMessage.text}
                 </p>
@@ -229,22 +202,23 @@ export default function LoginForm() {
 
                 {errors.phone && (
                   <>
-                    <p className="mt-1 text-xs sm:text-sm text-red-600 break-words">
-                      {errors.phone}
+                    <p className="mt-1 text-xs sm:text-sm text-red-600 break-words ">
+                      {errors.phone === "Số điện thoại này chưa được xác thực. Vui lòng xác thực tại đây" ? (
+                        <>
+                          Số điện thoại này chưa được xác thực. Vui lòng xác thực {" "}
+                          <button
+                            type="button"
+                            onClick={handleResendOtp}
+                            disabled={resendOtpLoading}
+                            className="cursor-pointer text-[#FF6B35] underline font-medium hover:text-[#FF5722] disabled:opacity-50"
+                          >
+                            {resendOtpLoading ? "đang xử lý..." : "tại đây"}
+                          </button>
+                        </>
+                      ) : (
+                        errors.phone
+                      )}
                     </p>
-                    {errors.phone ===
-                      "Số điện thoại chưa được xác thực. Vui lòng xác thực số điện thoại trước khi đăng nhập." && (
-                      <button
-                        type="button"
-                        className="mt-2 text-xs sm:text-sm text-[#FF6B35] underline disabled:opacity-50 block"
-                        onClick={handleResendOtp}
-                        disabled={resendOtpLoading}
-                      >
-                        {resendOtpLoading
-                          ? "Đang gửi..."
-                          : "Gửi lại mã xác thực"}
-                      </button>
-                    )}
                   </>
                 )}
               </div>
