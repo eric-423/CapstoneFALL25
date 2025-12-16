@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface MessageRepository extends JpaRepository<Message, Integer> {
 
+    List<Message> findByChatRoomIdOrderBySendTimeAsc(int chatRoomId);
 }

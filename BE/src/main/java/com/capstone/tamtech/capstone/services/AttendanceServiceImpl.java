@@ -220,6 +220,28 @@ public class AttendanceServiceImpl implements AttendanceService {
         return summary;
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public AttendanceDTO checkAttendance(Integer userId, Date date) {
+        if (userId == null) {
+            throw new IllegalArgumentException("userId là bắt buộc");
+        }
+        if (date == null) {
+            throw new IllegalArgumentException("date là bắt buộc");
+        }
+
+        usersRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+        Optional<Attendance> attendance = attendanceRepository.findByUserIdAndWorkDate(userId, date);
+
+        if (attendance.isPresent()) {
+            return toDTO(attendance.get());
+        }
+
+        return null;
+    }
+
     private AttendanceDTO toDTO(Attendance attendance) {
         AttendanceDTO dto = new AttendanceDTO();
         dto.setId(attendance.getId());

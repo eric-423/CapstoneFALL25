@@ -5,8 +5,10 @@ import com.capstone.tamtech.capstone.dto.AttendanceSummaryDTO;
 import com.capstone.tamtech.capstone.payload.ResponseData;
 import com.capstone.tamtech.capstone.services.impl.AttendanceService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -89,6 +91,36 @@ public class AttendanceController {
             AttendanceSummaryDTO summary = attendanceService.getAttendanceSummary(userId, year, monthValue);
             responseData.setData(summary);
             responseData.setDesc("Attendance summary retrieved successfully");
+            return new ResponseEntity<>(responseData, HttpStatus.OK);
+        } catch (Exception e) {
+            responseData.setDesc("Error: " + e.getMessage());
+            return new ResponseEntity<>(responseData, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @Operation(summary = "Kiểm tra nhân viên đã điểm danh trong ngày", description = "Kiểm tra xem nhân viên có điểm danh trong ngày cụ thể hay chưa. "
+            +
+            "Trả về AttendanceDTO nếu đã điểm danh, null nếu chưa điểm danh.")
+    @GetMapping("/check")
+    public ResponseEntity<?> checkAttendance(
+            @Parameter(description = "ID nhân viên", required = true, example = "1") @RequestParam(value = "userId", required = true) Integer userId,
+            @Parameter(description = "Ngày cần kiểm tra (yyyy-MM-dd). Không truyền = hôm nay", example = "2025-01-15") @RequestParam(value = "date", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date date) {
+        ResponseData responseData = new ResponseData();
+        try {
+            if (date == null) {
+                date = new Date(System.currentTimeMillis());
+            }
+
+            AttendanceDTO attendance = attendanceService.checkAttendance(userId, date);
+
+            if (attendance != null) {
+                responseData.setData(attendance);
+                responseData.setDesc("Nhân viên đã điểm danh trong ngày này");
+            } else {
+                responseData.setData(null);
+                responseData.setDesc("Nhân viên chưa điểm danh trong ngày này");
+            }
+
             return new ResponseEntity<>(responseData, HttpStatus.OK);
         } catch (Exception e) {
             responseData.setDesc("Error: " + e.getMessage());
