@@ -19,6 +19,7 @@ const Footer = () => {
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   className="object-contain scale-110 lg:scale-125 p-1"
+                  priority
                 />
               </div>
             </div>

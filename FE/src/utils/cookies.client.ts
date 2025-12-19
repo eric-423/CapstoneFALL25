@@ -27,9 +27,6 @@ const setCookieValue = (name: string, value: string, expires?: Date) => {
   }
 
   document.cookie = cookie;
-  if (name === "branchId") {
-    console.log(`[Cookie] Set branchId=${value}`, { cookie, expires });
-  }
 };
 
 const removeCookieValue = (name: string) => {
@@ -62,43 +59,43 @@ export const removeToken = () => {
 };
 
 export const getAccessToken = (): string | undefined => {
-  return getCookieValue(config.cookies.accessToken);
+  return getCookieValue(config.cookies.token);
 };
 
 export const setAccessToken = (token: string) => {
   setCookieValue(
-    config.cookies.accessToken,
+    config.cookies.token,
     token,
     new Date(new Date().setMinutes(new Date().getMinutes() + 20))
   );
 };
 
 export const removeAccessToken = () => {
-  removeCookieValue(config.cookies.accessToken);
+  removeCookieValue(config.cookies.token);
 };
 
 export const getRefreshToken = (): string | undefined => {
-  return getCookieValue(config.cookies.refreshToken);
+  return getCookieValue(config.cookies.token);
 };
 
 export const setRefreshToken = (token: string) => {
-  setCookieValue(config.cookies.refreshToken, token);
+  setCookieValue(config.cookies.token, token);
 };
 
 export const removeRefreshToken = () => {
-  removeCookieValue(config.cookies.refreshToken);
+  removeCookieValue(config.cookies.token);
 };
 
 export const setUserRole = (role: string) => {
-  setCookieValue("userRole", role);
+  setCookieValue("Role", role);
 };
 
 export const getUserRole = (): string | undefined => {
-  return getCookieValue("userRole");
+  return getCookieValue("Role");
 };
 
 export const removeUserRole = () => {
-  removeCookieValue("userRole");
+  removeCookieValue("Role");
 };
 
 export const setAuthToken = (token: string) => {
@@ -106,6 +103,7 @@ export const setAuthToken = (token: string) => {
 };
 
 export const getAuthToken = (): string | undefined => {
+
   return getCookieValue("token");
 };
 

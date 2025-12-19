@@ -11,7 +11,7 @@ import {
 } from "@/apis/order.api";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { toast } from "react-toastify";
-import { ArrowLeft, CheckCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle, MessageCircle } from "lucide-react";
 import { OrderDetailsContent } from "@/components/common/order-details";
 import { useMemo } from "react";
 
@@ -214,6 +214,8 @@ export default function CustomerOrderDetailPage() {
   const normalizedStatus = order?.orderStatus?.toUpperCase?.() || "";
   const isCreated = normalizedStatus === "CREATED";
   const isDelivered = normalizedStatus === "DELIVERED";
+  const canChat =
+    normalizedStatus === "SHIPPING" || normalizedStatus === "DELIVERED";
 
   const handleCompleteOrder = async () => {
     if (!order || isCompleting) return;
@@ -271,6 +273,17 @@ export default function CustomerOrderDetailPage() {
               Quay lại
             </Button>
             <div className="flex flex-col sm:flex-row gap-3 justify-end">
+              {canChat && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="border-primary text-primary"
+                  onClick={() => router.push(`/profile/orders/${orderId}/chat`)}
+                >
+                  <MessageCircle className="h-4 w-4" />
+                </Button>
+              )}
               {isCreated && (
                 <Button
                   variant="default"
