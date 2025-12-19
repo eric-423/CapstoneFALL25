@@ -129,17 +129,7 @@ export function useOrderChat({ orderId, enabled = true }: UseOrderChatOptions) {
         orderId,
         content: content.trim(),
       };
-
-      // Backend mapping: /app/chat/order
       websocketService.send("/chat/order", payload);
-
-      const optimisticMessage: OrderChatMessage = {
-        ...payload,
-        id: Date.now(),
-        sendTime: new Date().toISOString(),
-      };
-
-      setMessages((prev) => [...prev, optimisticMessage]);
     } catch (err) {
       console.error("[useOrderChat] sendMessage error:", err);
       setError(
