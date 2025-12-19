@@ -91,7 +91,6 @@ class WebSocketService {
       throw new Error('Không thể xây dựng URL kết nối WebSocket.');
     }
 
-    this.log('Đang kết nối tới', socketUrl);
 
     this.connectingPromise = new Promise((resolve, reject) => {
       this.client = new Client({
@@ -107,23 +106,13 @@ class WebSocketService {
         debug: (message: string) => this.handleDebug(message),
         onConnect: () => {
           this.log('Kết nối WebSocket thành công.');
-          console.log('[WebSocketService]  Đã kết nối tới', socketUrl);
           this.connectingPromise = null;
           resolve();
         },
         onStompError: (frame) => {
-          console.error('[WebSocketService] STOMP error:', frame);
           this.connectingPromise = null;
           this.teardownClient();
-          reject(new Error(frame.headers['message'] || 'Không thể kết nối WebSocket.'));
-        },
-        onWebSocketClose: (closeEvent) => {
-          this.log('WebSocket đóng:', closeEvent.reason || closeEvent.code);
-          this.connectingPromise = null;
-          this.teardownClient();
-        },
-        onWebSocketError: (event) => {
-          console.log('[WebSocketService] WebSocket error:', event);
+          reject(new Error(frame.headers['message'] || 'Không thể kết nối.'));
         },
       });
 
@@ -137,11 +126,6 @@ class WebSocketService {
     const socket = new SockJS(url, null, {
       transports: this.transports,
     });
-
-    socket.onopen = () => this.log('🟢 SockJS connection opened');
-    socket.onclose = (event) => this.log('🔴 SockJS connection closed', event.reason || event.code);
-    socket.onerror = (error) => console.error('[WebSocketService] SockJS error:', error);
-
     return socket;
   }
 
@@ -169,7 +153,6 @@ class WebSocketService {
   }
 
   disconnect() {
-    this.log('Ngắt kết nối WebSocket.');
     this.connectingPromise = null;
     this.teardownClient();
   }
@@ -185,16 +168,13 @@ class WebSocketService {
         try {
           payload = JSON.parse(message.body);
         } catch {
-          this.log('Message không phải JSON, trả về raw string.');
         }
       }
 
       callback(payload as T);
-      console.log('[WebSocketService] 📩 Message từ', destination, payload);
     });
 
     this.activeSubscriptions += 1;
-    console.log('[WebSocketService] 📡 Đã subscribe', destination);
 
     return () => {
       subscription.unsubscribe();

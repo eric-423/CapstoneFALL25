@@ -92,24 +92,24 @@ export default function ProfileContent() {
           0,
         memberAssociation: customerDetails.memberAssociation
           ? {
-              id: customerDetails.memberAssociation.id,
-              point: customerDetails.memberAssociation.point,
-              name: customerDetails.memberAssociation.name,
-              description: customerDetails.memberAssociation.description,
-            }
+            id: customerDetails.memberAssociation.id,
+            point: customerDetails.memberAssociation.point,
+            name: customerDetails.memberAssociation.name,
+            description: customerDetails.memberAssociation.description,
+          }
           : {
-              id: customerDetails.id || user.memberAssociation?.id || 0,
-              point:
-                customerDetails.point ??
-                customerDetails.memberPoint ??
-                user.memberAssociation?.point ??
-                0,
-              name:
-                customerDetails.memberRank ||
-                user.memberAssociation?.name ||
-                "",
-              description: user.memberAssociation?.description || "",
-            },
+            id: customerDetails.id || user.memberAssociation?.id || 0,
+            point:
+              customerDetails.point ??
+              customerDetails.memberPoint ??
+              user.memberAssociation?.point ??
+              0,
+            name:
+              customerDetails.memberRank ||
+              user.memberAssociation?.name ||
+              "",
+            description: user.memberAssociation?.description || "",
+          },
       };
     }
 
@@ -129,21 +129,7 @@ export default function ProfileContent() {
   }, [user, customerDetails]);
 
   const isLoadingUserData = isAuthLoading || isLoadingCustomerDetails;
-  useEffect(() => {
-    console.log("🔍 Profile Debug:", {
-      user,
-      customerDetailsResponse,
-      customerDetails,
-      userData,
-      isLoadingCustomerDetails,
-    });
-  }, [
-    user,
-    customerDetailsResponse,
-    customerDetails,
-    userData,
-    isLoadingCustomerDetails,
-  ]);
+
 
   const menuItems = [
     {
@@ -216,11 +202,10 @@ export default function ProfileContent() {
                   <button
                     key={item.id}
                     onClick={() => setActiveTab(item.id)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${
-                      isActive
-                        ? "bg-orange-500 text-white"
-                        : "text-gray-700 hover:bg-gray-100"
-                    }`}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${isActive
+                      ? "bg-orange-500 text-white"
+                      : "text-gray-700 hover:bg-gray-100"
+                      }`}
                   >
                     <Icon className="h-5 w-5" />
                     <span className="font-medium text-base">{item.label}</span>

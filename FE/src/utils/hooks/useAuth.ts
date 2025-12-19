@@ -3,7 +3,7 @@
 import { refetchToken } from '@/apis/user.api';
 import configs from '@/utils/configs';
 import type { UserAuthData } from '@/utils/types/user.type';
-import { getCookie, removeAccessToken, removeRefreshToken, setUserRole, setAuthToken, removeUserRole, removeAuthToken } from '@/utils/cookies.client';
+import { getCookie, setUserRole, setAuthToken, removeUserRole, removeAuthToken, removeAccessToken, removeRefreshToken } from '@/utils/cookies.client';
 import JwtDecode from '@/utils/jwtDecode';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -27,9 +27,9 @@ const useAuth = () => {
   const lastTokenRef = useRef<string | null>(null);
 
   // Use cookies but don't make the component re-render on every cookie change
-  const [cookies] = useCookies([configs.cookies.accessToken, configs.cookies.refreshToken]);
-  const accessToken = (typeof window !== 'undefined' ? localStorage.getItem('access_token') : null) || cookies[configs.cookies.accessToken];
-  const refreshToken = cookies[configs.cookies.refreshToken];
+  const [cookies] = useCookies([configs.cookies.token]);
+  const accessToken = (typeof window !== 'undefined' ? localStorage.getItem('access_token') : null) || cookies[configs.cookies.token];
+  const refreshToken = cookies[configs.cookies.token];
 
   // Track if the component is mounted to prevent state updates after unmount
   const isMountedRef = useRef(true);

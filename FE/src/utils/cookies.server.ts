@@ -34,27 +34,27 @@ export const removeToken = async () => {
 };
 
 export const getAccessToken = async () => {
-  return await getCookie(config.cookies.accessToken);
+  return await getCookie(config.cookies.token);
 };
 
 export const setAccessToken = async (token: string) => {
-  await setCookie(config.cookies.accessToken, token, new Date(new Date().setMinutes(new Date().getMinutes() + 20)));
+  await setCookie(config.cookies.token, token, new Date(new Date().setMinutes(new Date().getMinutes() + 20)));
 };
 
 export const removeAccessToken = async () => {
-  await removeCookie(config.cookies.accessToken);
+  await removeCookie(config.cookies.token);
 };
 
 export const getRefreshToken = async () => {
-  return await getCookie(config.cookies.refreshToken);
+  return await getCookie(config.cookies.token);
 };
 
 export const setRefreshToken = async (token: string) => {
-  await setCookie(config.cookies.refreshToken, token);
+  await setCookie(config.cookies.token, token);
 };
 
 export const removeRefreshToken = async () => {
-  await removeCookie(config.cookies.refreshToken);
+  await removeCookie(config.cookies.token);
 };
 
 export const setUserRole = async (role: string) => {
