@@ -300,7 +300,7 @@ export function AddMaterialDialog({
                 disabled={loading}
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Thêm thành phần dinh dưỡngdưỡng
+                Thêm thành phần dinh dưỡng
               </Button>
               <Button
                 type="button"
