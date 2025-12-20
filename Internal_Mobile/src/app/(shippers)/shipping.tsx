@@ -1,6 +1,6 @@
 import OrderCard from "@/components/cardStaff/orderConfirmCard";
 import StaffHeader from "@/components/staffComponent/staffHeader";
-import { APP_COLOR, APP_FONT } from "@/constants/Colors";
+import { APP_COLOR } from "@/constants/Colors";
 import { useCurrentApp } from "@/context/app.context";
 import { StyleSheet, View } from "react-native";
 const ShippingOrder = () => {
@@ -33,11 +33,6 @@ const styles = StyleSheet.create({
     width: 54,
     height: 54,
     borderRadius: 27,
-  },
-  quickLoginText: {
-    fontSize: 16,
-    fontFamily: APP_FONT.BOLD,
-    color: APP_COLOR.BROWN,
   },
 });
 export default ShippingOrder;

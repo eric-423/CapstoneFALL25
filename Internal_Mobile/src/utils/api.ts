@@ -171,3 +171,17 @@ export const checkOutAttendance = async (token: string) => {
   );
   return response.data;
 };
+
+export const getChatMessages = async (token: string, orderId: number) => {
+  const response = await axios.get(
+    `${BASE_URL}/orders/${orderId}/chat-messages`,
+    {
+      headers: {
+        accept: "application/json",
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  return response.data;
+};
