@@ -360,10 +360,8 @@ export default function EditUserPage() {
                 <input
                   type="number"
                   value={memberPoint}
-                  onChange={(e) =>
-                    setMemberPoint(parseInt(e.target.value) || 0)
-                  }
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-sm focus:border-[#78A243] focus:ring-2 focus:ring-[#78A243]/20 transition-all outline-none"
+                  readOnly
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-sm bg-gray-50 text-gray-600 cursor-not-allowed transition-all outline-none"
                 />
               </div>
             </div>

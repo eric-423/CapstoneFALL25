@@ -515,10 +515,11 @@ export function OrdersBoard({ variant }: OrdersBoardProps) {
                   key={status}
                   onClick={() => setSelectedStatus(status)}
                   variant={selectedStatus === status ? "default" : "outline"}
-                  className={`transition-all duration-300 rounded-xl font-semibold whitespace-nowrap px-4 py-2 ${selectedStatus === status
+                  className={`transition-all duration-300 rounded-xl font-semibold whitespace-nowrap px-4 py-2 ${
+                    selectedStatus === status
                       ? "bg-[#EC6426] text-white border-0 shadow-md hover:from-[#E05522] hover:to-[#E6991A]"
                       : "border-2 border-[#EC6426]/30 text-[#EC6426] bg-white hover:border-[#EC6426] hover:bg-[#EC6426]/5"
-                    }`}
+                  }`}
                 >
                   {getStatusLabel(status)}
                 </Button>
@@ -642,29 +643,29 @@ export function OrdersBoard({ variant }: OrdersBoardProps) {
                         {(order.waiterName ||
                           order.chefName ||
                           order.shipperName) && (
-                            <div className="flex flex-wrap gap-3 pt-2">
-                              {order.waiterName && (
-                                <div className="text-sm text-gray-600">
-                                  <span className="font-semibold">
-                                    Nhân viên:
-                                  </span>{" "}
-                                  {order.waiterName}
-                                </div>
-                              )}
-                              {order.chefName && (
-                                <div className="text-xs text-gray-600">
-                                  <span className="font-semibold">Đầu bếp:</span>{" "}
-                                  {order.chefName}
-                                </div>
-                              )}
-                              {order.shipperName && (
-                                <div className="text-xs text-gray-600">
-                                  <span className="font-semibold">Shipper:</span>{" "}
-                                  {order.shipperName}
-                                </div>
-                              )}
-                            </div>
-                          )}
+                          <div className="flex flex-wrap gap-3 pt-2">
+                            {order.waiterName && (
+                              <div className="text-sm text-gray-600">
+                                <span className="font-semibold">
+                                  Nhân viên:
+                                </span>{" "}
+                                {order.waiterName}
+                              </div>
+                            )}
+                            {order.chefName && (
+                              <div className="text-xs text-gray-600">
+                                <span className="font-semibold">Đầu bếp:</span>{" "}
+                                {order.chefName}
+                              </div>
+                            )}
+                            {order.shipperName && (
+                              <div className="text-xs text-gray-600">
+                                <span className="font-semibold">Shipper:</span>{" "}
+                                {order.shipperName}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
 
                       <div className="flex flex-col items-end gap-3 lg:w-[240px] lg:flex-shrink-0">
@@ -714,20 +715,20 @@ export function OrdersBoard({ variant }: OrdersBoardProps) {
                             {["IN_PROCESS", "COOKED"].includes(
                               order.orderStatus
                             ) && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handlePrint(order)}
-                                  className="flex-1 lg:flex-none whitespace-nowrap border-2 border-[#EC6426] text-[#EC6426] hover:bg-[#EC6426] hover:text-white transition-all duration-300 rounded-xl font-semibold"
-                                >
-                                  <Printer
-                                    size={16}
-                                    className="mr-1 flex-shrink-0"
-                                    strokeWidth={2.5}
-                                  />
-                                  <span className="truncate">In hóa đơn</span>
-                                </Button>
-                              )}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handlePrint(order)}
+                                className="flex-1 lg:flex-none whitespace-nowrap border-2 border-[#EC6426] text-[#EC6426] hover:bg-[#EC6426] hover:text-white transition-all duration-300 rounded-xl font-semibold"
+                              >
+                                <Printer
+                                  size={16}
+                                  className="mr-1 flex-shrink-0"
+                                  strokeWidth={2.5}
+                                />
+                                <span className="truncate">In hóa đơn</span>
+                              </Button>
+                            )}
 
                             <Button
                               variant="outline"
@@ -925,18 +926,18 @@ function StaffOrderDetailDialog({
                   {(orderDetail?.delivery_at ||
                     orderDetail?.deliveryAt ||
                     selectedOrder.deliveryAt) && (
-                      <div className="flex items-center gap-2">
-                        <Truck size={16} />
-                        <span className="font-semibold">Giao:</span>
-                        <span>
-                          {formatDate(
-                            orderDetail?.delivery_at ??
+                    <div className="flex items-center gap-2">
+                      <Truck size={16} />
+                      <span className="font-semibold">Giao:</span>
+                      <span>
+                        {formatDate(
+                          orderDetail?.delivery_at ??
                             orderDetail?.deliveryAt ??
                             selectedOrder.deliveryAt
-                          )}
-                        </span>
-                      </div>
-                    )}
+                        )}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </Card>
             </div>
@@ -944,41 +945,41 @@ function StaffOrderDetailDialog({
             {(selectedOrder.waiterName ||
               selectedOrder.chefName ||
               selectedOrder.shipperName) && (
-                <Card className="p-4 border border-gray-100 rounded-xl">
-                  <h3 className="font-semibold text-gray-800 mb-3">
-                    Nhân sự liên quan
-                  </h3>
-                  <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                    {selectedOrder.waiterName && (
-                      <div className="flex items-center gap-2">
-                        <User size={14} />
-                        <span>
-                          <span className="font-semibold">Nhân viên:</span>{" "}
-                          {selectedOrder.waiterName}
-                        </span>
-                      </div>
-                    )}
-                    {selectedOrder.chefName && (
-                      <div className="flex items-center gap-2">
-                        <ChefHat size={14} />
-                        <span>
-                          <span className="font-semibold">Đầu bếp:</span>{" "}
-                          {selectedOrder.chefName}
-                        </span>
-                      </div>
-                    )}
-                    {selectedOrder.shipperName && (
-                      <div className="flex items-center gap-2">
-                        <Truck size={14} />
-                        <span>
-                          <span className="font-semibold">Shipper:</span>{" "}
-                          {selectedOrder.shipperName}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </Card>
-              )}
+              <Card className="p-4 border border-gray-100 rounded-xl">
+                <h3 className="font-semibold text-gray-800 mb-3">
+                  Nhân sự liên quan
+                </h3>
+                <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                  {selectedOrder.waiterName && (
+                    <div className="flex items-center gap-2">
+                      <User size={14} />
+                      <span>
+                        <span className="font-semibold">Nhân viên:</span>{" "}
+                        {selectedOrder.waiterName}
+                      </span>
+                    </div>
+                  )}
+                  {selectedOrder.chefName && (
+                    <div className="flex items-center gap-2">
+                      <ChefHat size={14} />
+                      <span>
+                        <span className="font-semibold">Đầu bếp:</span>{" "}
+                        {selectedOrder.chefName}
+                      </span>
+                    </div>
+                  )}
+                  {selectedOrder.shipperName && (
+                    <div className="flex items-center gap-2">
+                      <Truck size={14} />
+                      <span>
+                        <span className="font-semibold">Shipper:</span>{" "}
+                        {selectedOrder.shipperName}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            )}
 
             <Card className="p-4 border border-gray-100 rounded-xl">
               <h3 className="font-semibold text-gray-800 mb-3">
@@ -996,14 +997,14 @@ function StaffOrderDetailDialog({
                 {(orderDetail?.shippingFee ?? selectedOrder.shippingFee) !==
                   undefined &&
                   (orderDetail?.shippingFee ?? selectedOrder.shippingFee) !==
-                  null && (
+                    null && (
                     <div className="flex justify-between text-gray-600">
                       <span>Phí vận chuyển:</span>
                       <span className="font-semibold">
                         {formatCurrency(
                           orderDetail?.shippingFee ??
-                          selectedOrder.shippingFee ??
-                          0
+                            selectedOrder.shippingFee ??
+                            0
                         )}
                       </span>
                     </div>
@@ -1019,45 +1020,45 @@ function StaffOrderDetailDialog({
                           selectedOrder.discountValue) === 0
                           ? "0đ"
                           : `-${formatCurrency(
-                            orderDetail?.discountValue ??
-                            selectedOrder.discountValue ??
-                            0
-                          )}`}
+                              orderDetail?.discountValue ??
+                                selectedOrder.discountValue ??
+                                0
+                            )}`}
                       </span>
                     </div>
                   )}
                 {(orderDetail?.promotionCode ??
                   selectedOrder.promotionCode) && (
-                    <div className="flex justify-between text-gray-600">
-                      <span>Mã khuyến mãi:</span>
-                      <span className="font-semibold">
-                        {orderDetail?.promotionCode ??
-                          selectedOrder.promotionCode}
-                      </span>
-                    </div>
-                  )}
+                  <div className="flex justify-between text-gray-600">
+                    <span>Mã khuyến mãi:</span>
+                    <span className="font-semibold">
+                      {orderDetail?.promotionCode ??
+                        selectedOrder.promotionCode}
+                    </span>
+                  </div>
+                )}
                 {(orderDetail?.pointUsed ?? selectedOrder.pointUsed) !==
                   undefined &&
                   (orderDetail?.pointUsed ?? selectedOrder.pointUsed) !==
-                  null && (
+                    null && (
                     <div className="flex justify-between text-gray-600">
                       <span>Điểm đã dùng:</span>
                       <span className="font-semibold">
                         {(orderDetail?.pointUsed ?? selectedOrder.pointUsed) ===
-                          0
+                        0
                           ? "0 điểm"
                           : `-${(
-                            orderDetail?.pointUsed ??
-                            selectedOrder.pointUsed ??
-                            0
-                          ).toLocaleString("vi-VN")} điểm`}
+                              orderDetail?.pointUsed ??
+                              selectedOrder.pointUsed ??
+                              0
+                            ).toLocaleString("vi-VN")} điểm`}
                       </span>
                     </div>
                   )}
                 {(orderDetail?.pointEarned ?? selectedOrder.pointEarned) !==
                   undefined &&
                   (orderDetail?.pointEarned ?? selectedOrder.pointEarned) !==
-                  null && (
+                    null && (
                     <div className="flex justify-between text-green-600">
                       <span>Điểm nhận được:</span>
                       <span className="font-semibold">
@@ -1065,10 +1066,10 @@ function StaffOrderDetailDialog({
                           selectedOrder.pointEarned) === 0
                           ? "0 điểm"
                           : `+${(
-                            orderDetail?.pointEarned ??
-                            selectedOrder.pointEarned ??
-                            0
-                          ).toLocaleString("vi-VN")} điểm`}
+                              orderDetail?.pointEarned ??
+                              selectedOrder.pointEarned ??
+                              0
+                            ).toLocaleString("vi-VN")} điểm`}
                       </span>
                     </div>
                   )}
@@ -1107,8 +1108,9 @@ function StaffOrderDetailDialog({
 
                     return (
                       <div
-                        key={`${isCombo ? "combo" : "product"}-${item.productId
-                          }-${index}`}
+                        key={`${isCombo ? "combo" : "product"}-${
+                          item.productId
+                        }-${index}`}
                         className="flex items-start justify-between gap-3 border-b border-dashed border-gray-200 pb-3"
                       >
                         <div className="flex-1">

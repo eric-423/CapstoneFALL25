@@ -2,9 +2,9 @@
 
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { CheckCircle2, FileText, PlayCircle } from "lucide-react";
+import { CheckCircle2, FileText, PlayCircle, ArrowLeft } from "lucide-react";
 import {
   getMyTrainingLessons,
   getMyLessonDetail,
@@ -21,6 +21,7 @@ import { Loader2 } from "lucide-react";
 
 export default function TrainingDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const paramsId = Number(params.id);
   const queryClient = useQueryClient();
   const [selectedLessonId, setSelectedLessonId] = useState<number | null>(null);
@@ -357,14 +358,27 @@ export default function TrainingDetailPage() {
   return (
     <div className="min-h-screen bg-[#FFFCF7]">
       <section className="border-b border-gray-200 bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+        <div className=" max-w-8xl px-4 py-3 sm:px-6 lg:px-8">
           <div className="mb-3">
-            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-1">
-              Nội dung học
-            </p>
-            <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">
-              {training.name}
-            </h1>
+            <div className="flex items-start justify-between gap-4 mb-2">
+              <div className="flex-1">
+                <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-1">
+                  Nội dung học
+                </p>
+                <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">
+                  {training.name}
+                </h1>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => router.back()}
+                className="flex items-center gap-2 hover:bg-gray-50"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Quay lại
+              </Button>
+            </div>
             {training.description && (
               <p className="mt-1 max-w-3xl text-xs text-gray-600 line-clamp-1">
                 {training.description}
@@ -372,7 +386,7 @@ export default function TrainingDetailPage() {
             )}
           </div>
           <div className="flex items-center gap-4">
-            <div className="flex-1">
+            <div className="flex-1  max-w-5xl">
               <div className="flex items-center justify-between text-xs text-gray-600 mb-1.5">
                 <span>
                   {completedLessonsCount}/{lessons.length || "0"} bài học
@@ -632,11 +646,11 @@ export default function TrainingDetailPage() {
                               });
                             }
                           }}
-                          onWaiting={() => { }}
+                          onWaiting={() => {}}
                           onPlaying={() => {
                             setIsVideoSeeking(false);
                           }}
-                          onPause={() => { }}
+                          onPause={() => {}}
                           key={selectedLessonId}
                         >
                           Trình duyệt của bạn không hỗ trợ video tag.
