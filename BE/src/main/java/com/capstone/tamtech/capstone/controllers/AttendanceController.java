@@ -104,11 +104,14 @@ public class AttendanceController {
     @GetMapping("/check")
     public ResponseEntity<?> checkAttendance(
             @Parameter(description = "ID nhân viên", required = true, example = "1") @RequestParam(value = "userId", required = true) Integer userId,
-            @Parameter(description = "Ngày cần kiểm tra (yyyy-MM-dd). Không truyền = hôm nay", example = "2025-01-15") @RequestParam(value = "date", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date date) {
+            @Parameter(description = "Ngày cần kiểm tra (yyyy-MM-dd). Không truyền = hôm nay", example = "2025-01-15") @RequestParam(value = "date", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") java.util.Date dateParam) {
         ResponseData responseData = new ResponseData();
         try {
-            if (date == null) {
+            Date date;
+            if (dateParam == null) {
                 date = new Date(System.currentTimeMillis());
+            } else {
+                date = new Date(dateParam.getTime());
             }
 
             AttendanceDTO attendance = attendanceService.checkAttendance(userId, date);

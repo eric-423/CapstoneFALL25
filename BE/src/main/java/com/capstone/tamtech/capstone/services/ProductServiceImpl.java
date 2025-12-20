@@ -75,7 +75,7 @@ public class ProductServiceImpl implements ProductService {
                 searchRequest.getMaxPrice(),
                 pageable);
 
-        productPage.stream().forEach(product ->{
+        productPage.stream().forEach(product -> {
             if (product.getCaloriesCache() == null || product.getCaloriesCache() == 0.0) {
                 product.setCaloriesCache(reCalculateCaloriesForProduct(product.getId()));
                 productRepository.save(product);
@@ -154,8 +154,8 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductSearchDTO getProductById(Integer productId, Integer branchId) {
-        Product product = productRepository.findById(productId).orElseThrow(() ->
-                new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + productId));
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + productId));
 
         ProductSearchDTO productSearchDTO = mapToProductSearchDTO(product, new HashMap<>());
         productSearchDTO.setInStock(isInStock(product, branchRepository.findById(branchId).get()));
@@ -171,6 +171,40 @@ public class ProductServiceImpl implements ProductService {
         if (product.getPairedProducts() == null || product.getPairedProducts().isEmpty()) {
             return new ArrayList<>();
         }
+
+        return product.getPairedProducts()
+                .stream()
+                .map(this::toDTO)
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public List<ProductDTO> updatePairedProducts(Integer productId, List<Integer> pairedProductIds) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + productId));
+
+        if (product.getPairedProducts() == null) {
+            product.setPairedProducts(new HashSet<>());
+        }
+
+        product.getPairedProducts().clear();
+
+        if (pairedProductIds != null && !pairedProductIds.isEmpty()) {
+            for (Integer pairedId : pairedProductIds) {
+                if (pairedId.equals(productId)) {
+                    throw new IllegalArgumentException("Sản phẩm không thể ăn kèm chính nó");
+                }
+
+                Product pairedProduct = productRepository.findById(pairedId)
+                        .orElseThrow(() -> new ResourceNotFoundException(
+                                "Không tìm thấy sản phẩm ăn kèm với ID: " + pairedId));
+
+                product.getPairedProducts().add(pairedProduct);
+            }
+        }
+
+        productRepository.save(product);
 
         return product.getPairedProducts()
                 .stream()
@@ -318,7 +352,7 @@ public class ProductServiceImpl implements ProductService {
         String sortBy = mapSortField(searchRequest.getSortBy());
 
         Sort sort = Sort.by(Sort.Direction.fromString(
-                        searchRequest.getSortDirection() != null ? searchRequest.getSortDirection() : "ASC"),
+                searchRequest.getSortDirection() != null ? searchRequest.getSortDirection() : "ASC"),
                 sortBy);
 
         return PageRequest.of(page, size, sort);
