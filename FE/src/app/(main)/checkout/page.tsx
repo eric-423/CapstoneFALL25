@@ -202,33 +202,20 @@ export default function CheckoutPage() {
 
   const availablePromotions = useMemo(() => {
     if (!Array.isArray(availablePromotionsRaw)) {
-      console.log(
-        "availablePromotionsRaw is not array:",
-        availablePromotionsRaw
-      );
       return [];
     }
 
-    console.log("Total promotions from API:", availablePromotionsRaw.length);
-
     const filtered = availablePromotionsRaw.filter((promotion) => {
       if (!promotion.status) {
-        console.log("Filtered out (status false):", promotion.name);
         return false;
       }
       if (promotion.userPromotionStatus !== "AVAILABLE") {
-        console.log(
-          "Filtered out (status not AVAILABLE):",
-          promotion.name,
-          promotion.userPromotionStatus
-        );
         return false;
       }
 
       return true;
     });
 
-    console.log("Filtered promotions count:", filtered.length);
     return filtered;
   }, [availablePromotionsRaw]);
 
@@ -355,8 +342,6 @@ export default function CheckoutPage() {
 
         const paymentUrl = response?.data?.paymentUrl;
 
-        console.log("Payment URL:", paymentUrl);
-        console.log("Full response:", response);
 
         if (paymentUrl) {
           setCookie("is_paying", "true");

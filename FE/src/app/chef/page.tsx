@@ -149,7 +149,6 @@ export default function ChefPage() {
             setCompletedItems(prev => prev.filter(id => id !== orderId));
          }
       } catch (error) {
-         console.log('Error marking order as cooked:', error);
          setCompletedItems(prev => prev.filter(id => id !== orderId));
       }
    };

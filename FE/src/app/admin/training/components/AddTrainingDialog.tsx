@@ -60,7 +60,7 @@ export function AddTrainingDialog({
         const data = await getRoles();
         setRoles(data);
       } catch (error) {
-        console.log(error);
+        // Error fetching roles
       } finally {
         setIsLoadingRoles(false);
       }
@@ -140,7 +140,6 @@ export function AddTrainingDialog({
 
       setOpen(false);
       resetForm();
-      console.log("Training created successfully, calling onSuccess callback");
       onSuccess?.();
     } catch (error) {
       const serverDesc =

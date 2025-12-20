@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
-import { toast } from 'react-toastify';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
@@ -61,6 +60,8 @@ export default function ForgotPasswordForm() {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [countdown, setCountdown] = useState(0);
     const [otpFeedback, setOtpFeedback] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
+    const [phoneErrorMessage, setPhoneErrorMessage] = useState<string | null>(null);
+    const [resetPasswordError, setResetPasswordError] = useState<string | null>(null);
     const hasProcessedPhoneFromQuery = useRef(false);
 
     const {
@@ -109,6 +110,8 @@ export default function ForgotPasswordForm() {
 
                         const lowerErrorMessage = errorMessage.toLowerCase();
                         if (lowerErrorMessage.includes('đợi') || lowerErrorMessage.includes('vừa yêu cầu') || lowerErrorMessage.includes('gần đây')) {
+                            // Nếu response includes đoạn này thì set countdown 45s
+                            setCountdown(45);
                             setPhoneError('phone', {
                                 type: 'manual',
                                 message: errorMessage,
@@ -137,12 +140,13 @@ export default function ForgotPasswordForm() {
     const handleForgotPassword = async (phone?: string) => {
         const phoneToUse = phone || phoneNumber;
         if (!phoneToUse || !phoneToUse.match(/^[0-9]{10}$/)) {
-            toast.error('Vui lòng nhập số điện thoại hợp lệ');
+            setPhoneErrorMessage('Vui lòng nhập số điện thoại hợp lệ');
             return;
         }
 
         setLoading(true);
         setOtpFeedback(null);
+        setPhoneErrorMessage(null);
 
         try {
             await forgotPassword(phoneToUse);
@@ -162,12 +166,13 @@ export default function ForgotPasswordForm() {
 
             const lowerErrorMessage = errorMessage.toLowerCase();
             if (lowerErrorMessage.includes('đợi') || lowerErrorMessage.includes('vừa yêu cầu') || lowerErrorMessage.includes('gần đây')) {
+                setCountdown(45);
                 setPhoneError('phone', {
                     type: 'manual',
                     message: errorMessage,
                 });
             } else {
-                toast.error(errorMessage);
+                setPhoneErrorMessage(errorMessage);
             }
         } finally {
             setLoading(false);
@@ -182,7 +187,10 @@ export default function ForgotPasswordForm() {
         }
 
         if (!phoneNumber) {
-            toast.error('Không tìm thấy số điện thoại');
+            setOtpFeedback({
+                type: 'error',
+                text: 'Không tìm thấy số điện thoại',
+            });
             return;
         }
 
@@ -218,7 +226,10 @@ export default function ForgotPasswordForm() {
 
     const handleResendOtp = async () => {
         if (!phoneNumber) {
-            toast.error('Vui lòng nhập số điện thoại');
+            setOtpFeedback({
+                type: 'error',
+                text: 'Vui lòng nhập số điện thoại',
+            });
             return;
         }
 
@@ -238,6 +249,13 @@ export default function ForgotPasswordForm() {
 
         } catch (error: unknown) {
             const errorMessage = getErrorMessage(error) || 'Không thể gửi lại mã OTP. Vui lòng thử lại.';
+
+            const lowerErrorMessage = errorMessage.toLowerCase();
+            if (lowerErrorMessage.includes('đợi') || lowerErrorMessage.includes('vừa yêu cầu') || lowerErrorMessage.includes('gần đây')) {
+                // Nếu response includes đoạn này thì set countdown 45s
+                setCountdown(45);
+            }
+
             setOtpFeedback({
                 type: 'error',
                 text: errorMessage,
@@ -249,11 +267,11 @@ export default function ForgotPasswordForm() {
 
     const handleResetPassword = async (data: ResetPasswordFormData) => {
         if (!phoneNumber || !verifiedOtp) {
-
             return;
         }
 
         setLoading(true);
+        setResetPasswordError(null);
 
         try {
             await resetPassword({
@@ -265,7 +283,7 @@ export default function ForgotPasswordForm() {
             router.push('/login');
         } catch (error: unknown) {
             const errorMessage = getErrorMessage(error) || 'Không thể đặt lại mật khẩu. Vui lòng thử lại.';
-            toast.error(errorMessage);
+            setResetPasswordError(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -303,6 +321,14 @@ export default function ForgotPasswordForm() {
                                     </p>
                                 </div>
 
+                                {phoneErrorMessage && !phoneErrors.phone && (
+                                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                        <p className="text-sm text-red-600 text-center">
+                                            {phoneErrorMessage}
+                                        </p>
+                                    </div>
+                                )}
+
                                 <form className="space-y-4" onSubmit={handleSubmitPhone(onPhoneSubmit)}>
                                     <div>
                                         <Input
@@ -314,6 +340,11 @@ export default function ForgotPasswordForm() {
                                         />
                                         {phoneErrors.phone && (
                                             <p className="mt-1 text-sm text-red-600">{phoneErrors.phone.message}</p>
+                                        )}
+                                        {countdown > 0 && phoneErrors.phone && (
+                                            <p className="mt-1 text-sm text-red-600">
+                                                Bạn vừa yêu cầu OTP gần đây, vui lòng đợi {countdown}s
+                                            </p>
                                         )}
                                     </div>
 
@@ -450,6 +481,14 @@ export default function ForgotPasswordForm() {
                                         <p className="text-sm font-medium text-green-600 mt-2">{otpFeedback.text}</p>
                                     )}
                                 </div>
+
+                                {resetPasswordError && (
+                                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                        <p className="text-sm text-red-600 text-center">
+                                            {resetPasswordError}
+                                        </p>
+                                    </div>
+                                )}
 
                                 <form className="space-y-4" onSubmit={handleSubmitPassword(handleResetPassword)}>
                                     <div>

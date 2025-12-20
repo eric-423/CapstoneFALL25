@@ -223,7 +223,6 @@ export function ScheduleManagement({
           editingSchedule.id,
           payload as UpdateScheduleData
         );
-        console.log("Update schedule response:", updateResponse);
       } else {
         const tempSchedule: Schedule = {
           id: Date.now(),
@@ -241,7 +240,6 @@ export function ScheduleManagement({
         const createResponse = await createSchedule(
           payload as CreateScheduleData
         );
-        console.log("Create schedule response:", createResponse);
 
         if (createResponse.status !== 0 && createResponse.status !== 200) {
           setSchedules((prev) => prev.filter((s) => s.id !== tempSchedule.id));

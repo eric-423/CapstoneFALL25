@@ -432,12 +432,10 @@ export default function DashboardTabsPage() {
   };
 
   const handleBranchChange = (value: string) => {
-    console.log("Global Filter - Branch changed:", value);
     setSelectedBranch(value);
   };
 
   const handleDateRangeSelect = (range: DateRange | undefined) => {
-    console.log("Global Filter - Date range changed:", range);
     setDateRange(range);
   };
   const isInitialLoading = useMemo(() => {

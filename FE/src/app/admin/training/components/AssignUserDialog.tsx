@@ -6,8 +6,6 @@ import {
   UserPlus,
   X,
   CheckCircle,
-  CheckSquare,
-  Square,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -258,11 +256,10 @@ export function AssignUserDialog({
                         }
                         setSelectedUserIds(newSelected);
                       }}
-                      className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all bg-white ${
-                        isSelected
+                      className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all bg-white ${isSelected
                           ? "border-[#78A243] bg-[#78A243]/5"
                           : "border-gray-200 hover:border-[#78A243]/50 hover:bg-[#78A243]/5"
-                      }`}
+                        }`}
                     >
                       <Input
                         type="checkbox"
