@@ -266,8 +266,6 @@ const UserInfo = () => {
                   backgroundColor: APP_COLOR.WHITE,
                   padding: 10,
                   justifyContent: "center",
-                  marginHorizontal: 10,
-                  borderRadius: 10,
                   marginBottom: 10,
                 }}
                 onPress={() => setModalVisible(true)}

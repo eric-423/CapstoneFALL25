@@ -2,7 +2,7 @@ import { Client, IMessage } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import { BASE_URL } from "@/utils/constant";
 
-const WS_BASE_URL = BASE_URL.replace(/\/api$/, "");
+const WS_BASE_URL = BASE_URL;
 
 class WebSocketService {
   private client: Client | null = null;
@@ -19,14 +19,20 @@ class WebSocketService {
         return;
       }
 
+      const wsUrl = token
+        ? `${this.baseUrl}/ws?token=${encodeURIComponent(token)}`
+        : `${this.baseUrl}/ws`;
+
       this.client = new Client({
         webSocketFactory: () => {
-          const socket = new SockJS(`${this.baseUrl}/ws`);
+          const socket = new SockJS(wsUrl, null, {
+            transports: ["websocket", "xhr-streaming", "xhr-polling"],
+          });
           return socket as any;
         },
         reconnectDelay: 5000,
-        heartbeatIncoming: 4000,
-        heartbeatOutgoing: 4000,
+        heartbeatIncoming: 0,
+        heartbeatOutgoing: 0,
         connectHeaders: token
           ? {
               Authorization: `Bearer ${token}`,

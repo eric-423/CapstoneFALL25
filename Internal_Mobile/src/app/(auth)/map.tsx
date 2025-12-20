@@ -3,6 +3,7 @@ import { APP_COLOR, APP_FONT } from "@/constants/Colors";
 import { useCurrentApp } from "@/context/app.context";
 import { confirmOrder, sendShipperLocation } from "@/utils/api";
 import { GOOGLE_API_KEY } from "@/utils/constant";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Linking from "expo-linking";
 import * as Location from "expo-location";
@@ -247,7 +248,6 @@ const MapScreen = () => {
       setLoading(true);
       setError(null);
 
-      // Kiểm tra xem location service có được bật không
       const isEnabled = await Location.hasServicesEnabledAsync();
       if (!isEnabled) {
         setError("Dịch vụ vị trí chưa được bật");
@@ -273,7 +273,6 @@ const MapScreen = () => {
         return;
       }
 
-      // Yêu cầu background permission (không bắt buộc)
       try {
         const { status: backgroundStatus } =
           await Location.requestBackgroundPermissionsAsync();
@@ -284,7 +283,6 @@ const MapScreen = () => {
         }
       } catch (bgError) {
         console.warn("Background permission request failed:", bgError);
-        // Tiếp tục với foreground permission
       }
 
       const currentLocation = await Location.getCurrentPositionAsync({
@@ -305,7 +303,6 @@ const MapScreen = () => {
         longitudeDelta: 0.01,
       });
 
-      // Bắt đầu watch position với error handling
       try {
         locationWatchSubscriptionRef.current =
           await Location.watchPositionAsync(
@@ -327,11 +324,8 @@ const MapScreen = () => {
               }
             }
           );
-        console.log("Location watching started successfully");
       } catch (watchError: any) {
         console.warn("Could not start location watching:", watchError);
-        // Tiếp tục với app dù không thể watch position
-        // App vẫn có thể lấy location khi cần
       }
 
       setLoading(false);
@@ -340,7 +334,6 @@ const MapScreen = () => {
       setError("Không thể lấy vị trí hiện tại");
       setLoading(false);
 
-      // Thử lấy location từ storage nếu có
       try {
         const storedLocation = await getLocationFromStorage();
         if (storedLocation) {
@@ -468,12 +461,10 @@ const MapScreen = () => {
         if (canOpen) {
           await Linking.openURL(url);
         } else {
-          // Fallback to web Google Maps
           const webUrl = `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}&travelmode=driving`;
           await Linking.openURL(webUrl);
         }
       } else {
-        // Fallback to web Google Maps
         const webUrl = `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}&travelmode=driving`;
         await Linking.openURL(webUrl);
       }
@@ -650,6 +641,23 @@ const MapScreen = () => {
           <Pressable style={styles.dragHandle} onPress={toggleBottomSheet}>
             <View style={styles.dragHandleBar} />
           </Pressable>
+          <View style={styles.chatButtonContainer}>
+            <Pressable
+              onPress={() => {
+                router.push({
+                  pathname: "/(auth)/chat",
+                  params: { orderId, customerName: orderName },
+                });
+              }}
+              style={styles.chatIconButton}
+            >
+              <Ionicons
+                name="chatbubble-outline"
+                size={24}
+                color={APP_COLOR.WHITE}
+              />
+            </Pressable>
+          </View>
           <View style={styles.locationInfo}>
             <Text style={styles.infoText}>
               {" "}
@@ -729,6 +737,23 @@ const MapScreen = () => {
             <Pressable style={styles.dragHandle} onPress={toggleBottomSheet}>
               <View style={styles.dragHandleBar} />
             </Pressable>
+            <View style={styles.chatButtonContainer}>
+              <Pressable
+                onPress={() => {
+                  router.push({
+                    pathname: "/(auth)/chat",
+                    params: { orderId, customerName: orderName },
+                  });
+                }}
+                style={styles.chatIconButton}
+              >
+                <Ionicons
+                  name="chatbubble-outline"
+                  size={24}
+                  color={APP_COLOR.WHITE}
+                />
+              </Pressable>
+            </View>
             <View style={styles.locationInfo}>
               <Text style={styles.infoText}>
                 {" "}
@@ -854,6 +879,22 @@ const styles = StyleSheet.create({
     backgroundColor: APP_COLOR.BROWN,
     borderRadius: 2,
     opacity: 0.5,
+  },
+  chatButtonContainer: {
+    position: "absolute",
+    top: -70,
+    right: 10,
+    marginTop: 10,
+    marginBottom: 10,
+    alignItems: "center",
+  },
+  chatIconButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: APP_COLOR.ORANGE,
+    justifyContent: "center",
+    alignItems: "center",
   },
   locationInfo: {
     padding: 5,

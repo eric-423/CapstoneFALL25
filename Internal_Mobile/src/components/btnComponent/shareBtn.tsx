@@ -109,6 +109,16 @@ const ShareButton = (props: IProps) => {
                   />
                 </>
               );
+            case "Chat với khách hàng":
+              return (
+                <>
+                  <Ionicons
+                    name="chatbubble-outline"
+                    size={24}
+                    color={APP_COLOR.WHITE}
+                  />
+                </>
+              );
             case " ":
               return (
                 <>

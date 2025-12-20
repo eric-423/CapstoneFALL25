@@ -316,7 +316,6 @@ const OrderDetailsPage = () => {
                           zIndex: 2,
                         }}
                       />
-                      {/* Chỉ hiển thị đường nối nếu không phải là bước cuối cùng được hiển thị */}
                       {idx < statusProgression.length - 1 &&
                         (!isOrderCanceled || idx < processingStatusIndex) &&
                         (!isOrderPaid || idx < completedStatusIndex) && (

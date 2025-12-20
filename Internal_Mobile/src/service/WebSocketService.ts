@@ -50,10 +50,17 @@ class WebSocketService {
       }
 
       if (SockJS) {
+        let sockJsUrl = wsUrl;
+        if (token) {
+          sockJsUrl = wsUrl.includes("?")
+            ? `${wsUrl}&token=${encodeURIComponent(token)}`
+            : `${wsUrl}?token=${encodeURIComponent(token)}`;
+        }
+
         this.client = new Client({
           webSocketFactory: () => {
             try {
-              const socket = new SockJS(wsUrl, null, {
+              const socket = new SockJS(sockJsUrl, null, {
                 transports: ["websocket", "xhr-streaming", "xhr-polling"],
                 withCredentials: false,
               });
@@ -223,6 +230,38 @@ class WebSocketService {
       throw error;
     }
   }
+  sendChatMessage(orderId: number, content: string): void {
+    if (!this.client) {
+      throw new Error("WebSocket client is null");
+    }
+
+    if (!this.client.connected) {
+      throw new Error("WebSocket not connected");
+    }
+
+    const destination = `/app/chat/order`;
+    const messageBody = JSON.stringify({
+      orderId: orderId,
+      content: content,
+    });
+
+    try {
+      const headers: any = {};
+      if (this.currentToken) {
+        headers.Authorization = `Bearer ${this.currentToken}`;
+      }
+
+      this.client.publish({
+        destination: destination,
+        body: messageBody,
+        headers: headers,
+      });
+    } catch (error: any) {
+      console.error("Error sending chat message:", error);
+      throw error;
+    }
+  }
+
   isConnected(): boolean {
     return this.client?.connected || false;
   }

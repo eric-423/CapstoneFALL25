@@ -532,3 +532,14 @@ export const CompleteOrder = async (orderId: number) => {
     }
   );
 };
+
+export const GetChatMessages = async (orderId: number) => {
+  const token = await AsyncStorage.getItem("access_token");
+  return axios.get(`${BASE_URL}/orders/${orderId}/chat-messages`, {
+    headers: {
+      accept: "application/json",
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+  });
+};

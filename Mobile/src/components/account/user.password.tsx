@@ -140,7 +140,7 @@ const UserPassword = () => {
                 ]}
               >
                 <Text style={styles.saveButtonText}>
-                  {isValid && dirty ? "Lưu thay đổi" : "Không thể lưu"}
+                  {isValid && dirty ? "Lưu thay đổi" : "Lưu thay đổi"}
                 </Text>
               </Pressable>
             </View>
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     alignItems: "center",
     paddingHorizontal: 15,
-    paddingBottom: 20,
+    paddingBottom: 50,
   },
   scrollContainer: {
     flex: 1,

@@ -337,11 +337,20 @@ const TrackOrderPage = () => {
             </Text>
           </View>
         )}
-        <View style={{ alignSelf: "center" }}>
+        <View style={styles.buttonRow}>
           <ShareButton
-            title="Quay lại lịch sử đơn"
+            title="Chat với Shipper"
+            onPress={() => router.push(`/(user)/order/chat/${orderId}`)}
+            btnStyle={[styles.chatButton, { flex: 1 }]}
+            textStyle={{
+              color: APP_COLOR.WHITE,
+              fontFamily: FONTS.bold,
+            }}
+          />
+          <ShareButton
+            title="Quay lại"
             onPress={() => router.back()}
-            btnStyle={styles.backButton}
+            btnStyle={[styles.backButton, { flex: 1 }]}
             textStyle={{
               color: APP_COLOR.WHITE,
               fontFamily: FONTS.bold,
@@ -442,9 +451,18 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 8,
   },
+  buttonRow: {
+    flexDirection: "row",
+    gap: 12,
+    width: "100%",
+  },
+  chatButton: {
+    backgroundColor: APP_COLOR.ORANGE,
+    paddingHorizontal: 24,
+  },
   backButton: {
     backgroundColor: APP_COLOR.BROWN,
-    paddingHorizontal: 32,
+    paddingHorizontal: 24,
   },
 });
 

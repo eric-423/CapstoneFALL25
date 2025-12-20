@@ -52,7 +52,6 @@ const SearchPage = () => {
   const comboFallbackImage = require("@/assets/saleoff/combo.png");
   const { cart, setCart } = useCurrentApp();
 
-  // Tính toán số lượng và danh sách sản phẩm trong cart
   const restaurantId = restaurant?._id || `branch_${branchId || "default"}`;
   const restaurantCart = cart?.[restaurantId];
   const cartQuantity = restaurantCart

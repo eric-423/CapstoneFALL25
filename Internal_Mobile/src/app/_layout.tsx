@@ -24,6 +24,7 @@ export default function RootLayout() {
         >
           <Stack.Screen name="(auth)/welcome" />
           <Stack.Screen name="(auth)/map" options={{ headerShown: false }} />
+          <Stack.Screen name="(auth)/chat" />
           <Stack.Screen name="(auth)/shipperTrackingScreen" />
           <Stack.Screen name="(auth)/order-stats" />
           <Stack.Screen name="(shippers)" />
