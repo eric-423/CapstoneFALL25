@@ -399,11 +399,10 @@ export default function BranchesManagementPage() {
                     </td>
                     <td className="px-4 py-3">
                       <Badge
-                        className={`${
-                          branch.isActive
-                            ? "bg-green-100 text-green-700 border-green-300"
-                            : "bg-red-100 text-red-700 border-red-300"
-                        }`}
+                        className={`${branch.isActive
+                          ? "bg-green-100 text-green-700 border-green-300"
+                          : "bg-red-100 text-red-700 border-red-300"
+                          }`}
                       >
                         {branch.isActive ? (
                           <>

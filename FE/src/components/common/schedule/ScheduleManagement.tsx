@@ -38,14 +38,12 @@ import { ImportScheduleDialog } from "@/components/common/schedule/ImportSchedul
 import {
   getSchedules,
   createSchedule,
-  updateSchedule,
   deleteSchedule,
   type Schedule,
   type CreateScheduleData,
   type UpdateScheduleData,
 } from "@/apis/schedule.api";
 import { getAllUsers, type UserSearchRequest } from "@/apis/user.api";
-import { toast } from "react-toastify";
 import { User } from "@/apis/admin-user.api";
 import type {
   AdminPageLayoutProps,
@@ -93,14 +91,16 @@ export function ScheduleManagement({
   const [searchName, setSearchName] = useState("");
   const [filterShift, setFilterShift] = useState<string>("all");
 
+  // Error states
+  const [usersError, setUsersError] = useState<string | null>(null);
+  const [branchesError, setBranchesError] = useState<string | null>(null);
+
   useBodyScrollLock(
     showFormDialog || deleteDialogOpen || showShiftDialog || showImportDialog
   );
 
   const fetchSchedules = useCallback(async () => {
     try {
-      // Nếu là admin và có chọn chi nhánh, truyền branchId
-      // Nếu không phải admin, không truyền branchId (API sẽ tự lấy từ token)
       const branchId =
         isAdmin && selectedBranchId ? selectedBranchId : undefined;
       const response = await getSchedules(branchId);
@@ -109,7 +109,6 @@ export function ScheduleManagement({
       setSchedules(data);
     } catch (error) {
       console.error("Failed to fetch schedules:", error);
-      toast.error("Không thể tải danh sách lịch trình");
       setSchedules([]);
     }
   }, [isAdmin, selectedBranchId]);
@@ -138,9 +137,10 @@ export function ScheduleManagement({
         name: user.fullName,
       }));
       setUsers(userList);
+      setUsersError(null);
     } catch (error) {
       console.error("Failed to fetch users:", error);
-      toast.error("Không thể tải danh sách nhân viên");
+      setUsersError("Không thể tải danh sách nhân viên");
     }
   }, [isAdmin, selectedBranchId]);
 
@@ -149,9 +149,10 @@ export function ScheduleManagement({
     try {
       const branchesData = await getBranches();
       setBranches(branchesData);
+      setBranchesError(null);
     } catch (error) {
       console.error("Failed to fetch branches:", error);
-      toast.error("Không thể tải danh sách chi nhánh");
+      setBranchesError("Không thể tải danh sách chi nhánh");
     }
   }, [isAdmin]);
 
@@ -212,17 +213,14 @@ export function ScheduleManagement({
           prev.map((s) =>
             s.id === editingSchedule.id
               ? {
-                  ...s,
-                  ...(payload as UpdateScheduleData),
-                  name: (payload as UpdateScheduleData).name || s.name,
-                }
+                ...s,
+                ...(payload as UpdateScheduleData),
+                name: (payload as UpdateScheduleData).name || s.name,
+              }
               : s
           )
         );
-        const updateResponse = await updateSchedule(
-          editingSchedule.id,
-          payload as UpdateScheduleData
-        );
+
       } else {
         const tempSchedule: Schedule = {
           id: Date.now(),
@@ -263,9 +261,7 @@ export function ScheduleManagement({
       setSelectedUserId(undefined);
     } catch (error) {
       await fetchSchedules();
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      toast.error(errorMessage);
+      console.log(error)
     }
   };
 
@@ -288,12 +284,10 @@ export function ScheduleManagement({
       setScheduleToDelete(null);
 
       await deleteSchedule(scheduleId);
-      toast.success("Xóa lịch trình thành công!");
       await fetchSchedules();
     } catch (error) {
       await fetchSchedules();
       console.error("Failed to delete schedule:", error);
-      toast.error("Không thể xóa lịch trình");
     }
   };
 
@@ -470,6 +464,21 @@ export function ScheduleManagement({
           </div>
         }
       />
+
+      {(usersError || branchesError) && (
+        <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+          {usersError && (
+            <p className="text-sm text-amber-700">
+              {usersError}
+            </p>
+          )}
+          {branchesError && (
+            <p className="text-sm text-amber-700">
+              {branchesError}
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="flex flex-col lg:flex-row gap-4 mb-4">
         <div className="flex gap-4 flex-shrink-0">

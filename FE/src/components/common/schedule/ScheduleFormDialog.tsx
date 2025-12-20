@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useMemo } from "react";
-import { X, Calendar, CheckCircle, Eye } from "lucide-react";
+import { X, CheckCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -27,7 +27,6 @@ import {
   type Shift,
 } from "@/apis/schedule.api";
 import { getCookie } from "@/utils/cookies.client";
-import { toast } from "react-toastify";
 
 interface ScheduleFormDialogProps {
   open: boolean;
@@ -66,6 +65,15 @@ export function ScheduleFormDialog({
   });
 
   const [shifts, setShifts] = useState<Shift[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{
+    userId?: string;
+    name?: string;
+    date?: string;
+    startTime?: string;
+    endTime?: string;
+    shiftId?: string;
+  }>({});
 
   const isViewOnly = useMemo(() => {
     if (!schedule?.date) return false;
@@ -82,6 +90,8 @@ export function ScheduleFormDialog({
 
   useEffect(() => {
     if (open) {
+      setError(null);
+      setFieldErrors({});
       setFormData({
         userId: selectedUserId || schedule?.userId || 0,
         name: schedule?.name || "",
@@ -122,20 +132,31 @@ export function ScheduleFormDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+    setFieldErrors({});
 
     if (isViewOnly) {
       onOpenChange(false);
       return;
     }
 
+    const newFieldErrors: {
+      userId?: string;
+      name?: string;
+      date?: string;
+      shiftId?: string;
+    } = {};
+
     if (!formData.userId) {
-      toast.error("Vui lòng chọn nhân viên");
-      return;
+      newFieldErrors.userId = "Vui lòng chọn nhân viên";
     }
 
     if (!formData.name.trim()) {
-      toast.error("Vui lòng nhập tên lịch trình");
-      return;
+      newFieldErrors.name = "Vui lòng nhập tên lịch trình";
+    }
+
+    if (!formData.shiftId) {
+      newFieldErrors.shiftId = "Vui lòng chọn ca làm việc";
     }
 
     const hasDate = formData.date && formData.date.trim() !== "";
@@ -147,13 +168,23 @@ export function ScheduleFormDialog({
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
+      if (!selectedDateObj) {
+        newFieldErrors.date = "Ngày lịch trình không được trống";
+      }
+
       if (selectedDateObj < today) {
-        toast.error("Ngày lịch trình không được trước ngày hôm nay");
-        return;
+        newFieldErrors.date = "Ngày lịch trình không được trước ngày hôm nay";
       }
     }
 
+    if (Object.keys(newFieldErrors).length > 0) {
+      setFieldErrors(newFieldErrors);
+      return;
+    }
+
     try {
+      setError(null);
+      setFieldErrors({});
       const userId = schedule
         ? schedule.userId || formData.userId
         : formData.userId;
@@ -176,12 +207,11 @@ export function ScheduleFormDialog({
 
       onOpenChange(false);
     } catch (error: unknown) {
-      console.error("Error submitting schedule:", error);
       const errorMessage =
         error instanceof Error
           ? error.message
           : String(error) || "Có lỗi xảy ra khi lưu lịch trình";
-      toast.error(errorMessage);
+      setError(errorMessage);
     }
   };
 
@@ -257,7 +287,12 @@ export function ScheduleFormDialog({
                   ))}
                 </SelectContent>
               </Select>
-              {!!schedule && !isViewOnly && (
+              {fieldErrors.userId && (
+                <p className="text-sm text-red-600 mt-1">
+                  {fieldErrors.userId}
+                </p>
+              )}
+              {!!schedule && !isViewOnly && !fieldErrors.userId && (
                 <p className="text-xs text-gray-500">
                   Không thể thay đổi nhân viên sau khi tạo lịch trình
                 </p>
@@ -280,6 +315,11 @@ export function ScheduleFormDialog({
                 disabled={isViewOnly}
                 className="focus:border-[#78A243] focus:ring-[#78A243]/20"
               />
+              {fieldErrors.name && (
+                <p className="text-sm text-red-600 mt-1">
+                  {fieldErrors.name}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -302,6 +342,11 @@ export function ScheduleFormDialog({
                 disabled={isViewOnly}
                 className="focus:border-[#78A243] focus:ring-[#78A243]/20"
               />
+              {fieldErrors.date && (
+                <p className="text-sm text-red-600 mt-1">
+                  {fieldErrors.date}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -340,6 +385,11 @@ export function ScheduleFormDialog({
                   ))}
                 </SelectContent>
               </Select>
+              {fieldErrors.shiftId && (
+                <p className="text-sm text-red-600 mt-1">
+                  {fieldErrors.shiftId}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -368,6 +418,12 @@ export function ScheduleFormDialog({
                 className="focus:border-[#78A243] focus:ring-[#78A243]/20"
               />
             </div>
+
+            {error && (
+              <p className="text-sm text-red-600 text-center mt-2">
+                {error}
+              </p>
+            )}
           </div>
 
           <DialogFooter className="p-4 border-t border-gray-200 bg-gray-50 shrink-0 rounded-b-xl flex gap-3 justify-end">
