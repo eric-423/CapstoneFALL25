@@ -338,9 +338,7 @@ export default function ForgotPasswordForm() {
                                             className={`rounded-lg border ${phoneErrors.phone ? 'border-red-500' : 'border-gray-300'
                                                 } focus:border-[#FF6B35] focus:ring-[#FF6B35]`}
                                         />
-                                        {phoneErrors.phone && (
-                                            <p className="mt-1 text-sm text-red-600">{phoneErrors.phone.message}</p>
-                                        )}
+
                                         {countdown > 0 && phoneErrors.phone && (
                                             <p className="mt-1 text-sm text-red-600">
                                                 Bạn vừa yêu cầu OTP gần đây, vui lòng đợi {countdown}s
