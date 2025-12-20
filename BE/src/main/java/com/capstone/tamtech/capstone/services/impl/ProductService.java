@@ -6,6 +6,8 @@ import com.capstone.tamtech.capstone.payload.PagedResponse;
 import com.capstone.tamtech.capstone.payload.request.ProductCreateRequest;
 import com.capstone.tamtech.capstone.payload.request.ProductSearchRequest;
 
+import java.util.List;
+
 public interface ProductService {
 
     PagedResponse<ProductSearchDTO> searchProducts(ProductSearchRequest searchRequest);
@@ -17,4 +19,6 @@ public interface ProductService {
     PagedResponse<ProductDTO> searchProductForAllBranch(ProductSearchRequest searchRequest);
 
     ProductSearchDTO getProductById(Integer productId, Integer branchId);
+
+    List<ProductDTO> getPairedProducts(Integer productId);
 }
