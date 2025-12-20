@@ -7,9 +7,6 @@ export async function GET() {
         const baseUrl = API_BASE_URL.endsWith('/api/v1') ? API_BASE_URL : `${API_BASE_URL}/api/v1`;
         const url = `${baseUrl}/payment-method`;
 
-        console.log('🔄 Fetching payment methods');
-
-        // Forward to external API (public endpoint, no auth required)
         const response = await fetch(url, {
             headers: {
                 'Content-Type': 'application/json',
@@ -17,8 +14,6 @@ export async function GET() {
             },
             cache: 'no-store',
         });
-
-        console.log('📥 Response status:', response.status, response.statusText);
 
         if (!response.ok) {
             const errorText = await response.text();

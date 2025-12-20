@@ -42,7 +42,6 @@ export default function ProductDetailPage() {
     queryFn: async () => {
       try {
         const result = await getProductById(productId);
-        console.log("Product data:", result);
         return result;
       } catch (err) {
         console.error("Error fetching product:", err);

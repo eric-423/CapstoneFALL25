@@ -216,15 +216,15 @@ export default function AdminLayout({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [sidebarOpen]);
   const handleBarcodeSuccess = useCallback((orderId: number) => {
-    console.log("Assign chef thành công cho order:", orderId);
+    // Chef assigned successfully
   }, []);
 
   const handleBarcodeError = useCallback((error: Error) => {
-    console.error("Lỗi khi assign chef:", error);
+    // Error assigning chef
   }, []);
 
   const handleBarcodeAlreadyHandled = useCallback((orderId: number) => {
-    console.warn("Chef khác đã nhận order:", orderId);
+    // Order already handled by another chef
   }, []);
   useBarcodeScanner({
     enabled: true,

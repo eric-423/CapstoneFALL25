@@ -47,9 +47,6 @@ class WebSocketService {
 
     return base ? `${base}${path}` : '';
   }
-
-
-  // LALALA
   private buildSocketUrl(token?: string): string {
     if (!this.socketBaseUrl) return '';
     if (!token) return this.socketBaseUrl;
@@ -66,9 +63,7 @@ class WebSocketService {
   }
 
   private log(...args: unknown[]) {
-    if (this.debugEnabled) {
-      console.debug('[WebSocketService]', ...args);
-    }
+    // Debug logging disabled
   }
 
   async connect(token?: string): Promise<void> {
@@ -130,18 +125,7 @@ class WebSocketService {
   }
 
   private handleDebug(message: string) {
-    if (!this.debugEnabled) return;
-
-    if (
-      message.includes('ERROR') ||
-      message.includes('error') ||
-      message.includes('Lost connection') ||
-      message.includes('Whoops')
-    ) {
-      console.error('[WebSocketService:debug]', message);
-    } else {
-      console.debug('[WebSocketService:debug]', message);
-    }
+    // Debug logging disabled
   }
 
   private teardownClient() {

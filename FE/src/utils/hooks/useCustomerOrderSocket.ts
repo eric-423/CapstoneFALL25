@@ -55,14 +55,12 @@ export const useCustomerOrderSocket = ({
           unsubs.push(
             websocketService.subscribe<CustomerOrderStatusUpdate>(statusDestination, (message) => {
               setOrderStatus(message);
-              console.log('[OrderStatus]', message);
             }),
           );
 
           unsubs.push(
             websocketService.subscribe<OrderLocationMessage>(locationDestination, (message) => {
               setOrderLocation(message);
-              console.log('[OrderLocation]', message);
             }),
           );
         } else if (customerId) {
@@ -70,7 +68,6 @@ export const useCustomerOrderSocket = ({
           unsubs.push(
             websocketService.subscribe<CustomerOrderStatusUpdate>(customerDestination, (message) => {
               setOrderStatus(message);
-              console.log('[OrderStatus][Customer]', message);
             }),
           );
           setOrderLocation(null);

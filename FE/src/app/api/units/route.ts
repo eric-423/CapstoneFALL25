@@ -18,8 +18,6 @@ export async function GET() {
         const baseUrl = API_BASE_URL.endsWith('/api/v1') ? API_BASE_URL : `${API_BASE_URL}/api/v1`;
         const url = `${baseUrl}/units`;
 
-        console.log('🔄 Fetching units');
-
         const response = await fetch(url, {
             headers: {
                 'Content-Type': 'application/json',
@@ -29,11 +27,9 @@ export async function GET() {
             cache: 'no-store',
         });
 
-        console.log('📥 Response status:', response.status, response.statusText);
-
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('❌ Error response:', errorText);
+            console.error(' Error response:', errorText);
             let errorData;
             try {
                 errorData = JSON.parse(errorText);
@@ -48,7 +44,7 @@ export async function GET() {
         try {
             data = responseText ? JSON.parse(responseText) : { data: [] };
         } catch (parseError) {
-            console.error('❌ Failed to parse JSON:', parseError);
+            console.error('Failed to parse JSON:', parseError);
             data = { data: [] };
         }
 
@@ -79,7 +75,6 @@ export async function POST(request: NextRequest) {
         const baseUrl = API_BASE_URL.endsWith('/api/v1') ? API_BASE_URL : `${API_BASE_URL}/api/v1`;
         const url = `${baseUrl}/units`;
 
-        console.log('🔄 Creating unit:', body);
 
         const response = await fetch(url, {
             method: 'POST',
@@ -92,11 +87,10 @@ export async function POST(request: NextRequest) {
             cache: 'no-store',
         });
 
-        console.log('📥 Response status:', response.status, response.statusText);
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('❌ Error response:', errorText);
+            console.error('Error response:', errorText);
             let errorData;
             try {
                 errorData = JSON.parse(errorText);
@@ -111,7 +105,7 @@ export async function POST(request: NextRequest) {
         try {
             data = responseText ? JSON.parse(responseText) : { success: true };
         } catch (parseError) {
-            console.error('❌ Failed to parse JSON:', parseError);
+            console.error('Failed to parse JSON:', parseError);
             data = { success: true };
         }
 

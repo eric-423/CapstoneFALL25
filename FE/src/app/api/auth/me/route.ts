@@ -74,7 +74,6 @@ export async function GET() {
             }
           }
         } catch (customerError) {
-          console.log("Failed to fetch customer details:", customerError);
         }
       }
 
