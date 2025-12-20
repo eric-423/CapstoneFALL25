@@ -70,8 +70,9 @@ public class OrderServiceImpl implements OrderService {
     private com.capstone.tamtech.capstone.services.impl.MemberAssociationService memberAssociationService;
 
     @Override
+    @Transactional
     public OrderDTO createOrderForShipping(OrderRequest orderRequest) throws BadRequestException {
-        inventoryService.assertSufficientMaterialsForOrder(orderRequest.getOrderItemList());
+        inventoryService.assertSufficientMaterialsForOrder(orderRequest.getOrderItemList(), orderRequest.getBranchId());
         Order order = new Order();
 
         order.setStatus(orderStatusRepository.findByName("CREATED").get());
@@ -95,6 +96,7 @@ public class OrderServiceImpl implements OrderService {
         order.setPickUp(false);
         order.setCreatedAt(new Date());
         order.setBranch(branchRepository.findById(orderRequest.getBranchId()).orElse(null));
+        List<OrderItem> createdOrderItems = new ArrayList<>();
 
         if (orderRequest.getCustomerId() > 0) {
             usersRepository.findById(orderRequest.getCustomerId()).ifPresent(order::setCustomer);
@@ -191,6 +193,7 @@ public class OrderServiceImpl implements OrderService {
                     orderItem.setNote(itemReq.getNote());
 
                     orderItemRepository.save(orderItem);
+                    createdOrderItems.add(orderItem);
                 }
 
                 if (isCombo) {
@@ -206,12 +209,13 @@ public class OrderServiceImpl implements OrderService {
                         orderItem.setPrice(unitPrice);
                         orderItem.setNote(itemReq.getNote());
                         orderItemRepository.save(orderItem);
+                        createdOrderItems.add(orderItem);
                     }
                 }
             }
         }
         Integer branchId = saved.getBranch() != null ? saved.getBranch().getId() : null;
-        inventoryService.consumeMaterialsForOrderItems(saved.getOrderItems(), branchId);
+        inventoryService.consumeMaterialsForOrderItems(createdOrderItems, branchId);
         saved.setPaymentUrl(paymentService.createPaymentLink(saved.getId()));
         saved.setPaymentMethod(paymentMethodRepository.findById(orderRequest.getPaymentMethodId()).orElse(null));
         orderRepository.save(saved);
@@ -221,8 +225,9 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public OrderDTO createOrderForPickup(OrderRequest orderRequest) throws BadRequestException {
-        inventoryService.assertSufficientMaterialsForOrder(orderRequest.getOrderItemList());
+        inventoryService.assertSufficientMaterialsForOrder(orderRequest.getOrderItemList(), orderRequest.getBranchId());
         Order order = new Order();
 
         order.setStatus(orderStatusRepository.findByName("CREATED").get());
@@ -320,6 +325,8 @@ public class OrderServiceImpl implements OrderService {
 
         Order saved = orderRepository.save(order);
 
+        List<OrderItem> createdOrderItems = new ArrayList<>();
+
         if (orderRequest.getOrderItemList() != null) {
             for (OrderItemRequest itemReq : orderRequest.getOrderItemList()) {
                 boolean isProduct = itemReq.getProductId() > 0;
@@ -336,7 +343,8 @@ public class OrderServiceImpl implements OrderService {
                     orderItem.setPrice(unitPrice);
                     orderItem.setNote(itemReq.getNote());
 
-                    orderItemRepository.save(orderItem);
+                    OrderItem savedOrderItem = orderItemRepository.save(orderItem);
+                    createdOrderItems.add(savedOrderItem);
                 }
 
                 if (isCombo) {
@@ -351,13 +359,14 @@ public class OrderServiceImpl implements OrderService {
                                 : 0.0;
                         orderItem.setPrice(unitPrice);
                         orderItem.setNote(itemReq.getNote());
-                        orderItemRepository.save(orderItem);
+                        OrderItem savedOrderItem = orderItemRepository.save(orderItem);
+                        createdOrderItems.add(savedOrderItem);
                     }
                 }
             }
         }
         Integer branchId = saved.getBranch() != null ? saved.getBranch().getId() : null;
-        inventoryService.consumeMaterialsForOrderItems(saved.getOrderItems(), branchId);
+        inventoryService.consumeMaterialsForOrderItems(createdOrderItems, branchId);
         saved.setPaymentUrl(paymentService.createPaymentLink(saved.getId()));
         orderRepository.save(saved);
         OrderDTO result = toDTO(saved);
@@ -371,11 +380,16 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderDTO createOrderForDining(OrderRequest orderRequest) {
-        inventoryService.assertSufficientMaterialsForOrder(orderRequest.getOrderItemList());
+        DiningTable diningTable = diningTableRepository.findById(orderRequest.getDiningTableId()).orElse(null);
+        Integer branchId = null;
+        if (diningTable != null && diningTable.getBranch() != null) {
+            branchId = diningTable.getBranch().getId();
+        }
+
+        inventoryService.assertSufficientMaterialsForOrder(orderRequest.getOrderItemList(), branchId);
         Order order = new Order();
 
         order.setStatus(orderStatusRepository.findByName("CREATED").get());
-        DiningTable diningTable = diningTableRepository.findById(orderRequest.getDiningTableId()).orElse(null);
         order.setDiningTable(diningTable);
         if (diningTable != null && diningTable.getBranch() != null) {
             order.setBranch(diningTable.getBranch());
@@ -459,7 +473,6 @@ public class OrderServiceImpl implements OrderService {
                 }
             }
         }
-        Integer branchId = saved.getBranch() != null ? saved.getBranch().getId() : null;
         inventoryService.consumeMaterialsForOrderItems(saved.getOrderItems(), branchId);
         orderRepository.save(saved);
         return toDTO(saved);
@@ -1144,7 +1157,6 @@ public class OrderServiceImpl implements OrderService {
             Users customer = order.getCustomer();
             int availablePoints = customer.getMemberPoint();
             pointsToUse = Math.min(paymentRequest.getUsedPoints(), availablePoints);
-
 
             order.setPointUsed(pointsToUse);
             customer.setMemberPoint(availablePoints - pointsToUse);

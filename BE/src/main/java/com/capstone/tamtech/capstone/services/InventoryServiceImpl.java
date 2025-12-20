@@ -31,7 +31,8 @@ public class InventoryServiceImpl implements InventoryService {
     private WarehouseRepository warehouseRepository;
 
     private Integer resolveWarehouseIdByBranch(Integer branchId) {
-        if (branchId == null) return null;
+        if (branchId == null)
+            return null;
         return warehouseRepository.findAll().stream()
                 .filter(w -> w.getBranch() != null && w.getBranch().getId() == branchId)
                 .map(Warehouse::getId)
@@ -39,7 +40,7 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
-    public void assertSufficientMaterialsForOrder(List<OrderItemRequest> orderItems) {
+    public void assertSufficientMaterialsForOrder(List<OrderItemRequest> orderItems, Integer branchId) {
         if (orderItems == null || orderItems.isEmpty()) {
             return;
         }
@@ -81,13 +82,24 @@ public class InventoryServiceImpl implements InventoryService {
             return;
         }
 
+        Integer warehouseId = resolveWarehouseIdByBranch(branchId);
+
         Map<Integer, Double> availableByMaterial = new HashMap<>();
         for (Integer materialId : requiredMaterialToQty.keySet()) {
             List<MaterialWarehouse> stocks = materialWarehouseRepository
                     .findByKeyMaterialWarehouseMaterialId(materialId);
             double total = 0.0;
-            for (MaterialWarehouse mw : stocks) {
-                total += mw.getQuantity();
+
+            if (warehouseId != null) {
+                for (MaterialWarehouse mw : stocks) {
+                    if (mw.getWarehouse() != null && mw.getWarehouse().getId() == warehouseId) {
+                        total += mw.getQuantity();
+                    }
+                }
+            } else {
+                for (MaterialWarehouse mw : stocks) {
+                    total += mw.getQuantity();
+                }
             }
             availableByMaterial.put(materialId, total);
         }
@@ -103,7 +115,8 @@ public class InventoryServiceImpl implements InventoryService {
         }
 
         if (!shortages.isEmpty()) {
-            throw new IllegalArgumentException("Không đủ nguyên liệu trong kho: " + String.join("; ", shortages));
+            throw new IllegalArgumentException(
+                    "Không đủ nguyên liệu trong kho của chi nhánh: " + String.join("; ", shortages));
         }
     }
 
@@ -234,7 +247,8 @@ public class InventoryServiceImpl implements InventoryService {
                 }
             } else {
                 for (MaterialWarehouse mw : stocks) {
-                    if (remaining <= 0) break;
+                    if (remaining <= 0)
+                        break;
                     double take = Math.min(mw.getQuantity(), remaining);
                     mw.setQuantity(mw.getQuantity() - take);
                     materialWarehouseRepository.save(mw);
@@ -242,10 +256,9 @@ public class InventoryServiceImpl implements InventoryService {
                 }
             }
             if (remaining > 1e-9) {
-                throw new IllegalStateException("Kho không đủ trong quá trình trừ tồn. materialId=" + materialId + ", thiếu=" + remaining);
+                throw new IllegalStateException(
+                        "Kho không đủ trong quá trình trừ tồn. materialId=" + materialId + ", thiếu=" + remaining);
             }
         }
     }
 }
-
-
