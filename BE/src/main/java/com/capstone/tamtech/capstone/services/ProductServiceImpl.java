@@ -163,6 +163,22 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<ProductDTO> getPairedProducts(Integer productId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + productId));
+
+        if (product.getPairedProducts() == null || product.getPairedProducts().isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        return product.getPairedProducts()
+                .stream()
+                .map(this::toDTO)
+                .toList();
+    }
+
+    @Override
     public ProductDTO createProduct(ProductCreateRequest productCreateRequest) {
         Product product = new Product();
 
