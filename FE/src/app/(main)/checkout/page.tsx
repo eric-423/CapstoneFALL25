@@ -31,7 +31,6 @@ import { useCart } from "@/utils/contexts/cart/CartContext";
 import { useAuth } from "@/utils/hooks";
 import { QuantitySelector } from "@/components/common/quantity-selector";
 import useScrollTop from "@/utils/hooks/useScrollTop";
-import { toast } from "react-toastify";
 import { cn } from "@/utils/lib/utils";
 import configs from "@/utils/configs";
 import { setCookie, getToken } from "@/utils/cookies.client";
@@ -132,6 +131,7 @@ export default function CheckoutPage() {
   );
   const [usedPoint, setUsedPoint] = useState<number>(0);
   const [pointError, setPointError] = useState<string | null>(null);
+  const [addressError, setAddressError] = useState<string | null>(null);
 
   useEffect(() => {
     const savedBranch = localStorage.getItem("selectedBranch");
@@ -641,6 +641,7 @@ export default function CheckoutPage() {
     useMutation({
       mutationFn: saveCustomerInformation,
       onSuccess: async () => {
+        setAddressError(null);
         await queryClient.invalidateQueries({
           queryKey: ["customer-informations", user?.id],
         });
@@ -651,7 +652,7 @@ export default function CheckoutPage() {
         const errorMessage =
           (error as { response?: { data?: { desc?: string } } })?.response?.data
             ?.desc || "Không thể lưu địa chỉ. Vui lòng thử lại.";
-        toast.error(errorMessage);
+        setAddressError(errorMessage);
       },
     });
 
@@ -1226,6 +1227,11 @@ export default function CheckoutPage() {
                                           sau.
                                         </p>
                                       </div>
+                                      {addressError && (
+                                        <p className="text-sm text-amber-700 mt-2">
+                                          {addressError}
+                                        </p>
+                                      )}
                                     </div>
                                   )}
                                 </>

@@ -76,7 +76,6 @@ export function BranchFormDialog({
       return;
     }
 
-    // Validate phone number (must be exactly 10 digits)
     const phoneRegex = /^[0-9]{10}$/;
     if (!phoneRegex.test(phoneNumber.trim())) {
       toast.error("Số điện thoại phải có đúng 10 chữ số!");
@@ -85,7 +84,6 @@ export function BranchFormDialog({
 
     const normalizedAddress = address.trim().toLowerCase();
 
-    // Check for duplicate address in other branches
     const duplicateBranch = existingBranches.find(
       (b) =>
         b.address.trim().toLowerCase() === normalizedAddress &&
