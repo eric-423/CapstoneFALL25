@@ -21,6 +21,7 @@ import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
 import { MapPin, Star, Loader2, Trash2, Edit2 } from "lucide-react";
 import { AddressAutocomplete } from "@/components/common/address-autocomplete";
+import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 
 interface CustomerInformation {
   informationId: number;
@@ -47,6 +48,15 @@ export default function AddressManagementSection({
   const [deletingInformationId, setDeletingInformationId] = useState<
     number | null
   >(null);
+  const [confirmDeleteDialog, setConfirmDeleteDialog] = useState<{
+    open: boolean;
+    informationId: number | null;
+    addressName: string;
+  }>({
+    open: false,
+    informationId: null,
+    addressName: "",
+  });
   const [formData, setFormData] = useState({
     name: "",
     address: "",
@@ -133,9 +143,40 @@ export default function AddressManagementSection({
       });
       await refetchAddresses();
       setDeletingInformationId(null);
+      setConfirmDeleteDialog({
+        open: false,
+        informationId: null,
+        addressName: "",
+      });
+      toast.success("Xóa địa chỉ thành công!", {
+        position: "top-center",
+        autoClose: 3000,
+      });
+      window.location.reload();
     },
-    onError: () => {
+    onError: (error: unknown) => {
+      const errorMessage =
+        (
+          error as {
+            response?: { data?: { error?: string; message?: string } };
+          }
+        )?.response?.data?.error ||
+        (
+          error as {
+            response?: { data?: { error?: string; message?: string } };
+          }
+        )?.response?.data?.message ||
+        "Không thể xóa địa chỉ. Vui lòng thử lại.";
+      toast.error(errorMessage, {
+        position: "top-center",
+        autoClose: 4000,
+      });
       setDeletingInformationId(null);
+      setConfirmDeleteDialog({
+        open: false,
+        informationId: null,
+        addressName: "",
+      });
     },
   });
 
@@ -183,8 +224,24 @@ export default function AddressManagementSection({
   });
 
   const handleDelete = (informationId: number) => {
-    setDeletingInformationId(informationId);
-    deleteAddressMutation.mutate({ userId, informationId });
+    const address = addresses.find((a) => a.informationId === informationId);
+    if (address) {
+      setConfirmDeleteDialog({
+        open: true,
+        informationId,
+        addressName: address.fullName,
+      });
+    }
+  };
+
+  const handleConfirmDelete = () => {
+    if (confirmDeleteDialog.informationId) {
+      setDeletingInformationId(confirmDeleteDialog.informationId);
+      deleteAddressMutation.mutate({
+        userId,
+        informationId: confirmDeleteDialog.informationId,
+      });
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -339,16 +396,13 @@ export default function AddressManagementSection({
                             size="sm"
                             onClick={() => handleDelete(address.informationId)}
                             disabled={
-                              deletingInformationId === address.informationId
+                              deletingInformationId === address.informationId ||
+                              deleteAddressMutation.isPending
                             }
                             className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
                             aria-label="Xóa địa chỉ"
                           >
-                            {deletingInformationId === address.informationId ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <Trash2 className="h-4 w-4" />
-                            )}
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </div>
@@ -482,6 +536,29 @@ export default function AddressManagementSection({
           </div>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={confirmDeleteDialog.open}
+        onOpenChange={(open) =>
+          setConfirmDeleteDialog({ ...confirmDeleteDialog, open })
+        }
+        onConfirm={handleConfirmDelete}
+        title="Xóa địa chỉ"
+        content={
+          <span>
+            Bạn có chắc chắn muốn xóa địa chỉ{" "}
+            <span className="font-bold text-gray-900">
+              &quot;{confirmDeleteDialog.addressName}&quot;
+            </span>
+            ?
+          </span>
+        }
+        alertMessage="Hành động này không thể hoàn tác. Địa chỉ sẽ bị xóa vĩnh viễn khỏi tài khoản của bạn."
+        confirmText="Xóa địa chỉ"
+        cancelText="Hủy bỏ"
+        variant="destructive"
+        loading={deleteAddressMutation.isPending}
+      />
     </>
   );
 }

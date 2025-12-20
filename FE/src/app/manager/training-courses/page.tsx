@@ -222,6 +222,9 @@ const formatDate = (value?: string) => {
 
 export default function ManagerTrainingCoursesPage() {
   const [statusFilter, setStatusFilter] = useState<TrainingStatusFilter>("ALL");
+  const [enrollingCourseId, setEnrollingCourseId] = useState<number | null>(
+    null
+  );
   const queryClient = useQueryClient();
   const router = useRouter();
 
@@ -240,6 +243,7 @@ export default function ManagerTrainingCoursesPage() {
   const enrollMutation = useMutation({
     mutationFn: enrollCourse,
     onSuccess: () => {
+      setEnrollingCourseId(null);
       queryClient.invalidateQueries({
         queryKey: ["manager-training-courses"],
       });
@@ -250,6 +254,7 @@ export default function ManagerTrainingCoursesPage() {
       refetch();
     },
     onError: (error: Error) => {
+      setEnrollingCourseId(null);
       toast.error(
         error.message || "Không thể đăng ký khóa học. Vui lòng thử lại!",
         {
@@ -528,11 +533,14 @@ export default function ManagerTrainingCoursesPage() {
                   </div>
                   {course.status === "NOT_STARTED" ? (
                     <Button
-                      onClick={() => enrollMutation.mutate(course.id)}
-                      disabled={enrollMutation.isPending}
-                      className="w-full bg-gradient-to-r from-[#F97316] to-[#EC6426] hover:from-[#EC6426] hover:to-[#F97316] text-white font-semibold text-xs sm:text-sm py-2.5 sm:py-3 rounded-lg sm:rounded-xl shadow-lg transition-all duration-300"
+                      onClick={() => {
+                        setEnrollingCourseId(course.id);
+                        enrollMutation.mutate(course.id);
+                      }}
+                      disabled={enrollingCourseId === course.id}
+                      className="w-full bg-gradient-to-r from-[#F97316] to-[#EC6426] hover:from-[#EC6426] hover:to-[#F97316] text-white font-semibold text-xs sm:text-sm py-2.5 sm:py-3 rounded-lg sm:rounded-xl shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {enrollMutation.isPending ? (
+                      {enrollingCourseId === course.id ? (
                         <>
                           <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2 animate-spin" />
                           <span>Đang đăng ký...</span>
