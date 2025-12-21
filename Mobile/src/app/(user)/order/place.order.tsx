@@ -29,7 +29,7 @@ import {
   CreateOrder,
   GetBranchInfo,
   GetAvailablePromotion,
-  GetBranchNearLocation,
+  GetBranch,
   GetOrderById,
 } from "@/utils/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -108,7 +108,7 @@ const PlaceOrderPage = () => {
           setDistance(parseFloat(storedDistance));
         } else {
           try {
-            const branchRes = await GetBranchNearLocation(addressToUse);
+            const branchRes = await GetBranch();
             const branches = branchRes.data?.data || branchRes.data || [];
             const currentBranch = branches.find((b: any) => b.id === branchId);
             if (currentBranch?.distanceInMeters) {

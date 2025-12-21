@@ -87,24 +87,85 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
   const getItemQuantity = (itemId: string) =>
     getItemQuantityUtil(cart, restaurant?._id, itemId);
 
-  // useEffect(() => {
-  //   const fetchTypeProducts = async () => {
-  //     try {
-  //       const typePro = await axios.get(`${API_URL}/api/products/type/3`);
-  //       setTypeProducts(typePro.data.products);
-  //     } catch (error) {
-  //       console.error("Error fetching product types:", error);
-  //     }
-  //   };
-  //   fetchTypeProducts();
-  // }, []);
+  const handleQuantityChange = (
+    item: IPropsProduct,
+    action: "MINUS" | "PLUS"
+  ) => {
+    if (!restaurant?._id) return;
+
+    const productId = String(item.id || item.comboId || "");
+    const price = (item as any).price || 0;
+
+    const total = action === "MINUS" ? -1 : 1;
+    const priceChange = total * price;
+
+    const newCart = { ...cart };
+    if (!newCart[restaurant._id]) {
+      newCart[restaurant._id] = {
+        sum: 0,
+        quantity: 0,
+        items: {},
+      };
+    }
+    newCart[restaurant._id].sum =
+      (newCart[restaurant._id].sum || 0) + priceChange;
+    newCart[restaurant._id].quantity =
+      (newCart[restaurant._id].quantity || 0) + total;
+
+    if (!newCart[restaurant._id].items[productId]) {
+      newCart[restaurant._id].items[productId] = {
+        data: {
+          ProductType: {
+            name: item.type || "Product",
+            productTypeId: item.id || 0,
+          },
+          name: item.name,
+          productId: productId,
+          image: item.imageUrl || "",
+          description: "",
+          price: price,
+          basePrice: price,
+          title: item.name,
+        },
+        quantity: 0,
+      };
+    }
+
+    const currentQuantity =
+      (newCart[restaurant._id].items[productId].quantity || 0) + total;
+
+    if (currentQuantity <= 0) {
+      delete newCart[restaurant._id].items[productId];
+      if (Object.keys(newCart[restaurant._id].items).length === 0) {
+        delete newCart[restaurant._id];
+      }
+    } else {
+      newCart[restaurant._id].items[productId] = {
+        data: {
+          ProductType: {
+            name: item.type || "Product",
+            productTypeId: item.id || 0,
+          },
+          name: item.name,
+          productId: productId,
+          image: item.imageUrl || "",
+          description: "",
+          price: price,
+          basePrice: price,
+          title: item.name,
+        },
+        quantity: currentQuantity,
+      };
+    }
+    setCart(newCart);
+  };
 
   return (
     <ModalContext.Provider
       value={{
         showProductModal,
         hideProductModal,
-        handleQuantityChange: () => {},
+        handleQuantityChange,
       }}
     >
       {children}
@@ -115,6 +176,7 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
 const CollectionHome = (props: IProps) => {
   const { name } = props;
   const { cart, restaurant, setRestaurant, branchId } = useCurrentApp();
+  const { handleQuantityChange } = useModal();
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState<boolean>(true);
   const mockRestaurant = {
@@ -192,6 +254,13 @@ const CollectionHome = (props: IProps) => {
               index: number;
             }) => {
               const isLastItem = index === restaurants.length - 1;
+              const productId = String(item.id || item.comboId || "");
+              const itemQuantity = getItemQuantityUtil(
+                cart,
+                restaurant?._id,
+                productId
+              );
+
               return (
                 <Pressable>
                   <View
@@ -226,19 +295,55 @@ const CollectionHome = (props: IProps) => {
                       />
                     </View>
                     <View style={styles.itemTextContainer}>
-                      <View style={{ height: 50 }}>
-                        <Text
-                          style={[styles.itemName, { maxWidth: 130 }]}
-                          numberOfLines={2}
-                          ellipsizeMode="tail"
-                        >
-                          {item.name}
-                        </Text>
-                      </View>
+                      <Text
+                        style={[styles.itemName]}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {item.name}
+                      </Text>
 
                       <Text style={styles.itemQuantitySold}>
                         Đã bán {item.quantitySold} món
                       </Text>
+                      <View
+                        style={[
+                          styles.quantityContainer,
+                          { marginHorizontal: 10, marginVertical: 5 },
+                        ]}
+                      >
+                        <Pressable
+                          onPress={() => handleQuantityChange(item, "MINUS")}
+                          style={({ pressed }) => ({
+                            opacity:
+                              itemQuantity > 0 ? (pressed ? 0.5 : 1) : 0.3,
+                          })}
+                          disabled={itemQuantity === 0}
+                        >
+                          <AntDesign
+                            name="minus-circle"
+                            size={24}
+                            color={
+                              itemQuantity > 0
+                                ? APP_COLOR.BUTTON_YELLOW
+                                : APP_COLOR.BROWN
+                            }
+                          />
+                        </Pressable>
+                        <Text style={styles.quantityText}>{itemQuantity}</Text>
+                        <Pressable
+                          onPress={() => handleQuantityChange(item, "PLUS")}
+                          style={({ pressed }) => ({
+                            opacity: pressed ? 0.5 : 1,
+                          })}
+                        >
+                          <AntDesign
+                            name="plus-circle"
+                            size={24}
+                            color={APP_COLOR.BUTTON_YELLOW}
+                          />
+                        </Pressable>
+                      </View>
                     </View>
                   </View>
                 </Pressable>
@@ -333,15 +438,12 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bold,
     fontSize: 15,
     color: APP_COLOR.BROWN,
-    marginBottom: 5,
     textAlign: "center",
   },
   itemQuantitySold: {
     color: APP_COLOR.ORANGE,
     fontFamily: FONTS.semiBold,
-    fontSize: 15,
-    position: "relative",
-    bottom: 10,
+    fontSize: 13,
     textAlign: "center",
   },
   quantityContainer: {
@@ -355,6 +457,7 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: APP_COLOR.BROWN,
     marginHorizontal: "auto",
+    width: 80,
   },
   quantityText: {
     minWidth: 25,

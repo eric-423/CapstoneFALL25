@@ -17,7 +17,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
 import { router, useFocusEffect } from "expo-router";
 import {
-  GetBranchNearLocation,
+  GetBranch,
   GetCustomerInformation,
   ReverseGeocodeGoogle,
 } from "@/utils/api";
@@ -174,7 +174,7 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
         }
         if (!currentLocation) return;
         try {
-          const res = await GetBranchNearLocation(currentLocation);
+          const res = await GetBranch();
           if (!isActive) return;
           const branches = res.data?.data || res.data || [];
           const nearbyBranches = branches.filter((branch: any) => {
@@ -368,10 +368,9 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
 
       case "orderHistory":
         return (
-          <View style={styles.container}>
+          <View style={[styles.container, { justifyContent: "flex-start" }]}>
             <View
               style={{
-                width: "89%",
                 flexDirection: "row",
                 alignItems: "center",
               }}
@@ -387,20 +386,10 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
                   fontFamily: FONTS.bold,
                   fontSize: 20,
                   color: APP_COLOR.BROWN,
-                  marginLeft: 10,
                 }}
               >
                 Lịch sử đơn hàng
               </Text>
-            </View>
-            <View style={{ alignItems: "flex-end" }}>
-              <View style={styles.notificationWrapper}>
-                <Ionicons
-                  name="notifications-outline"
-                  size={30}
-                  color={APP_COLOR.WHITE}
-                />
-              </View>
             </View>
           </View>
         );

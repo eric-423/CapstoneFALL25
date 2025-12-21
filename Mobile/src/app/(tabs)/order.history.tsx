@@ -350,7 +350,12 @@ const OrderPage = () => {
                             }}
                           >
                             <Text style={[styles.text, { width: 230 }]}>
-                              {item.order_address}
+                              {!item.order_address ||
+                              item.order_address == null ||
+                              item.order_address === undefined ||
+                              item.order_address.trim() === ""
+                                ? "Nhận tại quán"
+                                : item.order_address}
                             </Text>
                             <Text
                               style={[styles.text, { color: APP_COLOR.ORANGE }]}
@@ -496,7 +501,9 @@ const OrderPage = () => {
                             }}
                           >
                             <Text style={[styles.text, { width: 230 }]}>
-                              {item.order_address}
+                              {!item.order_address
+                                ? "Nhận tại quán"
+                                : item.order_address}
                             </Text>
                             <Text
                               style={[styles.text, { color: APP_COLOR.ORANGE }]}
