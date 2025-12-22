@@ -63,11 +63,15 @@ export default function AvailableVoucher({
     );
   };
 
+  const availablePromotions = promotions.filter(
+    (promotion) => promotion.userPromotionStatus !== "USED"
+  );
+
   return (
     <div className="space-y-6">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Khuyến mãi khả dụng ({promotions.length})
+          Khuyến mãi khả dụng ({availablePromotions.length})
         </h2>
         <p className="text-sm text-gray-600">
           Danh sách các khuyến mãi bạn có thể sử dụng ngay bây giờ
@@ -75,7 +79,7 @@ export default function AvailableVoucher({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 max-w-6xl">
-        {promotions.map((promotion) => (
+        {availablePromotions.map((promotion) => (
           <Card
             key={promotion.id}
             className="bg-white hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-[#EC6426]/40 group relative overflow-hidden"
@@ -100,17 +104,30 @@ export default function AvailableVoucher({
               </div>
             </CardHeader>
 
-            <CardContent className="space-y-3 relative z-10 px-4 pb-4">
+            <CardContent
+              className="space-y-3 relative z-10 px-4 pb-4 flex-shrink-0"
+            >
               <div className="bg-gradient-to-r from-[#EC6426]/10 to-[#F8A91F]/10 rounded-lg p-3 border border-[#EC6426]/20">
-                <div className="flex items-center gap-1.5 mb-2">
-                  <Percent className="h-4 w-4 text-[#EC6426]" />
-                  <span className="text-xs font-semibold text-gray-700">
-                    Giá trị khuyến mãi
-                  </span>
-                </div>
+                {
+                  !promotion.promotionTypeName?.includes("Miễn phí vận chuyển") && (
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <Percent className="h-4 w-4 text-[#EC6426]" />
+                      <span className="text-xs font-semibold text-gray-700">
+                        Giá trị khuyến mãi
+                      </span>
+                    </div>
+                  )
+                }
+
                 <div className="flex items-baseline gap-2">
                   <span className="text-2xl font-bold text-[#EC6426]">
-                    {promotion.value.toLocaleString("vi-VN")}đ
+                    {promotion.promotionTypeName?.includes("Miễn phí vận chuyển")
+                      ? "FREE SHIP"
+                      : promotion.promotionTypeName?.includes("Giảm giá cố định")
+                        ? `${promotion.value.toLocaleString("vi-VN")}đ`
+                        : promotion.promotionTypeName?.includes("Giảm giá theo %")
+                          ? `${promotion.value}%`
+                          : `${promotion.value.toLocaleString("vi-VN")}đ`}
                   </span>
                 </div>
                 {promotion.minimumOrderValue > 0 && (
