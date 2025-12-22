@@ -386,6 +386,7 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
                   fontFamily: FONTS.bold,
                   fontSize: 20,
                   color: APP_COLOR.BROWN,
+                  marginLeft: 10,
                 }}
               >
                 Lịch sử đơn hàng
