@@ -1,6 +1,11 @@
 "use client";
 
-import { createOrderApiRoute, CreateOrderPayload } from "@/apis/order.api";
+import {
+  createOrderApiRoute,
+  CreateOrderPayload,
+  checkCartItems,
+  cartItem,
+} from "@/apis/order.api";
 import {
   getCustomerInformation,
   saveCustomerInformation,
@@ -141,6 +146,7 @@ export default function CheckoutPage() {
   );
   const [usedPoint, setUsedPoint] = useState<number>(0);
   const [pointError, setPointError] = useState<string | null>(null);
+  const [cartCheckError, setCartCheckError] = useState<string | null>(null);
   const [addressError, setAddressError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -595,6 +601,64 @@ export default function CheckoutPage() {
     (selectedInfoId === "new" || customerInformations.length === 0);
 
   useEffect(() => {
+    if (!selectedBranch?.branchId || items.length === 0) {
+      setCartCheckError(null);
+      return;
+    }
+
+    let isCancelled = false;
+
+    const runCheck = async () => {
+      try {
+        setCartCheckError(null);
+
+        const cartItemsPayload: cartItem[] = items.map((item) => {
+          const base = {
+            productId: item.isCombo ? 0 : item.productId,
+            quantity: item.quantity,
+          };
+          return item.isCombo && item.comboId
+            ? { ...base, comboId: item.comboId }
+            : base;
+        });
+
+        const checkResult = await checkCartItems(
+          selectedBranch.branchId,
+          cartItemsPayload,
+        );
+
+        if (isCancelled) return;
+
+        const isValid =
+          typeof checkResult === "boolean"
+            ? checkResult
+            : (checkResult?.success ?? false);
+
+        if (!isValid) {
+          const message =
+            typeof checkResult === "object" && checkResult !== null
+              ? checkResult.message ||
+              "Giỏ hàng không hợp lệ, vui lòng kiểm tra lại."
+              : "Giỏ hàng không hợp lệ, vui lòng kiểm tra lại.";
+          setCartCheckError(message);
+        } else {
+          setCartCheckError(null);
+        }
+      } catch (error) {
+        if (isCancelled) return;
+        console.error("Auto cart check error:", error);
+        setCartCheckError("Không thể kiểm tra giỏ hàng. Vui lòng thử lại.");
+      }
+    };
+
+    runCheck();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [selectedBranch?.branchId, items]);
+
+  useEffect(() => {
     if (!isMountedRef.current) return;
     if (!isDelivery) return;
     if (!customerInformations.length) {
@@ -963,6 +1027,37 @@ export default function CheckoutPage() {
     setIsSubmitting(true);
 
     try {
+      // Kiểm tra giỏ hàng với API trước khi tạo đơn
+      if (selectedBranch?.branchId) {
+        setCartCheckError(null);
+        const cartItemsPayload: cartItem[] = items.map((item) => ({
+          productId: item.isCombo ? 0 : item.productId,
+          comboId: item.isCombo && item.comboId ? item.comboId : 0,
+          quantity: item.quantity,
+        }));
+
+        const checkResult = await checkCartItems(
+          selectedBranch.branchId,
+          cartItemsPayload,
+        );
+
+        // Backend trả về true/false hoặc object { success: boolean }
+        const isValid =
+          typeof checkResult === "boolean"
+            ? checkResult
+            : (checkResult?.success ?? false);
+
+        if (!isValid) {
+          setIsSubmitting(false);
+          const message =
+            typeof checkResult === "object" && checkResult !== null
+              ? checkResult.message || "Giỏ hàng không hợp lệ, vui lòng kiểm tra lại."
+              : "Giỏ hàng không hợp lệ, vui lòng kiểm tra lại.";
+          setCartCheckError(message);
+          return;
+        }
+      }
+
       const isPickup = data.fulfillmentMethod === "pickup";
       const branchAddress = selectedBranch?.address || STORE_INFO.address;
       const shippingAddress = isPickup
@@ -1016,7 +1111,8 @@ export default function CheckoutPage() {
       isOrderSubmitting ||
       !form.formState.isValid ||
       isDeliveryAndLoading ||
-      isShippingDistanceExceeded
+      isShippingDistanceExceeded ||
+      Boolean(cartCheckError)
     );
   }, [
     form.formState.isValid,
@@ -1024,6 +1120,7 @@ export default function CheckoutPage() {
     isLoadingCustomerInfos,
     isOrderSubmitting,
     isShippingDistanceExceeded,
+    cartCheckError,
     items.length,
   ]);
 
@@ -1924,21 +2021,21 @@ export default function CheckoutPage() {
                       </div>
                     )}
 
-                    {isDelivery && errorShippingFee && (
-                      <p className="px-3 pb-2 text-sm text-red-500">
-                        {errorShippingFee}
-                      </p>
-                    )}
                   </CardContent>
                 </Card>
 
                 <Card>
-                  <CardContent className="p-4 py-0 space-y-3">
+                  <CardContent className="p-4 py-0 space-y-3 mt-2">
                     <div className="text-sm text-muted-foreground mt-2 space-y-2">
-                      <div className="flex justify-between">
+                      <div className="flex justify-between items-center">
                         <span>Tạm tính</span>
                         <span>{orderSubtotal.toLocaleString()}đ</span>
                       </div>
+                      {cartCheckError && (
+                        <p className="text-xs text-red-500">
+                          {cartCheckError}
+                        </p>
+                      )}
                       {isUsePoint && (
                         <div className="flex justify-between">
                           <span>Ưu đãi thành viên</span>
