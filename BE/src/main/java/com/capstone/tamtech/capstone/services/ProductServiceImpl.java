@@ -52,6 +52,8 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     private MaterialWarehouseRepository materialWarehouseRepository;
+    @Autowired
+    private InventoryServiceImpl inventoryServiceImpl;
 
     @Override
     @Transactional
@@ -82,11 +84,17 @@ public class ProductServiceImpl implements ProductService {
             }
         });
 
-        Map<Integer, Integer> productQuantityMap = new HashMap<>();
 
         List<ProductSearchDTO> productDTOs = productPage.getContent().stream()
-                .map(product -> mapToProductSearchDTO(product, productQuantityMap))
+                .map(this::mapToProductSearchDTO)
                 .toList();
+
+        productDTOs.forEach(productSearchDTO -> {
+            int quantityInBranch = inventoryServiceImpl.getAvailableProductQuantity(
+                    productSearchDTO.getProductId(),
+                    searchRequest.getBranchId());
+            productSearchDTO.setQuantityInBranch(quantityInBranch);
+        });
 
         List<ProductSearchDTO> result = productDTOs.stream().map(productSearchDTO -> {
             Product product = productRepository.findById(productSearchDTO.getProductId()).get();
@@ -157,7 +165,7 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + productId));
 
-        ProductSearchDTO productSearchDTO = mapToProductSearchDTO(product, new HashMap<>());
+        ProductSearchDTO productSearchDTO = mapToProductSearchDTO(product);
         productSearchDTO.setInStock(isInStock(product, branchRepository.findById(branchId).get()));
         return productSearchDTO;
     }
@@ -372,7 +380,7 @@ public class ProductServiceImpl implements ProductService {
         };
     }
 
-    private ProductSearchDTO mapToProductSearchDTO(Product product, Map<Integer, Integer> quantityMap) {
+    private ProductSearchDTO mapToProductSearchDTO(Product product) {
         if (product.getCaloriesCache() == null || product.getCaloriesCache() == 0.0) {
             product.setCaloriesCache(reCalculateCaloriesForProduct(product.getId()));
             productRepository.save(product);
@@ -386,7 +394,7 @@ public class ProductServiceImpl implements ProductService {
                 .productType(product.getProductType() != null ? product.getProductType().getName() : null)
                 .productTypeId(product.getProductType() != null ? product.getProductType().getId() : 0)
                 .isActive(product.isActive())
-                .quantityInBranch(quantityMap.getOrDefault(product.getId(), 0))
+                .quantityInBranch(0)
                 .createdDate(product.getCreatedDate())
                 .updatedDate(product.getUpdateDate())
                 .calories(product.getCaloriesCache())
