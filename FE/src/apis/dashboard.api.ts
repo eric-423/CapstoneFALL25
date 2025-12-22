@@ -1,5 +1,3 @@
-import { getToken } from '@/utils/cookies.client';
-
 export interface Product {
   productId: number;
   productName: string;
@@ -540,11 +538,11 @@ export const deleteDashboardProduct = async (productId: number): Promise<DeleteP
 
 export const getDashboardUsers = async (page = 0, size = 10): Promise<DashboardUserResponse> => {
   const token = localStorage.getItem('access_token');
-  const params = new URLSearchParams({ 
-    page: page.toString(), 
-    size: size.toString(), 
-    isActive: 'true', 
-    roleId: '6' 
+  const params = new URLSearchParams({
+    page: page.toString(),
+    size: size.toString(),
+    isActive: 'true',
+    roleId: '6'
   });
   const fetchResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/users/admin/get-all-user?${params.toString()}`, {
     method: 'GET',
