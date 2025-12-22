@@ -190,6 +190,9 @@ public class SecurityConfig {
 
                         .requestMatchers("/combos/search").permitAll()
                         .requestMatchers("/products/detail/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/products/*/paired").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/products/*/paired").hasRole("ADMIN")
+
                         .requestMatchers(HttpMethod.GET, "/combos/{id}").permitAll()
                         .requestMatchers(HttpMethod.POST, "/combos").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(HttpMethod.PUT, "/combos/{id}").hasAnyRole("ADMIN", "MANAGER")
