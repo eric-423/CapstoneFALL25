@@ -22,6 +22,7 @@ import { toast } from "react-toastify";
 import { MapPin, Star, Loader2, Trash2, Edit2 } from "lucide-react";
 import { AddressAutocomplete } from "@/components/common/address-autocomplete";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
+import { setLoading } from "@/utils/contexts/cart/cart.reducer";
 
 interface CustomerInformation {
   informationId: number;
@@ -104,27 +105,22 @@ export default function AddressManagementSection({
         phoneNumber: "",
         isDefault: false,
       });
-      toast.success("Thêm địa chỉ thành công!", {
-        position: "top-center",
-        autoClose: 3000,
-      });
     },
-    onError: (error: unknown) => {
-      const errorMessage =
-        (
-          error as {
-            response?: { data?: { error?: string; message?: string } };
-          }
-        )?.response?.data?.error ||
-        (
-          error as {
-            response?: { data?: { error?: string; message?: string } };
-          }
-        )?.response?.data?.message ||
-        "Không thể thêm địa chỉ. Vui lòng thử lại.";
-      toast.error(errorMessage, {
-        position: "top-center",
-        autoClose: 4000,
+    onError: async () => {
+      await refetchAddresses();
+    },
+    onSettled: async () => {
+      queryClient.invalidateQueries({
+        queryKey: ["customer-informations", userId],
+      });
+      await refetchAddresses();
+      setIsDialogOpen(false);
+      setEditingAddress(null);
+      setFormData({
+        name: "",
+        address: "",
+        phoneNumber: "",
+        isDefault: false,
       });
     },
   });
@@ -193,33 +189,37 @@ export default function AddressManagementSection({
       queryClient.invalidateQueries({
         queryKey: ["customer-informations", userId],
       });
-      await refetchAddresses();
       setIsDialogOpen(false);
       setEditingAddress(null);
+      setLoading(false);
       setFormData({
         name: "",
         address: "",
         phoneNumber: "",
         isDefault: false,
       });
+      await refetchAddresses();
+
     },
-    onError: (error: unknown) => {
-      const errorMessage =
-        (
-          error as {
-            response?: { data?: { error?: string; message?: string } };
-          }
-        )?.response?.data?.error ||
-        (
-          error as {
-            response?: { data?: { error?: string; message?: string } };
-          }
-        )?.response?.data?.message ||
-        "Không thể cập nhật địa chỉ. Vui lòng thử lại.";
-      toast.error(errorMessage, {
-        position: "top-center",
-        autoClose: 4000,
+    onError: async () => {
+      // Không cần báo lỗi, vẫn refetch để đồng bộ
+      await refetchAddresses();
+    },
+    onSettled: async () => {
+      queryClient.invalidateQueries({
+        queryKey: ["customer-informations", userId],
       });
+      setIsDialogOpen(false);
+      setEditingAddress(null);
+      setLoading(false);
+      setFormData({
+        name: "",
+        address: "",
+        phoneNumber: "",
+        isDefault: false,
+      });
+      await refetchAddresses();
+
     },
   });
 
@@ -351,11 +351,10 @@ export default function AddressManagementSection({
                 {addresses.map((address) => (
                   <Card
                     key={address.informationId}
-                    className={`relative shadow-md ${
-                      address.isDefault
-                        ? "border-2 border-[#EC6426] bg-orange-50/70"
-                        : "border bg-white/90"
-                    }`}
+                    className={`relative shadow-md ${address.isDefault
+                      ? "border-2 border-[#EC6426] bg-orange-50/70"
+                      : "border bg-white/90"
+                      }`}
                   >
                     <CardContent className="p-6">
                       <div className="flex items-center gap-4">
@@ -512,7 +511,7 @@ export default function AddressManagementSection({
                   className="flex-1 bg-[#EC6426] hover:bg-[#C04A00] text-white"
                 >
                   {saveAddressMutation.isPending ||
-                  updateAddressMutation.isPending ? (
+                    updateAddressMutation.isPending ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                       Đang lưu...

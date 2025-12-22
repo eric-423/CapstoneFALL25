@@ -557,6 +557,7 @@ export const assignShipperToOrder = async (orderId: number): Promise<CommonRespo
             message: data.message || 'Đã assign shipper thành công'
         };
     } catch (error) {
+        console.log(error);
         return {
             success: false,
             message: 'Hiện Tại Tất Cả Shipper Đang Bận'
@@ -759,3 +760,36 @@ export const assignCustomerToOrder = async (customerId: number, orderId: number)
         console.error("Error assigning customer to order:", error);
     }
 };
+
+export interface cartItem {
+    productId: number;
+    quantity: number;
+    comboId?: number; // chỉ gửi khi có combo
+}
+
+export const checkCartItems = async (branchId: number, cartItems: cartItem[]) => {
+    try {
+        const response = await fetch(`/api/orders/check/cart-items/${branchId}`, {
+            method: 'POST',
+            credentials: 'include',
+            body: JSON.stringify(cartItems),
+        });
+        if (!response.ok) {
+            const errorBody = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
+            throw {
+                response: {
+                    data: errorBody,
+                    status: response.status,
+                },
+            };
+        }
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.log(error);
+        return {
+            success: false,
+            message: 'Giỏ hàng không hợp lệ'
+        }
+    }
+}

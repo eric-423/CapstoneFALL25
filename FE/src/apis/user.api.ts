@@ -596,12 +596,12 @@ export const saveCustomerInformation = async (
 
   const parsed = contentType.includes("application/json")
     ? (() => {
-        try {
-          return JSON.parse(rawBody);
-        } catch {
-          return null;
-        }
-      })()
+      try {
+        return JSON.parse(rawBody);
+      } catch {
+        return null;
+      }
+    })()
     : null;
 
   if (!response.ok) {
@@ -648,12 +648,12 @@ export const deleteCustomerInformation = async (
     const parsed =
       contentType.includes("application/json") && rawBody
         ? (() => {
-            try {
-              return JSON.parse(rawBody);
-            } catch {
-              return null;
-            }
-          })()
+          try {
+            return JSON.parse(rawBody);
+          } catch {
+            return null;
+          }
+        })()
         : null;
 
     throw {
@@ -676,12 +676,12 @@ export const deleteCustomerInformation = async (
   const parsed =
     contentType.includes("application/json") && rawBody
       ? (() => {
-          try {
-            return JSON.parse(rawBody);
-          } catch {
-            return null;
-          }
-        })()
+        try {
+          return JSON.parse(rawBody);
+        } catch {
+          return null;
+        }
+      })()
       : null;
 
   if (parsed && typeof parsed === "object" && "error" in parsed) {

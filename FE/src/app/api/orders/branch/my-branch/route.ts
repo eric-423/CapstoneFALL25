@@ -62,8 +62,8 @@ export async function GET(request: NextRequest) {
         response.status === 403
           ? `Access denied. This endpoint requires MANAGER/ADMIN/STAFF role, but your role is: ${userRole}. Please contact administrator.`
           : errorData.error ||
-            errorData.message ||
-            "Failed to fetch branch orders";
+          errorData.message ||
+          "Failed to fetch branch orders";
 
       return NextResponse.json(
         {
