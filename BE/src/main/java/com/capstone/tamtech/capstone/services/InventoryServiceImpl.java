@@ -1,7 +1,10 @@
 package com.capstone.tamtech.capstone.services;
 
+import com.capstone.tamtech.capstone.entities.Combo;
+import com.capstone.tamtech.capstone.entities.ComboItem;
 import com.capstone.tamtech.capstone.entities.MaterialWarehouse;
 import com.capstone.tamtech.capstone.entities.OrderItem;
+import com.capstone.tamtech.capstone.entities.Product;
 import com.capstone.tamtech.capstone.entities.ProductRecipes;
 import com.capstone.tamtech.capstone.entities.Warehouse;
 import com.capstone.tamtech.capstone.entities.keys.KeyMaterialWarehouse;
@@ -272,7 +275,6 @@ public class InventoryServiceImpl implements InventoryService {
         }
     }
 
-    @Override
     public int getAvailableProductQuantity(Integer productId, Integer branchId) {
         productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + productId));
@@ -314,5 +316,69 @@ public class InventoryServiceImpl implements InventoryService {
         }
 
         return minAvailableQuantity == Integer.MAX_VALUE ? 0 : minAvailableQuantity;
+    }
+
+    public int getAvailableComboQuantity(Integer comboId, Integer branchId) {
+        Combo combo = comboRepository.findById(comboId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy combo với ID: " + comboId));
+
+        branchRepository.findById(branchId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy chi nhánh với ID: " + branchId));
+
+        if (combo.getComboItems() == null || combo.getComboItems().isEmpty()) {
+            return 0;
+        }
+
+        Integer warehouseId = resolveWarehouseIdByBranch(branchId);
+        if (warehouseId == null) {
+            return 0;
+        }
+
+        int minAvailableComboQuantity = Integer.MAX_VALUE;
+
+        for (ComboItem comboItem : combo.getComboItems()) {
+            Product product = comboItem.getProduct();
+            int productQuantityInCombo = comboItem.getQuantity();
+
+            if (product == null || productQuantityInCombo <= 0) {
+                continue;
+            }
+
+            List<ProductRecipes> recipes = productRecipesRepository.findByProductId(product.getId());
+            if (recipes == null || recipes.isEmpty()) {
+                return 0;
+            }
+
+            int minAvailableProductQuantity = Integer.MAX_VALUE;
+
+            for (ProductRecipes recipe : recipes) {
+                int materialId = recipe.getMaterial().getId();
+                double requiredQuantityPerProduct = recipe.getQuantity();
+
+                if (requiredQuantityPerProduct <= 0) {
+                    continue;
+                }
+
+                KeyMaterialWarehouse key = new KeyMaterialWarehouse(materialId, warehouseId);
+                double availableMaterialQuantity = materialWarehouseRepository
+                        .findById(key)
+                        .map(MaterialWarehouse::getQuantity)
+                        .orElse(0.0);
+
+                int productQuantityFromThisMaterial = (int) Math
+                        .floor(availableMaterialQuantity / requiredQuantityPerProduct);
+
+                minAvailableProductQuantity = Math.min(minAvailableProductQuantity, productQuantityFromThisMaterial);
+            }
+
+            if (minAvailableProductQuantity == Integer.MAX_VALUE) {
+                return 0;
+            }
+
+            int comboQuantityFromThisProduct = minAvailableProductQuantity / productQuantityInCombo;
+            minAvailableComboQuantity = Math.min(minAvailableComboQuantity, comboQuantityFromThisProduct);
+        }
+
+        return minAvailableComboQuantity == Integer.MAX_VALUE ? 0 : minAvailableComboQuantity;
     }
 }
