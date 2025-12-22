@@ -10,7 +10,7 @@ export const metadata: Metadata = {
         url: '/payment-failed',
         type: 'website',
     },
-    robots: 'noindex, nofollow', // Payment result pages should not be indexed
+    robots: 'noindex, nofollow', 
 };
 
 export default function PaymentFailedLayout({

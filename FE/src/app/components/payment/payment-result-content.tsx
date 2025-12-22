@@ -135,9 +135,12 @@ export function PaymentResultContent({ isSuccess = true, orderCode }: PaymentRes
               }
             }}
           >
-            <CardContent className=" text-center py-3">
-              <p className="text-lg text-white">Theo dõi đơn hàng</p>
-            </CardContent>
+            {
+              isSuccess && (<CardContent className=" text-center py-3">
+                <p className="text-lg text-white">Theo dõi đơn hàng</p>
+              </CardContent>
+              )
+            }
           </Card>
         )}
       </div>
