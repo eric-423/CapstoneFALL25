@@ -31,8 +31,10 @@ import {
   GetAvailablePromotion,
   GetBranch,
   GetOrderById,
+  CheckCartItems,
 } from "@/utils/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Toast from "react-native-root-toast";
 
 interface IOrderItem {
   title: string;
@@ -42,7 +44,17 @@ interface IOrderItem {
 }
 
 const PlaceOrderPage = () => {
-  const { restaurant, cart, appState, locationReal } = useCurrentApp();
+  const {
+    restaurant,
+    cart,
+    appState,
+    locationReal,
+    branchId,
+    branchName,
+    setBranchId,
+    setBranchName,
+    setCart,
+  } = useCurrentApp();
   const orderItems: IOrderItem[] =
     restaurant?._id && cart?.[restaurant._id]?.items
       ? Object.values(cart[restaurant._id].items).map((item) => ({
@@ -54,7 +66,6 @@ const PlaceOrderPage = () => {
       : [];
   const [loading, setLoading] = useState<boolean>(false);
   const [branchAddress, setBranchAddress] = useState("");
-  const { branchId, branchName } = useCurrentApp();
   const [shippingFee, setShippingFee] = useState<number>(0);
   const [originalShippingFee, setOriginalShippingFee] = useState<number>(0);
   const [discountAmount, setDiscountAmount] = useState<number>(0);
@@ -65,6 +76,9 @@ const PlaceOrderPage = () => {
   const [customerInformation, setCustomerInformation] = useState<any>(null);
   const [allAddresses, setAllAddresses] = useState<any[]>([]);
   const [showAddressModal, setShowAddressModal] = useState(false);
+  const [branchList, setBranchList] = useState<any[]>([]);
+  const [showBranchModal, setShowBranchModal] = useState(false);
+  const [isLoadingBranches, setIsLoadingBranches] = useState(false);
   const [canShip, setCanShip] = useState(false);
   const [orderMode, setOrderMode] = useState<"SHIPPING" | "PICKUP">("SHIPPING");
   const [distance, setDistance] = useState<number | null>(null);
@@ -110,7 +124,10 @@ const PlaceOrderPage = () => {
           try {
             const branchRes = await GetBranch();
             const branches = branchRes.data?.data || branchRes.data || [];
-            const currentBranch = branches.find((b: any) => b.id === branchId);
+            setBranchList(branches);
+            const currentBranch = branches.find(
+              (b: any) => b.id === branchId || b.branchId === branchId
+            );
             if (currentBranch?.distanceInMeters) {
               const distanceInKm = currentBranch.distanceInMeters / 1000;
               setDistance(distanceInKm);
@@ -139,6 +156,25 @@ const PlaceOrderPage = () => {
     branchId,
     orderMode,
   ]);
+
+  useEffect(() => {
+    const fetchBranches = async () => {
+      try {
+        setIsLoadingBranches(true);
+        const res = await GetBranch();
+        const branches = res.data?.data || res.data || [];
+        setBranchList(branches);
+      } catch (error) {
+        console.error("Error fetching branches:", error);
+        setBranchList([]);
+      } finally {
+        setIsLoadingBranches(false);
+      }
+    };
+
+    fetchBranches();
+  }, []);
+
   const orderDetails: { productId: number; quantity: number }[] =
     restaurant?._id && cart?.[restaurant._id]?.items
       ? Object.values(cart[restaurant._id].items).map((item) => ({
@@ -216,6 +252,47 @@ const PlaceOrderPage = () => {
     }
     try {
       setLoading(true);
+
+      const checkItems = Object.values(cart[restaurant._id].items).map(
+        (item: any) => {
+          const isCombo = item?.data?.isCombo;
+          return {
+            ...(isCombo
+              ? { comboId: Number(item?.data?.comboId) || 0 }
+              : { productId: Number(item?.data?.productId) || 0 }),
+            quantity: item?.quantity || 0,
+          };
+        }
+      );
+
+      try {
+        const checkResponse = await CheckCartItems(branchId, checkItems);
+        if (checkResponse.data?.status !== 0) {
+          Toast.show(
+            checkResponse.data?.desc ||
+              "Một số sản phẩm không đủ số lượng tại chi nhánh này",
+            {
+              duration: Toast.durations.LONG,
+              position: Toast.positions.BOTTOM,
+            }
+          );
+          setLoading(false);
+          return;
+        }
+      } catch (checkError: any) {
+        console.error("Error checking cart items:", checkError);
+        Toast.show(
+          checkError?.response?.data?.desc ||
+            "Không thể kiểm tra số lượng sản phẩm",
+          {
+            duration: Toast.durations.LONG,
+            position: Toast.positions.BOTTOM,
+          }
+        );
+        setLoading(false);
+        return;
+      }
+
       const orderItemList = Object.values(cart[restaurant._id].items).map(
         (item: any) => {
           const isCombo = item?.data?.isCombo;
@@ -527,9 +604,14 @@ const PlaceOrderPage = () => {
                 </Text>
               </Pressable>
             </View>
-            <View>
+          </View>
+        </View>
+
+        <View style={styles.textContainer}>
+          <View style={{ marginBottom: 15 }}>
+            <Pressable onPress={() => setShowBranchModal(true)}>
               <DropDown title="Cửa hàng tiếp nhận" value={branchName || ""} />
-            </View>
+            </Pressable>
           </View>
         </View>
 
@@ -537,7 +619,7 @@ const PlaceOrderPage = () => {
           <Text
             style={{
               fontFamily: FONTS.bold,
-              fontSize: 18,
+              fontSize: 15,
               color: APP_COLOR.BROWN,
               marginBottom: 5,
             }}
@@ -769,22 +851,40 @@ const PlaceOrderPage = () => {
                               style={{
                                 fontFamily: FONTS.regular,
                                 fontSize: 12,
-                                color: APP_COLOR.BROWN,
+                                color:
+                                  distance !== null && distance > 5
+                                    ? APP_COLOR.CANCEL
+                                    : APP_COLOR.BROWN,
                               }}
                             >
                               ({distance.toFixed(1)} km)
                             </Text>
                           )}
                         </View>
-                        <Text
-                          style={{
-                            fontFamily: FONTS.regular,
-                            fontSize: 14,
-                            color: APP_COLOR.BROWN,
-                          }}
-                        >
-                          {currencyFormatter(shippingFee)}
-                        </Text>
+                        <View style={{ alignItems: "flex-end" }}>
+                          {distance !== null && distance > 5 ? (
+                            <Text
+                              style={{
+                                fontFamily: FONTS.regular,
+                                fontSize: 12,
+                                color: APP_COLOR.CANCEL,
+                                marginTop: 2,
+                              }}
+                            >
+                              Vượt quá bán kính 5km
+                            </Text>
+                          ) : (
+                            <Text
+                              style={{
+                                fontFamily: FONTS.regular,
+                                fontSize: 14,
+                                color: APP_COLOR.BROWN,
+                              }}
+                            >
+                              {currencyFormatter(shippingFee)}
+                            </Text>
+                          )}
+                        </View>
                       </View>
                     )}
                     {selectedPromotion && discountAmount > 0 && (
@@ -1285,6 +1385,246 @@ const PlaceOrderPage = () => {
                   </View>
                 </Modal>
                 <Modal
+                  visible={showBranchModal}
+                  animationType="slide"
+                  transparent={true}
+                  onRequestClose={() => setShowBranchModal(false)}
+                >
+                  <View
+                    style={{
+                      flex: 1,
+                      backgroundColor: "rgba(0, 0, 0, 0.5)",
+                      justifyContent: "flex-end",
+                      marginBottom: 40,
+                    }}
+                  >
+                    <View
+                      style={{
+                        backgroundColor: APP_COLOR.WHITE,
+                        borderTopLeftRadius: 20,
+                        borderTopRightRadius: 20,
+                        maxHeight: "70%",
+                        elevation: 10,
+                        shadowColor: "#000",
+                        shadowOffset: { width: 0, height: -2 },
+                        shadowOpacity: 0.25,
+                        shadowRadius: 3.84,
+                      }}
+                    >
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          padding: 20,
+                          borderBottomWidth: 1,
+                          borderBottomColor: APP_COLOR.BACKGROUND_ORANGE,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontFamily: FONTS.semiBold,
+                            fontSize: 18,
+                            color: APP_COLOR.BROWN,
+                          }}
+                        >
+                          Chọn cửa hàng tiếp nhận
+                        </Text>
+                        <Pressable onPress={() => setShowBranchModal(false)}>
+                          <AntDesign
+                            name="close"
+                            size={24}
+                            color={APP_COLOR.BROWN}
+                          />
+                        </Pressable>
+                      </View>
+                      {isLoadingBranches ? (
+                        <View
+                          style={{
+                            paddingVertical: 40,
+                            alignItems: "center",
+                            minHeight: 200,
+                          }}
+                        >
+                          <ActivityIndicator
+                            size="large"
+                            color={APP_COLOR.ORANGE}
+                          />
+                          <Text
+                            style={{
+                              fontFamily: FONTS.regular,
+                              fontSize: 14,
+                              color: APP_COLOR.BROWN,
+                              marginTop: 10,
+                              textAlign: "center",
+                            }}
+                          >
+                            Đang tải danh sách cửa hàng...
+                          </Text>
+                        </View>
+                      ) : branchList.length === 0 ? (
+                        <View
+                          style={{
+                            paddingVertical: 40,
+                            alignItems: "center",
+                            minHeight: 200,
+                          }}
+                        >
+                          <Text
+                            style={{
+                              fontFamily: FONTS.regular,
+                              fontSize: 14,
+                              color: APP_COLOR.BROWN,
+                              textAlign: "center",
+                            }}
+                          >
+                            Không có cửa hàng nào khả dụng.
+                          </Text>
+                        </View>
+                      ) : (
+                        <FlatList
+                          data={branchList}
+                          keyExtractor={(item, index) =>
+                            (item.id || item.branchId || index).toString()
+                          }
+                          renderItem={({ item: branch, index }) => {
+                            const id = branch.id || branch.branchId;
+                            const name =
+                              branch.name ||
+                              branch.branchName ||
+                              `Chi nhánh ${index + 1}`;
+                            const isSelected =
+                              branchId &&
+                              id &&
+                              id.toString() === branchId.toString();
+
+                            return (
+                              <Pressable
+                                onPress={async () => {
+                                  if (!id) return;
+
+                                  if (
+                                    branchId &&
+                                    id.toString() === branchId.toString()
+                                  ) {
+                                    setShowBranchModal(false);
+                                    return;
+                                  }
+
+                                  if (
+                                    restaurant?._id &&
+                                    cart?.[restaurant._id]?.items &&
+                                    Object.keys(cart[restaurant._id].items)
+                                      .length > 0
+                                  ) {
+                                    try {
+                                      const checkItems = Object.values(
+                                        cart[restaurant._id].items
+                                      ).map((item: any) => {
+                                        const isCombo = item?.data?.isCombo;
+                                        return {
+                                          ...(isCombo
+                                            ? {
+                                                comboId:
+                                                  Number(item?.data?.comboId) ||
+                                                  0,
+                                              }
+                                            : {
+                                                productId:
+                                                  Number(
+                                                    item?.data?.productId
+                                                  ) || 0,
+                                              }),
+                                          quantity: item?.quantity || 0,
+                                        };
+                                      });
+
+                                      const checkResponse =
+                                        await CheckCartItems(id, checkItems);
+
+                                      if (checkResponse.data?.status !== 0) {
+                                        setCart({});
+                                        Toast.show(
+                                          checkResponse.data?.desc ||
+                                            "Một số sản phẩm không đủ số lượng tại chi nhánh này. Vui lòng chọn lại sản phẩm.",
+                                          {
+                                            duration: Toast.durations.LONG,
+                                            position: 50,
+                                            backgroundColor: APP_COLOR.CANCEL,
+                                          }
+                                        );
+                                        setShowBranchModal(false);
+                                        router.push("/(tabs)/order");
+                                        return;
+                                      }
+                                    } catch (checkError: any) {
+                                      console.error(
+                                        "Error checking cart items:",
+                                        checkError
+                                      );
+                                      setCart({});
+                                      Toast.show(
+                                        checkError?.response?.data?.desc ||
+                                          "Không thể kiểm tra số lượng sản phẩm. Giỏ hàng đã được xóa.",
+                                        {
+                                          duration: Toast.durations.LONG,
+                                          position: Toast.positions.BOTTOM,
+                                          backgroundColor: APP_COLOR.CANCEL,
+                                        }
+                                      );
+                                      setShowBranchModal(false);
+                                      router.back();
+                                      return;
+                                    }
+                                  }
+
+                                  setBranchId(id);
+                                  setBranchName(name);
+                                  await AsyncStorage.setItem(
+                                    "selectedBranchId",
+                                    id.toString()
+                                  );
+                                  await AsyncStorage.removeItem("distance");
+                                  setShowBranchModal(false);
+                                }}
+                                style={{
+                                  padding: 12,
+                                  borderBottomWidth: 1,
+                                  borderBottomColor:
+                                    APP_COLOR.BACKGROUND_ORANGE,
+                                  backgroundColor: isSelected
+                                    ? APP_COLOR.BACKGROUND_ORANGE
+                                    : "transparent",
+                                }}
+                              >
+                                <Text
+                                  style={{
+                                    fontFamily: isSelected
+                                      ? FONTS.bold
+                                      : FONTS.regular,
+                                    fontSize: 14,
+                                    color: APP_COLOR.BROWN,
+                                  }}
+                                  numberOfLines={1}
+                                >
+                                  {name}
+                                </Text>
+                              </Pressable>
+                            );
+                          }}
+                          style={{ maxHeight: 400 }}
+                          contentContainerStyle={{
+                            padding: 10,
+                            paddingBottom: 20,
+                          }}
+                          nestedScrollEnabled={true}
+                          showsVerticalScrollIndicator={true}
+                        />
+                      )}
+                    </View>
+                  </View>
+                </Modal>
+                <Modal
                   visible={showAddressModal}
                   animationType="slide"
                   transparent={true}
@@ -1497,6 +1837,7 @@ const PlaceOrderPage = () => {
       </ScrollView>
       <ShareButton
         loading={loading}
+        disabled={orderMode === "SHIPPING" && distance !== null && distance > 5}
         title="Đặt hàng"
         onPress={handleCreateOrder}
         textStyle={{
@@ -1515,7 +1856,10 @@ const PlaceOrderPage = () => {
           alignSelf: "center",
           justifyContent: "center",
           borderRadius: 10,
-          backgroundColor: APP_COLOR.ORANGE,
+          backgroundColor:
+            orderMode === "SHIPPING" && distance !== null && distance > 5
+              ? APP_COLOR.GRAY
+              : APP_COLOR.ORANGE,
           paddingHorizontal: 10,
         }}
         pressStyle={{ alignSelf: "stretch" }}

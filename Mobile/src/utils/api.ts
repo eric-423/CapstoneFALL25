@@ -238,6 +238,24 @@ export const GetBranch = () => {
   });
 };
 
+export const CheckCartItems = async (
+  branchId: number,
+  items: Array<{ productId?: number; comboId?: number; quantity: number }>
+) => {
+  const token = await AsyncStorage.getItem("access_token");
+  return axios.post(
+    `${BASE_URL}/cart-items/check/cart-item/${branchId}`,
+    items,
+    {
+      headers: {
+        accept: "*/*",
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    }
+  );
+};
+
 export const GetProductType = () => {
   return axios.get(`${BASE_URL}/product-types`, {
     headers: {

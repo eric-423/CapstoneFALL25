@@ -68,15 +68,21 @@ const TodayOffersSection: React.FC<TodayOffersSectionProps> = ({
       <View style={styles.header}>
         <Text style={styles.title}>{title}</Text>
       </View>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.offersList}
-      >
-        {offers.map((offer) => (
-          <OfferCard key={offer.id} {...offer} />
-        ))}
-      </ScrollView>
+      {offers.length > 0 ? (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.offersList}
+        >
+          {offers.map((offer) => (
+            <OfferCard key={offer.id} {...offer} />
+          ))}
+        </ScrollView>
+      ) : (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>Hiện chưa có ưu đãi dành cho bạn</Text>
+        </View>
+      )}
     </View>
   );
 };
@@ -104,6 +110,17 @@ const styles = StyleSheet.create({
   },
   offersList: {
     paddingRight: 15,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 30,
+  },
+  emptyText: {
+    fontFamily: FONTS.regular,
+    fontSize: 13,
+    color: APP_COLOR.BROWN,
   },
 });
 

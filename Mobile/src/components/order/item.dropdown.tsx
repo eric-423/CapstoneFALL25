@@ -11,22 +11,29 @@ const DropDown = (props: IDropDown) => {
   return (
     <View
       style={{
-        flexDirection: "row",
         justifyContent: "space-between",
-        alignItems: "center",
       }}
     >
       <Text
         style={{
           fontFamily: FONTS.semiBold,
-          fontSize: 17,
+          fontSize: 15,
           color: APP_COLOR.BROWN,
         }}
       >
         {title}
         {":"}
       </Text>
-      <View style={{ flexDirection: "row", alignItems: "center" }}>
+      <View
+        style={{
+          marginTop: 10,
+          paddingHorizontal: 5,
+          paddingVertical: 10,
+          borderWidth: 0.5,
+          borderColor: APP_COLOR.BROWN,
+          borderRadius: 10,
+        }}
+      >
         <Text
           style={{
             fontFamily: FONTS.regular,
