@@ -174,6 +174,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
+    marginTop: 20,
   },
   text: {
     alignSelf: "center",

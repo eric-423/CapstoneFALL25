@@ -229,16 +229,13 @@ export const getDirections = async (
 
   throw new Error(response.data.status || "Không lấy được dữ liệu tuyến đường");
 };
-export const GetBranchNearLocation = async (realLocation: string) => {
-  return axios.get(
-    `${BASE_URL}/branches/nearby?address=${realLocation}&limit=5`,
-    {
-      headers: {
-        accept: "application/json",
-        "Content-Type": "application/json",
-      },
-    }
-  );
+export const GetBranch = () => {
+  return axios.get(`${BASE_URL}/branches`, {
+    headers: {
+      accept: "application/json",
+      "Content-Type": "application/json",
+    },
+  });
 };
 
 export const GetProductType = () => {

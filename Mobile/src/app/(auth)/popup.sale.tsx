@@ -72,7 +72,7 @@ export const PopupSale = ({ onClose }: { onClose: () => void }) => {
               position: "relative",
               top: -25,
             })}
-            onPress={() => console.log("hihi")}
+            onPress={() => router.push("/(tabs)/order")}
           >
             <Text
               style={{
@@ -153,7 +153,7 @@ const PopupSalePage = () => {
               position: "relative",
               top: -25,
             })}
-            onPress={() => console.log("hihi")}
+            onPress={() => router.push("/(tabs)/order")}
           >
             <Text
               style={{

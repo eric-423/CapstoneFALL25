@@ -220,8 +220,8 @@ export default function WarehousesPage() {
     return (
       <ManagerGuard>
         <AdminPageLayout>
-          <div className="flex items-center justify-center h-64">
-            <div className="w-12 h-12 border-4 border-[#EBD187] border-t-[#78A243] rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="flex flex-col items-center justify-center min-h-[400px]">
+            <div className="w-12 h-12 border-4 border-[#EBD187] border-t-[#78A243] rounded-full animate-spin mb-4"></div>
             <p className="text-[#2D1E1A]/70">Đang tải dữ liệu...</p>
           </div>
         </AdminPageLayout>

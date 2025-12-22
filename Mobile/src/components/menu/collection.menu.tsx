@@ -24,7 +24,6 @@ import {
   SortProductByPrice,
 } from "@/utils/api";
 import { router } from "expo-router";
-import { map } from "lodash";
 const { width: sWidth } = Dimensions.get("window");
 const comboPlaceholder = require("@/assets/saleoff/combo.png");
 
@@ -263,6 +262,8 @@ const CollectionMenu = (props: IProps) => {
               id || 0,
               sortDirection || null
             );
+            console.log(res.data.content);
+
             const mapped: IPropsProduct[] = (res?.data?.content || []).map(
               (p: any) => ({
                 ProductType: {
@@ -347,12 +348,9 @@ const CollectionMenu = (props: IProps) => {
           </ContentLoader>
         ) : (
           <View style={styles.container}>
-            <Pressable
-              onPress={() => console.log("hihi")}
-              style={styles.headerContainer}
-            >
+            <View style={styles.headerContainer}>
               <Text style={styles.headerText}>{name || "Combo"}</Text>
-            </Pressable>
+            </View>
             <FlatList
               data={restaurants}
               contentContainerStyle={styles.flatListContent}
@@ -675,7 +673,7 @@ const CollectionMenu = (props: IProps) => {
                               item.inStock === false &&
                                 styles.itemNameOutOfStock,
                             ]}
-                            numberOfLines={2}
+                            numberOfLines={1}
                             ellipsizeMode="tail"
                           >
                             {item.name}
@@ -844,6 +842,7 @@ const styles = StyleSheet.create({
   },
   itemTextContainer: {
     padding: 5,
+    width: "70%",
   },
   itemName: {
     fontFamily: FONTS.semiBold,

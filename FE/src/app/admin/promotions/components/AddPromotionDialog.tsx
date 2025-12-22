@@ -117,8 +117,13 @@ export function AddPromotionDialog({
       if (!formData.value) {
         newErrors.value = "Vui lòng nhập giá trị giảm giá";
       } else {
-        if (Number(formData.value) <= 0) {
+        const numericValue = Number(formData.value);
+        if (numericValue <= 0) {
           newErrors.value = "Giá trị giảm phải lớn hơn 0";
+        }
+        if (isPercentageDiscount() && numericValue > 100) {
+          newErrors.value =
+            "Giá trị giảm theo phần trăm không được vượt quá 100%";
         }
       }
     }
@@ -227,6 +232,20 @@ export function AddPromotionDialog({
       (t) => t.value === formData.promotionType
     );
     return selectedType?.label?.toLowerCase().includes("vận chuyển") || false;
+  };
+
+  const isPercentageDiscount = () => {
+    if (!formData.promotionType) return false;
+    const selectedType = promotionTypes.find(
+      (t) => t.value === formData.promotionType
+    );
+    const label = selectedType?.label?.toLowerCase() || "";
+    return (
+      label.includes("%") ||
+      label.includes("phần trăm") ||
+      label.includes("percent") ||
+      label.includes("percentage")
+    );
   };
 
   const handleInputChange = (
@@ -421,17 +440,41 @@ export function AddPromotionDialog({
                 {!isFreeShipping() && (
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-[#2D1E1A]">
-                      Giá trị giảm <span className="text-red-500">*</span>
+                      Giá trị giảm {isPercentageDiscount() ? "(%)" : "(VNĐ)"}{" "}
+                      <span className="text-red-500">*</span>
                     </label>
-                    <Input
-                      type="number"
-                      min="0"
-                      value={formData.value}
-                      onChange={(e) =>
-                        handleInputChange("value", e.target.value)
-                      }
-                      className={`h-11 border-2 ${errors.value ? "border-red-400" : "border-gray-200"} focus:border-[#78A243]`}
-                    />
+                    {isPercentageDiscount() ? (
+                      <Input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={formData.value}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          const numValue = Number(value);
+                          if (
+                            value === "" ||
+                            (numValue >= 0 && numValue <= 100)
+                          ) {
+                            handleInputChange("value", value);
+                          }
+                        }}
+                        className={`h-11 border-2 ${errors.value ? "border-red-400" : "border-gray-200"} focus:border-[#78A243]`}
+                        placeholder="0"
+                      />
+                    ) : (
+                      <Input
+                        type="text"
+                        value={
+                          formData.value ? formatNumber(formData.value) : ""
+                        }
+                        onChange={(e) =>
+                          handleNumberInputChange("value", e.target.value)
+                        }
+                        className={`h-11 border-2 ${errors.value ? "border-red-400" : "border-gray-200"} focus:border-[#78A243]`}
+                        placeholder="0"
+                      />
+                    )}
                     {errors.value && (
                       <p className="text-xs text-red-600 font-medium">
                         {errors.value}
