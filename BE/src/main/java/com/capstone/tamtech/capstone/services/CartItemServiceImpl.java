@@ -33,6 +33,9 @@ public class CartItemServiceImpl implements CartItemService {
     @Autowired
     private UsersRepository usersRepository;
 
+    @Autowired
+    private InventoryServiceImpl inventoryServiceImpl;
+
     private CartItemDTO mapToDTO(CartItem cartItem) {
         CartItemDTO cartItemDTO = new CartItemDTO();
         cartItemDTO.setId(cartItem.getCartId());
@@ -119,5 +122,45 @@ public class CartItemServiceImpl implements CartItemService {
         }catch (Exception e) {
             return false;
         }
+    }
+
+    @Override
+    public Boolean checkCartItemAvailability(List<CartItemRequest> cartItemRequests, Integer branchId) {
+
+        boolean allAvailable = true;
+
+        for(CartItemRequest cartItemRequest:cartItemRequests){
+            boolean isProduct = false;
+            boolean isCombo = false;
+
+            if(cartItemRequest.getProductId()!=null){
+                isProduct = true;
+            }
+
+            if(cartItemRequest.getComboId()!=null){
+                isCombo = true;
+            }
+
+            if(isProduct){
+                int quantityRequest = cartItemRequest.getQuantity();
+                int availableQuantity = inventoryServiceImpl.getAvailableProductQuantity(cartItemRequest.getProductId(), branchId);
+                if(availableQuantity < quantityRequest){
+                    allAvailable = false;
+                    break;
+                }
+            }
+
+            if(isCombo){
+                int quantityRequest = cartItemRequest.getQuantity();
+                int availableQuantity = inventoryServiceImpl.getAvailableComboQuantity(cartItemRequest.getComboId(), branchId);
+                if(availableQuantity < quantityRequest){
+                    allAvailable = false;
+                    break;
+                }
+            }
+
+        }
+
+        return allAvailable;
     }
 }

@@ -17,4 +17,5 @@ public interface CartItemService {
 
     Boolean clearCartItem(int userId);
 
+    Boolean checkCartItemAvailability(List<CartItemRequest> cartItemRequests, Integer branchId);
 }

@@ -23,6 +23,11 @@ public class CartItemController {
         return new ResponseEntity<>(cartItemService.getAllCartItems(userId), HttpStatus.OK);
     }
 
+    @PostMapping("/check/cart-item/{branchId}")
+    public ResponseEntity<?> checkCartItemAvailability(@RequestBody List<CartItemRequest> cartItemRequests, @PathVariable Integer branchId) {
+        return new ResponseEntity<>(cartItemService.checkCartItemAvailability(cartItemRequests, branchId), HttpStatus.OK);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getCartItemById(int id) {
         return new ResponseEntity<>(cartItemService.getCartItemById(id), HttpStatus.OK);
