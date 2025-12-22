@@ -12,4 +12,6 @@ public interface InventoryService {
     void restoreMaterialsForOrderItems(List<OrderItem> orderItems, Integer branchId);
 
     void consumeMaterialsForOrderItems(List<OrderItem> orderItems, Integer branchId);
+
+    int getAvailableProductQuantity(Integer productId, Integer branchId);
 }

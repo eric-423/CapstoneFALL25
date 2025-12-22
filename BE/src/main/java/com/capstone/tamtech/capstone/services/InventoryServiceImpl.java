@@ -4,10 +4,14 @@ import com.capstone.tamtech.capstone.entities.MaterialWarehouse;
 import com.capstone.tamtech.capstone.entities.OrderItem;
 import com.capstone.tamtech.capstone.entities.ProductRecipes;
 import com.capstone.tamtech.capstone.entities.Warehouse;
+import com.capstone.tamtech.capstone.entities.keys.KeyMaterialWarehouse;
+import com.capstone.tamtech.capstone.exception.ResourceNotFoundException;
 import com.capstone.tamtech.capstone.payload.request.OrderItemRequest;
+import com.capstone.tamtech.capstone.repositories.BranchRepository;
 import com.capstone.tamtech.capstone.repositories.ComboRepository;
 import com.capstone.tamtech.capstone.repositories.MaterialWarehouseRepository;
 import com.capstone.tamtech.capstone.repositories.ProductRecipesRepository;
+import com.capstone.tamtech.capstone.repositories.ProductRepository;
 import com.capstone.tamtech.capstone.repositories.WarehouseRepository;
 import com.capstone.tamtech.capstone.services.impl.InventoryService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +33,12 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Autowired
     private WarehouseRepository warehouseRepository;
+
+    @Autowired
+    private ProductRepository productRepository;
+
+    @Autowired
+    private BranchRepository branchRepository;
 
     private Integer resolveWarehouseIdByBranch(Integer branchId) {
         if (branchId == null)
@@ -260,5 +270,49 @@ public class InventoryServiceImpl implements InventoryService {
                         "Kho không đủ trong quá trình trừ tồn. materialId=" + materialId + ", thiếu=" + remaining);
             }
         }
+    }
+
+    @Override
+    public int getAvailableProductQuantity(Integer productId, Integer branchId) {
+        productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + productId));
+
+        branchRepository.findById(branchId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy chi nhánh với ID: " + branchId));
+
+        List<ProductRecipes> recipes = productRecipesRepository.findByProductId(productId);
+
+        if (recipes == null || recipes.isEmpty()) {
+            return 0;
+        }
+
+        Integer warehouseId = resolveWarehouseIdByBranch(branchId);
+        if (warehouseId == null) {
+            return 0;
+        }
+
+        int minAvailableQuantity = Integer.MAX_VALUE;
+
+        for (ProductRecipes recipe : recipes) {
+            int materialId = recipe.getMaterial().getId();
+            double requiredQuantityPerProduct = recipe.getQuantity();
+
+            if (requiredQuantityPerProduct <= 0) {
+                continue;
+            }
+
+            KeyMaterialWarehouse key = new KeyMaterialWarehouse(materialId, warehouseId);
+            double availableMaterialQuantity = materialWarehouseRepository
+                    .findById(key)
+                    .map(MaterialWarehouse::getQuantity)
+                    .orElse(0.0);
+
+            int productQuantityFromThisMaterial = (int) Math
+                    .floor(availableMaterialQuantity / requiredQuantityPerProduct);
+
+            minAvailableQuantity = Math.min(minAvailableQuantity, productQuantityFromThisMaterial);
+        }
+
+        return minAvailableQuantity == Integer.MAX_VALUE ? 0 : minAvailableQuantity;
     }
 }
