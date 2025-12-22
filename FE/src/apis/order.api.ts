@@ -557,7 +557,6 @@ export const assignShipperToOrder = async (orderId: number): Promise<CommonRespo
             message: data.message || 'Đã assign shipper thành công'
         };
     } catch (error) {
-        console.log(error)
         return {
             success: false,
             message: 'Hiện Tại Tất Cả Shipper Đang Bận'

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useForm, useFieldArray, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -246,10 +246,8 @@ export function ProductForm({
     }
   }, [open, product, reset, productTypes]);
 
-  // Fetch recipes riêng biệt, chỉ 1 lần khi mở form với product mới
   useEffect(() => {
     if (open && product && materials.length > 0) {
-      // Chỉ fetch recipes 1 lần khi mở form với product này
       if (fetchedRecipesRef.current !== product.productId) {
         fetchedRecipesRef.current = product.productId;
         import("@/apis/recipe.api").then(({ getRecipesByProductId }) => {
@@ -292,10 +290,9 @@ export function ProductForm({
         });
       }
     } else if (!open) {
-      // Reset ref khi đóng form
       fetchedRecipesRef.current = null;
     }
-  }, [open, product?.productId, setValue]);
+  }, [open, product, product?.productId, materials, setValue]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

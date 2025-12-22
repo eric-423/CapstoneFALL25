@@ -288,16 +288,16 @@ export default function CustomerOrderDetailPage() {
                                             {error}
                                         </p>
                                     )}
-                                    <Button
-                                        variant="default"
-                                        className="w-full sm:w-max bg-primary hover:bg-primary/90 whitespace-nowrap"
-                                        onClick={redirectToPayment}
-                                    >
-                                        Tiếp tục thanh toán{" "}
-                                        <span className="ml-1 font-semibold">
-                                            ({formatCurrency(paymentAmount)})
-                                        </span>
-                                    </Button>
+                                <Button
+                                    variant="default"
+                                    className="w-full sm:w-max bg-primary hover:bg-primary/90 whitespace-nowrap"
+                                    onClick={redirectToPayment}
+                                >
+                                    Tiếp tục thanh toán{" "}
+                                    <span className="ml-1 font-semibold">
+                                        ({formatCurrency(paymentAmount)})
+                                    </span>
+                                </Button>
                                 </div>
                             )}
                             {isDelivered && (

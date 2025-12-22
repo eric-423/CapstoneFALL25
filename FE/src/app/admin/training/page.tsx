@@ -166,23 +166,18 @@ export default function TrainingPage() {
 
   useEffect(() => {
     if (shouldRefetch) {
-      console.log("shouldRefetch is true, calling refetch...");
       refetch().then(() => {
-        console.log("Refetch completed from shouldRefetch");
         setShouldRefetch(false);
       });
     }
   }, [shouldRefetch, refetch]);
 
-  // Tự động refetch khi quay lại từ trang create
   useEffect(() => {
     const refetchParam = searchParams.get("refetch");
     if (refetchParam === "true") {
-      console.log("Refetch param detected, calling refetch...");
       refetch().then(() => {
-        console.log("Refetch completed from URL param");
+        // Refetch completed
       });
-      // Xóa query param để tránh refetch lại
       window.history.replaceState({}, "", "/admin/training");
     }
   }, [searchParams, refetch]);
@@ -198,10 +193,8 @@ export default function TrainingPage() {
             <>
               <AddTrainingDialog
                 onSuccess={async () => {
-                  console.log("AddTrainingDialog onSuccess called, refetching...");
                   setShouldRefetch(true);
                   await refetch();
-                  console.log("Refetch completed");
                 }}
               />
             </>

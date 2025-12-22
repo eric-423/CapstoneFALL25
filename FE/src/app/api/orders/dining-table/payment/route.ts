@@ -44,7 +44,6 @@ export async function POST(request: NextRequest) {
         try {
             data = responseText ? JSON.parse(responseText) : { success: true };
         } catch (error) {
-            console.log('Failed to parse JSON:', error);
             data = { success: true };
         }
 

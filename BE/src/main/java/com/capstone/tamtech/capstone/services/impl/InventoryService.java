@@ -7,11 +7,11 @@ import java.util.List;
 
 public interface InventoryService {
 
-    void assertSufficientMaterialsForOrder(List<OrderItemRequest> orderItems);
+    void assertSufficientMaterialsForOrder(List<OrderItemRequest> orderItems, Integer branchId);
 
-    void restoreMaterialsForOrderItems(List<OrderItem> orderItems, java.lang.Integer branchId);
+    void restoreMaterialsForOrderItems(List<OrderItem> orderItems, Integer branchId);
 
-    void consumeMaterialsForOrderItems(List<OrderItem> orderItems, java.lang.Integer branchId);
+    void consumeMaterialsForOrderItems(List<OrderItem> orderItems, Integer branchId);
+
+    int getAvailableProductQuantity(Integer productId, Integer branchId);
 }
-
-

@@ -107,6 +107,8 @@ export default function InsideLoginForm() {
         errorMessage.toLowerCase().includes("mật khẩu")
       ) {
         setErrors((prev) => ({ ...prev, password: errorMessage }));
+      } else if (errorMessage.toLowerCase().includes("JDBC exception executing")) {
+        setErrors((prev) => ({ ...prev, email: "Xảy ra lỗi khi đăng nhập. vui lòng thử lại sau !" }));
       } else {
         toast.error(errorMessage);
       }

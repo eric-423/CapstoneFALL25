@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import Link from 'next/link';
 import { useState, useEffect, useCallback } from 'react';
-import { toast } from 'react-toastify';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
@@ -45,9 +44,24 @@ export default function RegisterForm() {
     const [countdown, setCountdown] = useState(0);
     const [verificationIdentifier, setVerificationIdentifier] = useState('');
 
+    useEffect(() => {
+        if (countdown > 0) {
+            const timer = setInterval(() => {
+                setCountdown((prev) => {
+                    if (prev <= 1) {
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+            return () => clearInterval(timer);
+        }
+    }, [countdown]);
+
     const [phoneForVerify, setPhoneForVerify] = useState<string | null>(null);
     const [passwordForAutoLogin, setPasswordForAutoLogin] = useState<string | null>(null);
     const [otpFeedback, setOtpFeedback] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
+    const [registerError, setRegisterError] = useState<string | null>(null);
 
 
 
@@ -98,8 +112,9 @@ export default function RegisterForm() {
 
     const handleRegister = async (data: RegisterFormData) => {
         setLoading(true);
+        setRegisterError(null);
         try {
-        await registerCustomer({
+            await registerCustomer({
                 fullName: data.fullName,
                 phoneNumber: data.phone,
                 password: data.password,
@@ -119,16 +134,37 @@ export default function RegisterForm() {
             const errorMessage =
                 (error as { response?: { data?: { desc?: string } } })?.response?.data?.desc ||
                 'Không thể đăng ký. Vui lòng thử lại!';
-            toast.error(errorMessage);
+            setRegisterError(errorMessage);
         } finally {
             setLoading(false);
 
-
             // send otp với sdt đã đk
-            sendOtp('zalo', data.phone);
+            try {
+                const response = await sendOtp('zalo', data.phone);
 
-            const timeResendOtpResponse = await getTimeResendOtp('zalo', data.phone);
-            setCountdown(timeResendOtpResponse.data.ttl);
+                // Kiểm tra response có includes một đoạn nào đó
+                const responseString = JSON.stringify(response).toLowerCase();
+                if (responseString.includes('success') ||
+                    responseString.includes('gửi') ||
+                    responseString.includes('sent') ||
+                    response?.message ||
+                    response?.data) {
+                    // Bắt đầu countdown 45 giây
+                    setCountdown(45);
+                } else {
+                    // Nếu không có response phù hợp, thử lấy từ getTimeResendOtp
+                    try {
+                        const timeResendOtpResponse = await getTimeResendOtp('zalo', data.phone);
+                        setCountdown(timeResendOtpResponse.data.ttl || 45);
+                    } catch {
+                        setCountdown(45);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to send OTP:', error);
+                // Vẫn set countdown để người dùng có thể thử lại sau
+                setCountdown(45);
+            }
         }
     };
 
@@ -144,7 +180,10 @@ export default function RegisterForm() {
         const identifier = verificationIdentifier || phoneForVerify;
 
         if (!identifier) {
-            toast.error('Không tìm thấy thông tin xác thực phù hợp');
+            setOtpFeedback({
+                type: 'error',
+                text: 'Không tìm thấy thông tin xác thực phù hợp',
+            });
             return;
         }
 
@@ -205,6 +244,33 @@ export default function RegisterForm() {
         return false;
     };
 
+    const handleResendOtp = async () => {
+        if (!phoneForVerify) return;
+
+        setOtpFeedback(null);
+        try {
+            const response = await sendOtp('zalo', phoneForVerify);
+
+            const responseString = JSON.stringify(response).toLowerCase();
+            if (responseString.includes('success') ||
+                response?.desc) {
+                setCountdown(45);
+                setOtpFeedback({
+                    type: 'success',
+                    text: response?.desc,
+                });
+            }
+        } catch (error) {
+            const errorMessage =
+                (error as { response?: { data?: { desc?: string } } })?.response?.data?.desc ||
+                'Không thể gửi lại mã OTP. Vui lòng thử lại!';
+            setOtpFeedback({
+                type: 'error',
+                text: errorMessage,
+            });
+        }
+    };
+
     return (
         <GuestLayout>
             <div className="min-h-screen bg-[#FFF5E6] flex">
@@ -238,6 +304,13 @@ export default function RegisterForm() {
                                     </p>
                                 </div>
 
+                                {registerError && (
+                                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                        <p className="text-sm text-red-600 text-center">
+                                            {registerError}
+                                        </p>
+                                    </div>
+                                )}
 
                                 <form
                                     className="space-y-4"
@@ -396,14 +469,14 @@ export default function RegisterForm() {
                                     <p className="text-gray-600 text-sm max-w-sm mx-auto mb-4">
                                         Mã xác thực đang được gửi qua Zalo. Bạn vui lòng kiểm tra thông báo trong Zalo để lấy mã và nhập bên dưới nhé.
                                     </p>
-                            {otpFeedback && (
-                                <p
-                                    className={`text-sm font-medium ${otpFeedback.type === 'error' ? 'text-red-600' : 'text-green-600'
-                                        } mb-4`}
-                                >
-                                    {otpFeedback.text}
-                                </p>
-                            )}
+                                    {otpFeedback && (
+                                        <p
+                                            className={`text-sm font-medium ${otpFeedback.type === 'error' ? 'text-red-600' : 'text-green-600'
+                                                } mb-4`}
+                                        >
+                                            {otpFeedback.text}
+                                        </p>
+                                    )}
 
                                     <div className="flex justify-center mb-6">
                                         <InputOTP
@@ -448,17 +521,15 @@ export default function RegisterForm() {
                                         </p>
                                     ) : (
                                         <button
-                                            onClick={() => sendOtp('zalo', phoneForVerify || '')}
+                                            onClick={handleResendOtp}
                                             disabled={loading}
-                                            className="text-[#8BC34A] text-sm font-medium hover:text-[#7CB342] mb-6 underline"
+                                            className="text-[#8BC34A] text-sm font-medium hover:text-[#7CB342] mb-6 underline cursor-pointer"
                                         >
                                             Gửi lại mã OTP
                                         </button>
                                     )
                                     }
                                 </div>
-
-
                             </>
                         )}
                     </div>

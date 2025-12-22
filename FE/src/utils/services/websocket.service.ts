@@ -48,8 +48,6 @@ class WebSocketService {
     return base ? `${base}${path}` : '';
   }
 
-
-  // LALALA
   private buildSocketUrl(token?: string): string {
     if (!this.socketBaseUrl) return '';
     if (!token) return this.socketBaseUrl;
@@ -62,12 +60,6 @@ class WebSocketService {
   private ensureBrowser() {
     if (typeof window === 'undefined') {
       throw new Error('WebSocket chỉ khả dụng ở môi trường trình duyệt.');
-    }
-  }
-
-  private log(...args: unknown[]) {
-    if (this.debugEnabled) {
-      console.debug('[WebSocketService]', ...args);
     }
   }
 
@@ -103,9 +95,7 @@ class WebSocketService {
             Authorization: `Bearer ${token}`,
           }
           : {},
-        debug: (message: string) => this.handleDebug(message),
         onConnect: () => {
-          this.log('Kết nối WebSocket thành công.');
           this.connectingPromise = null;
           resolve();
         },
@@ -129,20 +119,6 @@ class WebSocketService {
     return socket;
   }
 
-  private handleDebug(message: string) {
-    if (!this.debugEnabled) return;
-
-    if (
-      message.includes('ERROR') ||
-      message.includes('error') ||
-      message.includes('Lost connection') ||
-      message.includes('Whoops')
-    ) {
-      console.error('[WebSocketService:debug]', message);
-    } else {
-      console.debug('[WebSocketService:debug]', message);
-    }
-  }
 
   private teardownClient() {
     this.activeSubscriptions = 0;

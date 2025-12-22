@@ -21,4 +21,6 @@ public interface ProductService {
     ProductSearchDTO getProductById(Integer productId, Integer branchId);
 
     List<ProductDTO> getPairedProducts(Integer productId);
+
+    List<ProductDTO> updatePairedProducts(Integer productId, List<Integer> pairedProductIds);
 }

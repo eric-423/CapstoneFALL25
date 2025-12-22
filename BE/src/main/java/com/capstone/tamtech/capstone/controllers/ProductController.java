@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import okhttp3.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -219,6 +220,16 @@ public class ProductController {
     List<ProductDTO> pairedProducts = productService.getPairedProducts(productId);
     ResponseData responseData = new ResponseData();
     responseData.setData(pairedProducts);
+    responseData.setStatus(200);
+
+    return new ResponseEntity<>(responseData, HttpStatus.OK);
+  }
+
+  @PutMapping("/{productId}/paired")
+  public ResponseEntity<?> updatePairedProducts(@PathVariable Integer productId, @RequestBody List<Integer> pairedProductIds) {
+    List<ProductDTO> updatedPairedProducts = productService.updatePairedProducts(productId, pairedProductIds);
+    ResponseData responseData = new ResponseData();
+    responseData.setData(updatedPairedProducts);
     responseData.setStatus(200);
 
     return new ResponseEntity<>(responseData, HttpStatus.OK);

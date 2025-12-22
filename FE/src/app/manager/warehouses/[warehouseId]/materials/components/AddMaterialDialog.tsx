@@ -120,13 +120,12 @@ export function AddMaterialDialog({
                 }))
             });
 
-            toast.success('✅ Thêm nguyên liệu vào kho thành công!');
             onSuccess();
             onOpenChange(false);
             setMaterials([{ materialId: '', quantity: '', threshold: '' }]);
         } catch (error) {
             console.error('Failed to add materials:', error);
-            toast.error('❌ Không thể thêm nguyên liệu vào kho!');
+            toast.error('Không thể thêm nguyên liệu vào kho!');
         } finally {
             setLoading(false);
         }
@@ -143,13 +142,13 @@ export function AddMaterialDialog({
                         <h2 className="text-2xl font-bold text-white">
                             Thêm nguyên liệu vào kho
                         </h2>
-                        <button
+                        <Button
                             onClick={() => onOpenChange(false)}
                             disabled={loading}
                             className="p-2 hover:bg-white/20 rounded-lg transition-colors disabled:opacity-50"
                         >
                             <X className="h-6 w-6 text-white" />
-                        </button>
+                        </Button>
                     </div>
                 </div>
 

@@ -24,8 +24,6 @@ export async function PUT(
         const baseUrl = API_BASE_URL.endsWith('/api/v1') ? API_BASE_URL : `${API_BASE_URL}/api/v1`;
         const url = `${baseUrl}/units/${id}`;
 
-        console.log('🔄 Updating unit:', id, body);
-
         const response = await fetch(url, {
             method: 'PUT',
             headers: {
@@ -36,8 +34,6 @@ export async function PUT(
             body: JSON.stringify(body),
             cache: 'no-store',
         });
-
-        console.log('📥 Response status:', response.status, response.statusText);
 
         if (!response.ok) {
             const errorText = await response.text();
@@ -89,8 +85,6 @@ export async function DELETE(
         const baseUrl = API_BASE_URL.endsWith('/api/v1') ? API_BASE_URL : `${API_BASE_URL}/api/v1`;
         const url = `${baseUrl}/units/${id}`;
 
-        console.log('🔄 Deleting unit:', id);
-
         const response = await fetch(url, {
             method: 'DELETE',
             headers: {
@@ -101,11 +95,8 @@ export async function DELETE(
             cache: 'no-store',
         });
 
-        console.log('📥 Response status:', response.status, response.statusText);
-
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('❌ Error response:', errorText);
             let errorData;
             try {
                 errorData = JSON.parse(errorText);

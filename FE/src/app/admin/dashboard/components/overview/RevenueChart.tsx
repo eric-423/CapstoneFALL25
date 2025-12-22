@@ -110,6 +110,7 @@ function RevenueChart({
         </div>
         <div className="flex items-center gap-1">
           <select
+            title="Group by"
             className="bg-white border border-grey-300 text-sm rounded-lg px-4 py-2 focus:outline-none focus:border-grey-300 focus:ring-1 focus:ring-grey-300 text-[#2D1E1A] font-medium"
             value={groupBy}
             onChange={(e) => onGroupByChange(e.target.value as GroupByType)}

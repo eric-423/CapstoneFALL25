@@ -100,7 +100,6 @@ export const useBarcodeScanner = (options: UseBarcodeScannerOptions = {}) => {
                 e.stopImmediatePropagation();
 
                 const barcode = barcodeInputRef.current.trim();
-                console.log('[Barcode Scanner] Nhận được barcode:', barcode);
 
                 let orderId: number | undefined;
                 try {
@@ -122,7 +121,6 @@ export const useBarcodeScanner = (options: UseBarcodeScannerOptions = {}) => {
                     }
 
                     isProcessingRef.current = true;
-                    console.log('[Barcode Scanner] Đang xử lý orderId:', orderId);
 
                     if (!processOrderRef.current || typeof processOrderRef.current !== 'function') {
                         const errorMsg = `processOrder is not a function. Type: ${typeof processOrderRef.current}, Value: ${processOrderRef.current}`;
@@ -133,7 +131,6 @@ export const useBarcodeScanner = (options: UseBarcodeScannerOptions = {}) => {
                     }
 
                     const result = await processOrderRef.current(orderId);
-                    console.log('[Barcode Scanner] Kết quả xử lý:', result);
 
                     if (result?.success === true) {
                         onSuccessRef.current?.(orderId, result.context);

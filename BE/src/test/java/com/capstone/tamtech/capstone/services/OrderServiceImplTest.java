@@ -19,7 +19,6 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -28,40 +27,40 @@ class OrderServiceImplTest {
 
     @Mock
     private OrderRepository orderRepository;
-    
+
     @Mock
     private UsersRepository usersRepository;
-    
+
     @Mock
     private ProductRepository productRepository;
-    
+
     @Mock
     private ComboRepository comboRepository;
-    
+
     @Mock
     private OrderItemRepository orderItemRepository;
-    
+
     @Mock
     private PromotionRepository promotionRepository;
-    
+
     @Mock
     private OrderStatusRepository orderStatusRepository;
-    
+
     @Mock
     private BranchRepository branchRepository;
-    
+
     @Mock
     private RoleHistoryRepository roleHistoryRepository;
-    
+
     @Mock
     private DistanceService distanceService;
-    
+
     @Mock
     private InventoryService inventoryService;
-    
+
     @Mock
     private PaymentService paymentService;
-    
+
     @Mock
     private DiningTableRepository diningTableRepository;
 
@@ -109,7 +108,7 @@ class OrderServiceImplTest {
         mockOrderRequest.setMode("SHIPPING");
         mockOrderRequest.setShippingAddress("123 Customer St");
         mockOrderRequest.setShippingPhoneNumber("0912345678");
-        
+
         OrderItemRequest itemRequest = new OrderItemRequest();
         itemRequest.setProductId(1);
         itemRequest.setComboId(0);
@@ -126,7 +125,7 @@ class OrderServiceImplTest {
         when(usersRepository.findById(23)).thenReturn(Optional.of(mockUser));
         when(productRepository.findById(1)).thenReturn(Optional.of(mockProduct));
         when(distanceService.getDistanceInMeters(anyString(), anyString())).thenReturn(2000L);
-        doNothing().when(inventoryService).assertSufficientMaterialsForOrder(any());
+        doNothing().when(inventoryService).assertSufficientMaterialsForOrder(any(), any());
         doNothing().when(inventoryService).consumeMaterialsForOrderItems(any(), any());
 
         // Act
@@ -135,7 +134,7 @@ class OrderServiceImplTest {
         // Assert
         assertNotNull(result);
         verify(orderRepository, atLeastOnce()).save(any(Order.class));
-        verify(inventoryService).assertSufficientMaterialsForOrder(any());
+        verify(inventoryService).assertSufficientMaterialsForOrder(any(), any());
     }
 
     @Test
@@ -159,7 +158,7 @@ class OrderServiceImplTest {
         OrderStatus inProcessStatus = new OrderStatus();
         inProcessStatus.setId(2);
         inProcessStatus.setName("IN_PROCESS");
-        
+
         when(orderRepository.findById(1)).thenReturn(Optional.of(mockOrder));
         when(orderStatusRepository.findByName("IN_PROCESS")).thenReturn(Optional.of(inProcessStatus));
 
@@ -174,17 +173,17 @@ class OrderServiceImplTest {
     void testAssignOrderToCheff_Success() {
         // Arrange
         when(orderRepository.findById(1)).thenReturn(Optional.of(mockOrder));
-        
+
         Users chef = new Users();
         chef.setId(100);
         chef.setIsBusy(false);
-        
+
         RoleHistory roleHistory = new RoleHistory();
         roleHistory.setUser(chef);
-        
+
         when(roleHistoryRepository.findByRole_NameAndBranch_IdAndIsActiveTrue("CHEFF", 1))
-            .thenReturn(List.of(roleHistory));
-        
+                .thenReturn(List.of(roleHistory));
+
         OrderStatus cookingStatus = new OrderStatus();
         cookingStatus.setId(3);
         cookingStatus.setName("COOKING");
@@ -204,13 +203,13 @@ class OrderServiceImplTest {
         WaiterConfirmOrderRequest request = new WaiterConfirmOrderRequest();
         request.setOrderId(1);
         request.setWaiterId(1);
-        
+
         OrderItem confirmedItem = new OrderItem();
         confirmedItem.setIsConfirmed(true);
         confirmedItem.setPrice(50000.0);
         confirmedItem.setQuantity(1);
         confirmedItem.setProduct(mockProduct);
-        
+
         when(orderRepository.findById(1)).thenReturn(Optional.of(mockOrder));
         when(mockOrder.getOrderItems()).thenReturn(List.of(confirmedItem));
         when(mockOrder.getBranch()).thenReturn(mockBranch);
@@ -224,4 +223,3 @@ class OrderServiceImplTest {
         verify(orderRepository).save(any(Order.class));
     }
 }
-
