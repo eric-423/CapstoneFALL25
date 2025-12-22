@@ -2,8 +2,8 @@ import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ branchId: string }> }
+    request: NextRequest,
+    { params }: { params: Promise<{ branchId: string }> }
 ) {
     try {
         const cookieStore = await cookies();

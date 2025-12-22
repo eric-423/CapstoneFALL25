@@ -1027,21 +1027,23 @@ export default function CheckoutPage() {
     setIsSubmitting(true);
 
     try {
-      // Kiểm tra giỏ hàng với API trước khi tạo đơn
       if (selectedBranch?.branchId) {
         setCartCheckError(null);
-        const cartItemsPayload: cartItem[] = items.map((item) => ({
-          productId: item.isCombo ? 0 : item.productId,
-          comboId: item.isCombo && item.comboId ? item.comboId : 0,
-          quantity: item.quantity,
-        }));
+        const cartItemsPayload: cartItem[] = items.map((item) => {
+          const base = {
+            productId: item.isCombo ? 0 : item.productId,
+            quantity: item.quantity,
+          };
+          return item.isCombo && item.comboId
+            ? { ...base, comboId: item.comboId }
+            : base;
+        });
 
         const checkResult = await checkCartItems(
           selectedBranch.branchId,
           cartItemsPayload,
         );
 
-        // Backend trả về true/false hoặc object { success: boolean }
         const isValid =
           typeof checkResult === "boolean"
             ? checkResult
@@ -1051,8 +1053,8 @@ export default function CheckoutPage() {
           setIsSubmitting(false);
           const message =
             typeof checkResult === "object" && checkResult !== null
-              ? checkResult.message || "Giỏ hàng không hợp lệ, vui lòng kiểm tra lại."
-              : "Giỏ hàng không hợp lệ, vui lòng kiểm tra lại.";
+              ? checkResult.message || "Số lượng sản phẩm không đủ trong chi nhánh."
+              : "Số lượng sản phẩm không đủ trong chi nhánh.";
           setCartCheckError(message);
           return;
         }
