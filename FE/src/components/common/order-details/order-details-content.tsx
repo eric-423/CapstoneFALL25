@@ -427,6 +427,17 @@ export function OrderDetailsContent({
                   </div>
                 )}
 
+              {order.discountPercent !== undefined &&
+                order.discountPercent !== null && (
+                  <div className="flex justify-between text-sm text-green-600">
+                    <span>Giảm giá theo %:</span>
+                    <span className="font-medium">
+                      {order.discountPercent}%
+                    </span>
+                  </div>
+                )}
+
+
               {order.promotionCode && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground pt-1 border-t border-gray-200">
                   <Gift className="h-4 w-4" />

@@ -11,7 +11,8 @@ const formatRevenue = (value: number): string => {
   if (value >= 1000000) {
     return `${(value / 1000000).toFixed(1)}M`;
   } else if (value >= 1000) {
-    return `${(value / 1000).toFixed(0)}K`;
+    const kValue = value / 1000;
+    return kValue % 1 === 0 ? `${kValue.toFixed(0)}K` : `${kValue.toFixed(1)}K`;
   }
   return `${value.toLocaleString()}đ`;
 };
