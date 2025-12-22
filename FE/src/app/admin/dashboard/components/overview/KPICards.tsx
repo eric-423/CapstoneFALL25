@@ -83,7 +83,7 @@ const KPICard = ({
         </div>
         <h3 className="text-2xl font-bold text-[#2D1E1A]">
           {typeof kpi.value === "number"
-            ? kpi.value.toLocaleString()
+            ? kpi.value.toLocaleString().split(".")[0]
             : kpi.value}{" "}
           {kpi.unit}
         </h3>

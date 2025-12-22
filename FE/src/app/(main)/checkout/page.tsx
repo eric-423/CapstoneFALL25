@@ -37,8 +37,6 @@ import { setCookie, getToken } from "@/utils/cookies.client";
 import { STORE_INFO } from "@/utils/mockupData";
 import {
   Branch as ApiBranch,
-  GET_BRANCHES_QUERY_KEY,
-  GET_BRANCHES_STALE_TIME,
   getBranches,
   getNearbyBranches,
   NearbyBranch,
@@ -71,7 +69,7 @@ type CustomerInformationResponse = {
 };
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import {
   Loader2,
   MapPin,
@@ -99,8 +97,19 @@ import { getCustomerDetails } from "@/apis/user.api";
 export default function CheckoutPage() {
   useScrollTop();
   const [isUsePoint, setIsUsePoint] = useState(false);
-  const queryClient = useQueryClient();
   const { items, getTotalPrice, updateQuantity } = useCart();
+
+  // States cho dữ liệu từ API
+  const [customerInformationData, setCustomerInformationData] = useState<CustomerInformationResponse[]>([]);
+  const [isLoadingCustomerInfos, setIsLoadingCustomerInfos] = useState(false);
+  const [availablePromotionsRaw, setAvailablePromotionsRaw] = useState<Promotion[]>([]);
+  const [isLoadingAvailablePromotions, setIsLoadingAvailablePromotions] = useState(false);
+  const [customerDetailsResponse, setCustomerDetailsResponse] = useState<{ data?: { point?: number; memberPoint?: number } } | null>(null);
+  const [isLoadingCustomerDetails, setIsLoadingCustomerDetails] = useState(false);
+  const [branchesData, setBranchesData] = useState<ApiBranch[]>([]);
+  const [isLoadingBranchesData, setIsLoadingBranchesData] = useState(false);
+  const [nearbyBranchesData, setNearbyBranchesData] = useState<NearbyBranch[]>([]);
+  const [isLoadingNearbyBranches, setIsLoadingNearbyBranches] = useState(false);
   const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const router = useRouter();
   const tokenFullName = user?.fullName?.trim();
@@ -120,6 +129,7 @@ export default function CheckoutPage() {
     null
   );
   const [shippingFee, setShippingFee] = useState<number | null>(null);
+  const [currentAddressForNearbyBranches, setCurrentAddressForNearbyBranches] = useState<string>("");
   const [isFetchingShippingFee, setIsFetchingShippingFee] = useState(false);
   const [addressLabel, setAddressLabel] = useState<"Nhà Riêng" | "Công Ty">(
     "Nhà Riêng"
@@ -163,17 +173,36 @@ export default function CheckoutPage() {
     }
   }, [isAuthLoading, isAuthenticated, router]);
 
-  const {
-    data: customerInformationData = [],
-    isLoading: isLoadingCustomerInfos,
-  } = useQuery({
-    queryKey: ["customer-informations", user?.id],
-    queryFn: () => getCustomerInformation(user?.id || 0),
-    select: (data) => data.data ?? [],
-    enabled: Boolean(user?.id),
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-  });
+  // Fetch customer information
+  useEffect(() => {
+    if (!user?.id) {
+      setCustomerInformationData([]);
+      return;
+    }
+
+    let isCancelled = false;
+    setIsLoadingCustomerInfos(true);
+
+    getCustomerInformation(user.id)
+      .then((response) => {
+        if (!isCancelled) {
+          const data = Array.isArray(response) ? response : (response.data ?? []);
+          setCustomerInformationData(data);
+          setIsLoadingCustomerInfos(false);
+        }
+      })
+      .catch((error) => {
+        if (!isCancelled) {
+          console.error("Error fetching customer information:", error);
+          setCustomerInformationData([]);
+          setIsLoadingCustomerInfos(false);
+        }
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [user?.id]);
 
   const customerInformations: CustomerInformation[] = useMemo(
     () =>
@@ -189,16 +218,34 @@ export default function CheckoutPage() {
     [customerInformationData]
   );
 
-  const {
-    data: availablePromotionsRaw = [],
-    isLoading: isLoadingAvailablePromotions,
-  } = useQuery({
-    queryKey: ["available-promotions", user?.id],
-    queryFn: () => getAvailablePromotions(),
-    enabled: Boolean(user?.id),
-    refetchOnMount: true,
-    refetchOnWindowFocus: false,
-  });
+  useEffect(() => {
+    if (!user?.id) {
+      setAvailablePromotionsRaw([]);
+      return;
+    }
+
+    let isCancelled = false;
+    setIsLoadingAvailablePromotions(true);
+
+    getAvailablePromotions()
+      .then((data) => {
+        if (!isCancelled) {
+          setAvailablePromotionsRaw(data ?? []);
+          setIsLoadingAvailablePromotions(false);
+        }
+      })
+      .catch((error) => {
+        if (!isCancelled) {
+          console.error("Error fetching promotions:", error);
+          setAvailablePromotionsRaw([]);
+          setIsLoadingAvailablePromotions(false);
+        }
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [user?.id]);
 
   const availablePromotions = useMemo(() => {
     if (!Array.isArray(availablePromotionsRaw)) {
@@ -219,14 +266,35 @@ export default function CheckoutPage() {
     return filtered;
   }, [availablePromotionsRaw]);
 
-  const { data: customerDetailsResponse, isLoading: isLoadingCustomerDetails } =
-    useQuery({
-      queryKey: ["customer-details", user?.id],
-      queryFn: () => getCustomerDetails(),
-      enabled: Boolean(user?.id),
-      refetchOnMount: false,
-      refetchOnWindowFocus: false,
-    });
+  // Fetch customer details
+  useEffect(() => {
+    if (!user?.id) {
+      setCustomerDetailsResponse(null);
+      return;
+    }
+
+    let isCancelled = false;
+    setIsLoadingCustomerDetails(true);
+
+    getCustomerDetails()
+      .then((response) => {
+        if (!isCancelled) {
+          setCustomerDetailsResponse(response);
+          setIsLoadingCustomerDetails(false);
+        }
+      })
+      .catch((error) => {
+        if (!isCancelled) {
+          console.error("Error fetching customer details:", error);
+          setCustomerDetailsResponse(null);
+          setIsLoadingCustomerDetails(false);
+        }
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [user?.id]);
 
   const customerDetails = customerDetailsResponse?.data;
   const availablePoints =
@@ -238,23 +306,62 @@ export default function CheckoutPage() {
     return (defaultInfo ?? customerInformations[0])?.address?.trim() || "";
   }, [customerInformations]);
 
-  const { data: branchesData = [], isLoading: isLoadingBranchesData } =
-    useQuery<ApiBranch[]>({
-      queryKey: [GET_BRANCHES_QUERY_KEY],
-      queryFn: () => getBranches(),
-      staleTime: GET_BRANCHES_STALE_TIME,
-      refetchOnMount: false,
-      refetchOnWindowFocus: false,
-    });
+  // Fetch branches
+  useEffect(() => {
+    let isCancelled = false;
+    setIsLoadingBranchesData(true);
 
-  const { data: nearbyBranchesData = [], isLoading: isLoadingNearbyBranches } =
-    useQuery<NearbyBranch[]>({
-      queryKey: ["nearby-branches", primaryAddress],
-      queryFn: () => getNearbyBranches(primaryAddress, 20),
-      enabled: Boolean(primaryAddress),
-      refetchOnMount: false,
-      refetchOnWindowFocus: false,
-    });
+    getBranches()
+      .then((data) => {
+        if (!isCancelled) {
+          setBranchesData(data ?? []);
+          setIsLoadingBranchesData(false);
+        }
+      })
+      .catch((error) => {
+        if (!isCancelled) {
+          console.error("Error fetching branches:", error);
+          setBranchesData([]);
+          setIsLoadingBranchesData(false);
+        }
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  const addressForNearbyBranches = currentAddressForNearbyBranches || primaryAddress;
+
+  // Fetch nearby branches
+  useEffect(() => {
+    if (!addressForNearbyBranches) {
+      setNearbyBranchesData([]);
+      return;
+    }
+
+    let isCancelled = false;
+    setIsLoadingNearbyBranches(true);
+
+    getNearbyBranches(addressForNearbyBranches, 20)
+      .then((data) => {
+        if (!isCancelled) {
+          setNearbyBranchesData(data ?? []);
+          setIsLoadingNearbyBranches(false);
+        }
+      })
+      .catch((error) => {
+        if (!isCancelled) {
+          console.error("Error fetching nearby branches:", error);
+          setNearbyBranchesData([]);
+          setIsLoadingNearbyBranches(false);
+        }
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [addressForNearbyBranches]);
 
   const normalizedBranches = useMemo(
     () =>
@@ -590,7 +697,8 @@ export default function CheckoutPage() {
     (info: CustomerInformation) => {
       skipAutoSelectRef.current = true;
       setSelectedInfoId(info.informationId);
-      form.setValue("deliveryAddress", info.address || "", {
+      const newAddress = info.address || "";
+      form.setValue("deliveryAddress", newAddress, {
         shouldValidate: true,
       });
       form.setValue("customerPhone", info.phone || user?.phoneNumber || "", {
@@ -598,6 +706,10 @@ export default function CheckoutPage() {
       });
       if (!form.getValues("customerName") && tokenFullName) {
         form.setValue("customerName", tokenFullName, { shouldValidate: true });
+      }
+      // Cập nhật địa chỉ để fetch nearby branches
+      if (newAddress.trim()) {
+        setCurrentAddressForNearbyBranches(newAddress.trim());
       }
     },
     [form, tokenFullName, user?.phoneNumber]
@@ -637,24 +749,31 @@ export default function CheckoutPage() {
     [displayBranches, handleBranchSelect]
   );
 
-  const { mutateAsync: saveAddressMutation, isPending: isSavingAddress } =
-    useMutation({
-      mutationFn: saveCustomerInformation,
-      onSuccess: async () => {
-        setAddressError(null);
-        await queryClient.invalidateQueries({
-          queryKey: ["customer-informations", user?.id],
-        });
-        skipAutoSelectRef.current = false;
-        setSelectedInfoId(null);
-      },
-      onError: (error: unknown) => {
-        const errorMessage =
-          (error as { response?: { data?: { desc?: string } } })?.response?.data
-            ?.desc || "Không thể lưu địa chỉ. Vui lòng thử lại.";
-        setAddressError(errorMessage);
-      },
-    });
+  const [isSavingAddress, setIsSavingAddress] = useState(false);
+
+  const saveAddressMutation = useCallback(async (data: Parameters<typeof saveCustomerInformation>[0]) => {
+    setIsSavingAddress(true);
+    try {
+      await saveCustomerInformation(data);
+      setAddressError(null);
+      // Refetch customer information sau khi lưu thành công
+      if (user?.id) {
+        const response = await getCustomerInformation(user.id);
+        const responseData = Array.isArray(response) ? response : (response.data ?? []);
+        setCustomerInformationData(responseData);
+      }
+      skipAutoSelectRef.current = false;
+      setSelectedInfoId(null);
+    } catch (error: unknown) {
+      const errorMessage =
+        (error as { response?: { data?: { desc?: string } } })?.response?.data
+          ?.desc || "Không thể lưu địa chỉ. Vui lòng thử lại.";
+      setAddressError(errorMessage);
+      throw error;
+    } finally {
+      setIsSavingAddress(false);
+    }
+  }, [user?.id]);
 
   const handleSaveNewAddress = useCallback(async () => {
     if (!user?.id) {
@@ -799,6 +918,26 @@ export default function CheckoutPage() {
       controller.abort();
     };
   }, [deliveryAddressValue, isDelivery, selectedBranch]);
+
+  // Khởi tạo địa chỉ từ primaryAddress
+  useEffect(() => {
+    if (primaryAddress && !currentAddressForNearbyBranches) {
+      setCurrentAddressForNearbyBranches(primaryAddress);
+    }
+  }, [primaryAddress, currentAddressForNearbyBranches]);
+
+  // Cập nhật địa chỉ để fetch nearby branches khi địa chỉ giao hàng thay đổi
+  useEffect(() => {
+    if (!isDelivery) return;
+
+    const address = typeof deliveryAddressValue === "string"
+      ? deliveryAddressValue.trim()
+      : "";
+
+    if (address.length > 0) {
+      setCurrentAddressForNearbyBranches(address);
+    }
+  }, [deliveryAddressValue, isDelivery]);
 
   useEffect(() => {
     if (fulfillmentMethod === "pickup") {
