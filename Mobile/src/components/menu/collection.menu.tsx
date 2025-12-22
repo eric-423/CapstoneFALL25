@@ -6,6 +6,7 @@ import {
   FlatList,
   Pressable,
   Dimensions,
+  TextInput,
 } from "react-native";
 import { APP_COLOR } from "@/utils/constant";
 import { useEffect, useState, createContext, useContext } from "react";
@@ -53,10 +54,14 @@ interface IPropsProduct {
   endDate?: string;
   active?: boolean;
   inStock?: boolean;
+  quantityInBranch?: number;
 }
 
 interface ModalContextType {
-  handleQuantityChange: (item: IPropsProduct, action: "MINUS" | "PLUS") => void;
+  handleQuantityChange: (
+    item: IPropsProduct,
+    action: "MINUS" | "PLUS" | number
+  ) => void;
 }
 
 const ModalContext = createContext<ModalContextType | null>(null);
@@ -86,23 +91,75 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
 
   const handleQuantityChange = (
     item: IPropsProduct,
-    action: "MINUS" | "PLUS"
+    action: "MINUS" | "PLUS" | number
   ) => {
-    if (action === "PLUS" && item.ProductType.productTypeId === 1) {
-      router.navigate({
-        pathname: "/order/add.extra.food",
-        params: {
-          productName: item.name,
-          productTypeId: item.ProductType.productTypeId,
-          productId: item.productId,
-          productPrice: String(item.price),
-        },
-      });
-    }
-
     if (!restaurant?._id) return;
 
-    const total = action === "MINUS" ? -1 : 1;
+    let total: number;
+    let newQuantity: number;
+    const currentQuantity =
+      cart?.[restaurant._id]?.items?.[item.productId]?.quantity || 0;
+
+    if (typeof action === "number") {
+      newQuantity = Math.max(0, Math.floor(action));
+      total = newQuantity - currentQuantity;
+    } else {
+      total = action === "MINUS" ? -1 : 1;
+      newQuantity = currentQuantity + total;
+
+      if (
+        action === "PLUS" &&
+        item.ProductType.productTypeId === 1 &&
+        newQuantity > 0
+      ) {
+        const priceChange = total * item.price;
+        const newCart = { ...cart };
+        if (!newCart[restaurant._id]) {
+          newCart[restaurant._id] = {
+            sum: 0,
+            quantity: 0,
+            items: {},
+          };
+        }
+        newCart[restaurant._id].sum =
+          (newCart[restaurant._id].sum || 0) + priceChange;
+        newCart[restaurant._id].quantity =
+          (newCart[restaurant._id].quantity || 0) + total;
+
+        if (!newCart[restaurant._id].items[item.productId]) {
+          newCart[restaurant._id].items[item.productId] = {
+            data: {
+              ...item,
+              basePrice: item.price,
+              title: item.name,
+            },
+            quantity: 0,
+          };
+        }
+
+        newCart[restaurant._id].items[item.productId] = {
+          data: {
+            ...item,
+            basePrice: item.price,
+            title: item.name,
+          },
+          quantity: newQuantity,
+        };
+        setCart(newCart);
+
+        router.navigate({
+          pathname: "/order/add.extra.food",
+          params: {
+            productName: item.name,
+            productTypeId: item.ProductType.productTypeId,
+            productId: item.productId,
+            productPrice: String(item.price),
+          },
+        });
+        return;
+      }
+    }
+
     const priceChange = total * item.price;
 
     const newCart = { ...cart };
@@ -129,10 +186,7 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
       };
     }
 
-    const currentQuantity =
-      (newCart[restaurant._id].items[item.productId].quantity || 0) + total;
-
-    if (currentQuantity <= 0) {
+    if (newQuantity <= 0) {
       delete newCart[restaurant._id].items[item.productId];
       if (Object.keys(newCart[restaurant._id].items).length === 0) {
         delete newCart[restaurant._id];
@@ -144,7 +198,7 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
           basePrice: item.price,
           title: item.name,
         },
-        quantity: currentQuantity,
+        quantity: newQuantity,
       };
     }
     setCart(newCart);
@@ -230,6 +284,7 @@ const CollectionMenu = (props: IProps) => {
                 description: p.productDescription,
                 price: p.productPrice,
                 averageRating: 5,
+                quantityInBranch: p.quantityInBranch,
               })
             );
             const grouped = mapped.reduce((acc, product) => {
@@ -254,7 +309,6 @@ const CollectionMenu = (props: IProps) => {
                 });
                 flattened.push(...sorted);
               });
-
             setRestaurants(flattened);
           } else {
             const res = await GetProductByProductType(
@@ -262,8 +316,6 @@ const CollectionMenu = (props: IProps) => {
               id || 0,
               sortDirection || null
             );
-            console.log(res.data.content);
-
             const mapped: IPropsProduct[] = (res?.data?.content || []).map(
               (p: any) => ({
                 ProductType: {
@@ -278,6 +330,7 @@ const CollectionMenu = (props: IProps) => {
                 description: p.productDescription,
                 price: p.productPrice,
                 averageRating: 5,
+                quantityInBranch: p.quantityInBranch,
               })
             );
             setRestaurants(mapped);
@@ -419,13 +472,11 @@ const CollectionMenu = (props: IProps) => {
                       </View>
                       <View style={styles.ratingContainer}>
                         <Text style={styles.ratingText}>
-                          {item.averageRating}
+                          {item.quantityInBranch !== undefined &&
+                          item.quantityInBranch !== null
+                            ? `Còn: ${item.quantityInBranch}`
+                            : ""}
                         </Text>
-                        <AntDesign
-                          name="star"
-                          size={15}
-                          color={APP_COLOR.ORANGE}
-                        />
                       </View>
                       <View style={styles.itemTextContainer}>
                         <View style={{ height: 50 }}>
@@ -493,9 +544,18 @@ const CollectionMenu = (props: IProps) => {
                             }
                           />
                         </Pressable>
-                        <Text style={styles.quantityText}>
-                          {getItemQuantity(item.productId)}
-                        </Text>
+                        <TextInput
+                          style={styles.quantityText}
+                          value={String(getItemQuantity(item.productId))}
+                          onChangeText={(text) => {
+                            const numValue = parseInt(text) || 0;
+                            const finalValue = Math.max(0, numValue);
+                            handleQuantityChange(item, finalValue);
+                          }}
+                          keyboardType="numeric"
+                          editable={item.inStock !== false}
+                          selectTextOnFocus
+                        />
                         <Pressable
                           onPress={() => handleQuantityChange(item, "PLUS")}
                           style={({ pressed }) => ({
@@ -657,13 +717,11 @@ const CollectionMenu = (props: IProps) => {
                       </View>
                       <View style={styles.ratingContainer}>
                         <Text style={styles.ratingText}>
-                          {item.averageRating}
+                          {item.quantityInBranch !== undefined &&
+                          item.quantityInBranch !== null
+                            ? `Còn: ${item.quantityInBranch}`
+                            : ""}
                         </Text>
-                        <AntDesign
-                          name="star"
-                          size={15}
-                          color={APP_COLOR.ORANGE}
-                        />
                       </View>
                       <View style={styles.itemTextContainer}>
                         <View style={{ height: 50 }}>
@@ -731,9 +789,18 @@ const CollectionMenu = (props: IProps) => {
                             }
                           />
                         </Pressable>
-                        <Text style={styles.quantityText}>
-                          {getItemQuantity(item.productId)}
-                        </Text>
+                        <TextInput
+                          style={styles.quantityText}
+                          value={String(getItemQuantity(item.productId))}
+                          onChangeText={(text) => {
+                            const numValue = parseInt(text) || 0;
+                            const finalValue = Math.max(0, numValue);
+                            handleQuantityChange(item, finalValue);
+                          }}
+                          keyboardType="numeric"
+                          editable={item.inStock !== false}
+                          selectTextOnFocus
+                        />
                         <Pressable
                           onPress={() => handleQuantityChange(item, "PLUS")}
                           style={({ pressed }) => ({
@@ -875,6 +942,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.medium,
     color: APP_COLOR.BROWN,
     justifyContent: "center",
+    padding: 0,
   },
   modalOverlay: {
     position: "absolute",
