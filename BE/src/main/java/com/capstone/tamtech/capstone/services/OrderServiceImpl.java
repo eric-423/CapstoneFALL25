@@ -91,7 +91,6 @@ public class OrderServiceImpl implements OrderService {
 
         order.setAddress(orderRequest.getShippingAddress());
         order.setPhone(orderRequest.getShippingPhoneNumber());
-        order.setPromotionCode(orderRequest.getPromotionCode());
         order.setDiscountValue(orderRequest.getDiscountValue());
         order.setPickUp(false);
         order.setCreatedAt(new Date());
@@ -156,6 +155,7 @@ public class OrderServiceImpl implements OrderService {
                 }
 
                 order.setPromotion(validationResult.getPromotion());
+                order.setPromotionCode(promotionCode);
             } else {
                 throw new BadRequestException(validationResult.getErrorMessage());
             }
@@ -237,7 +237,6 @@ public class OrderServiceImpl implements OrderService {
         }
 
         order.setPhone(orderRequest.getShippingPhoneNumber());
-        order.setPromotionCode(orderRequest.getPromotionCode());
         order.setDiscountValue(orderRequest.getDiscountValue());
         order.setPickUp(true);
         order.setShippingFee(0.0);
@@ -306,6 +305,7 @@ public class OrderServiceImpl implements OrderService {
                 discountValue += validationResult.getDiscountValue();
 
                 order.setPromotion(validationResult.getPromotion());
+                order.setPromotionCode(validationResult.getPromotion().getName());
             } else {
                 throw new BadRequestException(validationResult.getErrorMessage());
             }
@@ -1120,7 +1120,7 @@ public class OrderServiceImpl implements OrderService {
         }
         order.setSubTotal(subTotal);
 
-        order.setPromotionCode(paymentRequest.getPromotionCode());
+
         double discountValue = paymentRequest.getDiscountValue() != 0 ? paymentRequest.getDiscountValue() : 0.0;
         order.setDiscountValue(discountValue);
 
@@ -1140,6 +1140,7 @@ public class OrderServiceImpl implements OrderService {
                 discountValue += validationResult.getDiscountValue();
 
                 order.setPromotion(validationResult.getPromotion());
+                order.setPromotionCode(validationResult.getPromotion().getName());
             } else {
                 throw new BadRequestException(validationResult.getErrorMessage());
             }
