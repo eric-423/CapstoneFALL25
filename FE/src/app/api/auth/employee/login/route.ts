@@ -5,6 +5,12 @@ export async function POST(request: NextRequest) {
     const cookieStore = await cookies();
 
     try {
+
+        cookieStore.delete('token');
+        cookieStore.delete('role');
+        cookieStore.delete('branchId');
+        cookieStore.delete('userId');
+
         const body = await request.json();
         const { email, password } = body;
 

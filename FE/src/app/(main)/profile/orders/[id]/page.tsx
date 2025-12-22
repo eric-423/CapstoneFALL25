@@ -89,11 +89,9 @@ const mapCustomerOrderDetail = (
                 ? detail.shippingFee
                 : fallback?.shippingFee,
         discountValue:
-            detail.discountValue ??
-            (typeof detail.discountPercent === "number"
-                ? detail.discountPercent
-                : undefined) ??
-            fallback?.discountValue,
+            detail.discountValue ?? fallback?.discountValue,
+        discountPercent:
+            detail.discountPercent ?? fallback?.discountPercent,
         amount:
             typeof detail.amount === "number" ? detail.amount : fallback?.amount,
         promotionCode: detail.promotionCode ?? fallback?.promotionCode ?? undefined,
@@ -288,16 +286,16 @@ export default function CustomerOrderDetailPage() {
                                             {error}
                                         </p>
                                     )}
-                                <Button
-                                    variant="default"
-                                    className="w-full sm:w-max bg-primary hover:bg-primary/90 whitespace-nowrap"
-                                    onClick={redirectToPayment}
-                                >
-                                    Tiếp tục thanh toán{" "}
-                                    <span className="ml-1 font-semibold">
-                                        ({formatCurrency(paymentAmount)})
-                                    </span>
-                                </Button>
+                                    <Button
+                                        variant="default"
+                                        className="w-full sm:w-max bg-primary hover:bg-primary/90 whitespace-nowrap"
+                                        onClick={redirectToPayment}
+                                    >
+                                        Tiếp tục thanh toán{" "}
+                                        <span className="ml-1 font-semibold">
+                                            ({formatCurrency(paymentAmount)})
+                                        </span>
+                                    </Button>
                                 </div>
                             )}
                             {isDelivered && (

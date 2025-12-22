@@ -119,6 +119,7 @@ export interface OrderResponse {
     branchAddress?: string;
     shippingFee?: number;
     discountValue?: number;
+    discountPercent?: number;
     amount?: number;
     promotionCode?: string | null;
     pointUsed?: number;
