@@ -2,15 +2,14 @@ import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(
-    request: NextRequest,
-    { params }: { params: { branchId: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ branchId: string }> }
 ) {
     try {
         const cookieStore = await cookies();
-        const token = cookieStore.get("token")?.value;
+        const token = cookieStore.get('token')?.value;
 
-
-        const branchId = params?.branchId;
+        const { branchId } = await params;
         const cartItems = await request.json();
 
         if (!branchId) {
