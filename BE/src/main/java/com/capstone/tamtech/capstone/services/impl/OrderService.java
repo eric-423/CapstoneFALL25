@@ -55,5 +55,7 @@ public interface OrderService {
 
     void autoCompleteDeliveredShippingOrders();
 
+    void autoCompleteDiningOrders();
+
     Boolean assignCustomerToOrder(int customerId, int orderId);
 }

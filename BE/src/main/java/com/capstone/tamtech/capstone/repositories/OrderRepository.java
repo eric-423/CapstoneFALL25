@@ -62,6 +62,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
                         @Param("startDate") java.util.Date startDate,
                         @Param("endDate") java.util.Date endDate);
 
+        List<Order> findByStatus_NameAndIsTableTrue(String name);
 
 
 }
