@@ -471,15 +471,22 @@ export function OrderDetailsContent({
                     <Coins className="h-4 w-4" />
                     Điểm nhận được:
                   </span>
-                  <span className="font-medium">
-                    {order.pointEarned ? `+${order.pointEarned.toLocaleString("vi-VN")} điểm` : "0 điểm"}
-                  </span>
+
+                  {(order.pointEarned === 0 || order.pointEarned === undefined) ?
+                    <span className="font-medium">
+                      +{Math.floor((order.amount ?? 0) / 10000).toLocaleString("vi-VN")} điểm
+                    </span> :
+                    <span className="font-medium">
+                      {order.pointEarned ? `+${order.pointEarned.toLocaleString("vi-VN")} điểm` : "+0 điểm"}
+                    </span>
+                  }
+
                 </div>
 
 
-                {order.orderStatus?.toUpperCase?.() !== 'COMPLETED' || order.orderStatus?.toUpperCase?.() !== 'PAID' &&
-                  <div className="text-xs text-muted-foreground mt-0.5 ml-5">
-                    Điểm dự kiến nhận được: {Math.floor((order.amount ?? 0) / 10000).toLocaleString("vi-VN")} điểm
+                {(order.pointEarned === 0 || order.pointEarned === undefined) &&
+                  <div className="text-xs text-muted-foreground mt-0.5 ml-5 text-red-600">
+                    Điểm dự kiến nhận được khi đã hoàn thành đơn hàng
                   </div>
                 }
 
