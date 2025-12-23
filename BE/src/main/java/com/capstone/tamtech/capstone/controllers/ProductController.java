@@ -217,7 +217,7 @@ public class ProductController {
 
   @GetMapping("/{productId}/paired")
   public ResponseEntity<?> getPairedProducts(@PathVariable Integer productId) {
-    List<ProductDTO> pairedProducts = productService.getPairedProducts(productId);
+    List<ProductSearchDTO> pairedProducts = productService.getPairedProducts(productId);
     ResponseData responseData = new ResponseData();
     responseData.setData(pairedProducts);
     responseData.setStatus(200);
