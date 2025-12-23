@@ -66,7 +66,6 @@ const Voucher = () => {
           const availableVouchers = mappedVouchers.filter(
             (v: any) => v.userPromotionStatus === "AVAILABLE"
           );
-
           setVouchers(availableVouchers);
           setGroupedVouchers(groupVouchersByType(availableVouchers));
         } else {

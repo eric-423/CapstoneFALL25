@@ -14,6 +14,15 @@ import { useState } from "react";
 const VoucherDetailsPage = () => {
   const params = useLocalSearchParams();
   const screenWidth = Dimensions.get("window").width;
+  const promotionId =
+    (params.promotionId as string) || (params.id as string) || "";
+  const generateBarcodeUrl = (id: string) => {
+    if (!id) return null;
+    return `https://barcode.tec-it.com/barcode.ashx?data=${encodeURIComponent(
+      id
+    )}&code=Code128&translate-esc=on`;
+  };
+
   const [voucher, setVoucher] = useState<any>({
     code: (params.code as string) || "VOUCHER",
     name: (params.name as string) || "Mã ưu đãi",
@@ -25,7 +34,7 @@ const VoucherDetailsPage = () => {
     maxNumberOfUses: Number(params.maxNumberOfUses) || 1,
     isActive: params.isActive === "true" || false,
     promotionTypeName: (params.promotionTypeName as string) || "",
-    barcode: "https://via.placeholder.com/300x200/FF6B35/FFFFFF?text=BARCODE",
+    barcode: generateBarcodeUrl(promotionId),
   });
   const formatDiscount = () => {
     const promotionTypeName = params.promotionTypeName as string;
@@ -47,13 +56,13 @@ const VoucherDetailsPage = () => {
           justifyContent: "center",
           alignItems: "center",
           backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
-          flex: 0.4,
+          flex: 0.3,
         }}
       >
         {voucher.barcode ? (
           <Image
             source={{ uri: voucher.barcode }}
-            style={{ height: 200, width: screenWidth }}
+            style={{ height: 170, width: screenWidth * 0.95 }}
             resizeMode="contain"
           />
         ) : null}
@@ -81,7 +90,7 @@ const VoucherDetailsPage = () => {
           style={{
             paddingHorizontal: 10,
             paddingVertical: 5,
-            backgroundColor: APP_COLOR.CANCEL + "90",
+            backgroundColor: APP_COLOR.ORANGE,
             borderRadius: 30,
             alignItems: "center",
             marginHorizontal: "auto",
