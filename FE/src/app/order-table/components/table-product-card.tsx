@@ -28,10 +28,10 @@ export default function TableProductCard({
 
   return (
     <Card
-      className={`group hover:shadow-lg transition-all duration-200 border-0 shadow-sm py-0 ${isOutOfStock ? "bg-gray-100" : "bg-white"}`}
+      className={`group hover:shadow-lg transition-all duration-200 border-0 shadow-sm py-0 ${isOutOfStock ? "bg-gray-100" : "bg-white"} h-full flex flex-col`}
     >
-      <CardContent className="p-0">
-        <div className="relative">
+      <CardContent className="p-0 flex flex-col h-full">
+        <div className="relative flex flex-col h-full">
           <div className="relative h-36 sm:h-40 md:h-48 w-full overflow-hidden rounded-t-lg bg-gradient-to-br from-gray-50 to-gray-100">
             {product.productImage ? (
               <>
@@ -57,7 +57,7 @@ export default function TableProductCard({
             )}
           </div>
 
-          <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
+          <div className="p-3 sm:p-4 space-y-2 sm:space-y-3 flex flex-col flex-1">
             <div>
               <h3
                 className={`font-semibold text-base sm:text-lg line-clamp-2 transition-colors ${isOutOfStock ? "text-gray-500" : "text-gray-900 group-hover:text-primary"}`}
@@ -91,7 +91,7 @@ export default function TableProductCard({
             <Button
               onClick={handleAddToCart}
               disabled={isAdding || isOutOfStock}
-              className={`w-full text-sm sm:text-base transition-all duration-200 ${isOutOfStock ? "cursor-not-allowed" : "group-hover:bg-primary group-hover:text-white"}`}
+              className={`w-full text-sm sm:text-base transition-all duration-200 mt-auto ${isOutOfStock ? "cursor-not-allowed" : "group-hover:bg-primary group-hover:text-white"}`}
               variant="outline"
             >
               {isOutOfStock ? (

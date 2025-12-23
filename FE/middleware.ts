@@ -36,10 +36,10 @@ const guestOnlyRoutes = [
 ];
 
 interface JwtPayload {
-    r?: string; // role
-    i?: number; // id (userId)
-    p?: string; // phoneNumber
-    m?: string; // mail/email
+    r?: string;
+    i?: number;
+    p?: string;
+    m?: string;
     exp: number;
     iat: number;
 }
@@ -118,7 +118,7 @@ export async function middleware(request: NextRequest) {
     // Check role-based access
     if (isAuthenticated && payload) {
         const tokenRole = payload.r ?? cookieRole ?? '';
-        
+
         // Admin routes - admin and manager can access
         if (adminRoutes.some(route => pathname.startsWith(route)) &&
             !['ADMIN', 'MANAGER', 'Admin', 'Manager'].includes(tokenRole)) {
@@ -149,14 +149,16 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
     matcher: [
-        /*
-         * Match all request paths except for the ones starting with:
-         * - api (API routes)
-         * - _next/static (static files)
-         * - _next/image (image optimization files)
-         * - favicon.ico (favicon file)
-         * - public folder
-         */
-        '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+        '/profile',
+        '/checkout',
+        '/my-orders',
+        '/payment-success',
+        '/payment-failed',
+        '/admin/:path*',
+        '/manager/:path*',
+        '/staff/:path*',
+        '/chef/:path*',
+        '/login',
+        '/register',
     ],
 };

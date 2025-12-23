@@ -72,8 +72,15 @@ export const getBranches = async (): Promise<Branch[]> => {
       },
     });
 
+
     if (!response.ok) {
-      throw new Error('Failed to fetch branches');
+      const errorBody = await response.json().catch(() => ({}));
+      throw {
+        response: {
+          data: errorBody,
+          status: response.status,
+        },
+      };
     }
 
     const result = await response.json();
@@ -102,6 +109,8 @@ export const getNearbyBranches = async (
     credentials: "include",
   });
 
+
+
   if (!response.ok) {
     const errorBody = await response.json().catch(() => ({}));
     throw {
@@ -125,8 +134,15 @@ export const getBranchStatistics = async (): Promise<BranchStatistics> => {
     credentials: "include",
   });
 
+
   if (!response.ok) {
-    throw new Error("Failed to fetch branch statistics");
+    const errorBody = await response.json().catch(() => ({}));
+    throw {
+      response: {
+        data: errorBody,
+        status: response.status,
+      },
+    };
   }
 
   const result = await response.json();
@@ -143,8 +159,15 @@ export const createBranch = async (
     body: JSON.stringify(data),
   });
 
+
   if (!response.ok) {
-    throw new Error("Failed to create branch");
+    const errorBody = await response.json().catch(() => ({}));
+    throw {
+      response: {
+        data: errorBody,
+        status: response.status,
+      },
+    };
   }
 
   const result = await response.json();
@@ -165,7 +188,13 @@ export const updateBranch = async (
   });
 
   if (!response.ok) {
-    throw new Error("Failed to update branch");
+    const errorBody = await response.json().catch(() => ({}));
+    throw {
+      response: {
+        data: errorBody,
+        status: response.status,
+      },
+    };
   }
 
   const result = await response.json();
@@ -181,7 +210,13 @@ export const deactivateBranch = async (branchId: number): Promise<void> => {
   });
 
   if (!response.ok) {
-    throw new Error("Failed to deactivate branch");
+    const errorBody = await response.json().catch(() => ({}));
+    throw {
+      response: {
+        data: errorBody,
+        status: response.status,
+      },
+    };
   }
 };
 
@@ -194,7 +229,13 @@ export const activateBranch = async (branchId: number): Promise<void> => {
   });
 
   if (!response.ok) {
-    throw new Error("Failed to activate branch");
+    const errorBody = await response.json().catch(() => ({}));
+    throw {
+      response: {
+        data: errorBody,
+        status: response.status,
+      },
+    };
   }
 };
 
@@ -204,10 +245,19 @@ export const activateBranch = async (branchId: number): Promise<void> => {
 export const getTablesByBranch = async (
   branchId: number
 ): Promise<TableData[]> => {
-  const response = await fetch(`/api/table/branch/${branchId}`);
+  const response = await fetch(`/api/table/branch/${branchId}`, {
+    method: "GET",
+    credentials: "include",
+  });
 
   if (!response.ok) {
-    throw new Error("Failed to fetch tables by branch");
+    const errorBody = await response.json().catch(() => ({}));
+    throw {
+      response: {
+        data: errorBody,
+        status: response.status,
+      },
+    };
   }
 
   const data = await response.json();

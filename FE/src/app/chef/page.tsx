@@ -149,6 +149,7 @@ export default function ChefPage() {
             setCompletedItems(prev => prev.filter(id => id !== orderId));
          }
       } catch (error) {
+         console.log(error)
          setCompletedItems(prev => prev.filter(id => id !== orderId));
       }
    };
@@ -163,7 +164,11 @@ export default function ChefPage() {
    };
 
    const getTotalAmount = (order: ChefOrderResponse) => {
-      return order.orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      return order.orderItems.reduce((sum, item) => {
+         const isCombo = item.comboDTO !== null;
+         const price = isCombo ? item.comboDTO?.price || 0 : item.price;
+         return sum + (price * item.quantity);
+      }, 0);
    };
 
    return (
@@ -281,23 +286,16 @@ export default function ChefPage() {
                                        <p className='text-sm font-medium text-gray-700'>Danh sách món:</p>
                                        <div className='space-y-2'>
                                           {(() => {
-                                             // Tách items có combo và không có combo
                                              const comboItems = order.orderItems.filter(item => item.comboDTO);
                                              const regularItems = order.orderItems.filter(item => !item.comboDTO);
-                                             const processedComboIds = new Set<number>();
 
                                              return (
                                                 <>
                                                    {comboItems.map((item) => {
                                                       if (!item.comboDTO) return null;
 
-                                                      if (processedComboIds.has(item.comboDTO.id)) {
-                                                         return null;
-                                                      }
-                                                      processedComboIds.add(item.comboDTO.id);
-
                                                       return (
-                                                         <div key={`combo-${item.comboDTO.id}`}>
+                                                         <div key={`combo-${item.orderItemId}`}>
                                                             <div className='flex items-start gap-3 p-3 bg-gray-50 rounded-lg'>
                                                                {item.productImg && (
                                                                   <Image
@@ -431,6 +429,8 @@ export default function ChefPage() {
                                        <div className='flex items-center text-sm'>
                                           <span className='text-gray-600'>Tổng tiền:</span>
                                           <span className='ml-1 font-medium text-green-600'>
+
+                                             { }
                                              {totalAmount.toLocaleString('vi-VN')} đ
                                           </span>
                                        </div>

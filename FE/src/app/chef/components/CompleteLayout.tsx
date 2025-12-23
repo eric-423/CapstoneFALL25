@@ -46,9 +46,8 @@ const MenuItem = memo(
         title={isCollapsed ? item.label : undefined}
       >
         <div
-          className={`relative flex items-center ${
-            isCollapsed ? "justify-center" : ""
-          }`}
+          className={`relative flex items-center ${isCollapsed ? "justify-center" : ""
+            }`}
           style={{ minHeight: "48px" }}
         >
           {!isCollapsed && (
@@ -74,11 +73,10 @@ const MenuItem = memo(
                      flex items-center gap-3 py-2.5 sm:py-3 rounded-xl 
                      transition-all duration-200 relative group flex-1
                      ${isCollapsed ? "justify-center px-3" : "px-4 ml-10"}
-                     ${
-                       isActive
-                         ? "bg-white/20 text-white shadow-lg font-semibold backdrop-blur-sm"
-                         : "text-white/80 hover:bg-white/10 hover:text-white"
-                     }
+                     ${isActive
+                ? "bg-white/20 text-white shadow-lg font-semibold backdrop-blur-sm"
+                : "text-white/80 hover:bg-white/10 hover:text-white"
+              }
                  `}
           >
             {isActive && isCollapsed && (
@@ -86,19 +84,17 @@ const MenuItem = memo(
             )}
             <Icon
               size={20}
-              className={`flex-shrink-0 ${
-                isActive
-                  ? "text-white"
-                  : "text-white/80 group-hover:text-[#F8A91F]"
-              } transition-colors`}
+              className={`flex-shrink-0 ${isActive
+                ? "text-white"
+                : "text-white/80 group-hover:text-[#F8A91F]"
+                } transition-colors`}
               strokeWidth={isActive ? 2.5 : 2}
             />
             {!isCollapsed && (
               <>
                 <span
-                  className={`text-sm sm:text-base ${
-                    isActive ? "font-semibold" : "font-medium"
-                  } truncate`}
+                  className={`text-sm sm:text-base ${isActive ? "font-semibold" : "font-medium"
+                    } truncate`}
                 >
                   {item.label}
                 </span>
@@ -194,9 +190,8 @@ export default function ChefLayout({
                     `}
         >
           <div
-            className={`relative border-b border-white/20 flex-shrink-0 flex items-center ${
-              isCollapsed ? "p-2 justify-center" : "p-2"
-            } overflow-visible`}
+            className={`relative border-b border-white/20 flex-shrink-0 flex items-center ${isCollapsed ? "p-2 justify-center" : "p-2"
+              } overflow-visible`}
           >
             <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent"></div>
             <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#F8A91F]/20 rounded-full blur-3xl"></div>
@@ -209,9 +204,8 @@ export default function ChefLayout({
             )}
             <div className="relative z-10 flex-1 min-w-0 transition-opacity duration-150"></div>
             <div
-              className={`relative z-10 flex items-center w-full ${
-                isCollapsed ? "justify-center" : "justify-end gap-2"
-              }`}
+              className={`relative z-10 flex items-center w-full ${isCollapsed ? "justify-center" : "justify-end gap-2"
+                }`}
             >
               <button
                 onClick={() => setIsCollapsed((prev) => !prev)}
@@ -260,9 +254,8 @@ export default function ChefLayout({
 
           <div className="p-3 sm:p-4 flex-shrink-0 border-t border-white/20 bg-[#EC6426]">
             <Button
-              className={`w-full ${
-                isCollapsed ? "justify-center px-2" : "justify-start gap-3"
-              } hover:bg-[#EC6426]/90 text-white font-semibold transition-all duration-200 hover:shadow-xl py-2.5 sm:py-3 mb-2`}
+              className={`w-full ${isCollapsed ? "justify-center px-2" : "justify-start gap-3"
+                } hover:bg-[#EC6426]/90 text-white font-semibold transition-all duration-200 hover:shadow-xl py-2.5 sm:py-3 mb-2`}
               onClick={() => router.push("/chef/training-courses")}
               title={isCollapsed ? "Khóa học của tôi" : undefined}
             >
@@ -274,9 +267,8 @@ export default function ChefLayout({
               )}
             </Button>
             <Button
-              className={`w-full ${
-                isCollapsed ? "justify-center px-2" : "justify-start gap-3"
-              } hover:bg-[#EC6426]/90 text-white font-semibold transition-all duration-200 hover:shadow-xl py-2.5 sm:py-3`}
+              className={`w-full ${isCollapsed ? "justify-center px-2" : "justify-start gap-3"
+                } hover:bg-[#EC6426]/90 text-white font-semibold transition-all duration-200 hover:shadow-xl py-2.5 sm:py-3`}
               onClick={handleLogout}
               title={isCollapsed ? "Đăng xuất" : undefined}
             >
@@ -297,9 +289,8 @@ export default function ChefLayout({
         </aside>
 
         <main
-          className={`flex-1 w-full bg-[#EFE6DB] min-w-0 transition-[margin] duration-200 ease-out h-screen overflow-y-auto ${
-            isCollapsed ? "lg:ml-12" : "lg:ml-56 xl:ml-64"
-          }`}
+          className={`flex-1 w-full bg-[#EFE6DB] min-w-0 transition-[margin] duration-200 ease-out h-screen overflow-y-auto ${isCollapsed ? "lg:ml-12" : "lg:ml-56 xl:ml-64"
+            }`}
         >
           <div className="lg:hidden sticky top-0 z-30 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 shadow-sm">
             <button

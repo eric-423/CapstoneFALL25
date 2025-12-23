@@ -1,3 +1,4 @@
+
 export interface User {
     id: number;
     fullName: string;
@@ -84,6 +85,7 @@ export const getUsers = async (): Promise<User[]> => {
         };
     }
 
+
     const result = await response.json();
     return result.data;
 };
@@ -130,6 +132,7 @@ export const createUser = async (data: CreateUserRequest): Promise<User> => {
         };
     }
 
+
     const result = await response.json();
     return result.data || result;
 };
@@ -154,6 +157,7 @@ export const updateUser = async (userId: number, data: UpdateUserRequest): Promi
         };
     }
 
+
     const result = await response.json();
     return result.data || result;
 };
@@ -173,6 +177,7 @@ export const banUser = async (userId: number): Promise<void> => {
             },
         };
     }
+
 };
 
 export const unbanUser = async (userId: number): Promise<void> => {
@@ -180,7 +185,6 @@ export const unbanUser = async (userId: number): Promise<void> => {
         method: 'PUT',
         credentials: 'include',
     });
-
     if (!response.ok) {
         const errorBody = await response.json().catch(() => ({}));
         throw {
@@ -190,6 +194,7 @@ export const unbanUser = async (userId: number): Promise<void> => {
             },
         };
     }
+
 };
 
 
@@ -199,6 +204,7 @@ export const getUserRoleHistory = async (userId: number): Promise<RoleHistory[]>
         method: 'GET',
         credentials: 'include',
     });
+
 
     if (!response.ok) {
         const errorBody = await response.json().catch(() => ({}));

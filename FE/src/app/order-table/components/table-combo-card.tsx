@@ -3,9 +3,11 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Users } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useState } from 'react';
+import Image from 'next/image';
 import type { Combo } from '@/apis/combo.api';
+import comboImage from '@/assets/images/food-court.jpg';
 
 interface TableComboCardProps {
     combo: Combo;
@@ -22,13 +24,19 @@ export default function TableComboCard({ combo, onAddToCart }: TableComboCardPro
     };
 
     return (
-        <Card className='group hover:shadow-lg transition-all duration-200 border-2 border-orange-200 shadow-sm bg-gradient-to-br from-orange-50 to-white py-0'>
-            <CardContent className='p-0'>
-                <div className='relative'>
-                    <div className='relative h-36 sm:h-40 md:h-48 w-full overflow-hidden rounded-t-lg bg-gradient-to-br from-orange-100 to-orange-50'>
-                        <div className='flex items-center justify-center h-full'>
-                            <Users className='h-20 w-20 text-orange-400' />
-                        </div>
+        <Card className='group hover:shadow-lg transition-all duration-200 border-2 border-orange-200 shadow-sm bg-gradient-to-br from-orange-50 to-white py-0 h-full flex flex-col'>
+            <CardContent className='p-0 flex flex-col h-full'>
+                <div className='relative flex flex-col h-full'>
+                    <div className='relative h-36 sm:h-40 md:h-48 w-full overflow-hidden rounded-t-lg'>
+                        <Image
+                            src={comboImage}
+                            alt={combo.name}
+                            fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            className='object-cover group-hover:scale-105 transition-transform duration-300'
+                        />
+
+                        <div className='absolute inset-0 bg-gradient-to-t from-black/50 via-black/25 to-transparent' />
 
                         {/* Combo Badge */}
                         <div className='absolute top-2 right-2'>
@@ -38,7 +46,7 @@ export default function TableComboCard({ combo, onAddToCart }: TableComboCardPro
                         </div>
                     </div>
 
-                    <div className='p-3 sm:p-4 space-y-2 sm:space-y-3'>
+                    <div className='p-3 sm:p-4 space-y-2 sm:space-y-3 flex flex-col flex-1'>
                         <div className='min-h-[60px] sm:min-h-[70px]'>
                             <h3 className='font-semibold text-base sm:text-lg text-gray-900 line-clamp-2 group-hover:text-orange-600 transition-colors'>
                                 {combo.name}
@@ -57,7 +65,7 @@ export default function TableComboCard({ combo, onAddToCart }: TableComboCardPro
                         <Button
                             onClick={handleAddToCart}
                             disabled={isAdding}
-                            className='w-full text-sm sm:text-base bg-orange-500 hover:bg-orange-600 text-white transition-all duration-200 h-10'
+                            className='w-full text-sm sm:text-base bg-orange-500 hover:bg-orange-600 text-white transition-all duration-200 h-10 mt-auto'
                         >
                             {isAdding ? (
                                 <>
