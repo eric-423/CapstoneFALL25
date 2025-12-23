@@ -35,7 +35,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 20,
     marginLeft: 10,
-    justifyContent: "space-around",
   },
   notificationWrapper: {
     marginRight: 5,
@@ -541,7 +540,6 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
           <View style={styles.container}>
             <View
               style={{
-                width: "85%",
                 flexDirection: "row",
                 alignItems: "center",
               }}
@@ -562,15 +560,6 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
                 >
                   Giỏ hàng
                 </Text>
-              </View>
-            </View>
-            <View style={{ alignItems: "flex-end" }}>
-              <View style={styles.notificationWrapper}>
-                <Ionicons
-                  name="notifications-outline"
-                  size={30}
-                  color={APP_COLOR.WHITE}
-                />
               </View>
             </View>
           </View>

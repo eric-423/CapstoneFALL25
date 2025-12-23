@@ -323,6 +323,17 @@ export const GetCustomerInformation = async (id: number) => {
   });
 };
 
+export const GetPairedProducts = async (productId: number) => {
+  const token = await AsyncStorage.getItem("access_token");
+  return axios.get(`${BASE_URL}/products/${productId}/paired`, {
+    headers: {
+      accept: "*/*",
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+  });
+};
+
 export const TopSellingProduct = async (branchId: number) => {
   return axios.get(
     `${BASE_URL}/statistics/top-selling?branchId=${branchId}&limit=5`,

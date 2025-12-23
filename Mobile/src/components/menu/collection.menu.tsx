@@ -150,10 +150,7 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
         router.navigate({
           pathname: "/order/add.extra.food",
           params: {
-            productName: item.name,
-            productTypeId: item.ProductType.productTypeId,
             productId: item.productId,
-            productPrice: String(item.price),
           },
         });
         return;
