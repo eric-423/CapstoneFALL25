@@ -55,6 +55,12 @@ export default function UserLayout() {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="products/[id]"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }

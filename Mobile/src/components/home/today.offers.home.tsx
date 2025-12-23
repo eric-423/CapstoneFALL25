@@ -9,7 +9,6 @@ import {
 } from "react-native";
 import { FONTS } from "@/theme/typography";
 import { APP_COLOR } from "@/utils/constant";
-import { router } from "expo-router";
 
 interface TodayOffersSectionProps {
   title?: string;

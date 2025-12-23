@@ -95,6 +95,11 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
   ) => {
     if (!restaurant?._id) return;
 
+    const limit =
+      item.quantityInBranch !== undefined && item.quantityInBranch !== null
+        ? item.quantityInBranch
+        : undefined;
+
     let total: number;
     let newQuantity: number;
     const currentQuantity =
@@ -106,6 +111,12 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
     } else {
       total = action === "MINUS" ? -1 : 1;
       newQuantity = currentQuantity + total;
+
+      if (action === "PLUS" && limit !== undefined && newQuantity > limit) {
+        newQuantity = limit;
+        total = newQuantity - currentQuantity;
+        if (total <= 0) return;
+      }
 
       if (
         action === "PLUS" &&
@@ -155,6 +166,10 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
         });
         return;
       }
+    }
+
+    if (limit !== undefined && newQuantity > limit) {
+      newQuantity = limit;
     }
 
     const priceChange = total * item.price;
@@ -483,7 +498,7 @@ const CollectionMenu = (props: IProps) => {
                               item.inStock === false &&
                                 styles.itemNameOutOfStock,
                             ]}
-                            numberOfLines={2}
+                            numberOfLines={1}
                             ellipsizeMode="tail"
                           >
                             {item.name}
@@ -555,18 +570,38 @@ const CollectionMenu = (props: IProps) => {
                         />
                         <Pressable
                           onPress={() => handleQuantityChange(item, "PLUS")}
-                          style={({ pressed }) => ({
-                            opacity:
-                              item.inStock === false ? 0.3 : pressed ? 0.5 : 1,
-                          })}
-                          disabled={item.inStock === false}
+                          style={({ pressed }) => {
+                            const atLimit =
+                              item.quantityInBranch !== undefined &&
+                              getItemQuantity(item.productId) >=
+                                item.quantityInBranch;
+                            const disabled = item.inStock === false || atLimit;
+                            return {
+                              opacity: 1,
+                              backgroundColor: disabled
+                                ? APP_COLOR.GRAY
+                                : "transparent",
+                              borderRadius: 20,
+                              padding: 2,
+                              ...(pressed && !disabled ? { opacity: 0.5 } : {}),
+                            };
+                          }}
+                          disabled={
+                            item.inStock === false ||
+                            (item.quantityInBranch !== undefined &&
+                              getItemQuantity(item.productId) >=
+                                item.quantityInBranch)
+                          }
                         >
                           <AntDesign
                             name="plus-circle"
                             size={24}
                             color={
-                              item.inStock === false
-                                ? APP_COLOR.BROWN
+                              item.inStock === false ||
+                              (item.quantityInBranch !== undefined &&
+                                getItemQuantity(item.productId) >=
+                                  item.quantityInBranch)
+                                ? APP_COLOR.GRAY
                                 : APP_COLOR.BUTTON_YELLOW
                             }
                           />
@@ -590,7 +625,6 @@ const CollectionMenu = (props: IProps) => {
           style={styles.loader}
         >
           <Rect x="5" y="5" rx="10" ry="10" width="370" height="110" />
-
           <Rect x="10" y="10" rx="10" ry="10" width="100" height="100" />
 
           <Rect x="120" y="15" rx="6" ry="6" width="230" height="18" />
@@ -681,7 +715,18 @@ const CollectionMenu = (props: IProps) => {
                       </Text>
                     </View>
                   )}
-                  <Pressable disabled={item.inStock === false}>
+                  <Pressable
+                    disabled={item.inStock === false}
+                    onPress={() => {
+                      router.navigate({
+                        pathname: "/(user)/products/[id]",
+                        params: {
+                          id: String(item.productId),
+                          branchId: String(branchId),
+                        },
+                      });
+                    }}
+                  >
                     <View
                       style={[
                         styles.itemContainer,
@@ -919,14 +964,13 @@ const styles = StyleSheet.create({
     fontSize: 17,
   },
   quantityContainer: {
-    height: 30,
+    height: 35,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 3,
-    paddingHorizontal: 5,
+    paddingHorizontal: 7,
     borderRadius: 50,
-    marginBottom: 7,
     borderWidth: 0.5,
     borderColor: APP_COLOR.BROWN,
     position: "absolute",

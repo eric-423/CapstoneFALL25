@@ -323,9 +323,42 @@ export const GetCustomerInformation = async (id: number) => {
   });
 };
 
-export const GetPairedProducts = async (productId: number) => {
+export const GetPairedProducts = async (
+  productId: number,
+  branchId?: number
+) => {
   const token = await AsyncStorage.getItem("access_token");
-  return axios.get(`${BASE_URL}/products/${productId}/paired`, {
+  const url =
+    branchId !== undefined
+      ? `${BASE_URL}/products/${productId}/paired?branchId=${branchId}`
+      : `${BASE_URL}/products/${productId}/paired`;
+
+  return axios.get(url, {
+    headers: {
+      accept: "*/*",
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+  });
+};
+
+export const GetProductDetailByBranch = async (
+  productId: number,
+  branchId: number
+) => {
+  const token = await AsyncStorage.getItem("access_token");
+  return axios.get(`${BASE_URL}/products/detail/${branchId}/${productId}`, {
+    headers: {
+      accept: "*/*",
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+  });
+};
+
+export const GetComboDetail = async (comboId: number) => {
+  const token = await AsyncStorage.getItem("access_token");
+  return axios.get(`${BASE_URL}/combos/${comboId}`, {
     headers: {
       accept: "*/*",
       "Content-Type": "application/json",

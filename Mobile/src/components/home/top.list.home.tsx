@@ -84,50 +84,51 @@ const TopListHome = () => {
           response.data.data &&
           Array.isArray(response.data.data)
         ) {
-          const mappedOffers = response.data.data.map(
-            (promotion: any, index: number) => ({
-              id: String(promotion.id || index),
-              promotionId: promotion.id,
-              imageSource:
-                defaultImages[index % defaultImages.length] ||
-                require("@/assets/icons/qua-tang.png"),
-              discountText: promotion.name || "",
-              descriptionText: promotion.description || "",
-              promotionData: {
-                id: promotion.id,
-                name: promotion.name,
-                code: promotion.name,
-                description: promotion.description,
-                discountAmount: promotion.value || 0,
-                minOrderAmount: promotion.minimumOrderValue || 0,
-                usageCount: promotion.usageCount || 0,
-                maxNumberOfUses: promotion.maxNumberOfUses || 1,
-                isActive: promotion.userPromotionStatus === "AVAILABLE",
-                endDate: promotion.endDate || "",
-                promotionTypeName: promotion.promotionTypeName || "",
-              },
-              onPress: () => {
-                router.navigate({
-                  pathname: "/(user)/voucher/[id]",
-                  params: {
-                    id: String(promotion.id),
-                    name: promotion.name || "",
-                    code: promotion.name || "",
-                    description: promotion.description || "",
-                    discountAmount: String(promotion.value || 0),
-                    minOrderAmount: String(promotion.minimumOrderValue || 0),
-                    usageCount: String(promotion.usageCount || 0),
-                    maxNumberOfUses: String(promotion.maxNumberOfUses || 1),
-                    isActive: String(
-                      promotion.userPromotionStatus === "AVAILABLE"
-                    ),
-                    endDate: promotion.endDate || "",
-                    promotionTypeName: promotion.promotionTypeName || "",
-                  },
-                });
-              },
+          const mappedOffers = response.data.data
+            .map((promotion: any, index: number) => {
+              const isActive = promotion.userPromotionStatus === "AVAILABLE";
+              return {
+                id: String(promotion.id || index),
+                promotionId: promotion.id,
+                imageSource:
+                  defaultImages[index % defaultImages.length] ||
+                  require("@/assets/icons/qua-tang.png"),
+                discountText: promotion.name || "",
+                descriptionText: promotion.description || "",
+                promotionData: {
+                  id: promotion.id,
+                  name: promotion.name,
+                  code: promotion.name,
+                  description: promotion.description,
+                  discountAmount: promotion.value || 0,
+                  minOrderAmount: promotion.minimumOrderValue || 0,
+                  usageCount: promotion.usageCount || 0,
+                  maxNumberOfUses: promotion.maxNumberOfUses || 1,
+                  isActive,
+                  endDate: promotion.endDate || "",
+                  promotionTypeName: promotion.promotionTypeName || "",
+                },
+                onPress: () => {
+                  router.navigate({
+                    pathname: "/(user)/voucher/[id]",
+                    params: {
+                      id: String(promotion.id),
+                      name: promotion.name || "",
+                      code: promotion.name || "",
+                      description: promotion.description || "",
+                      discountAmount: String(promotion.value || 0),
+                      minOrderAmount: String(promotion.minimumOrderValue || 0),
+                      usageCount: String(promotion.usageCount || 0),
+                      maxNumberOfUses: String(promotion.maxNumberOfUses || 1),
+                      isActive: String(isActive),
+                      endDate: promotion.endDate || "",
+                      promotionTypeName: promotion.promotionTypeName || "",
+                    },
+                  });
+                },
+              };
             })
-          );
+            .filter((offer: any) => offer.promotionData.isActive);
           setOffers(mappedOffers);
         } else {
           setOffers([]);
