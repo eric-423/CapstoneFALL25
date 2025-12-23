@@ -306,12 +306,7 @@ const CollectionHome = (props: IProps) => {
                       <Text style={styles.itemQuantitySold}>
                         Đã bán {item.quantitySold} món
                       </Text>
-                      <View
-                        style={[
-                          styles.quantityContainer,
-                          { marginHorizontal: 10, marginVertical: 5 },
-                        ]}
-                      >
+                      <View style={[styles.quantityContainer]}>
                         <Pressable
                           onPress={() => handleQuantityChange(item, "MINUS")}
                           style={({ pressed }) => ({

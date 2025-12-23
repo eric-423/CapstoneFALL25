@@ -1,24 +1,10 @@
 import { APP_COLOR } from "@/utils/constant";
 import { router, useLocalSearchParams } from "expo-router";
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { FONTS } from "@/theme/typography";
 import ItemExtra from "@/components/order/item.extra";
 import { useCurrentApp } from "@/context/app.context";
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-import { GetProductType } from "@/utils/api";
+import React, { createContext, useContext, useEffect, useMemo } from "react";
 import {
   currencyFormatter,
   getItemQuantity as getItemQuantityUtil,
@@ -127,53 +113,24 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 const AddExtraFoodContent = () => {
-  const { productName, productTypeId, productId, productPrice } =
-    useLocalSearchParams();
-  const { branchId, cart, restaurant } = useCurrentApp();
+  const { productId: productIdParam } = useLocalSearchParams();
+  const { cart, restaurant } = useCurrentApp();
   const { handleQuantityChange } = useModal();
-  const [productTypes, setProductTypes] = useState<
-    { id: number; name: string }[]
-  >([]);
 
-  useEffect(() => {
-    const fetchProductType = async () => {
-      const res = await GetProductType();
-      const productTypeIdNum =
-        typeof productTypeId === "string"
-          ? Number(productTypeId)
-          : Array.isArray(productTypeId)
-          ? Number(productTypeId[0])
-          : 0;
-      const filteredItems = res.data.data
-        .filter((item: any) => item.id !== productTypeIdNum && item.id > 1)
-        .map((item: any) => ({ id: item.id, name: item.name }));
-      setProductTypes(filteredItems);
-    };
-    fetchProductType();
-  }, [productTypeId]);
-  const productIdStr =
-    typeof productId === "string"
-      ? productId
-      : Array.isArray(productId)
-      ? productId[0]
-      : "";
-  const productIdNum =
-    typeof productTypeId === "string"
-      ? Number(productTypeId)
-      : Array.isArray(productTypeId)
-      ? Number(productTypeId[0])
-      : 0;
+  const productId = (() => {
+    if (typeof productIdParam === "string") {
+      return Number(productIdParam);
+    } else if (Array.isArray(productIdParam)) {
+      return Number(productIdParam[0]);
+    } else if (typeof productIdParam === "number") {
+      return productIdParam;
+    }
+    return 0;
+  })();
+
+  const productIdStr = String(productId);
 
   const productPriceValue = useMemo(() => {
-    if (productPrice) {
-      const priceFromParams =
-        typeof productPrice === "string"
-          ? Number(productPrice)
-          : Array.isArray(productPrice)
-          ? Number(productPrice[0])
-          : 0;
-      if (priceFromParams > 0) return priceFromParams;
-    }
     if (
       restaurant?._id &&
       productIdStr &&
@@ -183,20 +140,15 @@ const AddExtraFoodContent = () => {
       return cartItem.data.price || cartItem.data.basePrice || 0;
     }
     return 0;
-  }, [productPrice, productIdStr, cart, restaurant]);
+  }, [productIdStr, cart, restaurant]);
 
   const item: IPropsProduct = {
     productId: productIdStr,
-    name:
-      typeof productName === "string"
-        ? productName
-        : Array.isArray(productName)
-        ? productName[0]
-        : "",
+    name: "",
     price: productPriceValue,
     ProductType: {
       name: "",
-      productTypeId: productIdNum,
+      productTypeId: productId,
     },
     productDescription: "",
     image: null,
@@ -209,104 +161,74 @@ const AddExtraFoodContent = () => {
 
   return (
     <View style={{ backgroundColor: APP_COLOR.BACKGROUND_ORANGE, flex: 1 }}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            margin: 10,
-          }}
-        >
-          <Text
-            style={{
-              fontFamily: FONTS.semiBold,
-              fontSize: 25,
-              color: APP_COLOR.BROWN,
-              marginRight: 30,
-            }}
-          >
-            {productName}
-          </Text>
-        </View>
-        {productTypes.map((item) => (
-          <View key={item.id}>
-            <Text
-              style={{
-                fontSize: 18,
-                fontFamily: FONTS.semiBold,
-                color: APP_COLOR.BROWN,
-              }}
-            >
-              {item.name}
-            </Text>
-            <ItemExtra productId={item.id} branchId={branchId ?? 0} />
-          </View>
-        ))}
-
-        <View
-          style={{
-            borderTopColor: APP_COLOR.BROWN,
-            borderTopWidth: 1,
-            paddingTop: 10,
-            backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-around",
-          }}
-        >
-          <View
-            style={[
-              styles.quantityContainer,
-              { marginHorizontal: 10, marginBottom: 50 },
-            ]}
-          >
-            <Pressable
-              onPress={() => handleQuantityChange(item, "MINUS")}
-              style={({ pressed }) => ({
-                opacity:
-                  getItemQuantity(productIdStr) > 0 ? (pressed ? 0.5 : 1) : 0.3,
-              })}
-              disabled={getItemQuantity(productIdStr) === 0}
-            >
-              <AntDesign
-                name="minus-circle"
-                size={30}
-                color={
-                  getItemQuantity(productIdStr) > 0
-                    ? APP_COLOR.BUTTON_YELLOW
-                    : APP_COLOR.BROWN
-                }
-              />
-            </Pressable>
-            <Text style={styles.quantityText}>
-              {getItemQuantity(productIdStr)}
-            </Text>
-            <Pressable
-              onPress={() => handleQuantityChange(item, "PLUS")}
-              style={({ pressed }) => ({
-                opacity: pressed ? 0.5 : 1,
-              })}
-            >
-              <AntDesign
-                name="plus-circle"
-                size={30}
-                color={APP_COLOR.BUTTON_YELLOW}
-              />
-            </Pressable>
-          </View>
-          <ShareButton
-            textStyle={styles.btnText}
-            btnStyle={styles.btnStyle}
-            title={`Đặt đơn ${currencyFormatter(
-              cart[restaurant?._id as string]?.sum || 0
-            )}`}
-            onPress={() => {
-              router.navigate("/(user)/order/cart");
-            }}
-          />
-        </View>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 100 }}
+      >
+        <ItemExtra productId={productId} />
       </ScrollView>
+      <View
+        style={{
+          borderTopColor: APP_COLOR.BROWN,
+          borderTopWidth: 1,
+          paddingTop: 10,
+          paddingBottom: 10,
+          backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-around",
+          position: "absolute",
+          bottom: 50,
+          left: 0,
+          right: 0,
+        }}
+      >
+        <View style={[styles.quantityContainer, { marginHorizontal: 10 }]}>
+          <Pressable
+            onPress={() => handleQuantityChange(item, "MINUS")}
+            style={({ pressed }) => ({
+              opacity:
+                getItemQuantity(productIdStr) > 0 ? (pressed ? 0.5 : 1) : 0.3,
+            })}
+            disabled={getItemQuantity(productIdStr) === 0}
+          >
+            <AntDesign
+              name="minus-circle"
+              size={30}
+              color={
+                getItemQuantity(productIdStr) > 0
+                  ? APP_COLOR.BUTTON_YELLOW
+                  : APP_COLOR.BROWN
+              }
+            />
+          </Pressable>
+          <Text style={styles.quantityText}>
+            {getItemQuantity(productIdStr)}
+          </Text>
+          <Pressable
+            onPress={() => handleQuantityChange(item, "PLUS")}
+            style={({ pressed }) => ({
+              opacity: pressed ? 0.5 : 1,
+            })}
+          >
+            <AntDesign
+              name="plus-circle"
+              size={30}
+              color={APP_COLOR.BUTTON_YELLOW}
+            />
+          </Pressable>
+        </View>
+        <ShareButton
+          textStyle={styles.btnText}
+          btnStyle={styles.btnStyle}
+          title={`Đặt đơn ${currencyFormatter(
+            cart[restaurant?._id as string]?.sum || 0
+          )}`}
+          onPress={() => {
+            router.navigate("/(user)/order/cart");
+          }}
+        />
+      </View>
     </View>
   );
 };
