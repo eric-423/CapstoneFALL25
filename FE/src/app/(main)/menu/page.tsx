@@ -200,6 +200,21 @@ export default function MenuPage() {
     appendPages: false,
   });
 
+  const startOfToday = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return today;
+  }, []);
+
+  const visibleComboList = useMemo(
+    () =>
+      comboList.filter((combo) => {
+        if (!combo.endDate) return true;
+        return new Date(combo.endDate) >= startOfToday;
+      }),
+    [comboList, startOfToday]
+  );
+
   const isLoading = isComboMode ? isLoadingCombos : isLoadingProducts;
   const page = isComboMode ? comboPage : productPage;
   const totalPages = isComboMode ? comboTotalPages : productTotalPages;
@@ -435,7 +450,7 @@ export default function MenuPage() {
                       className={`transition-all duration-500 ${pageAnimating ? "animate-slide-up" : ""}`}
                     >
                       {isComboMode ? (
-                        <ComboList combos={comboList} />
+                        <ComboList combos={visibleComboList} />
                       ) : (
                         <ProductList products={productList} />
                       )}

@@ -2,12 +2,11 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { getPairedProducts, getProductById, Product } from "@/apis/product.api";
+import { getProductById, Product, getProductsByBranch } from "@/apis/product.api";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  Star,
   ArrowLeft,
   Package,
   Flame,
@@ -52,17 +51,25 @@ export default function ProductDetailPage() {
   });
 
   const { data: relatedProducts = [], isLoading: isLoadingRelated } = useQuery<Product[]>({
-    queryKey: ["paired-products", product?.productId],
+    queryKey: ["same-type-products", product?.productId, product?.productTypeId],
     queryFn: async () => {
-      if (!product?.productId) return [];
+      if (!product?.productTypeId) return [];
       try {
-        return await getPairedProducts(product.productId);
+        let branchId = 1;
+        if (typeof window !== "undefined") {
+          const branchIdFromCookie = JSON.parse(localStorage.getItem("selectedBranch") as string)?.branchId;
+          branchId = branchIdFromCookie || 1;
+        }
+
+        const products = await getProductsByBranch(product.productTypeId, branchId, 0, 100);
+
+        return products.filter((p: Product) => p.productId !== product.productId);
       } catch (error) {
-        console.error("Error fetching paired products:", error);
+        console.error("Error fetching same type products:", error);
         return [];
       }
     },
-    enabled: !!product?.productId,
+    enabled: !!product?.productId && !!product?.productTypeId,
     staleTime: 5 * 60 * 1000,
   });
 
@@ -148,14 +155,7 @@ export default function ProductDetailPage() {
               <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
                 {product.productName}
               </h1>
-              <div className="flex items-center gap-2 mb-3">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className="w-4 h-4 text-yellow-500 fill-yellow-500"
-                  />
-                ))}
-              </div>
+
               <div className="flex items-baseline gap-2">
                 <span className="text-3xl font-bold text-orange-600">
                   {product.productPrice.toLocaleString("vi-VN")}đ
@@ -225,15 +225,15 @@ export default function ProductDetailPage() {
 
         <div className="mt-10">
           <h2 className="text-3xl font-bold text-gray-900 mb-6">
-            Sản phẩm liên quan
+            Sản phẩm cùng loại
           </h2>
           {isLoadingRelated ? (
             <p className="text-sm text-gray-500">
-              Đang tải sản phẩm liên quan...
+              Đang tải sản phẩm cùng loại...
             </p>
           ) : relatedProducts.length === 0 ? (
             <p className="text-sm text-gray-500">
-              Hiện chưa có sản phẩm liên quan.
+              Hiện chưa có sản phẩm cùng loại.
             </p>
           ) : (
             <div className="space-y-4">

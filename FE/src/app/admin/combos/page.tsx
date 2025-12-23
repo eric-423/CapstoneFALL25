@@ -287,11 +287,11 @@ export default function CombosManagementPage() {
             activeFilter !== undefined ||
             minPrice ||
             maxPrice) && (
-            <Button onClick={handleClearFilters} variant="ghost" size="sm">
-              <X className="h-4 w-4 mr-1" />
-              Xóa lọc
-            </Button>
-          )}
+              <Button onClick={handleClearFilters} variant="ghost" size="sm">
+                <X className="h-4 w-4 mr-1" />
+                Xóa lọc
+              </Button>
+            )}
         </div>
 
         <div className="flex items-center gap-3">
@@ -372,46 +372,48 @@ export default function CombosManagementPage() {
             {combos.map((combo) => (
               <Card
                 key={combo.comboId}
-                className="p-4 bg-white hover:shadow-lg transition-all duration-300 border-2 border-[#78A243]/20 hover:border-[#78A243]"
+                className="p-4 h-full bg-white hover:shadow-lg transition-all duration-300 border-2 border-[#78A243]/20 hover:border-[#78A243]"
               >
-                <div className="space-y-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3 className="font-bold text-[#2D1E1A] text-base mb-1">
-                        {combo.name}
-                      </h3>
-                      <p className="text-xs text-gray-600 line-clamp-2">
-                        {combo.description}
-                      </p>
+                <div className="flex h-full flex-col space-y-3">
+                  <div className="flex-1 space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <h3 className="font-bold text-[#2D1E1A] text-base mb-1">
+                          {combo.name}
+                        </h3>
+                        <p className="text-xs text-gray-600 line-clamp-2">
+                          {combo.description}
+                        </p>
+                      </div>
+                      <Badge
+                        className={
+                          combo.active
+                            ? "bg-[#78A243]/10 text-[#78A243] border-[#78A243]/30"
+                            : "bg-red-100 text-red-800 border-red-300"
+                        }
+                      >
+                        {combo.active ? "Hoạt động" : "Tạm ngưng"}
+                      </Badge>
                     </div>
-                    <Badge
-                      className={
-                        combo.active
-                          ? "bg-[#78A243]/10 text-[#78A243] border-[#78A243]/30"
-                          : "bg-red-100 text-red-800 border-red-300"
-                      }
-                    >
-                      {combo.active ? "Hoạt động" : "Tạm ngưng"}
-                    </Badge>
-                  </div>
 
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm">
-                      <DollarSign className="h-4 w-4 text-[#78A243]" />
-                      <span className="font-bold text-[#78A243]">
-                        {formatPrice(combo.price)}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-gray-600">
-                      <Store className="h-3 w-3" />
-                      <span>{combo.branchName}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-gray-600">
-                      <Calendar className="h-3 w-3" />
-                      <span>
-                        {formatDate(combo.startDate)} -{" "}
-                        {formatDate(combo.endDate)}
-                      </span>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm">
+                        <DollarSign className="h-4 w-4 text-[#78A243]" />
+                        <span className="font-bold text-[#78A243]">
+                          {formatPrice(combo.price)}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-gray-600">
+                        <Store className="h-3 w-3" />
+                        <span>{combo.branchName}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-gray-600">
+                        <Calendar className="h-3 w-3" />
+                        <span>
+                          {formatDate(combo.startDate)} -{" "}
+                          {formatDate(combo.endDate)}
+                        </span>
+                      </div>
                     </div>
                   </div>
 

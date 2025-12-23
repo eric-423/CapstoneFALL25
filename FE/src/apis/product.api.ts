@@ -28,7 +28,6 @@ export const updatePairedProducts = async (productId: number, pairedProductIds: 
 
 export const getPairedProducts = async (productId: number): Promise<Product[]> => {
 
-  const branchId = JSON.parse(localStorage.getItem("selectedBranch") || "{}").branchId;
   const response = await fetch(`/api/products/${productId}/paired`, {
     method: "GET",
     headers: {

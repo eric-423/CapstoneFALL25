@@ -51,8 +51,15 @@ export function AddToCartDrawer({
     setRelatedQuantities({});
   }, [product]);
 
+  const maxQuantity = product.quantityInBranch ?? Infinity;
+  
   const handleQuantityChange = (value: number) => {
-    setMainQuantity(Math.max(1, mainQuantity + value));
+    const newQuantity = mainQuantity + value;
+    if (value > 0 && newQuantity > maxQuantity) {
+      // Don't allow exceeding max quantity
+      return;
+    }
+    setMainQuantity(Math.max(1, Math.min(newQuantity, maxQuantity)));
   };
 
   const handleAddToCart = () => {
@@ -157,6 +164,7 @@ export function AddToCartDrawer({
                   value={mainQuantity}
                   onDecrease={() => handleQuantityChange(-1)}
                   onIncrease={() => handleQuantityChange(1)}
+                  maxValue={maxQuantity}
                 />
               </div>
             </div>
