@@ -205,6 +205,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/order-statuses/{id}").hasAnyRole("ADMIN", "MANAGER")
 
                         .requestMatchers("/products/search").permitAll()
+                        .requestMatchers(HttpMethod.GET,"/products/*/nutrients").permitAll()
                         .requestMatchers("/products/all-branch/search").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers("/product-types", "/product-types/{id}").permitAll()
                         .requestMatchers("/payment-method").permitAll()

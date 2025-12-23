@@ -1,5 +1,6 @@
 package com.capstone.tamtech.capstone.services.impl;
 
+import com.capstone.tamtech.capstone.dto.NutrientDTO;
 import com.capstone.tamtech.capstone.dto.ProductDTO;
 import com.capstone.tamtech.capstone.dto.ProductSearchDTO;
 import com.capstone.tamtech.capstone.payload.PagedResponse;
@@ -7,6 +8,7 @@ import com.capstone.tamtech.capstone.payload.request.ProductCreateRequest;
 import com.capstone.tamtech.capstone.payload.request.ProductSearchRequest;
 
 import java.util.List;
+import java.util.Map;
 
 public interface ProductService {
 
@@ -23,4 +25,6 @@ public interface ProductService {
     List<ProductSearchDTO> getPairedProducts(Integer productId, Integer branchId);
 
     List<ProductDTO> updatePairedProducts(Integer productId, List<Integer> pairedProductIds);
+
+    List<NutrientDTO> getProductNutrients(Integer productId);
 }
