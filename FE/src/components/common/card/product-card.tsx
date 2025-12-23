@@ -3,7 +3,6 @@ import { Card } from "@/components/ui/card";
 import { useIsMobile } from "@/utils/hooks/use-mobile";
 import { Product } from "@/apis/product.api";
 import { contentOverflow } from "@/utils/contentOverflow";
-import { Star } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -62,17 +61,9 @@ export const ProductCard = ({
         </div>
 
         <div className="p-5">
-          <h3 className="text-lg font-bold text-black mb-2 line-clamp-2 min-h-[3.5rem] break-words">
+          <h3 className="text-lg font-bold text-black mb-2 line-clamp-2 min-h-[1.5rem] break-words">
             {item.productName}
           </h3>
-          <div className="flex items-center gap-1 mb-3 justify-center">
-            {[...Array(5)].map((_, i) => (
-              <Star
-                key={i}
-                className="w-4 h-4 text-yellow-500 fill-yellow-500"
-              />
-            ))}
-          </div>
 
           <p className="text-gray-600 text-sm mb-4 leading-relaxed line-clamp-1">
             {contentOverflow(item.productDescription, descriptionOverflow)}

@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Search, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
+import { useDroppable } from '@dnd-kit/core';
 
 interface GlobalProductSourceProps {
     products: Product[];
@@ -24,13 +25,22 @@ export function GlobalProductSource({
     onAddAll
 }: GlobalProductSourceProps) {
     const [searchTerm, setSearchTerm] = useState('');
+    const { setNodeRef, isOver } = useDroppable({
+        id: 'source-container',
+        data: {
+            type: 'source-container'
+        }
+    });
 
     const filteredProducts = products.filter(p =>
         p.productName.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
-        <div className="flex flex-col h-full">
+        <div 
+            ref={setNodeRef}
+            className={`flex flex-col h-full ${isOver ? 'bg-[#78A243]/5' : ''}`}
+        >
             <div className="mb-4 space-y-3">
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -45,7 +55,14 @@ export function GlobalProductSource({
                 {/* Product Type Filter */}
                 {productTypes && productTypes.length > 0 && (
                     <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
-
+                        <Button
+                            variant={selectedProductType === 0 ? "default" : "outline"}
+                            size="sm"
+                            className={`whitespace-nowrap h-8 text-xs ${selectedProductType === 0 ? 'bg-[#EC6426] hover:bg-[#EC6426]/90' : ''}`}
+                            onClick={() => onSelectProductType?.(0)}
+                        >
+                            Tất cả
+                        </Button>
                         {productTypes.map(type => (
                             <Button
                                 key={type.id}
@@ -82,7 +99,7 @@ export function GlobalProductSource({
                 ) : (
                     <>
                         {filteredProducts.map(product => (
-                            <DraggableProductItem key={product.productId} product={product} />
+                            <DraggableProductItem key={product.productId} product={product} source="source" />
                         ))}
                         {filteredProducts.length === 0 && (
                             <p className="text-center text-gray-500 text-sm mt-4">Không tìm thấy món ăn</p>

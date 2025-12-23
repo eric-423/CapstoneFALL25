@@ -9,6 +9,40 @@ export const GET_PRODUCTS_BY_BRANCH_QUERY_KEY =
 export const GET_PRODUCT_SEARCH_QUERY_KEY = "GET_PRODUCT_SEARCH_QUERY_KEY";
 export const GET_TOP_SELLING_QUERY_KEY = "GET_TOP_SELLING_QUERY_KEY";
 
+export const updatePairedProducts = async (productId: number, pairedProductIds: number[]) => {
+  const response = await fetch(`/api/products/${productId}/paired`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(pairedProductIds),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({ error: "Failed to update paired products" }));
+    throw new Error(errorBody.error || "Failed to update paired products");
+  }
+
+  return await response.json();
+};
+
+export const getPairedProducts = async (productId: number): Promise<Product[]> => {
+  const response = await fetch(`/api/products/${productId}/paired`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({ error: "Failed to get paired products" }));
+    throw new Error(errorBody.error || "Failed to get paired products");
+  }
+
+  const data = await response.json();
+  return data.data || [];
+};
+
 export interface SuccessResponse<T> {
   data: T;
   message: string;
@@ -227,8 +261,6 @@ export const getProduct = async (
     params.productTypeId = productTypeId;
   }
 
-  // Use fetch to call the Next.js API route (Proxy)
-  // Build a string-only query object so we don't need to cast to any
   const queryStringParams: Record<string, string> = {};
   Object.entries(params).forEach(([k, v]) => {
     if (v !== undefined && v !== null) {
@@ -281,7 +313,6 @@ export const getProduct = async (
   };
 };
 
-// Wrapper function để tìm kiếm sản phẩm với ProductSearchParams
 export const searchProducts = async (
   params: ProductSearchParams
 ): Promise<ProductSearchResponse> => {
@@ -395,13 +426,14 @@ export const getAllBranchProducts = async (
   if (maxPrice !== undefined) queryParams.maxPrice = maxPrice;
   if (sortBy) queryParams.sortBy = sortBy;
   if (sortDirection) queryParams.sortDirection = sortDirection;
-  // Build a string-only query object to avoid casting to any
+
   const stringQueryParams: Record<string, string> = {};
   Object.entries(queryParams).forEach(([k, v]) => {
     if (v !== undefined && v !== null) {
       stringQueryParams[k] = String(v);
     }
   });
+
   const queryString = new URLSearchParams(stringQueryParams).toString();
   const response = await fetch(
     `/api/products/all-branch/search?${queryString}`,
