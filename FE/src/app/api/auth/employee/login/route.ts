@@ -52,14 +52,6 @@ export async function POST(request: NextRequest) {
                 maxAge: maxAgeInSeconds,
             });
 
-            cookieStore.set('branchId', responseData.userInfo?.branchId, {
-                httpOnly: false,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'strict',
-                path: '/',
-                maxAge: maxAgeInSeconds,
-            });
-
             if (responseData.userInfo?.id) {
                 cookieStore.set('userId', responseData.userInfo.id.toString(), {
                     httpOnly: false,

@@ -10,12 +10,14 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useCart } from "@/utils/contexts/cart/CartContext";
-import { Product } from "@/apis/product.api";
-import { ShoppingBag, X } from "lucide-react";
+import { Product, getPairedProducts } from "@/apis/product.api";
+import { ShoppingBag, X, Plus, Minus } from "lucide-react";
 import Image from "next/image";
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { QuantitySelector } from "../quantity-selector";
 import logo from "@/assets/images/logo.png";
+import { CartItem } from "@/utils/contexts/cart/cart.type";
 
 interface AddToCartDrawerProps {
   open: boolean;
@@ -32,11 +34,21 @@ export function AddToCartDrawer({
   const [mainQuantity, setMainQuantity] = useState(1);
   const [notes, setNotes] = useState("");
   const [imageError, setImageError] = useState(false);
+  const [relatedQuantities, setRelatedQuantities] = useState<Record<number, number>>({});
+
+  // Fetch related products
+  const { data: relatedProducts = [] } = useQuery<Product[]>({
+    queryKey: ["paired-products", product.productId],
+    queryFn: () => getPairedProducts(product.productId),
+    enabled: open && !!product.productId,
+    staleTime: 5 * 60 * 1000,
+  });
 
   useEffect(() => {
     setImageError(false);
     setMainQuantity(1);
     setNotes("");
+    setRelatedQuantities({});
   }, [product]);
 
   const handleQuantityChange = (value: number) => {
@@ -45,31 +57,58 @@ export function AddToCartDrawer({
 
   const handleAddToCart = () => {
     const isCombo = "isCombo" in product && product.isCombo;
-    const cartItem: {
-      productId: number;
-      productName: string;
-      productPrice: number;
-      quantity: number;
-      note: string;
-      comboId?: number;
-      isCombo?: boolean;
-    } = {
+    const cartItem: CartItem = {
       productId: isCombo ? 0 : product.productId,
       productName: product.productName,
       productPrice: product.productPrice,
       quantity: mainQuantity,
       note: notes,
+      ...(isCombo ? { isCombo: true } : {}),
+      ...(isCombo && "comboId" in product && typeof product.comboId === "number"
+        ? { comboId: product.comboId }
+        : {}),
     };
 
-    if (isCombo) {
-      cartItem.isCombo = true;
-      if ("comboId" in product && typeof product.comboId === "number") {
-        cartItem.comboId = product.comboId;
-      }
-    }
-
     addItem(cartItem);
+
+    relatedProducts.forEach((relatedProduct) => {
+      const quantity = relatedQuantities[relatedProduct.productId] || 0;
+      if (quantity > 0) {
+        const relatedCartItem: CartItem = {
+          productId: relatedProduct.productId,
+          productName: relatedProduct.productName,
+          productPrice: relatedProduct.productPrice,
+          quantity: quantity,
+          note: "",
+        };
+        addItem(relatedCartItem);
+      }
+    });
+
     onOpenChange(false);
+  };
+
+  const handleRelatedQuantityChange = (productId: number, delta: number) => {
+    setRelatedQuantities((prev) => {
+      const current = prev[productId] || 0;
+      const newQuantity = Math.max(0, current + delta);
+      if (newQuantity === 0) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { [productId]: _, ...rest } = prev;
+        return rest;
+      }
+      return { ...prev, [productId]: newQuantity };
+    });
+  };
+
+  // Calculate total price including related products
+  const calculateTotalPrice = () => {
+    const mainPrice = product.productPrice * mainQuantity;
+    const relatedPrice = relatedProducts.reduce((total, relatedProduct) => {
+      const quantity = relatedQuantities[relatedProduct.productId] || 0;
+      return total + (relatedProduct.productPrice * quantity);
+    }, 0);
+    return mainPrice + relatedPrice;
   };
 
   return (
@@ -132,6 +171,70 @@ export function AddToCartDrawer({
               onChange={(e) => setNotes(e.target.value)}
             />
           </div>
+
+          {relatedProducts.length > 0 && (
+            <div className="mt-6">
+              <h3 className="font-medium text-lg mb-3">Sản phẩm liên quan</h3>
+              <div
+                className="flex gap-4 overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+              >
+                {relatedProducts.map((relatedProduct) => {
+                  const quantity = relatedQuantities[relatedProduct.productId] || 0;
+                  return (
+                    <div
+                      key={relatedProduct.productId}
+                      className="flex-shrink-0 w-40 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden"
+                    >
+                      <div className="relative w-full h-32 bg-gray-100">
+                        <Image
+                          src={relatedProduct.productImage || logo}
+                          alt={relatedProduct.productName}
+                          fill
+                          className="object-cover"
+                          sizes="160px"
+                          unoptimized={relatedProduct.productImage?.startsWith("http")}
+                          onError={() => setImageError(true)}
+                        />
+                      </div>
+                      <div className="p-3">
+                        <h4 className="font-semibold text-sm line-clamp-2 mb-1">
+                          {relatedProduct.productName}
+                        </h4>
+                        <p className="text-xs text-primary font-bold mb-2">
+                          {relatedProduct.productPrice.toLocaleString()}đ
+                        </p>
+                        <div className="flex items-center justify-between gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleRelatedQuantityChange(relatedProduct.productId, -1)}
+                            disabled={quantity <= 0}
+                            className="h-7 w-7 p-0 rounded-full border-gray-300"
+                          >
+                            <Minus className="h-3 w-3" />
+                          </Button>
+                          <span className="font-medium text-sm min-w-[20px] text-center">
+                            {quantity}
+                          </span>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleRelatedQuantityChange(relatedProduct.productId, 1)}
+                            disabled={!relatedProduct.inStock}
+                            className="h-7 w-7 p-0 rounded-full border-gray-300"
+                          >
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="sticky bottom-0 bg-background border-t border-gray-200 p-4 m-2 mt-0">
@@ -140,8 +243,7 @@ export function AddToCartDrawer({
             onClick={handleAddToCart}
           >
             <ShoppingBag className="h-5 w-5 mr-2" />
-            {(product.productPrice * mainQuantity).toLocaleString()}đ - Thêm vào
-            giỏ hàng
+            {calculateTotalPrice().toLocaleString()}đ - Thêm vào giỏ hàng
           </Button>
         </div>
       </DrawerContent>
