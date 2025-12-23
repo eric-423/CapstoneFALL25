@@ -20,6 +20,7 @@ public class OrderScheduledTaskService {
         try {
             logger.info("Starting auto-complete delivered shipping orders task at 00:00");
             orderService.autoCompleteDeliveredShippingOrders();
+            orderService.autoCompleteDiningOrders();
             logger.info("Auto-complete delivered shipping orders task completed successfully");
         } catch (Exception e) {
             logger.error("Error in auto-complete delivered shipping orders task: {}", e.getMessage(), e);

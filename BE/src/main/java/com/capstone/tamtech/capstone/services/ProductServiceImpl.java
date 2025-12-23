@@ -278,7 +278,7 @@ public class ProductServiceImpl implements ProductService {
         }
 
         result.addAll(nutrientMap.values());
-        
+
         return result;
     }
 

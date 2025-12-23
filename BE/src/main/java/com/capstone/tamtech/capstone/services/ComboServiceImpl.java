@@ -275,6 +275,7 @@ public class ComboServiceImpl implements ComboService {
                     ComboItemDTO itemDTO = new ComboItemDTO();
                     itemDTO.setComboId(item.getCombo().getId());
                     itemDTO.setProductId(item.getProduct().getId());
+                    itemDTO.setProductName(item.getProduct().getName());
                     itemDTO.setQuantity(item.getQuantity());
                     itemDTO.setNote(item.getNote());
                     return itemDTO;

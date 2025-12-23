@@ -13,10 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Date;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -868,18 +865,18 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public void autoCompleteDeliveredShippingOrders() {
-        java.util.Calendar cal = java.util.Calendar.getInstance();
-        cal.add(java.util.Calendar.DAY_OF_MONTH, -1);
-        cal.set(java.util.Calendar.HOUR_OF_DAY, 0);
-        cal.set(java.util.Calendar.MINUTE, 0);
-        cal.set(java.util.Calendar.SECOND, 0);
-        cal.set(java.util.Calendar.MILLISECOND, 0);
+        Calendar cal = java.util.Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_MONTH, -1);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
         Date yesterdayStart = cal.getTime();
 
-        cal.set(java.util.Calendar.HOUR_OF_DAY, 23);
-        cal.set(java.util.Calendar.MINUTE, 59);
-        cal.set(java.util.Calendar.SECOND, 59);
-        cal.set(java.util.Calendar.MILLISECOND, 999);
+        cal.set(Calendar.HOUR_OF_DAY, 23);
+        cal.set(Calendar.MINUTE, 59);
+        cal.set(Calendar.SECOND, 59);
+        cal.set(Calendar.MILLISECOND, 999);
         Date yesterdayEnd = cal.getTime();
 
         List<Order> deliveredOrders = orderRepository.findDeliveredShippingOrdersByDateRange(yesterdayStart,
@@ -918,6 +915,24 @@ public class OrderServiceImpl implements OrderService {
                 e.printStackTrace();
             }
         }
+    }
+
+    @Override
+    public void autoCompleteDiningOrders() {
+        List<Order> orders = orderRepository.findByStatus_NameAndIsTableTrue("PAID");
+        OrderStatus orderStatus = orderStatusRepository.findByName("COMPLETED").orElseThrow(() ->
+                new RuntimeException("OrderStatus COMPLETED not found"));
+
+        orders.forEach(order -> {
+            try {
+                order.setStatus(orderStatus);
+                orderRepository.save(order);
+            } catch (Exception e) {
+                System.err.println("Error auto-completing dining order " + order.getId() + ": " + e.getMessage());
+                e.printStackTrace();
+            }
+        });
+
     }
 
     @Override
