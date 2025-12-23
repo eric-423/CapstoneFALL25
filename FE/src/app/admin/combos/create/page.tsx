@@ -37,6 +37,7 @@ import {
 import { uploadMediaToSupabase } from "@/components/common/upFileToSupabase";
 import Image from "next/image";
 
+
 const COMBO_BUCKET =
   process.env.NEXT_PUBLIC_SUPABASE_COMBO_BUCKET ||
   process.env.NEXT_PUBLIC_SUPABASE_PRODUCT_BUCKET ||
@@ -61,6 +62,11 @@ export default function CreateComboPage() {
   const [comboItems, setComboItems] = useState<ComboItem[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const selectedProductIds = comboItems.map((item) => item.productId);
+  const availableProducts = products.filter(
+    (product) => !selectedProductIds.includes(product.productId)
+  );
 
   const fetchProducts = async (branchIdParam?: number) => {
     if (!branchIdParam) return;
@@ -88,13 +94,22 @@ export default function CreateComboPage() {
     }
   }, [branchId]);
 
+  useEffect(() => {
+    if (!branchId && branches.length > 0) {
+      setBranchId(branches[0].id);
+    }
+  }, [branches, branchId]);
+
   const handleAddItem = () => {
-    if (products.length === 0) return;
+    if (availableProducts.length === 0) {
+      toast.info("Đã thêm hết sản phẩm hiện có của chi nhánh này");
+      return;
+    }
 
     setComboItems([
       ...comboItems,
       {
-        productId: products[0].productId,
+        productId: availableProducts[0].productId,
         quantity: 1,
         note: "",
       },
@@ -103,6 +118,16 @@ export default function CreateComboPage() {
 
   const handleRemoveItem = (index: number) => {
     setComboItems(comboItems.filter((_, i) => i !== index));
+  };
+
+  const handlePriceChange = (value: string) => {
+    const numeric = value.replace(/\D/g, "");
+    if (!numeric) {
+      setPrice("");
+      return;
+    }
+    const formatted = Number(numeric).toLocaleString("vi-VN");
+    setPrice(formatted);
   };
 
   const handleItemChange = (
@@ -124,10 +149,11 @@ export default function CreateComboPage() {
   };
 
   const handleSubmit = async () => {
+    const numericPrice = price ? Number(price.replace(/\D/g, "")) : 0;
     if (
       !name.trim() ||
       !description.trim() ||
-      !price ||
+      !numericPrice ||
       !startDate ||
       !endDate ||
       !branchId ||
@@ -180,7 +206,7 @@ export default function CreateComboPage() {
       const requestData = {
         name: name.trim(),
         description: description.trim(),
-        price: parseFloat(price),
+        price: numericPrice,
         startDate: new Date(startDate).toISOString(),
         endDate: new Date(endDate).toISOString(),
         isActive,
@@ -285,7 +311,7 @@ export default function CreateComboPage() {
                       <input
                         type="number"
                         value={price}
-                        onChange={(e) => setPrice(e.target.value)}
+                        onChange={(e) => handlePriceChange(e.target.value)}
                         placeholder="110.000"
                         min="0"
                         step="1000"
@@ -334,6 +360,7 @@ export default function CreateComboPage() {
                               unoptimized
                             />
                             <button
+                              title="Xóa ảnh"
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -377,7 +404,6 @@ export default function CreateComboPage() {
                         onValueChange={(value) =>
                           setBranchId(value ? parseInt(value) : null)
                         }
-                        placeholder="Chọn chi nhánh"
                         options={branches.map((branch) => ({
                           value: branch.id.toString(),
                           label: branch.name,
@@ -458,7 +484,9 @@ export default function CreateComboPage() {
                   <Button
                     onClick={handleAddItem}
                     size="sm"
-                    disabled={!branchId || loadingProducts}
+                    disabled={
+                      !branchId || loadingProducts || availableProducts.length === 0
+                    }
                     className="bg-[#78A243] hover:bg-[#78A243]/90 text-white shadow-md hover:shadow-lg transition-all"
                   >
                     <Plus className="h-4 w-4 mr-2" />
@@ -489,6 +517,11 @@ export default function CreateComboPage() {
                 ) : (
                   <div className="space-y-3">
                     {comboItems.map((item, index) => {
+                      const availableOptions = products.filter(
+                        (product) =>
+                          product.productId === item.productId ||
+                          !selectedProductIds.includes(product.productId)
+                      );
                       const product = products.find(
                         (p) => p.productId === item.productId
                       );
@@ -512,7 +545,7 @@ export default function CreateComboPage() {
                                       parseInt(value)
                                     )
                                   }
-                                  options={products.map((product) => ({
+                                  options={availableOptions.map((product) => ({
                                     value: product.productId.toString(),
                                     label: product.productName,
                                     subLabel: `${product.productPrice.toLocaleString("vi-VN")}đ`,

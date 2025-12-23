@@ -31,7 +31,7 @@ export default function BranchMenuManagerPage() {
     const [globalProducts, setGlobalProducts] = useState<Product[]>([]);
     const [productTypes, setProductTypes] = useState<ProductType[]>([]);
     const [selectedProductType, setSelectedProductType] = useState<number>(0);
-    const [selectedBranchId, setSelectedBranchId] = useState<number | null>(null);
+    const [selectedBranchId, setSelectedBranchId] = useState<number | null>(1);
     const [branchProducts, setBranchProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [loadingProducts, setLoadingProducts] = useState(false);
@@ -82,15 +82,15 @@ export default function BranchMenuManagerPage() {
         try {
             const response = await getProduct(
                 branchId,
-                '', // keyword
-                true, // isActive
-                0, // minPrice
-                999999999, // maxPrice
-                0, // page
-                1000, // size - fetch all
-                'name', // sortBy
-                'ASC', // sortDirection
-                undefined // productTypeId
+                '',
+                true,
+                0,
+                999999999,
+                0,
+                1000,
+                'name',
+                'ASC',
+                undefined
             );
             setBranchProducts(response.data.content);
         } catch (error) {
@@ -99,7 +99,6 @@ export default function BranchMenuManagerPage() {
         }
     };
 
-    // Filter global products: remove products already in the selected branch
     const filteredGlobalProducts = globalProducts.filter(gp =>
         !branchProducts.some(bp => bp.productId === gp.productId)
     );

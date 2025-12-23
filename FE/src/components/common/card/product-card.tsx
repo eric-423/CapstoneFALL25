@@ -49,7 +49,7 @@ export const ProductCard = ({
             </div>
           </div>
         )}
-        <div className="relative h-48 overflow-hidden">
+        <div className="relative h-48 overflow-hidden ">
           <Image
             src={item.productImage || "/placeholder.svg"}
             alt={item.productName}
@@ -60,14 +60,16 @@ export const ProductCard = ({
           />
         </div>
 
-        <div className="p-5">
-          <h3 className="text-lg font-bold text-black mb-2 line-clamp-2 min-h-[1.5rem] break-words">
+        <div className="p-5 ">
+          <h3 className="text-lg font-bold text-black mb-2 line-clamp-1 min-h-[1.5rem] break-words">
             {item.productName}
           </h3>
 
           <p className="text-gray-600 text-sm mb-4 leading-relaxed line-clamp-1">
             {contentOverflow(item.productDescription, descriptionOverflow)}
           </p>
+
+
 
           <div className="flex items-center justify-between">
             <span className="text-xl font-bold text-black">

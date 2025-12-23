@@ -10,6 +10,7 @@ interface QuantitySelectorProps {
   onIncrease: () => void;
   small?: boolean;
   className?: string;
+  maxValue?: number;
 }
 
 export function QuantitySelector({
@@ -18,7 +19,10 @@ export function QuantitySelector({
   onIncrease,
   small = false,
   className,
+  maxValue,
 }: QuantitySelectorProps) {
+  const isMaxReached = maxValue !== undefined && value >= maxValue;
+  
   return (
     <div
       className={cn(
@@ -31,7 +35,7 @@ export function QuantitySelector({
         variant="outline"
         size={small ? "sm" : "icon"}
         onClick={onDecrease}
-        disabled={value <= 0}
+        disabled={value <= 1}
         className={`rounded-full border-gray-300 ${small ? "h-6 w-6" : "h-8 w-8"}`}
       >
         <Minus className={small ? "h-3 w-3" : "h-4 w-4"} />
@@ -44,6 +48,7 @@ export function QuantitySelector({
         variant="outline"
         size={small ? "sm" : "icon"}
         onClick={onIncrease}
+        disabled={isMaxReached}
         className={`rounded-full border-gray-300 ${small ? "h-6 w-6" : "h-8 w-8"}`}
       >
         <Plus className={small ? "h-3 w-3" : "h-4 w-4"} />
