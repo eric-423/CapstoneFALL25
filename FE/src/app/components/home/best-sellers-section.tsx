@@ -23,7 +23,6 @@ type DisplayProduct = {
   title: string;
   description: string;
   price: string;
-  rating: number;
   image: string;
 };
 
@@ -49,9 +48,8 @@ const BestSellersSection = ({ products }: BestSellersNewProps) => {
         return {
           id: item.itemId,
           title: item.itemName.toUpperCase(),
-          description: "Món ăn ngon, đậm đà hương vị Việt Nam.",
+          description: "",
           price: price.toLocaleString("vi-VN"),
-          rating: 5,
           image: item.imageUrl || "/images/placeholder.jpg",
         };
       });
@@ -63,9 +61,8 @@ const BestSellersSection = ({ products }: BestSellersNewProps) => {
         title: product.productName.toUpperCase(),
         description:
           product.productDescription ||
-          "Món ăn ngon, đậm đà hương vị Việt Nam.",
+          "",
         price: (product.productPrice || 0).toLocaleString("vi-VN"),
-        rating: 5,
         image: product.productImage || "/images/placeholder.jpg",
       }));
     }
@@ -92,14 +89,16 @@ const BestSellersSection = ({ products }: BestSellersNewProps) => {
           </h2>
           <div className="flex items-center gap-3">
             <button
+              title="Quay lại"
               onClick={() => scroll("left")}
-              className="w-12 h-12 rounded-full !bg-[#F8A91F] hover:bg-[#EC6426] flex items-center justify-center transition-colors shadow-md"
+              className="cursor-pointer w-12 h-12 rounded-full !bg-[#F8A91F] hover:bg-[#EC6426] flex items-center justify-center transition-colors shadow-md"
             >
               <ChevronLeft className="w-6 h-6 text-black" />
             </button>
             <button
+              title="Tiếp theo"
               onClick={() => scroll("right")}
-              className="w-12 h-12 rounded-full !bg-[#F8A91F] hover:bg-[#EC6426] flex items-center justify-center transition-colors shadow-md"
+              className="cursor-pointer w-12 h-12 rounded-full !bg-[#F8A91F] hover:bg-[#EC6426] flex items-center justify-center transition-colors shadow-md"
             >
               <ChevronRight className="w-6 h-6 text-black" />
             </button>
@@ -122,7 +121,6 @@ const BestSellersSection = ({ products }: BestSellersNewProps) => {
                 title={item.title}
                 description={item.description}
                 price={item.price}
-                rating={item.rating}
                 image={item.image}
                 index={index}
               />

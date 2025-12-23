@@ -34,6 +34,7 @@ import {
   type AllBranchProductSearchParams,
 } from "@/apis/product.api";
 import { ProductForm } from "./components/ProductForm";
+import { useRouter } from "next/navigation";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -45,6 +46,7 @@ export default function ProductsPage() {
   const [pageSize, setPageSize] = useState(10);
   const [showProductForm, setShowProductForm] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const router = useRouter();
 
   // Sort states
   const [sortBy, setSortBy] = useState("createdDate");
@@ -121,6 +123,10 @@ export default function ProductsPage() {
   const handleEditProduct = (product: Product) => {
     setSelectedProduct(product);
     setShowProductForm(true);
+  };
+
+  const handleOpenRelatedPage = (product: Product) => {
+    router.push(`/admin/products/${product.productId}/related`);
   };
 
   const handlePageChange = (newPage: number) => {
@@ -247,11 +253,11 @@ export default function ProductsPage() {
               isActiveFilter !== undefined ||
               minPrice ||
               maxPrice) && (
-              <Button onClick={handleClearFilters} variant="ghost" size="sm">
-                <X className="h-4 w-4 mr-1" />
-                Xóa lọc
-              </Button>
-            )}
+                <Button onClick={handleClearFilters} variant="ghost" size="sm">
+                  <X className="h-4 w-4 mr-1" />
+                  Xóa lọc
+                </Button>
+              )}
           </div>
 
           <div className="flex items-center gap-3 justify-end">
@@ -421,15 +427,25 @@ export default function ProductsPage() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEditProduct(product)}
-                          className="text-[#78A243] border-[#78A243]/30 hover:bg-[#78A243]/10"
-                        >
-                          <Edit className="h-4 w-4 mr-1" />
-                          Chi tiết & Công thức
-                        </Button>
+                        <div className="flex items-center justify-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditProduct(product)}
+                            className="text-[#78A243] border-[#78A243]/30 hover:bg-[#78A243]/10"
+                          >
+                            <Edit className="h-4 w-4 mr-1" />
+                            Chi tiết & Công thức
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleOpenRelatedPage(product)}
+                            className="text-[#EC6426] border-[#EC6426]/30 hover:bg-[#EC6426]/10"
+                          >
+                            <UtensilsCrossed className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))

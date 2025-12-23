@@ -6,14 +6,15 @@ import { GripVertical } from 'lucide-react';
 
 interface DraggableProductItemProps {
     product: Product;
+    source?: 'source' | 'target' | 'global' | 'branch';
 }
 
-export function DraggableProductItem({ product }: DraggableProductItemProps) {
+export function DraggableProductItem({ product, source = 'global' }: DraggableProductItemProps) {
     const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
-        id: `global-${product.productId}`,
+        id: `${source}-${product.productId}`,
         data: {
             product,
-            source: 'global'
+            source: source === 'global' || source === 'branch' ? source : 'source'
         }
     });
 

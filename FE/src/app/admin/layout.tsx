@@ -85,11 +85,10 @@ const MenuItem = memo(
                     flex items-center gap-3 py-2.5 sm:py-3 rounded-xl 
                     transition-all duration-150 relative group flex-1
                     ${isCollapsed ? "justify-center px-3" : "px-4 ml-10"}
-                    ${
-                      isActive
-                        ? "bg-white/20 text-white shadow-lg font-semibold backdrop-blur-sm"
-                        : "text-white/80 hover:bg-white/10 hover:text-white"
-                    }
+                    ${isActive
+                ? "bg-white/20 text-white shadow-lg font-semibold backdrop-blur-sm"
+                : "text-white/80 hover:bg-white/10 hover:text-white"
+              }
                 `}
           >
             {isActive && isCollapsed && (
@@ -153,8 +152,7 @@ export default function AdminLayout({
       { href: "/admin/schedule", label: "Lịch trình", icon: Calendar },
       { href: "/admin/promotions", label: "Khuyến mãi", icon: Gift },
       // { href: "/admin/feedback", label: "Phản hồi", icon: MessageSquare },
-    ],
-    []
+    ], []
   );
 
   const activeIndex = useMemo(() => {
@@ -215,6 +213,7 @@ export default function AdminLayout({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [sidebarOpen]);
+
   const handleBarcodeSuccess = useCallback((orderId: number) => {
     // Chef assigned successfully
   }, []);
@@ -226,6 +225,7 @@ export default function AdminLayout({
   const handleBarcodeAlreadyHandled = useCallback((orderId: number) => {
     // Order already handled by another chef
   }, []);
+
   useBarcodeScanner({
     enabled: true,
     onSuccess: handleBarcodeSuccess,

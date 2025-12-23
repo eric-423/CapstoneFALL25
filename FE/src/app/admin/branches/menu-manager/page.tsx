@@ -104,9 +104,6 @@ export default function BranchMenuManagerPage() {
         !branchProducts.some(bp => bp.productId === gp.productId)
     );
 
-    // Fetch global products when filter changes (if needed, but we have all products)
-    // We can keep the existing logic if we want to support server-side filtering for global products
-    // But for now, let's assume we have all products and filter client-side against the branch menu
     useEffect(() => {
         const fetchFilteredProducts = async () => {
             try {

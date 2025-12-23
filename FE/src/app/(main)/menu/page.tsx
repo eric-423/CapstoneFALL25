@@ -174,7 +174,7 @@ export default function MenuPage() {
     goToPage: goToProductPage,
     totalPages: productTotalPages,
   } = useGetProductSearch({
-    size: 12,
+    size: 15,
     productTypeId:
       productType.id === 0
         ? undefined
@@ -462,11 +462,10 @@ export default function MenuPage() {
                             ) : (
                               <Button
                                 key={item}
-                                className={`h-11 w-11 rounded-full font-semibold transition-all duration-200 ${
-                                  item === page
-                                    ? "bg-[#EC6426] text-white shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/40 scale-105"
-                                    : "bg-[#EC6426]/30 text-[#EC6426] hover:bg-[#EC6426]/50 hover:shadow-md border-2 border-transparent hover:border-[#EC6426]/30"
-                                }`}
+                                className={`h-11 w-11 rounded-full font-semibold transition-all duration-200 ${item === page
+                                  ? "bg-[#EC6426] text-white shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/40 scale-105"
+                                  : "bg-[#EC6426]/30 text-[#EC6426] hover:bg-[#EC6426]/50 hover:shadow-md border-2 border-transparent hover:border-[#EC6426]/30"
+                                  }`}
                                 onClick={() => handlePageChange(item)}
                               >
                                 {item + 1}
