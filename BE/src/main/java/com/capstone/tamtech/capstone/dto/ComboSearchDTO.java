@@ -48,7 +48,7 @@ public class ComboSearchDTO implements Serializable {
 
     @Schema(description = "URL hình ảnh combo", example = "http://example.com/images/combo1.jpg")
     private String imageUrl;
-    
+
     private boolean isValidDate = false;
 }
 

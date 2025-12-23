@@ -1,5 +1,6 @@
 package com.capstone.tamtech.capstone.controllers;
 
+import com.capstone.tamtech.capstone.dto.NutrientDTO;
 import com.capstone.tamtech.capstone.dto.ProductDTO;
 import com.capstone.tamtech.capstone.dto.ProductSearchDTO;
 import com.capstone.tamtech.capstone.payload.PagedResponse;
@@ -22,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/products")
@@ -230,6 +232,16 @@ public class ProductController {
     List<ProductDTO> updatedPairedProducts = productService.updatePairedProducts(productId, pairedProductIds);
     ResponseData responseData = new ResponseData();
     responseData.setData(updatedPairedProducts);
+    responseData.setStatus(200);
+
+    return new ResponseEntity<>(responseData, HttpStatus.OK);
+  }
+
+  @GetMapping("/{productId}/nutrients")
+  public ResponseEntity<?> getProductNutrients(@PathVariable Integer productId) {
+    List<NutrientDTO> nutrients = productService.getProductNutrients(productId);
+    ResponseData responseData = new ResponseData();
+    responseData.setData(nutrients);
     responseData.setStatus(200);
 
     return new ResponseEntity<>(responseData, HttpStatus.OK);

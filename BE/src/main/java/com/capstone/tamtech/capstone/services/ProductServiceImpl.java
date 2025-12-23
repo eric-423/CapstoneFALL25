@@ -1,5 +1,6 @@
 package com.capstone.tamtech.capstone.services;
 
+import com.capstone.tamtech.capstone.dto.NutrientDTO;
 import com.capstone.tamtech.capstone.dto.ProductDTO;
 import com.capstone.tamtech.capstone.dto.ProductSearchDTO;
 import com.capstone.tamtech.capstone.entities.*;
@@ -227,6 +228,58 @@ public class ProductServiceImpl implements ProductService {
                 .stream()
                 .map(this::toDTO)
                 .toList();
+    }
+
+    @Override
+    public List<NutrientDTO> getProductNutrients(Integer productId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + productId));
+        Map<Integer, NutrientDTO> nutrientMap = new HashMap<>();
+        List<NutrientDTO> result = new ArrayList<>();
+        List<ProductRecipes> productRecipes = product.getProductRecipes();
+
+        for(ProductRecipes pr : productRecipes){
+            Material material = pr.getMaterial();
+            List<MaterialNutrients> materialNutrients = material.getMaterialNutrients();
+
+            for(MaterialNutrients mn : materialNutrients){
+                Nutrients nutrient = mn.getNutrient();
+                double baseNutrientAmount = (pr.getQuantity() * mn.getAmountPer100Unit()) / 100.0;
+                double finalNutrientAmount = baseNutrientAmount;
+
+                CookingMethod cookingMethod = pr.getCookingMethod();
+                if(cookingMethod != null){
+                    KeyCookingMethodNutrients key = new KeyCookingMethodNutrients();
+                    key.setCookingMethodId(cookingMethod.getId());
+                    key.setNutrientId(nutrient.getId());
+
+                    CookingMethodNutrients cmn = cookingMethodNutrientRepository.findById(key)
+                            .orElseThrow(() -> new ResourceNotFoundException(
+                                    "Không tìm thấy thông tin dinh dưỡng phương pháp nấu với khóa: " + key));
+
+                    finalNutrientAmount = baseNutrientAmount * cmn.getRetentionFactor();
+                }
+
+                if(nutrientMap.containsKey(nutrient.getId())){
+                    NutrientDTO existingDTO = nutrientMap.get(nutrient.getId());
+                    existingDTO.setAmount(existingDTO.getAmount() + finalNutrientAmount);
+                } else {
+                    NutrientDTO nutrientDTO = new NutrientDTO();
+                    nutrientDTO.setId(nutrient.getId());
+                    nutrientDTO.setName(nutrient.getName());
+                    nutrientDTO.setCode(nutrient.getCode());
+                    nutrientDTO.setUnit(nutrient.getUnit());
+                    nutrientDTO.setEnergyPerUnit(nutrient.getEnergyPerUnit());
+                    nutrientDTO.setAmount(finalNutrientAmount);
+
+                    nutrientMap.put(nutrient.getId(), nutrientDTO);
+                }
+            }
+        }
+
+        result.addAll(nutrientMap.values());
+        
+        return result;
     }
 
     @Override

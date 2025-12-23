@@ -11,6 +11,7 @@ public class NutrientDTO {
     private int id;
     private String name;
     private String code;
+    private Double amount;
     private String unit;
     private double energyPerUnit;
 }
