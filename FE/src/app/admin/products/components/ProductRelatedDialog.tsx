@@ -26,7 +26,6 @@ export function ProductRelatedDialog({
     const [isSaving, setIsSaving] = useState(false);
     const queryClient = useQueryClient();
 
-    // Fetch all products for source
     const { data: allProductsResponse, isLoading: isLoadingAll } = useQuery({
         queryKey: ['all-products-for-related', productId],
         queryFn: () => getAllBranchProducts({ page: 0, size: 1000 }),
@@ -34,7 +33,6 @@ export function ProductRelatedDialog({
         staleTime: 5 * 60 * 1000,
     });
 
-    // Fetch product types
     const { data: productTypes = [] } = useQuery<ProductType[]>({
         queryKey: ['product-types-for-related'],
         queryFn: () => getProductType(),
@@ -42,7 +40,6 @@ export function ProductRelatedDialog({
         staleTime: 30 * 60 * 1000,
     });
 
-    // Fetch paired products
     const { data: pairedProducts = [], isLoading: isLoadingPaired } = useQuery<Product[]>({
         queryKey: ['paired-products', productId],
         queryFn: () => getPairedProducts(productId),
@@ -50,12 +47,10 @@ export function ProductRelatedDialog({
         staleTime: 5 * 60 * 1000,
     });
 
-    // Update target products when dialog opens or paired products are loaded
     const prevPairedProductsRef = React.useRef<string>('');
-    
+
     useEffect(() => {
         if (open && pairedProducts !== undefined) {
-            // Create a stable reference for comparison
             const newIds = pairedProducts.map(p => p.productId).sort().join(',');
             if (prevPairedProductsRef.current !== newIds) {
                 prevPairedProductsRef.current = newIds;
@@ -64,12 +59,14 @@ export function ProductRelatedDialog({
         }
     }, [open, pairedProducts]);
 
-    const allProducts = allProductsResponse?.content || allProductsResponse || [];
     const [selectedProductType, setSelectedProductType] = useState<number>(0);
 
-    // Filter source products: exclude current product and already paired products, and filter by type
+    const allProducts = useMemo<Product[]>(() => {
+        return (allProductsResponse?.content || allProductsResponse || []) as Product[];
+    }, [allProductsResponse]);
+
     const filteredSourceProducts = useMemo(() => {
-        return allProducts.filter(p => {
+        return allProducts.filter((p: Product) => {
             const matchesType = selectedProductType === 0 || p.productTypeId === selectedProductType;
             const isNotCurrent = p.productId !== productId;
             const isNotInTarget = !targetProducts.some(tp => tp.productId === p.productId);
@@ -83,10 +80,9 @@ export function ProductRelatedDialog({
             setIsSaving(true);
             const productIds = targetProducts.map(p => p.productId);
             await updatePairedProducts(productId, productIds);
-            
-            // Invalidate and refetch paired products
+
             await queryClient.invalidateQueries({ queryKey: ['paired-products', productId] });
-            
+
             toast.success('Đã lưu món ăn liên quan thành công');
             onOpenChange(false);
         } catch (error) {
@@ -98,7 +94,6 @@ export function ProductRelatedDialog({
     };
 
     const handleCancel = () => {
-        // Reset to original paired products
         if (pairedProducts && pairedProducts.length > 0) {
             setTargetProducts(pairedProducts);
         } else {
