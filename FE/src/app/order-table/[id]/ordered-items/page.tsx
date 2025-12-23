@@ -93,19 +93,16 @@ export default function OrderedItemsPage() {
 
               return (
                 <div
-                  key={`${isCombo ? "combo" : "product"}-${
-                    isCombo ? item.comboDTO?.id : item.productId
-                  }-${idx}`}
-                  className={`flex items-start gap-4 p-4 rounded-xl border ${
-                    isCombo ? "bg-orange-50 border-orange-200" : "bg-gray-50"
-                  }`}
+                  key={`${isCombo ? "combo" : "product"}-${isCombo ? item.comboDTO?.id : item.productId
+                    }-${idx}`}
+                  className={`flex items-start gap-4 p-4 rounded-xl border ${isCombo ? "bg-orange-50 border-orange-200" : "bg-gray-50"
+                    }`}
                 >
                   <div
-                    className={`relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden ${
-                      isCombo
-                        ? "bg-gradient-to-br from-orange-100 to-orange-50"
-                        : "bg-white"
-                    }`}
+                    className={`relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden ${isCombo
+                      ? "bg-gradient-to-br from-orange-100 to-orange-50"
+                      : "bg-white"
+                      }`}
                   >
                     {displayImage ? (
                       <Image
@@ -134,9 +131,8 @@ export default function OrderedItemsPage() {
 
                   <div className="flex-1 min-w-0">
                     <h3
-                      className={`font-semibold mb-1 ${
-                        isCombo ? "text-orange-700" : "text-gray-900"
-                      }`}
+                      className={`font-semibold mb-1 ${isCombo ? "text-orange-700" : "text-gray-900"
+                        }`}
                     >
                       {displayName}
                     </h3>
@@ -175,9 +171,8 @@ export default function OrderedItemsPage() {
 
                   <div className="text-right">
                     <p
-                      className={`font-semibold text-lg ${
-                        isCombo ? "text-orange-600" : "text-primary"
-                      }`}
+                      className={`font-semibold text-lg ${isCombo ? "text-orange-600" : "text-primary"
+                        }`}
                     >
                       {(displayPrice * item.quantity).toLocaleString()}đ
                     </p>

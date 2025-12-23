@@ -266,20 +266,14 @@ export default function CompletedPage() {
                                                                 // Tách items có combo và không có combo
                                                                 const comboItems = order.orderItems.filter(item => item.comboDTO);
                                                                 const regularItems = order.orderItems.filter(item => !item.comboDTO);
-                                                                const processedComboIds = new Set<number>();
 
                                                                 return (
                                                                     <>
                                                                         {comboItems.map((item) => {
                                                                             if (!item.comboDTO) return null;
 
-                                                                            if (processedComboIds.has(item.comboDTO.id)) {
-                                                                                return null;
-                                                                            }
-                                                                            processedComboIds.add(item.comboDTO.id);
-
                                                                             return (
-                                                                                <div key={`combo-${item.comboDTO.id}`}>
+                                                                                <div key={`combo-${item.orderItemId}`}>
                                                                                     <div className='flex items-start gap-3 p-3 bg-white rounded-lg'>
                                                                                         {item.productImg && (
                                                                                             <Image
