@@ -172,7 +172,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProductSearchDTO> getPairedProducts(Integer productId) {
+    public List<ProductSearchDTO> getPairedProducts(Integer productId, Integer branchId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + productId));
 
@@ -180,10 +180,19 @@ public class ProductServiceImpl implements ProductService {
             return new ArrayList<>();
         }
 
-        return product.getPairedProducts()
-                .stream()
-                .map(this::mapToProductSearchDTO)
-                .toList();
+        List<ProductSearchDTO> productSearchDTOS = product.getPairedProducts().stream().map(this::mapToProductSearchDTO).toList();
+
+        productSearchDTOS.forEach(productSearchDTO -> {
+            int quantityInBranch = inventoryServiceImpl.getAvailableProductQuantity(
+                    productSearchDTO.getProductId(),
+                    branchId);
+            productSearchDTO.setQuantityInBranch(quantityInBranch);
+            productSearchDTO.setInStock(isInStock(
+                    productRepository.findById(productSearchDTO.getProductId()).get(),
+                    branchRepository.findById(branchId).get()));
+        });
+
+        return productSearchDTOS;
     }
 
     @Override
@@ -360,7 +369,7 @@ public class ProductServiceImpl implements ProductService {
         String sortBy = mapSortField(searchRequest.getSortBy());
 
         Sort sort = Sort.by(Sort.Direction.fromString(
-                searchRequest.getSortDirection() != null ? searchRequest.getSortDirection() : "ASC"),
+                        searchRequest.getSortDirection() != null ? searchRequest.getSortDirection() : "ASC"),
                 sortBy);
 
         return PageRequest.of(page, size, sort);

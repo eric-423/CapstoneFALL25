@@ -20,7 +20,7 @@ public interface ProductService {
 
     ProductSearchDTO getProductById(Integer productId, Integer branchId);
 
-    List<ProductSearchDTO> getPairedProducts(Integer productId);
+    List<ProductSearchDTO> getPairedProducts(Integer productId, Integer branchId);
 
     List<ProductDTO> updatePairedProducts(Integer productId, List<Integer> pairedProductIds);
 }

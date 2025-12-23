@@ -216,8 +216,8 @@ public class ProductController {
   }
 
   @GetMapping("/{productId}/paired")
-  public ResponseEntity<?> getPairedProducts(@PathVariable Integer productId) {
-    List<ProductSearchDTO> pairedProducts = productService.getPairedProducts(productId);
+  public ResponseEntity<?> getPairedProducts(@PathVariable Integer productId, @RequestParam Integer branchId) {
+    List<ProductSearchDTO> pairedProducts = productService.getPairedProducts(productId, branchId);
     ResponseData responseData = new ResponseData();
     responseData.setData(pairedProducts);
     responseData.setStatus(200);
