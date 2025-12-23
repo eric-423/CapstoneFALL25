@@ -41,12 +41,14 @@ public class CartItemServiceImpl implements CartItemService {
         cartItemDTO.setId(cartItem.getCartId());
 
         if (cartItem.getProduct() != null) {
+            Product product = cartItem.getProduct();
             cartItemDTO.setProductId(cartItem.getProduct().getId());
-            cartItemDTO.setProductName((cartItemDTO.getProductName()));
+            cartItemDTO.setProductName(product.getName());
         }
         if(cartItem.getCombo() != null) {
+            Combo combo = cartItem.getCombo();
             cartItemDTO.setComboId(cartItem.getCombo().getId());
-            cartItemDTO.setComboName(cartItemDTO.getComboName());
+            cartItemDTO.setComboName(combo.getName());
         }
 
         cartItemDTO.setQuantity(cartItem.getQuantity());
