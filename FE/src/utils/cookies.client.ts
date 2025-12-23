@@ -14,6 +14,10 @@ const getCookieValue = (name: string): string | undefined => {
 const setCookieValue = (name: string, value: string, expires?: Date) => {
   if (typeof window === "undefined") return;
 
+  // Remove old cookie first to avoid duplicates (for current domain)
+  document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+
+  // Set new cookie
   let cookie = `${name}=${value}; path=/; SameSite=Strict`;
   if (
     process.env.NODE_ENV === "production" &&

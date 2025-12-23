@@ -30,8 +30,12 @@ export async function GET(request: NextRequest, context: RouteContext) {
       );
     }
 
+    const { searchParams } = new URL(request.url);
+    const branchIdFromCookie = cookieStore.get("branchId")?.value;
+    const branchId = searchParams.get("branchId") || branchIdFromCookie || "1";
+
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productId}/paired`,
+      `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productId}/paired?branchId=${branchId}`,
       {
         method: "GET",
         headers: {

@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { getProductById, Product, searchProducts } from "@/apis/product.api";
+import { getPairedProducts, getProductById, Product } from "@/apis/product.api";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -23,7 +23,6 @@ import { AddToCartDrawer } from "@/components/common/add-to-cart/add-to-cart-dra
 import { useIsMobile } from "@/utils/hooks/use-mobile";
 import { Separator } from "@/components/ui/separator";
 import { ProductCard } from "@/components/common/card/product-card";
-import { getCookie } from "@/utils/cookies.client";
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -52,38 +51,19 @@ export default function ProductDetailPage() {
     retry: 1,
   });
 
-  const { data: relatedProducts = [], isLoading: isLoadingRelated } = useQuery<
-    Product[]
-  >({
-    queryKey: ["related-products", productId, product?.productType],
-    enabled: !!productId && !isNaN(productId) && !!product,
+  const { data: relatedProducts = [], isLoading: isLoadingRelated } = useQuery<Product[]>({
+    queryKey: ["paired-products", product?.productId],
     queryFn: async () => {
-      if (!product) return [];
-
-      const branchIdFromCookie = getCookie("branchId");
-      const branchId = branchIdFromCookie
-        ? parseInt(branchIdFromCookie, 10)
-        : undefined;
-
-      const res = await searchProducts({
-        branchId: branchId || 1,
-        productTypeId: product.productTypeId,
-        isActive: true,
-        minPrice: 0,
-        maxPrice: 500000,
-        page: 0,
-        size: 50,
-        sortBy: "name",
-        sortDirection: "ASC",
-      });
-
-      const list = Array.isArray(res?.content) ? res.content : [];
-
-      return (list as Product[]).filter(
-        (p) =>
-          p.productId !== productId && p.productType === product.productType
-      );
+      if (!product?.productId) return [];
+      try {
+        return await getPairedProducts(product.productId);
+      } catch (error) {
+        console.error("Error fetching paired products:", error);
+        return [];
+      }
     },
+    enabled: !!product?.productId,
+    staleTime: 5 * 60 * 1000,
   });
 
   if (isLoading) {
@@ -260,6 +240,7 @@ export default function ProductDetailPage() {
               <div className="flex items-center gap-4">
                 {totalPages > 1 && (
                   <button
+                    title="Quay lại"
                     type="button"
                     onClick={() =>
                       setCurrentPage((page) => Math.max(0, page - 1))
@@ -281,6 +262,7 @@ export default function ProductDetailPage() {
 
                 {totalPages > 1 && (
                   <button
+                    title="Tiếp theo"
                     type="button"
                     onClick={() =>
                       setCurrentPage((page) =>
