@@ -125,6 +125,9 @@ public class ComboServiceImpl implements ComboService {
                 .branchName(combo.getBranch() != null ? combo.getBranch().getName() : null)
                 .isInStock(isInStock(combo.getId()))
                 .imageUrl(combo.getImageUrl())
+                .isValidDate(combo.getStartDate() != null && combo.getEndDate() != null &&
+                        new Date().compareTo(combo.getStartDate()) >= 0 &&
+                        new Date().compareTo(combo.getEndDate()) <= 0)
                 .build();
     }
 
