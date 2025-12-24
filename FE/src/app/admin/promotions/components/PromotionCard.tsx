@@ -30,7 +30,6 @@ export function PromotionCard({
   onToggleStatus,
   onSuccess,
 }: PromotionCardProps) {
-  const percentage = Math.min((promo.usageCount / 100) * 100, 100);
 
   // Get icon based on promotion type
   const getPromotionTypeIcon = () => {
@@ -133,27 +132,6 @@ export function PromotionCard({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-white rounded-md flex items-center justify-center border border-[#78A243]/20 flex-shrink-0">
-            <UsersIcon size={14} className="text-[#78A243]" strokeWidth={2} />
-          </div>
-          <div className="flex-1">
-            <div className="flex items-center justify-between mb-1">
-              <p className="text-xs text-[#2D1E1A]/60 font-medium">
-                Đã sử dụng
-              </p>
-              <span className="text-xs font-bold text-[#2D1E1A]">
-                {promo.usageCount} lượt
-              </span>
-            </div>
-            <div className="relative h-2 bg-white rounded-full overflow-hidden border border-[#78A243]/20">
-              <div
-                className="absolute top-0 left-0 h-full bg-[#78A243] rounded-full transition-all duration-1000 ease-out"
-                style={{ width: `${percentage}%` }}
-              />
-            </div>
-          </div>
-        </div>
       </div>
 
       <div className="flex gap-2 pt-3 mt-3 border-t border-[#78A243]/10">

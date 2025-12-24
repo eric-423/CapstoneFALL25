@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { TableData } from "@/apis/table.api";
 import { assignCustomerToOrder } from "@/apis/order.api";
-import { validateDiningTablePromotion } from "@/apis/promotion.api";
+import { validateDiningTablePromotion, getPromotionDetail, Promotion } from "@/apis/promotion.api";
 
 interface PaymentMethod {
     id: number;
@@ -64,6 +64,7 @@ export function DiningTablePaymentModal({
 
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [promotionError, setPromotionError] = useState<string | null>('');
+    const [promotionDetail, setPromotionDetail] = useState<Promotion | null>(null);
 
     useEffect(() => {
         if (isOpen && table && !hasFetchedPaymentMethods.current) {
@@ -95,10 +96,12 @@ export function DiningTablePaymentModal({
             setUsedPoints(0);
             setErrorMessage(null);
             setPromotionError(null);
+            setPromotionDetail(null);
         } else if (!isOpen) {
             hasFetchedPaymentMethods.current = false;
             setErrorMessage(null);
             setPromotionError(null);
+            setPromotionDetail(null);
         }
     }, [isOpen, table, onNotification]);
 
@@ -121,6 +124,7 @@ export function DiningTablePaymentModal({
         if (!code) {
             setPromotionError(null);
             setDiscountValue(0);
+            setPromotionDetail(null);
             return;
         }
 
@@ -128,6 +132,7 @@ export function DiningTablePaymentModal({
         if (!phone) {
             setPromotionError("Vui lòng nhập số điện thoại khách hàng trước khi áp dụng mã khuyến mãi");
             setDiscountValue(0);
+            setPromotionDetail(null);
             return;
         }
 
@@ -149,9 +154,20 @@ export function DiningTablePaymentModal({
 
                 if (result?.data === true) {
                     setPromotionError(null);
+                    // Lấy chi tiết promotion sau khi validate thành công
+                    try {
+                        const promotionDetailResult = await getPromotionDetail(code);
+                        if (promotionDetailResult?.data) {
+                            setPromotionDetail(promotionDetailResult.data);
+                        }
+                    } catch (detailError) {
+                        console.error("Error fetching promotion detail:", detailError);
+                        // Không cần set error vì promotion đã validate thành công
+                    }
                 } else {
                     setPromotionError("Mã khuyến mãi không hợp lệ");
                     setDiscountValue(0);
+                    setPromotionDetail(null);
                 }
             } catch (err) {
                 if (cancelled) return;
@@ -174,6 +190,7 @@ export function DiningTablePaymentModal({
 
                 setPromotionError(message);
                 setDiscountValue(0);
+                setPromotionDetail(null);
             } finally {
                 // no-op
             }
@@ -200,6 +217,10 @@ export function DiningTablePaymentModal({
                 return;
             }
 
+            if (target === promotionInputRef.current || document.activeElement === promotionInputRef.current) {
+                return;
+            }
+
             if (now - barcodeBufferRef.current.lastTime > 80) {
                 barcodeBufferRef.current.value = "";
             }
@@ -222,11 +243,10 @@ export function DiningTablePaymentModal({
                 return;
             }
 
+            // Chỉ xử lý barcode scan khi không focus vào input nào
             if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
-                if (target !== promotionInputRef.current) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                }
+                event.preventDefault();
+                event.stopPropagation();
 
                 barcodeBufferRef.current.value += event.key;
 
@@ -288,6 +308,7 @@ export function DiningTablePaymentModal({
                 setDiscountValue(0);
                 setUsedPoints(0);
                 setErrorMessage(null);
+                setPromotionDetail(null);
             }
         } catch (error) {
             console.error("Error verifying customer:", error);
@@ -297,6 +318,7 @@ export function DiningTablePaymentModal({
             setDiscountValue(0);
             setUsedPoints(0);
             setErrorMessage(null);
+            setPromotionDetail(null);
         } finally {
             setIsVerifyingCustomer(false);
         }
@@ -527,6 +549,7 @@ export function DiningTablePaymentModal({
                                             setDiscountValue(0);
                                             setUsedPoints(0);
                                             setErrorMessage(null);
+                                            setPromotionDetail(null);
                                         }}
                                         className="text-xs text-gray-500 hover:text-gray-700"
                                     >
@@ -688,6 +711,15 @@ export function DiningTablePaymentModal({
                                         </span>
                                     </div>
                                 )}
+                                {/* Hiển thị thông tin promotion nếu có */}
+                                {promotionDetail && !promotionError && (
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="text-gray-600">Giảm giá ưu đãi:</span>
+                                        <span className="font-medium text-green-600">
+                                            -{promotionDetail.value.toLocaleString("vi-VN")}đ
+                                        </span>
+                                    </div>
+                                )}
                                 <div className="border-t border-gray-300 pt-2 mt-2">
                                     <div className="flex items-center justify-between">
                                         <span className="text-base font-semibold text-gray-900">
@@ -695,10 +727,12 @@ export function DiningTablePaymentModal({
                                         </span>
                                         <span className="text-xl font-bold text-primary">
                                             {(() => {
+                                                const promotionDiscount = (promotionDetail && !promotionError) ? (promotionDetail.value || 0) : 0;
                                                 const total =
                                                     table.currentOrder.subTotal -
                                                     (discountValue || 0) -
-                                                    usedPoints * 1000;
+                                                    usedPoints * 1000 -
+                                                    promotionDiscount;
                                                 return Math.max(0, total).toLocaleString("vi-VN");
                                             })()}
                                             đ

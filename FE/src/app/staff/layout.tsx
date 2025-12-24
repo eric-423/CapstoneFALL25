@@ -77,11 +77,10 @@ const MenuItem = memo(
                     flex items-center gap-3 py-2.5 sm:py-3 rounded-xl 
                     transition-all duration-150 relative group flex-1
                     ${isCollapsed ? "justify-center px-3" : "px-4 ml-10"}
-                    ${
-                      isActive
-                        ? "bg-white/20 text-white shadow-lg font-semibold backdrop-blur-sm"
-                        : "text-white/80 hover:bg-white/10 hover:text-white"
-                    }
+                    ${isActive
+                ? "bg-white/20 text-white shadow-lg font-semibold backdrop-blur-sm"
+                : "text-white/80 hover:bg-white/10 hover:text-white"
+              }
                 `}
           >
             {isActive && isCollapsed && (
@@ -180,7 +179,7 @@ export default function StaffLayout({
 
       if (!order) {
         throw new Error(
-          `Không tìm thấy đơn hàng #${orderId} trong chi nhánh của bạn.`
+          `Không tìm thấy đơn hàng trong chi nhánh của bạn.`
         );
       }
 
@@ -190,14 +189,14 @@ export default function StaffLayout({
       const isTable = order.table || order.isTable;
 
       if (status === "IN_PROCESS") {
-        // Nếu đơn đã có chef rồi, không cần assign lại
+        // Nếu đơn đã có chef r, không cần assign lại
         if (order.chefName) {
           return {
             success: true,
             context: {
               ...contextBase,
               action: "assign-chef" as const,
-              message: `Đơn #${orderId} đã được giao cho đầu bếp ${order.chefName}`,
+              message: `Đơn hàng đã được giao cho đầu bếp`,
             },
           };
         }
@@ -209,12 +208,12 @@ export default function StaffLayout({
             context: {
               ...contextBase,
               action: "assign-chef" as const,
-              message: "Không thể chuyển đơn cho bếp. Vui lòng thử lại.",
+              message: "Không thể chuyển đơn cho bếp. Vui lòng thử lại sau.",
             },
           };
         }
         return {
-          success: assignChef.success as boolean,
+          success: true,
           context: {
             ...contextBase,
             action: "assign-chef" as const,
@@ -226,16 +225,16 @@ export default function StaffLayout({
         const completeResult = await completeOrder(orderId);
         if (!completeResult.success) {
           return {
-            success: completeResult.success as boolean,
+            success: false,
             context: {
               ...contextBase,
               action: "complete" as const,
-              message: "Không thể hoàn thành đơn hàng. Vui lòng thử lại.",
+              message: "Không thể hoàn thành đơn hàng. Vui lòng thử lại sau.",
             },
           };
         }
         return {
-          success: completeResult.success as boolean,
+          success: true,
           context: {
             ...contextBase,
             action: "complete" as const,
@@ -251,7 +250,7 @@ export default function StaffLayout({
             context: {
               ...contextBase,
               action: "assign-shipper" as const,
-              message: "Không thể giao đơn cho shipper. Vui lòng thử lại.",
+              message: "Hiện tại tất cả shipper đang bận, vui lòng chờ trong vài phút",
             },
           };
         }
@@ -269,7 +268,7 @@ export default function StaffLayout({
         context: {
           ...contextBase,
           action: "no-action" as const,
-          message: `Đơn #${orderId} đang ở trạng thái ${status || "khác"}, không thể xử lý.`,
+          message: `Vui lòng thử lại sau`,
         },
       };
     },
@@ -285,18 +284,18 @@ export default function StaffLayout({
             autoClose: 3000,
           });
         } else {
-          toast.success(`Đã chuyển đơn #${orderId} cho bếp`, {
+          toast.success(`Đã chuyển đơn hàng cho bếp`, {
             position: "top-right",
             autoClose: 3000,
           });
         }
       } else if (context?.action === "assign-shipper") {
-        toast.success(`Đã bàn giao đơn #${orderId} cho shipper`, {
+        toast.success(`Đã chuyển đơn hàng cho shipper`, {
           position: "top-right",
           autoClose: 3000,
         });
       } else {
-        toast.success(`Đã xử lý đơn hàng #${orderId}`, {
+        toast.success(`Đã xử lý đơn hàng`, {
           position: "top-right",
           autoClose: 3000,
         });
@@ -320,7 +319,7 @@ export default function StaffLayout({
       if (context?.action === "no-action") {
         toast.info(
           context?.message ||
-            `Đơn #${orderId} đang ở trạng thái ${context?.status || "không xác định"}`,
+          `Vui lòng thử lại sau`,
           {
             position: "top-right",
             autoClose: 4000,
@@ -329,7 +328,7 @@ export default function StaffLayout({
         return;
       }
 
-      toast.warning(`Đơn hàng #${orderId} đã được xử lý trước đó`, {
+      toast.warning(`Đơn hàng đã được xử lý trước đó`, {
         position: "top-right",
         autoClose: 3000,
       });
@@ -381,9 +380,8 @@ export default function StaffLayout({
               )}
 
               <div
-                className={`relative z-10 flex items-center w-full ${
-                  isCollapsed ? "justify-center" : "justify-end gap-2"
-                }`}
+                className={`relative z-10 flex items-center w-full ${isCollapsed ? "justify-center" : "justify-end gap-2"
+                  }`}
               >
                 <button
                   onClick={() => setIsCollapsed((prev) => !prev)}

@@ -340,3 +340,36 @@ export async function validateDiningTablePromotion(
 
   return body as ValidateDiningTablePromotionResponse;
 }
+
+export interface GetPromotionDetailResponse {
+  status: number;
+  desc: string;
+  data: Promotion;
+}
+
+export async function getPromotionDetail(
+  promotionCode: string
+): Promise<GetPromotionDetailResponse> {
+  const url = `/api/promotions/${encodeURIComponent(promotionCode)}`;
+
+  const response = await fetch(url, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw {
+      response: {
+        data: errorBody,
+        status: response.status,
+      },
+    };
+  }
+
+  const result = await response.json();
+  return result as GetPromotionDetailResponse;
+}
