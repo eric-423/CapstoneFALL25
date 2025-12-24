@@ -161,6 +161,10 @@ public class PdfBillService {
             addSummaryRow(summaryTable, "Giảm giá:", "- " + currencyFormat.format(order.getDiscountValue()));
         }
 
+        if(order.getDiscountPercent()>0){
+            addSummaryRow(summaryTable, "Giảm giá (%):", "- " + order.getDiscountPercent() + "%");
+        }
+
         if (order.getPointUsed() > 0) {
             addSummaryRow(summaryTable, "Điểm sử dụng:", "- " + order.getPointUsed() + " điểm");
         }
@@ -200,7 +204,6 @@ public class PdfBillService {
         } catch (Exception e) {
             System.err.println("Failed to generate QR code for order " + order.getId() + ": " + e.getMessage());
             e.printStackTrace();
-            // Continue without QR code - bill will still be generated
         }
 
         document.add(new Paragraph("Cảm ơn quý khách đã sử dụng dịch vụ!")

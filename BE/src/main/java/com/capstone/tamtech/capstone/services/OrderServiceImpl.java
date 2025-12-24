@@ -152,7 +152,7 @@ public class OrderServiceImpl implements OrderService {
                 }
 
                 order.setPromotion(validationResult.getPromotion());
-                order.setPromotionCode(promotionCode);
+                order.setPromotionCode(validationResult.getPromotion().getName());
             } else {
                 throw new BadRequestException(validationResult.getErrorMessage());
             }
