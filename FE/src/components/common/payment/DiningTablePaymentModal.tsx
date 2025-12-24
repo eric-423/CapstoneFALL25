@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { TableData } from "@/apis/table.api";
 import { assignCustomerToOrder } from "@/apis/order.api";
+import { validateDiningTablePromotion } from "@/apis/promotion.api";
 
 interface PaymentMethod {
     id: number;
@@ -57,10 +58,15 @@ export function DiningTablePaymentModal({
     const [discountValue, setDiscountValue] = useState<number>(0);
     const [usedPoints, setUsedPoints] = useState<number>(0);
     const hasFetchedPaymentMethods = useRef(false);
+    const promotionInputRef = useRef<HTMLInputElement | null>(null);
+
+    const barcodeBufferRef = useRef<{ value: string; lastTime: number }>({ value: "", lastTime: 0 });
+
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [promotionError, setPromotionError] = useState<string | null>('');
+
     useEffect(() => {
         if (isOpen && table && !hasFetchedPaymentMethods.current) {
-            // Fetch payment methods only once when modal opens
             hasFetchedPaymentMethods.current = true;
 
             const fetchPaymentMethods = async () => {
@@ -74,7 +80,7 @@ export function DiningTablePaymentModal({
                 } catch (error) {
                     console.error("Error fetching payment methods:", error);
                     onNotification("Không thể tải phương thức thanh toán", "error");
-                    hasFetchedPaymentMethods.current = false; // Reset on error to allow retry
+                    hasFetchedPaymentMethods.current = false;
                 }
             };
 
@@ -88,12 +94,157 @@ export function DiningTablePaymentModal({
             setDiscountValue(0);
             setUsedPoints(0);
             setErrorMessage(null);
+            setPromotionError(null);
         } else if (!isOpen) {
-            // Reset flag when modal closes
             hasFetchedPaymentMethods.current = false;
             setErrorMessage(null);
+            setPromotionError(null);
         }
     }, [isOpen, table, onNotification]);
+
+    useEffect(() => {
+        if (isOpen && promotionInputRef.current) {
+            if (!customerInfo) {
+                promotionInputRef.current.focus();
+            } else {
+                promotionInputRef.current.focus();
+                promotionInputRef.current.select();
+            }
+        }
+    }, [isOpen, customerInfo]);
+
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const code = promotionCode.trim();
+
+        if (!code) {
+            setPromotionError(null);
+            setDiscountValue(0);
+            return;
+        }
+
+        const phone = customerInfo?.phone || customerPhone;
+        if (!phone) {
+            setPromotionError("Vui lòng nhập số điện thoại khách hàng trước khi áp dụng mã khuyến mãi");
+            setDiscountValue(0);
+            return;
+        }
+
+        const subTotal = table?.currentOrder?.subTotal ?? 0;
+        const orderValue = Math.max(0, subTotal - usedPoints * 1000);
+
+        let cancelled = false;
+        setPromotionError(null);
+
+        const timeoutId = window.setTimeout(async () => {
+            try {
+                const result = await validateDiningTablePromotion({
+                    promotionCode: code,
+                    phoneNumber: phone,
+                    orderValue,
+                });
+
+                if (cancelled) return;
+
+                if (result?.data === true) {
+                    setPromotionError(null);
+                } else {
+                    setPromotionError("Mã khuyến mãi không hợp lệ");
+                    setDiscountValue(0);
+                }
+            } catch (err) {
+                if (cancelled) return;
+
+                const error = err as Error & {
+                    responseBody?: {
+                        message?: string;
+                        error?: string;
+                        desc?: string;
+                    };
+                };
+
+                const body = error.responseBody;
+                const message =
+                    body?.message ||
+                    body?.error ||
+                    body?.desc ||
+                    error.message ||
+                    "Mã khuyến mãi không hợp lệ";
+
+                setPromotionError(message);
+                setDiscountValue(0);
+            } finally {
+                // no-op
+            }
+        }, 400);
+
+        return () => {
+            cancelled = true;
+            window.clearTimeout(timeoutId);
+        };
+    }, [promotionCode, usedPoints, customerInfo, customerPhone, table?.currentOrder?.subTotal, isOpen]);
+
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            const now = Date.now();
+            const target = event.target as HTMLElement | null;
+
+            if (
+                target &&
+                (target instanceof HTMLInputElement) &&
+                target !== promotionInputRef.current
+            ) {
+                return;
+            }
+
+            if (now - barcodeBufferRef.current.lastTime > 80) {
+                barcodeBufferRef.current.value = "";
+            }
+            barcodeBufferRef.current.lastTime = now;
+
+            if (event.key === "Enter") {
+                const code = barcodeBufferRef.current.value.trim();
+                if (code && code.length > 0) {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    setPromotionCode(code);
+                    if (promotionInputRef.current) {
+                        promotionInputRef.current.value = code;
+                        promotionInputRef.current.focus();
+                        promotionInputRef.current.select();
+                    }
+                }
+                barcodeBufferRef.current.value = "";
+                return;
+            }
+
+            if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
+                if (target !== promotionInputRef.current) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+
+                barcodeBufferRef.current.value += event.key;
+
+                if (promotionInputRef.current) {
+                    promotionInputRef.current.focus();
+                    promotionInputRef.current.value = barcodeBufferRef.current.value;
+                }
+                setPromotionCode(barcodeBufferRef.current.value);
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown, true);
+        const bufferRef = barcodeBufferRef;
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown, true);
+            bufferRef.current.value = "";
+        };
+    }, [isOpen]);
 
     const handleVerifyCustomer = async () => {
         if (!customerPhone.trim()) {
@@ -191,7 +342,7 @@ export function DiningTablePaymentModal({
             const response = await dinningTablePayment({
                 orderId: table.currentOrder.id,
                 paymentMethodId: selectedPaymentMethod,
-                promotionCode: promotionCode || "",
+                promotionCode: promotionError ? '' : promotionCode || "",
                 discountValue: discountValue || 0,
                 usedPoints: usedPoints || 0,
             });
@@ -387,7 +538,6 @@ export function DiningTablePaymentModal({
                     )}
                 </div>
 
-                {/* Payment Methods Section */}
                 <div className="mt-4">
                     <div className="text-center mb-6">
                         <h3 className="text-lg font-semibold text-gray-900 mb-1">
@@ -398,40 +548,48 @@ export function DiningTablePaymentModal({
                         </p>
                     </div>
 
+                    {/* Mã khuyến mãi - Luôn hiển thị để có thể quét barcode */}
+                    <div className="mb-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                        <div>
+                            <label className="text-xs text-gray-600 mb-1 block">Mã khuyến mãi</label>
+                            <Input
+                                ref={promotionInputRef}
+                                type="text"
+                                placeholder="Quét mã vạch khuyến mãi hoặc nhập tay"
+                                value={promotionCode}
+                                onChange={(e) => setPromotionCode(e.target.value)}
+                                className="h-9 text-sm"
+                            />
+                            {promotionError && (
+                                <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+                                    <AlertCircle className="h-3 w-3" />
+                                    {promotionError}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Điểm sử dụng - Chỉ hiển thị khi có customerInfo */}
                     {customerInfo && (
-                        <div className="space-y-3 mb-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
-                            <h4 className="text-sm font-semibold text-gray-700 mb-3">Khuyến mãi & Giảm giá</h4>
-
-                            <div className="space-y-2">
-                                <div>
-                                    <label className="text-xs text-gray-600 mb-1 block">Mã khuyến mãi</label>
-                                    <Input
-                                        type="text"
-                                        placeholder="Nhập mã khuyến mãi (tùy chọn)"
-                                        value={promotionCode}
-                                        onChange={(e) => setPromotionCode(e.target.value)}
-                                        className="h-9 text-sm"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="text-xs text-gray-600 mb-1 block">
-                                        Điểm sử dụng
-                                    </label>
-                                    <Input
-                                        type="number"
-                                        placeholder="0"
-                                        value={usedPoints > 0 ? usedPoints : ""}
-                                        onChange={handleValidateUsedPoints}
-                                        min="0"
-                                        max={(() => {
-                                            const maxPointsFromSubTotal = table?.currentOrder?.subTotal ? Math.floor(table.currentOrder.subTotal / 1000) : 0;
-                                            const customerAvailablePoints = customerInfo?.memberPoint || 0;
-                                            return Math.min(customerAvailablePoints, maxPointsFromSubTotal);
-                                        })()}
-                                        className="h-9 text-sm"
-                                    />
-                                </div>
+                        <div className="mb-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                            <h4 className="text-sm font-semibold text-gray-700 mb-3">Giảm giá</h4>
+                            <div>
+                                <label className="text-xs text-gray-600 mb-1 block">
+                                    Điểm sử dụng
+                                </label>
+                                <Input
+                                    type="number"
+                                    placeholder="0"
+                                    value={usedPoints > 0 ? usedPoints : ""}
+                                    onChange={handleValidateUsedPoints}
+                                    min="0"
+                                    max={(() => {
+                                        const maxPointsFromSubTotal = table?.currentOrder?.subTotal ? Math.floor(table.currentOrder.subTotal / 1000) : 0;
+                                        const customerAvailablePoints = customerInfo?.memberPoint || 0;
+                                        return Math.min(customerAvailablePoints, maxPointsFromSubTotal);
+                                    })()}
+                                    className="h-9 text-sm"
+                                />
                             </div>
                         </div>
                     )}
@@ -473,6 +631,83 @@ export function DiningTablePaymentModal({
                         )}
 
                     </div>
+
+                    {table.currentOrder && (
+                        <div className="mb-6 p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200">
+                            {table.currentOrder.orderItems?.length > 0 && (
+                                <>
+                                    <h4 className="text-sm font-semibold text-gray-700 mb-3">
+                                        Chi tiết món ăn
+                                    </h4>
+                                    <div className="space-y-2 max-h-40 overflow-y-auto mb-3">
+                                        {table.currentOrder.orderItems.map((item) => {
+                                            const isCombo = item.comboDTO !== null;
+                                            const name = isCombo && item.comboDTO ? item.comboDTO.name : item.productName;
+                                            const unitPrice = isCombo && item.comboDTO ? item.comboDTO.price : item.price;
+                                            const lineTotal = unitPrice * item.quantity;
+
+                                            return (
+                                                <div
+                                                    key={item.orderItemId}
+                                                    className="flex items-center justify-between text-sm"
+                                                >
+                                                    <div className="flex-1 pr-2">
+                                                        <p className="font-medium text-gray-900 line-clamp-1">
+                                                            {name}
+                                                        </p>
+                                                        <p className="text-xs text-gray-500">
+                                                            {unitPrice.toLocaleString("vi-VN")}đ × {item.quantity}
+                                                        </p>
+                                                    </div>
+                                                    <div className="text-right font-semibold text-gray-900">
+                                                        {lineTotal.toLocaleString("vi-VN")}đ
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </>
+                            )}
+
+                            <div className="space-y-2 mt-2">
+                                {discountValue > 0 && (
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="text-gray-600">Giảm giá:</span>
+                                        <span className="font-medium text-green-600">
+                                            -{discountValue.toLocaleString("vi-VN")}đ
+                                        </span>
+                                    </div>
+                                )}
+                                {usedPoints > 0 && (
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="text-gray-600">
+                                            Điểm sử dụng ({usedPoints} điểm):
+                                        </span>
+                                        <span className="font-medium text-green-600">
+                                            -{(usedPoints * 1000).toLocaleString("vi-VN")}đ
+                                        </span>
+                                    </div>
+                                )}
+                                <div className="border-t border-gray-300 pt-2 mt-2">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-base font-semibold text-gray-900">
+                                            Tổng cộng:
+                                        </span>
+                                        <span className="text-xl font-bold text-primary">
+                                            {(() => {
+                                                const total =
+                                                    table.currentOrder.subTotal -
+                                                    (discountValue || 0) -
+                                                    usedPoints * 1000;
+                                                return Math.max(0, total).toLocaleString("vi-VN");
+                                            })()}
+                                            đ
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     <div className="flex justify-center items-center">
                         <p className="text-sm text-red-600">{errorMessage}</p>

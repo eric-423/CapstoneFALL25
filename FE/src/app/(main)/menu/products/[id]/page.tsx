@@ -2,7 +2,13 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { getProductById, Product, getProductsByBranch } from "@/apis/product.api";
+import {
+  getProductById,
+  Product,
+  getProductsByBranch,
+  getProductNutrients,
+  ProductNutrient,
+} from "@/apis/product.api";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -73,6 +79,21 @@ export default function ProductDetailPage() {
     staleTime: 5 * 60 * 1000,
   });
 
+  const { data: nutrients = [] } = useQuery<ProductNutrient[]>({
+    queryKey: ["product-nutrients", productId],
+    queryFn: async () => {
+      try {
+        const result = await getProductNutrients(productId);
+        return result;
+      } catch (err) {
+        console.error("Error fetching product nutrients:", err);
+        return [];
+      }
+    },
+    enabled: !!productId && !isNaN(productId),
+    retry: 1,
+  });
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#FFF9F3] flex items-center justify-center">
@@ -90,7 +111,7 @@ export default function ProductDetailPage() {
     return (
       <div className="min-h-screen bg-[#FFF9F3] flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
-          <CardContent className="p-6 text-center">
+          <CardContent className="p-6">
             <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
             <h2 className="text-xl font-bold mb-2">Không tìm thấy sản phẩm</h2>
             <p className="text-gray-600 mb-4">
@@ -222,6 +243,50 @@ export default function ProductDetailPage() {
             </div>
           </div>
         </div>
+
+        {nutrients.length > 0 && (
+          <div className="mt-10 ">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 ">
+              Thông tin dinh dưỡng
+            </h2>
+            <Card className="bg-white">
+              <CardContent className="p-6 pt-3 ">
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="border-b-2 border-gray-200">
+                        <th className="text-left py-3 px-4 font-semibold text-gray-800 ">
+                          Chất dinh dưỡng
+                        </th>
+                        <th className="text-right py-3 px-4 font-semibold text-gray-800 ">
+                          Hàm lượng
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {nutrients.map((nutrient) => (
+                        <tr
+                          key={nutrient.id}
+                          className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                        >
+                          <td className="py-3 px-4 text-gray-700 ">
+                            {nutrient.name}
+                          </td>
+                          <td className="py-3 px-4 text-right text-gray-900 font-medium ">
+                            {nutrient.amount.toLocaleString("vi-VN", {
+                              maximumFractionDigits: 2,
+                            })}{" "}
+                            {nutrient.unit}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         <div className="mt-10">
           <h2 className="text-3xl font-bold text-gray-900 mb-6">

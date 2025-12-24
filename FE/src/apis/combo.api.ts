@@ -11,6 +11,7 @@ export interface Combo {
 }
 
 export interface ComboItem {
+    productName: string;
     productId: number;
     quantity: number;
     note?: string;
@@ -23,6 +24,7 @@ export interface ComboDetail {
     price: number;
     startDate: string;
     endDate: string;
+    imageUrl: string;
     branchId: number;
     comboItems: ComboItem[];
     active: boolean;

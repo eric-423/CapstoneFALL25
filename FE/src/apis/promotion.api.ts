@@ -285,3 +285,58 @@ export async function getAvailablePromotions() {
 
   return [] as Promotion[];
 }
+
+// ---------- Dining table promotion validation ----------
+
+export interface ValidateDiningTablePromotionParams {
+  promotionCode: string;
+  phoneNumber: string;
+  orderValue: number;
+}
+
+export interface ValidateDiningTablePromotionResponse {
+  status?: number;
+  desc?: string | null;
+  data?: boolean;
+  message?: string;
+  error?: string;
+}
+
+export async function validateDiningTablePromotion(
+  params: ValidateDiningTablePromotionParams
+): Promise<ValidateDiningTablePromotionResponse> {
+  const { promotionCode, phoneNumber, orderValue } = params;
+
+  const url = `/api/promotions/customer/dining-table/validate/${encodeURIComponent(
+    promotionCode
+  )}?phoneNumber=${encodeURIComponent(phoneNumber)}&orderValue=${orderValue}`;
+
+  const response = await fetch(url, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  const body = (await response.json().catch(() => ({}))) as
+    | ValidateDiningTablePromotionResponse
+    | Record<string, unknown>;
+
+  if (!response.ok) {
+    const message =
+      (body as ValidateDiningTablePromotionResponse)?.message ||
+      (body as ValidateDiningTablePromotionResponse)?.error ||
+      (body as ValidateDiningTablePromotionResponse)?.desc ||
+      "Mã khuyến mãi không hợp lệ";
+
+    const error = new Error(message) as Error & {
+      responseBody?: unknown;
+      status?: number;
+    };
+    error.responseBody = body;
+    error.status = response.status;
+    throw error;
+  }
+
+  return body as ValidateDiningTablePromotionResponse;
+}

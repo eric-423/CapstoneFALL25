@@ -7,6 +7,7 @@ import { useState } from "react";
 import { AddToCartDialog } from "../add-to-cart/add-to-cart-dialog";
 import { AddToCartDrawer } from "../add-to-cart/add-to-cart-drawer";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 type ComboCardProps = {
   item: Combo;
@@ -19,6 +20,7 @@ export const ComboCard = ({
 }: ComboCardProps) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const isMobile = useIsMobile();
+  const router = useRouter();
 
   const productLikeItem = {
     productId: 0,
@@ -37,7 +39,8 @@ export const ComboCard = ({
   return (
     <>
       <Card
-        className={`group p-0 overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow text-center relative flex flex-col h-full ${!item?.active ? "opacity-50 pointer-events-none" : ""}`}
+        className={`group p-0 overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow text-center relative flex flex-col h-full cursor-pointer ${!item?.active ? "opacity-50 pointer-events-none" : ""}`}
+        onClick={() => router.push(`/menu/combos/${item.comboId}`)}
       >
         {!item?.active && (
           <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none overflow-hidden">
@@ -80,7 +83,10 @@ export const ComboCard = ({
               size="sm"
               variant="outline"
               className="bg-gray-100 border-2 border-orange-500 text-orange-500 hover:bg-orange-200 hover:text-orange-500 hover:border-orange-500 font-semibold rounded-full px-4 transition-colors"
-              onClick={() => setDialogOpen(true)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setDialogOpen(true);
+              }}
               disabled={!item?.active}
             >
               Thêm vào giỏ

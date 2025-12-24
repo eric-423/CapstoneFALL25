@@ -8,6 +8,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import type { Combo } from '@/apis/combo.api';
 import comboImage from '@/assets/images/food-court.jpg';
+import { useRouter } from 'next/navigation';
 
 interface TableComboCardProps {
     combo: Combo;
@@ -16,15 +17,20 @@ interface TableComboCardProps {
 
 export default function TableComboCard({ combo, onAddToCart }: TableComboCardProps) {
     const [isAdding, setIsAdding] = useState(false);
+    const router = useRouter();
 
-    const handleAddToCart = async () => {
+    const handleAddToCart = async (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.stopPropagation();
         setIsAdding(true);
         onAddToCart(combo);
         setTimeout(() => setIsAdding(false), 500);
     };
 
     return (
-        <Card className='group hover:shadow-lg transition-all duration-200 border-2 border-orange-200 shadow-sm bg-gradient-to-br from-orange-50 to-white py-0 h-full flex flex-col'>
+        <Card
+            className='group hover:shadow-lg transition-all duration-200 border-2 border-orange-200 shadow-sm bg-gradient-to-br from-orange-50 to-white py-0 h-full flex flex-col cursor-pointer'
+            onClick={() => router.push(`/menu/combos/${combo.comboId}`)}
+        >
             <CardContent className='p-0 flex flex-col h-full'>
                 <div className='relative flex flex-col h-full'>
                     <div className='relative h-36 sm:h-40 md:h-48 w-full overflow-hidden rounded-t-lg'>

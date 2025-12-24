@@ -22,7 +22,7 @@ import { CartItem } from "@/utils/contexts/cart/cart.type";
 interface AddToCartDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  product: Product;
+  product: Product & { isCombo?: boolean; comboId?: number };
 }
 
 export function AddToCartDialog({
