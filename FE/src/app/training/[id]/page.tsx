@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
 import { CheckCircle2, FileText, PlayCircle, ArrowLeft } from "lucide-react";
 import {
@@ -22,8 +22,12 @@ import { Loader2 } from "lucide-react";
 export default function TrainingDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const paramsId = Number(params.id);
   const queryClient = useQueryClient();
+  const userTrainingIdFromQuery = searchParams.get("userTrainingId")
+    ? Number(searchParams.get("userTrainingId"))
+    : null;
   const [selectedLessonId, setSelectedLessonId] = useState<number | null>(null);
   const [expandedModules, setExpandedModules] = useState<Set<number>>(
     new Set()
@@ -40,50 +44,50 @@ export default function TrainingDetailPage() {
     refetchInterval: 10000,
   });
 
-  const trainingId = useMemo(() => {
+  const { userTrainingId, trainingId } = useMemo(() => {
+    if (userTrainingIdFromQuery) {
+      return {
+        userTrainingId: userTrainingIdFromQuery,
+        trainingId: paramsId || null,
+      };
+    }
+
     if (!myTrainingsData?.data || !Array.isArray(myTrainingsData.data)) {
-      return paramsId || null;
+      return { userTrainingId: paramsId, trainingId: paramsId || null };
     }
 
-    const userTraining = myTrainingsData.data.find(
+    const training = myTrainingsData.data.find(
       (item: { userTrainingId?: number; id?: number; trainingId?: number }) =>
-        item.userTrainingId === paramsId ||
-        item.id === paramsId ||
-        item.trainingId === paramsId
+        item.trainingId === paramsId || item.id === paramsId
     );
-    return userTraining?.trainingId ?? paramsId ?? null;
-  }, [myTrainingsData, paramsId]);
 
-  const userTrainingId = useMemo(() => {
-    if (!myTrainingsData?.data || !Array.isArray(myTrainingsData.data)) {
-      return paramsId;
+    if (training) {
+      return {
+        userTrainingId: training.userTrainingId ?? training.id ?? paramsId,
+        trainingId: training.trainingId ?? training.id ?? paramsId ?? null,
+      };
     }
-    const byTrainingId = myTrainingsData.data.find(
+
+    const byUserTrainingId = myTrainingsData.data.find(
       (item: { userTrainingId?: number; id?: number; trainingId?: number }) =>
-        item.trainingId === trainingId
+        item.userTrainingId === paramsId
     );
 
-    if (byTrainingId) {
-      return (
-        byTrainingId.userTrainingId ??
-        byTrainingId.id ??
-        byTrainingId.trainingId ??
-        paramsId
-      );
+    if (byUserTrainingId) {
+      return {
+        userTrainingId: byUserTrainingId.userTrainingId ?? paramsId,
+        trainingId:
+          byUserTrainingId.trainingId ??
+          byUserTrainingId.id ??
+          paramsId ??
+          null,
+      };
     }
-    const byParam = myTrainingsData.data.find(
-      (item: { userTrainingId?: number; id?: number; trainingId?: number }) =>
-        item.userTrainingId === paramsId ||
-        item.id === paramsId ||
-        item.trainingId === paramsId
-    );
 
-    return (
-      byParam?.userTrainingId ?? byParam?.id ?? byParam?.trainingId ?? paramsId
-    );
-  }, [myTrainingsData, trainingId, paramsId]);
+    return { userTrainingId: paramsId, trainingId: paramsId || null };
+  }, [myTrainingsData, paramsId, userTrainingIdFromQuery]);
 
-  const { data: trainingData, isLoading: isLoadingTraining } = useQuery({
+  const { isLoading: isLoadingTraining } = useQuery({
     queryKey: ["training", trainingId],
     queryFn: () => getMyTrainning(trainingId!),
     enabled: !!trainingId,
@@ -276,7 +280,6 @@ export default function TrainingDetailPage() {
 
     groups[1] = [...lessons].sort((a, b) => a.orderIndex - b.orderIndex);
 
-    console.log("📦 Grouped lessons:", groups);
     return groups;
   }, [lessons]);
 
@@ -309,7 +312,6 @@ export default function TrainingDetailPage() {
       .sort((a, b) => a - b);
     if (moduleNumbers.length > 0 && expandedModules.size === 0) {
       const firstModule = moduleNumbers[0];
-      console.log("🔓 Auto-expanding module:", firstModule);
       setExpandedModules(new Set([firstModule]));
     }
   }, [groupedLessons, expandedModules.size]);
@@ -319,7 +321,6 @@ export default function TrainingDetailPage() {
       const firstLesson = lessons.sort(
         (a, b) => a.orderIndex - b.orderIndex
       )[0];
-      console.log("🎯 Auto-selecting lesson:", firstLesson.id);
       setSelectedLessonId(firstLesson.id);
     }
   }, [lessons, selectedLessonId]);

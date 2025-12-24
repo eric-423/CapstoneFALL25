@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
@@ -44,7 +44,8 @@ const STATUS_CONFIG: Record<
 
 interface TrainingCardData {
   id: number;
-  userTrainingId: number | null; // null khi chưa đăng ký
+  trainingId: number;
+  userTrainingId: number | null;
   name: string;
   description: string;
   point: number;
@@ -104,9 +105,14 @@ const unwrapTrainingItems = (payload: unknown): Record<string, unknown>[] => {
 };
 
 const normalizeTraining = (item: Record<string, unknown>): TrainingCardData => {
-  const id = toNumber(
-    item.trainingId ?? item.id ?? item.courseId ?? Date.now()
-  );
+  const trainingId = toNumber(item.trainingId ?? item.courseId ?? 0);
+  const userTrainingId = (() => {
+    const value = item.userTrainingId ?? item.userIdTraining ?? item.id;
+    if (value === null || value === undefined) return null;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  })();
+  const id = trainingId || (userTrainingId ?? Date.now());
   const totalLessons = toNumber(
     item.lessonCount ??
       item.totalLessons ??
@@ -188,13 +194,8 @@ const normalizeTraining = (item: Record<string, unknown>): TrainingCardData => {
 
   return {
     id,
-
-    userTrainingId: (() => {
-      const value = item.userTrainingId ?? item.userIdTraining;
-      if (value === null || value === undefined) return null;
-      const parsed = Number(value);
-      return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
-    })(),
+    trainingId,
+    userTrainingId,
     name:
       (typeof item.name === "string" && item.name) ||
       (typeof item.trainingName === "string" && item.trainingName) ||
@@ -233,13 +234,16 @@ export default function StaffTrainingCoursesPage() {
 
   const { data, isLoading, isFetching, error, refetch } =
     useQuery<TrainingResponse>({
-      queryKey: ["manager-training-courses", statusFilter],
+      queryKey: ["staff-training-courses", statusFilter],
       queryFn: async () =>
         (await getMyTrainning(
           statusFilter === "ALL" ? undefined : statusFilter
         )) as TrainingResponse,
-      staleTime: 60_000,
+      staleTime: 30_000,
       refetchOnWindowFocus: true,
+      refetchOnMount: "always",
+      refetchOnReconnect: true,
+      refetchInterval: 60_000,
       retry: 2,
     });
 
@@ -247,7 +251,10 @@ export default function StaffTrainingCoursesPage() {
     mutationFn: enrollCourse,
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["manager-training-courses"],
+        queryKey: ["staff-training-courses"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["my-trainings"],
       });
       toast.success("Đăng ký khóa học thành công!", {
         position: "top-right",
@@ -265,6 +272,20 @@ export default function StaffTrainingCoursesPage() {
       );
     },
   });
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        refetch();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [refetch]);
 
   const courses = useMemo<TrainingCardData[]>(() => {
     const rootPayload = data?.data ?? data;
@@ -546,9 +567,20 @@ export default function StaffTrainingCoursesPage() {
                     </Button>
                   ) : (
                     <Button
-                      onClick={() =>
-                        router.push(`/training/${course.userTrainingId}`)
-                      }
+                      onClick={() => {
+                        if (!course.trainingId || course.trainingId === 0) {
+                          toast.error(
+                            "Không thể vào bài học. Vui lòng thử lại sau!",
+                            {
+                              position: "top-right",
+                              autoClose: 3000,
+                            }
+                          );
+                          return;
+                        }
+                        const url = `/training/${course.trainingId}${course.userTrainingId ? `?userTrainingId=${course.userTrainingId}` : ""}`;
+                        router.push(url);
+                      }}
                       className="w-full bg-gradient-to-r from-[#3B82F6] to-[#2563EB] hover:from-[#2563EB] hover:to-[#3B82F6] text-white font-semibold text-xs sm:text-sm py-2.5 sm:py-3 rounded-lg sm:rounded-xl shadow-lg transition-all duration-300"
                     >
                       <BookOpenCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2" />
