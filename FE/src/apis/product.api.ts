@@ -601,3 +601,37 @@ export const getProductById = async (
   const resData = await response.json();
   return resData.data || resData;
 };
+
+export interface ProductNutrient {
+  id: number;
+  name: string;
+  code: string;
+  amount: number;
+  unit: string;
+  energyPerUnit: number;
+}
+
+export interface ProductNutrientsResponse {
+  status: number;
+  desc: string | null;
+  data: ProductNutrient[];
+}
+
+export const getProductNutrients = async (
+  productId: number
+): Promise<ProductNutrient[]> => {
+  const response = await fetch(`/api/products/${productId}/nutrients`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || "Failed to fetch product nutrients");
+  }
+
+  const resData: ProductNutrientsResponse = await response.json();
+  return resData.data || [];
+};
