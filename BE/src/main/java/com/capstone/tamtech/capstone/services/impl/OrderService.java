@@ -3,6 +3,7 @@ package com.capstone.tamtech.capstone.services.impl;
 import com.capstone.tamtech.capstone.dto.OrderCheffViewDTO;
 import com.capstone.tamtech.capstone.dto.OrderDTO;
 import com.capstone.tamtech.capstone.dto.OrderListDTO;
+import com.capstone.tamtech.capstone.entities.Users;
 import com.capstone.tamtech.capstone.payload.request.DiningTablePaymentRequest;
 import com.capstone.tamtech.capstone.payload.request.DiningTableProductRequest;
 import com.capstone.tamtech.capstone.payload.request.OrderRequest;
@@ -49,6 +50,8 @@ public interface OrderService {
 
     List<OrderListDTO> getBranchOrders(int branchId, String status);
 
+    List<OrderListDTO> getShipperOptimizedOrders(int shipperId, int branchId);
+
     OrderDTO getOrderById(int orderId);
 
     List<OrderCheffViewDTO> getOrdersByChefId(int chefId, String status);
@@ -58,4 +61,8 @@ public interface OrderService {
     void autoCompleteDiningOrders();
 
     Boolean assignCustomerToOrder(int customerId, int orderId);
+
+    boolean startShipping(Users user);
+
+    boolean readyPickup(Users user);
 }
