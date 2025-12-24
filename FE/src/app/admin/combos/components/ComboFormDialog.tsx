@@ -122,10 +122,13 @@ export function ComboFormDialog({
   const handleAddItem = () => {
     if (products.length === 0) return;
 
+    const defaultProduct = products[0];
+
     setComboItems([
       ...comboItems,
       {
-        productId: products[0].productId,
+        productId: defaultProduct.productId,
+        productName: defaultProduct.productName,
         quantity: 1,
         note: "",
       },
@@ -144,7 +147,14 @@ export function ComboFormDialog({
     const newItems = [...comboItems];
     const current: ComboItem = { ...newItems[index] };
     if (field === "productId") {
-      current.productId = Number(value);
+      const newProductId = Number(value);
+      current.productId = newProductId;
+      const selectedProduct = products.find(
+        (p) => p.productId === newProductId
+      );
+      if (selectedProduct) {
+        current.productName = selectedProduct.productName;
+      }
     } else if (field === "quantity") {
       current.quantity = Number(value);
     } else if (field === "note") {
