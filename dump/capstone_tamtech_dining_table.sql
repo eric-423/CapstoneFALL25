@@ -32,7 +32,7 @@ CREATE TABLE `dining_table` (
   PRIMARY KEY (`id`),
   KEY `FK1fjmmvy545244ty3fysq62mwa` (`branch_id`),
   CONSTRAINT `FK1fjmmvy545244ty3fysq62mwa` FOREIGN KEY (`branch_id`) REFERENCES `branch` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -41,6 +41,7 @@ CREATE TABLE `dining_table` (
 
 LOCK TABLES `dining_table` WRITE;
 /*!40000 ALTER TABLE `dining_table` DISABLE KEYS */;
+INSERT INTO `dining_table` VALUES (1,1,_binary '',2,'Bàn 1',NULL),(1,2,_binary '',4,'Bàn 2',NULL),(1,3,_binary '',4,'Bàn 3',NULL),(1,4,_binary '',6,'Bàn 4',NULL),(1,5,_binary '',8,'Bàn 5',NULL);
 /*!40000 ALTER TABLE `dining_table` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
