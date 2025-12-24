@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createErrorResponse, CustomError, ErrorCodes } from "@/lib/error-handler";
 
-export async function GET(
-    request: NextRequest,
-    { params }: { params: { promotionCode: string } }
-) {
+export async function GET(request: NextRequest) {
     try {
         const cookieStore = await cookies();
         const token = cookieStore.get("token")?.value;
@@ -16,7 +13,7 @@ export async function GET(
             );
         }
 
-        const { searchParams } = new URL(request.url);
+        const { searchParams, pathname } = request.nextUrl;
         const phoneNumber = searchParams.get("phoneNumber");
         const orderValue = searchParams.get("orderValue");
 
@@ -30,8 +27,11 @@ export async function GET(
             );
         }
 
+        const segments = pathname.split("/");
+        const promotionCode = segments[segments.length - 1];
+
         const url = `${process.env.NEXT_PUBLIC_BASE_URL}/promotions/customer/dining-table/validate/${encodeURIComponent(
-            params.promotionCode
+            promotionCode
         )}?phoneNumber=${encodeURIComponent(phoneNumber)}&orderValue=${encodeURIComponent(
             orderValue
         )}`;
