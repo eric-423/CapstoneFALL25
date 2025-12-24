@@ -800,39 +800,25 @@ public class OrderServiceImpl implements OrderService {
         int minOrderCount = Integer.MAX_VALUE;
 
         List<Users> availableShippers = new ArrayList<>();
-        List<Users> busyShippers = new ArrayList<>();
 
         for (RoleHistory rh : shippers) {
             Users user = rh.getUser();
             if (!user.getIsBusy()) {
                 availableShippers.add(user);
-            } else {
-                busyShippers.add(user);
             }
         }
 
-        if (!availableShippers.isEmpty()) {
-            for (Users shipperUser : availableShippers) {
-                int orderCount = orderRepository
-                        .findByWorker_IdAndStatus_NameOrderByCreatedAtDesc(shipperUser.getId(), "SHIPPING").size();
-                if (orderCount < minOrderCount) {
-                    minOrderCount = orderCount;
-                    selected = shipperUser;
-                }
-            }
-        } else {
-            for (Users shipperUser : busyShippers) {
-                int orderCount = orderRepository
-                        .findByWorker_IdAndStatus_NameOrderByCreatedAtDesc(shipperUser.getId(), "SHIPPING").size();
-                if (orderCount < minOrderCount) {
-                    minOrderCount = orderCount;
-                    selected = shipperUser;
-                }
-            }
+        if (availableShippers.isEmpty()) {
+            return false;
         }
 
-        if (selected == null) {
-            selected = shippers.get(0).getUser();
+        for (Users shipperUser : availableShippers) {
+            int orderCount = orderRepository
+                    .findByWorker_IdAndStatus_NameOrderByCreatedAtDesc(shipperUser.getId(), "SHIPPING").size();
+            if (orderCount < minOrderCount) {
+                minOrderCount = orderCount;
+                selected = shipperUser;
+            }
         }
 
         order.setShipper(selected);

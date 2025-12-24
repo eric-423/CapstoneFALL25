@@ -175,4 +175,23 @@ public class PromotionController {
             return new ResponseEntity<>(responseData, HttpStatus.BAD_REQUEST);
         }
     }
+
+    @GetMapping("/customer/dining-table/validate/{promotionCode}")
+    public ResponseEntity<?> validatePromotionForDiningTable(
+            @RequestParam String phoneNumber,
+            @PathVariable String promotionCode,
+            @RequestParam double orderValue) {
+        try {
+            boolean isValid = promotionService.validatePromotionForCustomer(phoneNumber, promotionCode, orderValue);
+
+            ResponseData responseData = new ResponseData();
+            responseData.setData(isValid);
+            responseData.setDesc(isValid ? "Promotion is valid" : "Promotion is not valid");
+            return new ResponseEntity<>(responseData, HttpStatus.OK);
+        } catch (Exception e) {
+            ResponseData responseData = new ResponseData();
+            responseData.setDesc(e.getMessage());
+            return new ResponseEntity<>(responseData, HttpStatus.BAD_REQUEST);
+        }
+    }
 }
