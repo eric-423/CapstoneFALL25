@@ -23,6 +23,7 @@ import {
   GetProductByProductType,
   GetCombo,
   SortProductByPrice,
+  GetComboDetail,
 } from "@/utils/api";
 import { router } from "expo-router";
 const { width: sWidth } = Dimensions.get("window");
@@ -95,6 +96,11 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
   ) => {
     if (!restaurant?._id) return;
 
+    const limit =
+      item.quantityInBranch !== undefined && item.quantityInBranch !== null
+        ? item.quantityInBranch
+        : undefined;
+
     let total: number;
     let newQuantity: number;
     const currentQuantity =
@@ -106,6 +112,12 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
     } else {
       total = action === "MINUS" ? -1 : 1;
       newQuantity = currentQuantity + total;
+
+      if (action === "PLUS" && limit !== undefined && newQuantity > limit) {
+        newQuantity = limit;
+        total = newQuantity - currentQuantity;
+        if (total <= 0) return;
+      }
 
       if (
         action === "PLUS" &&
@@ -155,6 +167,10 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
         });
         return;
       }
+    }
+
+    if (limit !== undefined && newQuantity > limit) {
+      newQuantity = limit;
     }
 
     const priceChange = total * item.price;
@@ -220,6 +236,17 @@ const CollectionMenu = (props: IProps) => {
   const { handleQuantityChange } = useModal();
   const [restaurants, setRestaurants] = useState<IPropsProduct[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [expandedComboId, setExpandedComboId] = useState<number | null>(null);
+  const [comboItemsMap, setComboItemsMap] = useState<
+    Record<
+      number,
+      {
+        productId: number;
+        productName: string;
+        quantity: number;
+      }[]
+    >
+  >({});
   const mockRestaurant = {
     _id: "mock_restaurant_1",
     name: "Số món đã đặt",
@@ -436,144 +463,238 @@ const CollectionMenu = (props: IProps) => {
               }) => {
                 const isLastItem = index === restaurants.length - 1;
                 return (
-                  <Pressable disabled={item.inStock === false}>
-                    <View
-                      style={[
-                        styles.itemContainer,
-                        { marginRight: isLastItem ? 10 : 5 },
-                        item.inStock === false &&
-                          styles.itemContainerOutOfStock,
-                      ]}
-                    >
-                      <View style={styles.imageWrapper}>
-                        <Image
-                          style={[
-                            styles.itemImage,
-                            item.inStock === false &&
-                              styles.itemImageOutOfStock,
-                          ]}
-                          source={
-                            typeof item.image === "string"
-                              ? { uri: item.image }
-                              : (item.image as any)
+                  <View style={{ flexDirection: "column" }}>
+                    <Pressable
+                      disabled={item.inStock === false}
+                      onPress={async () => {
+                        if (!item.isCombo || !item.comboId) return;
+                        const comboId = item.comboId;
+
+                        if (expandedComboId === comboId) {
+                          setExpandedComboId(null);
+                          return;
+                        }
+
+                        if (!comboItemsMap[comboId]) {
+                          try {
+                            const res = await GetComboDetail(comboId);
+                            console.log("res", res.data.data.comboItems);
+                            const data = res?.data?.data;
+                            const items =
+                              (data?.comboItems || []).map((ci: any) => ({
+                                productId: ci.productId,
+                                productName:
+                                  ci.productName || `Sản phẩm ${ci.productId}`,
+                                quantity: ci.quantity ?? 0,
+                              })) || [];
+
+                            setComboItemsMap((prev) => ({
+                              ...prev,
+                              [comboId]: items,
+                            }));
+                          } catch (error) {
+                            console.error("Lỗi lấy chi tiết combo:", error);
                           }
-                        />
-                        {item.inStock === false && (
-                          <View style={styles.outOfStockOverlay} />
-                        )}
-                        {item.inStock === false && (
-                          <View style={styles.outOfStockBanner}>
-                            <Text style={styles.outOfStockText}>HẾT HÀNG</Text>
-                          </View>
-                        )}
-                      </View>
-                      <View style={styles.ratingContainer}>
-                        <Text style={styles.ratingText}>
-                          {item.quantityInBranch !== undefined &&
-                          item.quantityInBranch !== null
-                            ? `Còn: ${item.quantityInBranch}`
-                            : ""}
-                        </Text>
-                      </View>
-                      <View style={styles.itemTextContainer}>
-                        <View style={{ height: 50 }}>
-                          <Text
-                            style={[
-                              styles.itemName,
-                              item.inStock === false &&
-                                styles.itemNameOutOfStock,
-                            ]}
-                            numberOfLines={2}
-                            ellipsizeMode="tail"
-                          >
-                            {item.name}
-                          </Text>
-                        </View>
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            gap: 10,
-                          }}
-                        >
-                          <Text
-                            style={[
-                              styles.itemPrice,
-                              item.inStock === false &&
-                                styles.itemPriceOutOfStock,
-                            ]}
-                          >
-                            {currencyFormatter(item.price)}
-                          </Text>
-                        </View>
-                      </View>
+                        }
+
+                        setExpandedComboId(comboId);
+                      }}
+                    >
                       <View
                         style={[
-                          styles.quantityContainer,
-                          { marginHorizontal: 10, marginVertical: 10 },
+                          styles.itemContainer,
+                          { marginRight: isLastItem ? 10 : 5 },
                           item.inStock === false &&
-                            styles.quantityContainerDisabled,
+                            styles.itemContainerOutOfStock,
                         ]}
                       >
-                        <Pressable
-                          onPress={() => handleQuantityChange(item, "MINUS")}
-                          style={({ pressed }) => ({
-                            opacity:
-                              getItemQuantity(item.productId) > 0 &&
-                              item.inStock !== false
-                                ? pressed
-                                  ? 0.5
-                                  : 1
-                                : 0.3,
-                          })}
-                          disabled={
-                            getItemQuantity(item.productId) === 0 ||
-                            item.inStock === false
-                          }
-                        >
-                          <AntDesign
-                            name="minus-circle"
-                            size={24}
-                            color={
-                              getItemQuantity(item.productId) > 0 &&
-                              item.inStock !== false
-                                ? APP_COLOR.BUTTON_YELLOW
-                                : APP_COLOR.BROWN
+                        <View style={styles.imageWrapper}>
+                          <Image
+                            style={[
+                              styles.itemImage,
+                              item.inStock === false &&
+                                styles.itemImageOutOfStock,
+                            ]}
+                            source={
+                              typeof item.image === "string"
+                                ? { uri: item.image }
+                                : (item.image as any)
                             }
                           />
-                        </Pressable>
-                        <TextInput
-                          style={styles.quantityText}
-                          value={String(getItemQuantity(item.productId))}
-                          onChangeText={(text) => {
-                            const numValue = parseInt(text) || 0;
-                            const finalValue = Math.max(0, numValue);
-                            handleQuantityChange(item, finalValue);
-                          }}
-                          keyboardType="numeric"
-                          editable={item.inStock !== false}
-                          selectTextOnFocus
-                        />
-                        <Pressable
-                          onPress={() => handleQuantityChange(item, "PLUS")}
-                          style={({ pressed }) => ({
-                            opacity:
-                              item.inStock === false ? 0.3 : pressed ? 0.5 : 1,
-                          })}
-                          disabled={item.inStock === false}
+                          {item.inStock === false && (
+                            <View style={styles.outOfStockOverlay} />
+                          )}
+                          {item.inStock === false && (
+                            <View style={styles.outOfStockBanner}>
+                              <Text style={styles.outOfStockText}>
+                                HẾT HÀNG
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                        <View style={styles.ratingContainer}>
+                          <Text style={styles.ratingText}>
+                            {item.quantityInBranch !== undefined &&
+                            item.quantityInBranch !== null
+                              ? `Còn: ${item.quantityInBranch}`
+                              : ""}
+                          </Text>
+                        </View>
+                        <View style={styles.itemTextContainer}>
+                          <View style={{ height: 50 }}>
+                            <Text
+                              style={[
+                                styles.itemName,
+                                item.inStock === false &&
+                                  styles.itemNameOutOfStock,
+                              ]}
+                              numberOfLines={1}
+                              ellipsizeMode="tail"
+                            >
+                              {item.name}
+                            </Text>
+                          </View>
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              gap: 10,
+                            }}
+                          >
+                            <Text
+                              style={[
+                                styles.itemPrice,
+                                item.inStock === false &&
+                                  styles.itemPriceOutOfStock,
+                              ]}
+                            >
+                              {currencyFormatter(item.price)}
+                            </Text>
+                          </View>
+                        </View>
+                        <View
+                          style={[
+                            styles.quantityContainer,
+                            { marginHorizontal: 10, marginVertical: 10 },
+                            item.inStock === false &&
+                              styles.quantityContainerDisabled,
+                          ]}
                         >
-                          <AntDesign
-                            name="plus-circle"
-                            size={24}
-                            color={
+                          <Pressable
+                            onPress={() => handleQuantityChange(item, "MINUS")}
+                            style={({ pressed }) => ({
+                              opacity:
+                                getItemQuantity(item.productId) > 0 &&
+                                item.inStock !== false
+                                  ? pressed
+                                    ? 0.5
+                                    : 1
+                                  : 0.3,
+                            })}
+                            disabled={
+                              getItemQuantity(item.productId) === 0 ||
                               item.inStock === false
-                                ? APP_COLOR.BROWN
-                                : APP_COLOR.BUTTON_YELLOW
                             }
+                          >
+                            <AntDesign
+                              name="minus-circle"
+                              size={24}
+                              color={
+                                getItemQuantity(item.productId) > 0 &&
+                                item.inStock !== false
+                                  ? APP_COLOR.BUTTON_YELLOW
+                                  : APP_COLOR.BROWN
+                              }
+                            />
+                          </Pressable>
+                          <TextInput
+                            style={styles.quantityText}
+                            value={String(getItemQuantity(item.productId))}
+                            onChangeText={(text) => {
+                              const numValue = parseInt(text) || 0;
+                              const finalValue = Math.max(0, numValue);
+                              handleQuantityChange(item, finalValue);
+                            }}
+                            keyboardType="numeric"
+                            editable={item.inStock !== false}
+                            selectTextOnFocus
                           />
-                        </Pressable>
+                          <Pressable
+                            onPress={() => handleQuantityChange(item, "PLUS")}
+                            style={({ pressed }) => {
+                              const atLimit =
+                                item.quantityInBranch !== undefined &&
+                                getItemQuantity(item.productId) >=
+                                  item.quantityInBranch;
+                              const disabled =
+                                item.inStock === false || atLimit;
+                              return {
+                                opacity: 1,
+                                backgroundColor: disabled
+                                  ? APP_COLOR.GRAY
+                                  : "transparent",
+                                borderRadius: 20,
+                                padding: 2,
+                                ...(pressed && !disabled
+                                  ? { opacity: 0.5 }
+                                  : {}),
+                              };
+                            }}
+                            disabled={
+                              item.inStock === false ||
+                              (item.quantityInBranch !== undefined &&
+                                getItemQuantity(item.productId) >=
+                                  item.quantityInBranch)
+                            }
+                          >
+                            <AntDesign
+                              name="plus-circle"
+                              size={24}
+                              color={
+                                item.inStock === false ||
+                                (item.quantityInBranch !== undefined &&
+                                  getItemQuantity(item.productId) >=
+                                    item.quantityInBranch)
+                                  ? APP_COLOR.GRAY
+                                  : APP_COLOR.BUTTON_YELLOW
+                              }
+                            />
+                          </Pressable>
+                        </View>
                       </View>
-                    </View>
-                  </Pressable>
+                    </Pressable>
+                    {item.isCombo &&
+                      item.comboId &&
+                      expandedComboId === item.comboId &&
+                      comboItemsMap[item.comboId] && (
+                        <View style={styles.comboDropdown}>
+                          {(() => {
+                            const items = comboItemsMap[item.comboId!];
+                            return items.map((ci, idx) => (
+                              <View key={ci.productId}>
+                                <View style={styles.comboDropdownRow}>
+                                  <View style={styles.comboDropdownItemLeft}>
+                                    <View style={styles.comboDropdownBullet} />
+                                    <Text style={styles.comboDropdownText}>
+                                      {ci.productName}
+                                    </Text>
+                                  </View>
+                                  <View
+                                    style={styles.comboDropdownQuantityBadge}
+                                  >
+                                    <Text style={styles.comboDropdownQuantity}>
+                                      x{ci.quantity}
+                                    </Text>
+                                  </View>
+                                </View>
+                                {idx < items.length - 1 && (
+                                  <View style={styles.comboDropdownSeparator} />
+                                )}
+                              </View>
+                            ));
+                          })()}
+                        </View>
+                      )}
+                  </View>
                 );
               }}
             />
@@ -590,7 +711,6 @@ const CollectionMenu = (props: IProps) => {
           style={styles.loader}
         >
           <Rect x="5" y="5" rx="10" ry="10" width="370" height="110" />
-
           <Rect x="10" y="10" rx="10" ry="10" width="100" height="100" />
 
           <Rect x="120" y="15" rx="6" ry="6" width="230" height="18" />
@@ -681,7 +801,18 @@ const CollectionMenu = (props: IProps) => {
                       </Text>
                     </View>
                   )}
-                  <Pressable disabled={item.inStock === false}>
+                  <Pressable
+                    disabled={item.inStock === false}
+                    onPress={() => {
+                      router.navigate({
+                        pathname: "/(user)/products/[id]",
+                        params: {
+                          id: String(item.productId),
+                          branchId: String(branchId),
+                        },
+                      });
+                    }}
+                  >
                     <View
                       style={[
                         styles.itemContainer,
@@ -800,18 +931,35 @@ const CollectionMenu = (props: IProps) => {
                         />
                         <Pressable
                           onPress={() => handleQuantityChange(item, "PLUS")}
-                          style={({ pressed }) => ({
-                            opacity:
-                              item.inStock === false ? 0.3 : pressed ? 0.5 : 1,
-                          })}
-                          disabled={item.inStock === false}
+                          style={({ pressed }) => {
+                            const atLimit =
+                              item.quantityInBranch !== undefined &&
+                              item.quantityInBranch !== null &&
+                              getItemQuantity(item.productId) >=
+                                item.quantityInBranch;
+                            const disabled = item.inStock === false || atLimit;
+                            return {
+                              opacity: disabled ? 0.3 : pressed ? 0.5 : 1,
+                            };
+                          }}
+                          disabled={
+                            item.inStock === false ||
+                            (item.quantityInBranch !== undefined &&
+                              item.quantityInBranch !== null &&
+                              getItemQuantity(item.productId) >=
+                                item.quantityInBranch)
+                          }
                         >
                           <AntDesign
                             name="plus-circle"
                             size={24}
                             color={
-                              item.inStock === false
-                                ? APP_COLOR.BROWN
+                              item.inStock === false ||
+                              (item.quantityInBranch !== undefined &&
+                                item.quantityInBranch !== null &&
+                                getItemQuantity(item.productId) >=
+                                  item.quantityInBranch)
+                                ? APP_COLOR.GRAY
                                 : APP_COLOR.BUTTON_YELLOW
                             }
                           />
@@ -867,7 +1015,7 @@ const styles = StyleSheet.create({
   itemContainer: {
     backgroundColor: APP_COLOR.WHITE,
     width: 355,
-    height: 100,
+    minHeight: 100,
     flexDirection: "row",
     borderRadius: 10,
     marginTop: 5,
@@ -919,14 +1067,13 @@ const styles = StyleSheet.create({
     fontSize: 17,
   },
   quantityContainer: {
-    height: 30,
+    height: 35,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 3,
-    paddingHorizontal: 5,
+    paddingHorizontal: 7,
     borderRadius: 50,
-    marginBottom: 7,
     borderWidth: 0.5,
     borderColor: APP_COLOR.BROWN,
     position: "absolute",
@@ -1050,6 +1197,71 @@ const styles = StyleSheet.create({
   },
   quantityContainerDisabled: {
     opacity: 0.5,
+  },
+  comboDropdown: {
+    marginBottom: 5,
+    marginTop: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: APP_COLOR.WHITE,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    position: "relative",
+    top: -20,
+    zIndex: -1000,
+    marginHorizontal: 5,
+  },
+  comboDropdownRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 8,
+  },
+  comboDropdownItemLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+    marginRight: 12,
+  },
+  comboDropdownBullet: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: APP_COLOR.ORANGE,
+    marginRight: 10,
+  },
+  comboDropdownText: {
+    fontFamily: FONTS.regular,
+    color: APP_COLOR.BROWN,
+    fontSize: 14,
+    flex: 1,
+  },
+  comboDropdownQuantityBadge: {
+    backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    minWidth: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  comboDropdownQuantity: {
+    fontFamily: FONTS.semiBold,
+    color: APP_COLOR.ORANGE,
+    fontSize: 13,
+  },
+  comboDropdownSeparator: {
+    height: 1,
+    backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
+    marginVertical: 4,
+    marginLeft: 16,
   },
 });
 

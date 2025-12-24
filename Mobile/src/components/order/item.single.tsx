@@ -1,6 +1,5 @@
-// import { currencyFormatter, getURLBaseBackend } from "@/utils/api";
 import { APP_COLOR } from "@/utils/constant";
-import { Image, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { currencyFormatter } from "@/utils/cart";
 
@@ -22,14 +21,6 @@ const ItemSingle = (props: IProps) => {
         padding: 10,
       }}
     >
-      <View>
-        {/* <Image
-          style={{ height: 100, width: 100 }}
-          source={{
-            uri: `${getURLBaseBackend()}/images/menu-item/${menuItem?.image}`,
-          }}
-        /> */}
-      </View>
       <View style={{ flex: 1, gap: 10 }}>
         <View>
           <Text>{menuItem?.title}</Text>

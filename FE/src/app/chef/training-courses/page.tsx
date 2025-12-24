@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
@@ -46,6 +46,7 @@ const STATUS_CONFIG: Record<
 
 interface TrainingCardData {
   id: number;
+  trainingId: number;
   userTrainingId: number;
   name: string;
   description: string;
@@ -111,9 +112,11 @@ const unwrapTrainingItems = (payload: unknown): Record<string, unknown>[] => {
 };
 
 const normalizeTraining = (item: Record<string, unknown>): TrainingCardData => {
-  const id = toNumber(
-    item.trainingId ?? item.id ?? item.courseId ?? Date.now()
+  const trainingId = toNumber(item.trainingId ?? item.courseId ?? 0);
+  const userTrainingId = toNumber(
+    item.userTrainingId ?? item.id ?? item.userIdTraining ?? 0
   );
+  const id = trainingId || userTrainingId || Date.now();
   const totalLessons = toNumber(
     item.lessonCount ??
       item.totalLessons ??
@@ -195,14 +198,8 @@ const normalizeTraining = (item: Record<string, unknown>): TrainingCardData => {
 
   return {
     id,
-    // Ưu tiên userTrainingId; nếu không có (chef/staff) thì fallback sang id/trainingId
-    userTrainingId: toNumber(
-      item.userTrainingId ??
-        item.userIdTraining ??
-        item.id ??
-        item.trainingId ??
-        0
-    ),
+    trainingId,
+    userTrainingId,
     name:
       (typeof item.name === "string" && item.name) ||
       (typeof item.trainingName === "string" && item.trainingName) ||
@@ -246,8 +243,11 @@ export default function ChefTrainingCoursesPage() {
         (await getMyTrainning(
           statusFilter === "ALL" ? undefined : statusFilter
         )) as TrainingResponse,
-      staleTime: 60_000,
+      staleTime: 30_000,
       refetchOnWindowFocus: true,
+      refetchOnMount: "always",
+      refetchOnReconnect: true,
+      refetchInterval: 60_000,
       retry: 2,
     });
 
@@ -256,6 +256,9 @@ export default function ChefTrainingCoursesPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["chef-training-courses"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["my-trainings"],
       });
       toast.success("Đăng ký khóa học thành công!", {
         position: "top-right",
@@ -274,48 +277,44 @@ export default function ChefTrainingCoursesPage() {
     },
   });
 
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        refetch();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [refetch]);
+
   const courses = useMemo<TrainingCardData[]>(() => {
     if (!data) {
-      console.log("📚 No data:", data);
       return [];
     }
 
-    console.log("📚 Raw data:", data);
-
-    // API response có thể là { status, desc, data: [...] } hoặc { status, desc, data: { lessons: [...] } }
     const rootPayload = data?.data ?? data;
 
-    console.log("📚 Root payload:", rootPayload);
-
-    // Nếu rootPayload là array, trả về trực tiếp
     if (Array.isArray(rootPayload)) {
-      console.log("📚 Root payload is array, length:", rootPayload.length);
       const normalized = rootPayload.map(normalizeTraining);
-      console.log("📚 Normalized courses:", normalized);
       return normalized;
     }
 
-    // Nếu rootPayload là object có lessons array
     if (rootPayload && typeof rootPayload === "object") {
       const payloadObj = rootPayload as Record<string, unknown>;
       if ("lessons" in payloadObj && Array.isArray(payloadObj.lessons)) {
-        console.log(
-          "📚 Found lessons array, length:",
-          payloadObj.lessons.length
-        );
         const normalized = (
           payloadObj.lessons as Record<string, unknown>[]
         ).map(normalizeTraining);
-        console.log("📚 Normalized courses from lessons:", normalized);
         return normalized;
       }
     }
 
-    // Thử unwrap như cũ
     const unwrapped = unwrapTrainingItems(rootPayload);
-    console.log("📚 Unwrapped items:", unwrapped);
     const normalized = unwrapped.map(normalizeTraining);
-    console.log("📚 Final normalized courses:", normalized);
     return normalized;
   }, [data]);
 
@@ -604,9 +603,20 @@ export default function ChefTrainingCoursesPage() {
                       </Button>
                     ) : (
                       <Button
-                        onClick={() =>
-                          router.push(`/training/${course.userTrainingId}`)
-                        }
+                        onClick={() => {
+                          if (!course.trainingId || course.trainingId === 0) {
+                            toast.error(
+                              "Không thể vào bài học. Vui lòng thử lại sau!",
+                              {
+                                position: "top-right",
+                                autoClose: 3000,
+                              }
+                            );
+                            return;
+                          }
+                          const url = `/training/${course.trainingId}${course.userTrainingId ? `?userTrainingId=${course.userTrainingId}` : ""}`;
+                          router.push(url);
+                        }}
                         className="w-full bg-gradient-to-r from-[#3B82F6] to-[#2563EB] hover:from-[#2563EB] hover:to-[#3B82F6] text-white font-semibold text-xs sm:text-sm py-2.5 sm:py-3 rounded-lg sm:rounded-xl shadow-lg transition-all duration-300"
                       >
                         <BookOpenCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2" />

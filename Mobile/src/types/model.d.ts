@@ -51,6 +51,7 @@ declare global {
     updatedAt: Date;
     menu: IMenu[];
     isLike: boolean;
+    branchId: number;
   }
   interface ICartItem {
     ProductType: {
@@ -64,6 +65,7 @@ declare global {
     price: number;
     basePrice?: number;
     title?: string;
+    quantityInBranch?: number;
   }
   interface IUserLogin {
     userInfo: {

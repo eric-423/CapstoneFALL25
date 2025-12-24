@@ -185,3 +185,16 @@ export const getChatMessages = async (token: string, orderId: number) => {
   );
   return response.data;
 };
+
+export const checkAttendanceStatus = async (token: string, userId: number) => {
+  const response = await axios.get(
+    `${BASE_URL}/attendance/check?userId=${userId}`,
+    {
+      headers: {
+        accept: "*/*",
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  return response.data;
+};

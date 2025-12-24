@@ -7,7 +7,11 @@ import ItemCart from "@/components/order/item.cart";
 import ShareButton from "@/components/button/share.button";
 import { APP_COLOR } from "@/utils/constant";
 import { FONTS } from "@/theme/typography";
-import { currencyFormatter, calculateTotalPrice } from "@/utils/cart";
+import {
+  currencyFormatter,
+  calculateTotalPrice,
+  getItemQuantity as getItemQuantityUtil,
+} from "@/utils/cart";
 import { useCurrentApp } from "@/context/app.context";
 import Toast from "react-native-root-toast";
 
@@ -15,7 +19,7 @@ const fallbackImage = require("@/assets/icons/com-tam.png");
 const comboFallbackImage = require("@/assets/saleoff/combo.png");
 
 const CartPage = () => {
-  const { cart, restaurant, locationReal, appState } = useCurrentApp();
+  const { cart, setCart, restaurant, locationReal, appState } = useCurrentApp();
   const restaurantId = restaurant?._id;
   const restaurantCart = restaurantId ? cart?.[restaurantId] : undefined;
 
@@ -26,6 +30,10 @@ const CartPage = () => {
       const unitPrice = Number(
         data.basePrice || data.price || data.productPrice || 0
       );
+      const quantityInBranch =
+        typeof data.quantityInBranch === "number"
+          ? data.quantityInBranch
+          : undefined;
       const isCombo = data.isCombo || false;
       const defaultImage = isCombo ? comboFallbackImage : fallbackImage;
       const imageSource =
@@ -34,10 +42,13 @@ const CartPage = () => {
           : data.image || defaultImage;
       return {
         id: key,
+        productId: key,
         image: imageSource,
         title: data.title || data.name || data.productName || "Sản phẩm",
         quantity: item?.quantity || 0,
         price: unitPrice * (item?.quantity || 0),
+        unitPrice: unitPrice,
+        quantityInBranch,
         description:
           data.description || data.productDescription || "Không có mô tả",
       };
@@ -54,6 +65,72 @@ const CartPage = () => {
     if (isCartEmpty) return;
     router.navigate("/(user)/order/place.order");
   };
+
+  const handleQuantityChange = (
+    productId: string,
+    action: "MINUS" | "PLUS"
+  ) => {
+    if (!restaurantId) return;
+
+    const item = restaurantCart?.items?.[productId];
+    if (!item) return;
+
+    const currentQuantity = item.quantity || 0;
+    const quantityInBranch =
+      typeof item.data?.quantityInBranch === "number"
+        ? item.data.quantityInBranch
+        : undefined;
+
+    if (
+      action === "PLUS" &&
+      quantityInBranch !== undefined &&
+      currentQuantity >= quantityInBranch
+    ) {
+      return;
+    }
+
+    const total = action === "MINUS" ? -1 : 1;
+
+    const unitPrice = Number(
+      item.data?.basePrice ||
+        item.data?.price ||
+        (item.data as any)?.productPrice ||
+        0
+    );
+    const priceChange = total * unitPrice;
+
+    const newCart = { ...cart };
+    if (!newCart[restaurantId]) {
+      newCart[restaurantId] = {
+        sum: 0,
+        quantity: 0,
+        items: {},
+      };
+    }
+
+    newCart[restaurantId].sum = (newCart[restaurantId].sum || 0) + priceChange;
+    newCart[restaurantId].quantity =
+      (newCart[restaurantId].quantity || 0) + total;
+
+    const newQuantity = currentQuantity + total;
+
+    if (newQuantity <= 0) {
+      delete newCart[restaurantId].items[productId];
+      if (Object.keys(newCart[restaurantId].items).length === 0) {
+        delete newCart[restaurantId];
+      }
+    } else {
+      newCart[restaurantId].items[productId] = {
+        ...item,
+        quantity: newQuantity,
+      };
+    }
+
+    setCart(newCart);
+  };
+
+  const getItemQuantity = (productId: string) =>
+    getItemQuantityUtil(cart, restaurantId, productId);
 
   return (
     <View style={{ flex: 1, backgroundColor: APP_COLOR.BACKGROUND_ORANGE }}>
@@ -85,6 +162,11 @@ const CartPage = () => {
               quantity={item.quantity}
               price={item.price}
               description={item.description}
+              productId={item.productId}
+              handleQuantityChange={handleQuantityChange}
+              getItemQuantity={getItemQuantity}
+              unitPrice={item.unitPrice}
+              quantityInBranch={item.quantityInBranch}
             />
           ))
         )}
@@ -200,9 +282,6 @@ const CartPage = () => {
           />
         </View>
       </View>
-      <View
-        style={{ height: 30, backgroundColor: APP_COLOR.BACKGROUND_ORANGE }}
-      ></View>
     </View>
   );
 };

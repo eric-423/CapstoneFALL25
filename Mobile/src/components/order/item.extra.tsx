@@ -7,23 +7,27 @@ import { useEffect, useState, useMemo } from "react";
 import { Text, View } from "react-native";
 import CheckBox from "react-native-check-box";
 import { useCurrentApp } from "@/context/app.context";
-import { getItemQuantity as getItemQuantityUtil } from "@/utils/cart";
 
 interface IProps {
   productId: number;
 }
 const ItemExtra = (props: IProps) => {
   const { productId } = props;
-  const { cart, setCart, restaurant } = useCurrentApp();
+  const { cart, setCart, restaurant, branchId } = useCurrentApp();
   const [productTypeList, setProductTypeList] = useState<IProductType[]>([]);
 
   useEffect(() => {
     const fetchProductType = async () => {
       try {
-        const res = await GetPairedProducts(productId);
-        setProductTypeList(res.data.data || []);
-      } catch (error) {
-        console.error("Error fetching paired products:", error);
+        const res = await GetPairedProducts(productId, branchId as any);
+        setProductTypeList(res?.data?.data || []);
+      } catch (error: any) {
+        console.error(
+          "[ItemExtra] paired error:",
+          error?.response?.status,
+          error?.response?.data,
+          error?.message || error
+        );
         setProductTypeList([]);
       }
     };

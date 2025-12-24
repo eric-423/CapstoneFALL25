@@ -13,10 +13,10 @@ import { GetProductType } from "@/utils/api";
 import { useEffect, useState } from "react";
 import { useCurrentApp } from "@/context/app.context";
 import Feather from "@expo/vector-icons/Feather";
-import { SortProductByPrice } from "@/utils/api";
 interface IProductType {
   productId: number;
   name: string;
+  source: any;
 }
 const IconItem = ({ item }: any) => {
   const { setSelectedProductTypeId } = useCurrentApp();
@@ -52,15 +52,41 @@ const TopListMenu = ({ activeTab, setActiveTab }: TopListMenuProps) => {
   const [productType, setProductType] = useState<IProductType[]>([]);
   const [comboData, setComboData] = useState<IProductType[]>([]);
   useEffect(() => {
+    const getIconForType = (name: string) => {
+      const lower = name.toLowerCase();
+      if (name === "Tất cả") {
+        return require("@/assets/menu/all.png");
+      }
+      if (lower.includes("cơm tấm")) {
+        return require("@/assets/menu/brokenrice.png");
+      }
+      if (lower.includes("thức uống") || lower.includes("nước")) {
+        return require("@/assets/menu/drink.png");
+      }
+      if (lower.includes("đồ ăn kèm") || lower.includes("món ăn kèm")) {
+        return require("@/assets/menu/paired.png");
+      }
+      return require("@/assets/menu/rice.png");
+    };
+
     const fetchProductType = async () => {
       const res = await GetProductType();
       const apiData = (res?.data?.data ?? []) as any[];
       const normalized: IProductType[] = apiData.map((item) => ({
         productId: item?.productId ?? item?.id,
         name: item?.name,
+        source: getIconForType(item?.name || ""),
       }));
-      setProductType([{ productId: 0, name: "Tất cả" }, ...normalized]);
+
+      const allItem: IProductType = {
+        productId: 0,
+        name: "Tất cả",
+        source: getIconForType("Tất cả"),
+      };
+
+      setProductType([allItem, ...normalized]);
     };
+
     fetchProductType();
   }, []);
   const displayData = activeTab === "Danh mục" ? productType : comboData;

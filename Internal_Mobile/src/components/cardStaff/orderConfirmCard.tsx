@@ -233,6 +233,14 @@ const OrderCard = (props: IConfirmOrder) => {
     };
 
     fetchOrders();
+
+    const intervalId = setInterval(() => {
+      fetchOrders();
+    }, 5000);
+
+    return () => {
+      clearInterval(intervalId);
+    };
   }, [appState?.token]);
 
   const handleViewDetails = (index: number) => {
