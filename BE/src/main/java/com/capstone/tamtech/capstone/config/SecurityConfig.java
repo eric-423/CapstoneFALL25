@@ -268,7 +268,7 @@ public class SecurityConfig {
                         .requestMatchers("/orders/dining-table/assign-customer/**").hasAnyRole( "STAFF", "WAITER", "MANAGER", "ADMIN")
 
                         .requestMatchers("/orders/dining-table/**").hasRole("CUSTOMER")
-                        .requestMatchers("/promotions/customer/**").hasRole("CUSTOMER")
+                        .requestMatchers("/promotions/customer/**").hasAnyRole("CUSTOMER", "STAFF")
 
                         .requestMatchers(HttpMethod.GET, "/orders/*/bill/download")
                         .hasAnyRole("ADMIN", "MANAGER", "WAITER", "CUSTOMER", "STAFF")
