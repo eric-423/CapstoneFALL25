@@ -33,7 +33,7 @@ public interface PromotionService {
 
     void updatePromotionStatus(String promotionCode, boolean status);
 
-    boolean validatePromotionForCustomer(String customerEmail, String promotionCode, double orderValue);
+    boolean validatePromotionForCustomer(String customerPhone, String promotionCode, double orderValue);
 
     List<PromotionDTO> getAvailablePromotionsByOrderAmount(String phoneNumber, double orderAmount);
 }

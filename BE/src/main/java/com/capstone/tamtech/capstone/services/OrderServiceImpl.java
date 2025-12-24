@@ -696,17 +696,46 @@ public class OrderServiceImpl implements OrderService {
         if (chefs == null || chefs.isEmpty()) {
             throw new RuntimeException("No chefs found for branch id=" + branchId);
         }
+
         Users selected = null;
+        int minOrderCount = Integer.MAX_VALUE;
+
+        List<Users> availableChefs = new ArrayList<>();
+        List<Users> busyChefs = new ArrayList<>();
+
         for (RoleHistory rh : chefs) {
             Users user = rh.getUser();
             if (!user.getIsBusy()) {
-                selected = user;
-                break;
+                availableChefs.add(user);
+            } else {
+                busyChefs.add(user);
             }
         }
+
+        if (!availableChefs.isEmpty()) {
+            for (Users chef : availableChefs) {
+                int orderCount = orderRepository
+                        .findByWorker_IdAndStatus_NameOrderByCreatedAtDesc(chef.getId(), "COOKING").size();
+                if (orderCount < minOrderCount) {
+                    minOrderCount = orderCount;
+                    selected = chef;
+                }
+            }
+        } else {
+            for (Users chef : busyChefs) {
+                int orderCount = orderRepository
+                        .findByWorker_IdAndStatus_NameOrderByCreatedAtDesc(chef.getId(), "COOKING").size();
+                if (orderCount < minOrderCount) {
+                    minOrderCount = orderCount;
+                    selected = chef;
+                }
+            }
+        }
+
         if (selected == null) {
             selected = chefs.get(0).getUser();
         }
+
         order.setWorker(selected);
         order.setStatus(orderStatusRepository.findByName("COOKING")
                 .orElseThrow(() -> new RuntimeException("OrderStatus COOKING not found")));
@@ -761,22 +790,51 @@ public class OrderServiceImpl implements OrderService {
         }
         int branchId = branch.getId();
 
-        List<RoleHistory> shipper = roleHistoryRepository.findByRole_NameAndBranch_IdAndIsActiveTrue("SHIPPER",
+        List<RoleHistory> shippers = roleHistoryRepository.findByRole_NameAndBranch_IdAndIsActiveTrue("SHIPPER",
                 branchId);
-        if (shipper == null || shipper.isEmpty()) {
+        if (shippers == null || shippers.isEmpty()) {
             throw new RuntimeException("No shipper found for branch id=" + branchId);
         }
+
         Users selected = null;
-        for (RoleHistory rh : shipper) {
+        int minOrderCount = Integer.MAX_VALUE;
+
+        List<Users> availableShippers = new ArrayList<>();
+        List<Users> busyShippers = new ArrayList<>();
+
+        for (RoleHistory rh : shippers) {
             Users user = rh.getUser();
             if (!user.getIsBusy()) {
-                selected = user;
-                break;
+                availableShippers.add(user);
+            } else {
+                busyShippers.add(user);
             }
         }
-        if (selected == null) {
-            selected = shipper.get(0).getUser();
+
+        if (!availableShippers.isEmpty()) {
+            for (Users shipperUser : availableShippers) {
+                int orderCount = orderRepository
+                        .findByWorker_IdAndStatus_NameOrderByCreatedAtDesc(shipperUser.getId(), "SHIPPING").size();
+                if (orderCount < minOrderCount) {
+                    minOrderCount = orderCount;
+                    selected = shipperUser;
+                }
+            }
+        } else {
+            for (Users shipperUser : busyShippers) {
+                int orderCount = orderRepository
+                        .findByWorker_IdAndStatus_NameOrderByCreatedAtDesc(shipperUser.getId(), "SHIPPING").size();
+                if (orderCount < minOrderCount) {
+                    minOrderCount = orderCount;
+                    selected = shipperUser;
+                }
+            }
         }
+
+        if (selected == null) {
+            selected = shippers.get(0).getUser();
+        }
+
         order.setShipper(selected);
         selected.setIsBusy(true);
         usersRepository.save(selected);
@@ -920,8 +978,8 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public void autoCompleteDiningOrders() {
         List<Order> orders = orderRepository.findByStatus_NameAndIsTableTrue("PAID");
-        OrderStatus orderStatus = orderStatusRepository.findByName("COMPLETED").orElseThrow(() ->
-                new RuntimeException("OrderStatus COMPLETED not found"));
+        OrderStatus orderStatus = orderStatusRepository.findByName("COMPLETED")
+                .orElseThrow(() -> new RuntimeException("OrderStatus COMPLETED not found"));
 
         orders.forEach(order -> {
             try {
@@ -1134,7 +1192,6 @@ public class OrderServiceImpl implements OrderService {
             }
         }
         order.setSubTotal(subTotal);
-
 
         double discountValue = paymentRequest.getDiscountValue() != 0 ? paymentRequest.getDiscountValue() : 0.0;
         order.setDiscountValue(discountValue);
