@@ -99,7 +99,6 @@ const TabLayout = () => {
           borderTopWidth: 0,
           height: 55,
           backgroundColor: APP_COLOR.BACKGROUND_ORANGE,
-          marginBottom: 50,
           paddingTop: 5,
           paddingBottom: 10,
         },

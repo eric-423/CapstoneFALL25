@@ -221,9 +221,7 @@ const VoucherDetailsPage = () => {
           <View style={styles.divider} />
           <View style={styles.infoRow}>
             <Text style={styles.label}>Số lần đã sử dụng:</Text>
-            <Text style={styles.value}>
-              {voucher.NumberCurrentUses} / {voucher.maxNumberOfUses}
-            </Text>
+            <Text style={styles.value}>{voucher.NumberCurrentUses}</Text>
           </View>
           <View style={styles.divider} />
           <View style={styles.infoRow}>

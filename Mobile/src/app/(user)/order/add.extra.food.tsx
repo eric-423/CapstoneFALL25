@@ -156,9 +156,6 @@ const AddExtraFoodContent = () => {
     averageRating: 0,
   };
 
-  const getItemQuantity = (itemId: string) =>
-    getItemQuantityUtil(cart, restaurant?._id, itemId);
-
   return (
     <View style={{ backgroundColor: APP_COLOR.BACKGROUND_ORANGE, flex: 1 }}>
       <ScrollView
@@ -183,41 +180,6 @@ const AddExtraFoodContent = () => {
           right: 0,
         }}
       >
-        <View style={[styles.quantityContainer, { marginHorizontal: 10 }]}>
-          <Pressable
-            onPress={() => handleQuantityChange(item, "MINUS")}
-            style={({ pressed }) => ({
-              opacity:
-                getItemQuantity(productIdStr) > 0 ? (pressed ? 0.5 : 1) : 0.3,
-            })}
-            disabled={getItemQuantity(productIdStr) === 0}
-          >
-            <AntDesign
-              name="minus-circle"
-              size={30}
-              color={
-                getItemQuantity(productIdStr) > 0
-                  ? APP_COLOR.BUTTON_YELLOW
-                  : APP_COLOR.BROWN
-              }
-            />
-          </Pressable>
-          <Text style={styles.quantityText}>
-            {getItemQuantity(productIdStr)}
-          </Text>
-          <Pressable
-            onPress={() => handleQuantityChange(item, "PLUS")}
-            style={({ pressed }) => ({
-              opacity: pressed ? 0.5 : 1,
-            })}
-          >
-            <AntDesign
-              name="plus-circle"
-              size={30}
-              color={APP_COLOR.BUTTON_YELLOW}
-            />
-          </Pressable>
-        </View>
         <ShareButton
           textStyle={styles.btnText}
           btnStyle={styles.btnStyle}

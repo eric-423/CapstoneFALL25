@@ -65,6 +65,7 @@ declare global {
     price: number;
     basePrice?: number;
     title?: string;
+    quantityInBranch?: number;
   }
   interface IUserLogin {
     userInfo: {

@@ -116,6 +116,7 @@ const styles = StyleSheet.create({
 const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
   const {
     cart,
+    setCart,
     locationReal,
     setLocationReal,
     appState,
@@ -242,8 +243,14 @@ const HeaderHome: React.FC<HeaderHomeProps> = ({ pageName }) => {
   );
 
   const handleSelectBranch = async (branch: any) => {
-    setSelectedBranch(branch);
     const branchIdToSave = branch.branchId || branch.id;
+
+    // Nếu chi nhánh mới khác chi nhánh cũ thì xóa giỏ hàng
+    if (branchIdToSave && branchIdToSave !== branchId) {
+      setCart({});
+    }
+
+    setSelectedBranch(branch);
     if (branchIdToSave) {
       setBranchId(branchIdToSave);
       setBranchName(branch.name);
