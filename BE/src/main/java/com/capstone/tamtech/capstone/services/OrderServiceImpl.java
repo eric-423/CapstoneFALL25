@@ -822,7 +822,6 @@ public class OrderServiceImpl implements OrderService {
         }
 
         order.setShipper(selected);
-        selected.setIsBusy(true);
         usersRepository.save(selected);
         order.setStatus(orderStatusRepository.findByName("SHIPPING")
                 .orElseThrow(() -> new RuntimeException("OrderStatus COOKING not found")));
@@ -992,6 +991,20 @@ public class OrderServiceImpl implements OrderService {
         order.setCustomer(users);
 
         orderRepository.save(order);
+        return true;
+    }
+
+    @Override
+    public boolean startShipping(Users user) {
+        user.setIsBusy(true);
+        usersRepository.save(user);
+        return true;
+    }
+
+    @Override
+    public boolean readyPickup(Users user) {
+        user.setIsBusy(false);
+        usersRepository.save(user);
         return true;
     }
 
@@ -1356,6 +1369,69 @@ public class OrderServiceImpl implements OrderService {
             orders = orderRepository.findByBranchId(branchId);
         }
         return convertToOrderListDTO(orders);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<OrderListDTO> getShipperOptimizedOrders(int shipperId, int branchId) {
+        Branch branch = branchRepository.findById(branchId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy chi nhánh với ID: " + branchId));
+
+        String branchAddress = branch.getAddress();
+        if (branchAddress == null || branchAddress.isBlank()) {
+            throw new RuntimeException("Chi nhánh không có địa chỉ");
+        }
+
+        List<Order> orders = orderRepository.findByShipper_IdAndStatus_NameAndBranch_IdOrderByCreatedAtDesc(
+                shipperId, "SHIPPING", branchId);
+
+        if (orders == null || orders.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<Order> optimizedOrders = optimizeRoute(orders, branchAddress);
+        return convertToOrderListDTO(optimizedOrders);
+    }
+
+    private List<Order> optimizeRoute(List<Order> orders, String startAddress) {
+        if (orders == null || orders.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<Order> result = new ArrayList<>();
+        List<Order> remaining = new ArrayList<>(orders);
+        String currentAddress = startAddress;
+
+        while (!remaining.isEmpty()) {
+            Order nearestOrder = null;
+            long minDistance = Long.MAX_VALUE;
+
+            for (Order order : remaining) {
+                if (order.getAddress() == null || order.getAddress().isBlank()) {
+                    continue;
+                }
+
+                long distance = distanceService.getDistanceInMeters(currentAddress, order.getAddress());
+                if (distance < 0) {
+                    distance = Long.MAX_VALUE;
+                }
+
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    nearestOrder = order;
+                }
+            }
+
+            if (nearestOrder != null) {
+                result.add(nearestOrder);
+                remaining.remove(nearestOrder);
+                currentAddress = nearestOrder.getAddress();
+            } else {
+                break;
+            }
+        }
+
+        return result;
     }
 
     @Override

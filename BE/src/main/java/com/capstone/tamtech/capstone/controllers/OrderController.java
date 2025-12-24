@@ -2,6 +2,7 @@ package com.capstone.tamtech.capstone.controllers;
 
 import com.capstone.tamtech.capstone.dto.OrderListDTO;
 import com.capstone.tamtech.capstone.dto.OrderStatusDTO;
+import com.capstone.tamtech.capstone.entities.Branch;
 import com.capstone.tamtech.capstone.entities.Users;
 import com.capstone.tamtech.capstone.payload.ResponseData;
 import com.capstone.tamtech.capstone.payload.request.DiningTablePaymentRequest;
@@ -102,9 +103,6 @@ public class OrderController {
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
 
-
-
-
     @PostMapping("/payment/webhook")
     public ResponseEntity<String> paymentWebhook(@RequestBody Object body)
             throws JsonProcessingException, IllegalArgumentException {
@@ -128,7 +126,6 @@ public class OrderController {
         }
     }
 
-
     @GetMapping("/payment/cancel")
     public RedirectView paymentCancel(@RequestParam int orderCode) {
         orderService.cancelOrder(orderCode);
@@ -148,7 +145,6 @@ public class OrderController {
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
 
-
     @PutMapping("/cheff/cooked/{orderId}")
     public ResponseEntity<?> markAsCooked(@PathVariable int orderId, @RequestBody List<Long> orderItemIds) {
         boolean result = orderService.markAsCooked(orderId, orderItemIds);
@@ -161,10 +157,67 @@ public class OrderController {
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
+    @PutMapping("/shipper/start-delivery")
+    public ResponseEntity<?> startShipping(Authentication authentication) {
+        String email = authentication.getName();
+        Users user = usersRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        boolean result = orderService.startShipping(user);
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @PutMapping("/shipper/ready-pickup")
+    public ResponseEntity<?> readyPickup(Authentication authentication) {
+        String email = authentication.getName();
+        Users user = usersRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        boolean result = orderService.readyPickup(user);
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
     @PutMapping("/shipper/delivered/{orderId}")
     public ResponseEntity<?> deliveredOrder(@PathVariable int orderId) {
         boolean result = orderService.deliveredOrder(orderId);
         return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @GetMapping("/shipper/optimized-route")
+    public ResponseEntity<?> getShipperOptimizedOrders(Authentication authentication) {
+        try {
+            String email = authentication.getName();
+            Users user = usersRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            if (user.getRoleHistories() == null || user.getRoleHistories().isEmpty()) {
+                ResponseData responseData = new ResponseData();
+                responseData.setDesc("User is not assigned to any branch");
+                return new ResponseEntity<>(responseData, HttpStatus.BAD_REQUEST);
+            }
+
+            Branch branch = user.getRoleHistories().get(user.getRoleHistories().size() - 1).getBranch();
+            if (branch == null) {
+                ResponseData responseData = new ResponseData();
+                responseData.setDesc("User is not assigned to any branch");
+                return new ResponseEntity<>(responseData, HttpStatus.BAD_REQUEST);
+            }
+
+            int branchId = branch.getId();
+            int shipperId = user.getId();
+            List<OrderListDTO> orders = orderService.getShipperOptimizedOrders(shipperId, branchId);
+
+            ResponseData responseData = new ResponseData();
+            responseData.setData(orders);
+            responseData.setDesc("Retrieved " + orders.size() + " optimized order(s) for shipper");
+            return new ResponseEntity<>(responseData, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            ResponseData responseData = new ResponseData();
+            responseData.setDesc("Error: " + e.getMessage());
+            responseData.setStatus(500);
+            return new ResponseEntity<>(responseData, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PutMapping("/customer/comleted/{orderId}")
@@ -201,8 +254,6 @@ public class OrderController {
         responseData.setData(orderService.confirmDeliveredOrderItem(waiterConfirmOrderRequest));
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
-
-
 
     /**
      * Customer endpoint - Get orders of the authenticated customer

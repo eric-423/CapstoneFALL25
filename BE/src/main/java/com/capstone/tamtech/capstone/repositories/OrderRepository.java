@@ -26,12 +26,15 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
 
         Page<Order> findByBranch_Id(int id, Pageable pageable);
 
-
         List<Order> findByBranch_IdAndStatus_NameOrderByCreatedAtDesc(int id, String name);
 
         boolean existsByStatus_Id(int statusId);
 
         List<Order> findByWorker_IdAndStatus_NameOrderByCreatedAtDesc(int id, String name);
+
+        @Query("SELECT o FROM Order o WHERE o.shipper.id = :shipperId AND o.status.name = :statusName AND o.branch.id = :branchId ORDER BY o.createdAt DESC")
+        List<Order> findByShipper_IdAndStatus_NameAndBranch_IdOrderByCreatedAtDesc(@Param("shipperId") int shipperId,
+                        @Param("statusName") String statusName, @Param("branchId") int branchId);
 
         @Query("SELECT o FROM Order o WHERE " +
                         "(:branchId IS NULL OR o.branch.id = :branchId) AND " +
@@ -63,6 +66,5 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
                         @Param("endDate") java.util.Date endDate);
 
         List<Order> findByStatus_NameAndIsTableTrue(String name);
-
 
 }
