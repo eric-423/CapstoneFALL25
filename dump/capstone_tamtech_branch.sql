@@ -39,7 +39,7 @@ CREATE TABLE `branch` (
 
 LOCK TABLES `branch` WRITE;
 /*!40000 ALTER TABLE `branch` DISABLE KEYS */;
-INSERT INTO `branch` VALUES (1,_binary '',_binary '','Vinhomes Grand Park, Phường Long Thạnh Mỹ, Quận 9, Thành phố Hồ Chí Minh, Vietnam ','Chi nhánh chính','0901234567'),(2,_binary '',_binary '\0','Chung cư, 40E Ngô Đức Kế, Bến Nghé, Quận 1, Thành phố Hồ Chí Minh 75000, Vietnam ','Chi nhánh 1 - Quận 1','0901234567'),(3,_binary '',_binary '\0','720A Điện Biên Phủ, Phường 22, Bình Thạnh, Thành phố Hồ Chí Minh 72300, Vietnam ','Chi nhánh 2 - Quận 3','0901234568'),(4,_binary '',_binary '\0','216 Đ. Võ Văn Ngân, Bình Thọ, Thủ Đức, Thành phố Hồ Chí Minh, Vietnam ','Chi nhánh 3 - Quận 7','0901234569');
+INSERT INTO `branch` VALUES (1,_binary '',_binary '','50 Nguyễn Văn Tăng, Long Thạnh Mỹ, Thủ Đức, Thành phố Hồ Chí Minh 700000, Việt Nam','Chi nhánh chính','0901234567'),(2,_binary '',_binary '\0','Chung cư, 40E Ngô Đức Kế, Bến Nghé, Quận 1, Thành phố Hồ Chí Minh 75000, Vietnam ','Chi nhánh 1 - Quận 1','0901234567'),(3,_binary '',_binary '\0','720A Điện Biên Phủ, Phường 22, Bình Thạnh, Thành phố Hồ Chí Minh 72300, Vietnam ','Chi nhánh 2 - Quận 3','0901234568'),(4,_binary '',_binary '\0','216 Đ. Võ Văn Ngân, Bình Thọ, Thủ Đức, Thành phố Hồ Chí Minh, Vietnam ','Chi nhánh 3 - Quận 7','0901234569');
 /*!40000 ALTER TABLE `branch` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;

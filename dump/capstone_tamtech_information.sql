@@ -32,7 +32,7 @@ CREATE TABLE `information` (
   PRIMARY KEY (`information_id`),
   KEY `FKij21qaiprm29rbvlcbjs6jx17` (`user_id`),
   CONSTRAINT `FKij21qaiprm29rbvlcbjs6jx17` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -41,6 +41,7 @@ CREATE TABLE `information` (
 
 LOCK TABLES `information` WRITE;
 /*!40000 ALTER TABLE `information` DISABLE KEYS */;
+INSERT INTO `information` VALUES (1,_binary '',17,'200 Hoàng Hữu Nam, Long Thạnh Mỹ, Thủ Đức, Thành phố Hồ Chí Minh, Việt Nam','Trịnh An','0988998249');
 /*!40000 ALTER TABLE `information` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
