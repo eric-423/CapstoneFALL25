@@ -16,6 +16,7 @@ import {
 interface OrderProgressTrackerProps {
   currentStatus: string;
   className?: string;
+  isPickUp?: boolean;
 }
 
 const ORDER_STATUSES = [
@@ -93,34 +94,27 @@ const CANCELLED_STATUS = {
   borderColor: "border-red-300",
 };
 
-// Map backend status to frontend progress tracker status
 const mapStatusToProgressStatus = (status: string): string => {
   const normalized = status?.toUpperCase?.() || "";
 
-  // Map các status từ backend sang status trong progress tracker
   const statusMap: Record<string, string> = {
-    // Status ban đầu
     UNPAID: "CREATED",
     CREATED: "CREATED",
-    VERIFIED: "CREATED", // VERIFIED được coi như CREATED trong progress
+    VERIFIED: "CREATED",
 
-    // Status nấu ăn
-    PROCESSING: "COOKING", // PROCESSING có thể là COOKING hoặc IN_PROCESS
+    PROCESSING: "COOKING",
     COOKING: "COOKING",
     COOKED: "COOKED",
 
-    // Status xử lý
     IN_PROCESS: "IN_PROCESS",
 
-    // Status giao hàng
     SHIPPING: "SHIPPING",
-    DELIVERING: "SHIPPING", // DELIVERING map sang SHIPPING
-    IN_DELIVERY: "SHIPPING", // IN_DELIVERY map sang SHIPPING
+    DELIVERING: "SHIPPING",
+    IN_DELIVERY: "SHIPPING",
 
-    // Status hoàn thành
     DELIVERED: "DELIVERED",
     COMPLETED: "COMPLETED",
-    PAID: "COMPLETED", // PAID được coi như COMPLETED
+    PAID: "COMPLETED",
   };
 
   return statusMap[normalized] || normalized;
@@ -129,6 +123,7 @@ const mapStatusToProgressStatus = (status: string): string => {
 export default function OrderProgressTracker({
   currentStatus,
   className,
+  isPickUp = false,
 }: OrderProgressTrackerProps) {
   const normalizedStatus = currentStatus?.toUpperCase?.() || "";
   const isCancelled =
@@ -153,25 +148,48 @@ export default function OrderProgressTracker({
     );
   }
 
-  const mappedStatus = mapStatusToProgressStatus(normalizedStatus);
-  const currentIndex = ORDER_STATUSES.findIndex(
+  let filteredStatuses = isPickUp
+    ? ORDER_STATUSES.filter(
+      (status) => status.key !== "SHIPPING" && status.key !== "DELIVERED"
+    )
+    : ORDER_STATUSES;
+
+  let mappedStatus = mapStatusToProgressStatus(normalizedStatus);
+
+  if (isPickUp) {
+    if (mappedStatus === "SHIPPING") {
+      mappedStatus = "COOKED";
+    } else if (mappedStatus === "DELIVERED") {
+      mappedStatus = "COMPLETED";
+    }
+  }
+
+  if (isPickUp && filteredStatuses.length < ORDER_STATUSES.length) {
+    const totalStatuses = filteredStatuses.length;
+    filteredStatuses = filteredStatuses.map((status, index) => ({
+      ...status,
+      percent: index === 0 ? 0 : index === totalStatuses - 1 ? 100 : Math.round((index / (totalStatuses - 1)) * 100),
+    }));
+  }
+
+  const currentIndex = filteredStatuses.findIndex(
     (status) => status.key === mappedStatus
   );
 
   const finalIndex =
     currentIndex === -1
-      ? ORDER_STATUSES.findIndex((status) => status.key === normalizedStatus)
+      ? filteredStatuses.findIndex((status) => status.key === normalizedStatus)
       : currentIndex;
 
   const safeIndex = finalIndex === -1 ? 0 : finalIndex;
-  const progressValue = ORDER_STATUSES[safeIndex]?.percent ?? 0;
+  const progressValue = filteredStatuses[safeIndex]?.percent ?? 0;
 
   return (
     <div className={cn("w-full space-y-4 mt-[4rem]", className)}>
       <div className="relative px-5">
         <Progress value={progressValue} className="h-2" />
         <div className="absolute inset-0 flex justify-between items-center px-5">
-          {ORDER_STATUSES.map((status, index) => {
+          {filteredStatuses.map((status, index) => {
             const Icon = status.icon;
             const isCompleted = index <= safeIndex;
             const isCurrent = index === safeIndex;
@@ -202,7 +220,7 @@ export default function OrderProgressTracker({
         </div>
       </div>
       <div className="flex justify-between text-xs px-5 gap-1">
-        {ORDER_STATUSES.map((status, index) => {
+        {filteredStatuses.map((status, index) => {
           const isCompleted = index <= safeIndex;
           const isCurrent = index === safeIndex;
 

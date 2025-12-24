@@ -1012,6 +1012,11 @@ export default function CheckoutPage() {
         });
       }
       form.clearErrors("deliveryAddress");
+
+      // Xóa voucher FREESHIP nếu đã chọn khi chuyển sang "Nhận tại quán"
+      if (selectedPromotion?.promotionTypeName?.includes("Miễn phí vận chuyển")) {
+        setSelectedPromotion(null);
+      }
     } else {
       if (form.getValues("receiveTime") !== undefined) {
         form.setValue("receiveTime", undefined, { shouldValidate: true });
@@ -1019,7 +1024,7 @@ export default function CheckoutPage() {
         form.clearErrors("receiveTime");
       }
     }
-  }, [fulfillmentMethod, form, getDefaultReceiveTime]);
+  }, [fulfillmentMethod, form, getDefaultReceiveTime, selectedPromotion]);
 
   const onSubmit = async (data: CheckoutFormData) => {
     if (form.formState.isValidating || isPlacingOrderPending || isSubmitting)
@@ -1828,23 +1833,27 @@ export default function CheckoutPage() {
                           const orderSubtotal = getTotalPrice();
                           const canApply =
                             orderSubtotal >= promotion.minimumOrderValue;
+                          const isFreeShipping = promotion.promotionTypeName?.includes("Miễn phí vận chuyển");
+                          const isDisabled = !canApply || (isFreeShipping && fulfillmentMethod === "pickup");
 
                           return (
                             <div
                               key={promotion.id}
                               onClick={() => {
-                                if (canApply) {
+                                if (!isDisabled) {
                                   setSelectedPromotion(
                                     isSelected ? null : promotion
                                   );
                                 }
                               }}
                               className={cn(
-                                "p-3 rounded-lg border-2 cursor-pointer transition-all",
-                                isSelected
+                                "p-3 rounded-lg border-2 transition-all",
+                                isDisabled
+                                  ? "opacity-50 cursor-not-allowed border-gray-200"
+                                  : "cursor-pointer",
+                                isSelected && !isDisabled
                                   ? "border-primary bg-primary/5"
-                                  : "border-gray-200 hover:border-primary/50",
-                                !canApply && "opacity-50 cursor-not-allowed"
+                                  : !isDisabled && "border-gray-200 hover:border-primary/50"
                               )}
                             >
                               <div className="flex items-start justify-between gap-2">
@@ -1891,6 +1900,11 @@ export default function CheckoutPage() {
                                   {!canApply && (
                                     <p className="text-xs text-red-500 mt-1">
                                       Đơn hàng chưa đạt mức tối thiểu
+                                    </p>
+                                  )}
+                                  {isFreeShipping && fulfillmentMethod === "pickup" && (
+                                    <p className="text-xs text-amber-600 mt-1">
+                                      Voucher này chỉ áp dụng cho đơn giao hàng
                                     </p>
                                   )}
                                 </div>

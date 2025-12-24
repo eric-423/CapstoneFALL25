@@ -326,9 +326,10 @@ export function OrderDetailsContent({
           <OrderProgressTracker
             currentStatus={order.orderStatus}
             className="mb-6"
+            isPickUp={extendedOrder.pickUp || extendedOrder.isPickUp || false}
           />
 
-          {["SHIPPING", "DELIVERED"].includes(normalizedStatus) && (
+          {normalizedStatus === "SHIPPING" && (
             <OrderLiveTrackingCard
               orderId={order.id}
               destinationAddress={order.address}
