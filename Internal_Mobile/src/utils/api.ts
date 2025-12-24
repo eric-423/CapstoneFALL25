@@ -6,12 +6,27 @@ export const LoginShipper = async (email: string, password: string) => {
     email,
     password,
   });
+
+  const userInfo = response.data?.userInfo;
+  const role = userInfo?.role;
+
+  if (role === "ADMIN" || role === "MANAGER") {
+    const error = new Error("Ứng dụng không khả dụng với vai trò này");
+    (error as any).response = {
+      data: {
+        message: "Ứng dụng không khả dụng với vai trò này",
+      },
+      status: 403,
+    };
+    throw error;
+  }
+
   return response.data;
 };
 
 export const getShippingOrders = async (token: string) => {
   const response = await axios.get(
-    `${BASE_URL}/orders/branch/my-branch?status=SHIPPING`,
+    `${BASE_URL}/orders/shipper/optimized-route`,
     {
       headers: {
         accept: "*/*",
@@ -77,6 +92,36 @@ export const confirmOrder = async (token: string, orderId: number) => {
     {
       headers: {
         accept: "*/*",
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  return response.data;
+};
+
+export const startDelivery = async (token: string) => {
+  const response = await axios.put(
+    `${BASE_URL}/orders/shipper/start-delivery`,
+    {},
+    {
+      headers: {
+        accept: "*/*",
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  return response.data;
+};
+
+export const readyPickup = async (token: string) => {
+  const response = await axios.put(
+    `${BASE_URL}/orders/shipper/ready-pickup`,
+    {},
+    {
+      headers: {
+        accept: "*/*",
+        "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
     }

@@ -5,14 +5,15 @@ import {
   getStatusText,
 } from "@/constants/Function";
 import { useCurrentApp } from "@/context/app.context";
-import { getShippingOrders } from "@/utils/api";
+import { getShippingOrders, readyPickup, startDelivery } from "@/utils/api";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Entypo from "@expo/vector-icons/Entypo";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { router } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Animated,
   Easing,
   LayoutAnimation,
@@ -29,6 +30,7 @@ interface OrderItemProps {
   isExpanded: boolean;
   onToggle: () => void;
   isShipper?: boolean;
+  onRefresh?: () => void;
 }
 
 const OrderItemCard = ({
@@ -36,7 +38,10 @@ const OrderItemCard = ({
   isExpanded,
   onToggle,
   isShipper,
+  onRefresh,
 }: OrderItemProps) => {
+  const { appState } = useCurrentApp();
+  const [isStartingDelivery, setIsStartingDelivery] = useState(false);
   const spinValue = useRef(new Animated.Value(isExpanded ? 1 : 0)).current;
 
   useEffect(() => {
@@ -52,6 +57,33 @@ const OrderItemCard = ({
     inputRange: [0, 1],
     outputRange: ["0deg", "180deg"],
   });
+
+  const handleConfirmOrder = async () => {
+    if (!appState?.token) {
+      Alert.alert("Lỗi", "Không tìm thấy token xác thực");
+      return;
+    }
+
+    try {
+      setIsStartingDelivery(true);
+      router.push({
+        params: {
+          orderId: order.id,
+          address: order.address,
+          orderName: order.customerName,
+        },
+        pathname: "/(auth)/map",
+      });
+      if (onRefresh) {
+        onRefresh();
+      }
+    } catch (error: any) {
+      console.error("Error confirming order:", error);
+      Alert.alert("Lỗi", "Đã xảy ra lỗi khi xác nhận đơn");
+    } finally {
+      setIsStartingDelivery(false);
+    }
+  };
 
   return (
     <View style={styles.cardShadow}>
@@ -165,17 +197,8 @@ const OrderItemCard = ({
           }}
         >
           <ShareButton
-            onPress={() =>
-              router.push({
-                params: {
-                  orderId: order.id,
-                  address: order.address,
-                  orderName: order.customerName,
-                },
-                pathname: "/(auth)/map",
-              })
-            }
-            title="Xác nhận đơn"
+            onPress={handleConfirmOrder}
+            title={isStartingDelivery ? "Đang xử lý..." : "Xác nhận đơn"}
             textStyle={{
               color: APP_COLOR.WHITE,
               fontFamily: APP_FONT.REGULAR,
@@ -185,6 +208,7 @@ const OrderItemCard = ({
               width: 130,
               justifyContent: "center",
             }}
+            loading={isStartingDelivery}
           />
         </View>
       )}
@@ -198,50 +222,112 @@ interface IConfirmOrder {
 const OrderCard = (props: IConfirmOrder) => {
   const { appState } = useCurrentApp();
   const [orders, setOrders] = useState<IOrder[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [hasStartedDelivery, setHasStartedDelivery] = useState(false);
+  const [isStartingDelivery, setIsStartingDelivery] = useState(false);
+  const [isReadyPickup, setIsReadyPickup] = useState(false);
   const [selectedOrderIndex, setSelectedOrderIndex] = useState<number | null>(
     null
   );
 
-  useEffect(() => {
-    const fetchOrders = async () => {
-      if (!appState?.token) {
-        setLoading(false);
-        return;
+  const fetchOrders = useCallback(async () => {
+    if (!appState?.token || !hasStartedDelivery) {
+      return;
+    }
+    try {
+      setLoading(true);
+      const response = await getShippingOrders(appState.token);
+      if (response.status === 0 && response.data) {
+        setOrders(response.data);
+      } else {
+        console.warn("Unexpected response format:", response);
       }
-      try {
-        setLoading(true);
-        const response = await getShippingOrders(appState.token);
-        if (response.status === 0 && response.data) {
-          setOrders(response.data);
-        } else {
-          console.warn("Unexpected response format:", response);
-        }
-      } catch (error: any) {
-        console.error("Error fetching orders:", error);
-        if (error?.response?.status === 400) {
-          console.error("Bad Request (400):", error.response.data);
-        } else if (error?.response?.status === 401) {
-          console.error("Unauthorized (401): Token may be invalid");
-        } else if (error?.response?.status === 403) {
-          console.error("Forbidden (403): No permission to access orders");
-        }
+    } catch (error: any) {
+      console.error("Error fetching orders:", error);
+      if (error?.response?.status === 400) {
+        console.error("Bad Request (400):", error.response.data);
+      } else if (error?.response?.status === 401) {
+        console.error("Unauthorized (401): Token may be invalid");
+      } else if (error?.response?.status === 403) {
+        console.error("Forbidden (403): No permission to access orders");
+      }
+      setOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [appState?.token, hasStartedDelivery]);
+
+  const handleStartDelivery = async () => {
+    if (!appState?.token) {
+      Alert.alert("Lỗi", "Không tìm thấy token xác thực");
+      return;
+    }
+
+    try {
+      setIsStartingDelivery(true);
+      const response = await startDelivery(appState.token);
+
+      if (response === true) {
+        setHasStartedDelivery(true);
+      } else {
+        Alert.alert("Lỗi", response?.message || "Không thể bắt đầu giao hàng");
+      }
+    } catch (error: any) {
+      console.error("Error starting delivery:", error);
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.response?.data ||
+        error?.message ||
+        "Đã xảy ra lỗi khi bắt đầu giao hàng";
+      Alert.alert("Lỗi", errorMessage);
+    } finally {
+      setIsStartingDelivery(false);
+    }
+  };
+
+  const handleReadyPickup = async () => {
+    if (!appState?.token) {
+      Alert.alert("Lỗi", "Không tìm thấy token xác thực");
+      return;
+    }
+
+    try {
+      setIsReadyPickup(true);
+      const response = await readyPickup(appState.token);
+
+      if (response === true) {
+        Alert.alert("Thành công", "Bạn đã sẵn sàng nhận đơn hàng mới");
+        setHasStartedDelivery(false);
         setOrders([]);
-      } finally {
-        setLoading(false);
+      } else {
+        Alert.alert("Lỗi", "Không thể cập nhật trạng thái");
       }
-    };
+    } catch (error: any) {
+      console.error("Error ready pickup:", error);
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.response?.data ||
+        error?.message ||
+        "Đã xảy ra lỗi khi cập nhật trạng thái";
+      Alert.alert("Lỗi", errorMessage);
+    } finally {
+      setIsReadyPickup(false);
+    }
+  };
 
-    fetchOrders();
-
-    const intervalId = setInterval(() => {
+  useEffect(() => {
+    if (hasStartedDelivery) {
       fetchOrders();
-    }, 5000);
 
-    return () => {
-      clearInterval(intervalId);
-    };
-  }, [appState?.token]);
+      const intervalId = setInterval(() => {
+        fetchOrders();
+      }, 5000);
+
+      return () => {
+        clearInterval(intervalId);
+      };
+    }
+  }, [hasStartedDelivery, fetchOrders]);
 
   const handleViewDetails = (index: number) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
@@ -252,6 +338,44 @@ const OrderCard = (props: IConfirmOrder) => {
     }
   };
 
+  if (!hasStartedDelivery && props.isShipper) {
+    return (
+      <View
+        style={[
+          styles.cardShadow,
+          {
+            flex: 1,
+            padding: 20,
+            alignItems: "center",
+            justifyContent: "center",
+          },
+        ]}
+      >
+        <Text
+          style={[styles.boldText, { marginBottom: 20, textAlign: "center" }]}
+        >
+          Nhấn nút bên dưới để bắt đầu nhận đơn hàng
+        </Text>
+        <View style={{ alignItems: "center" }}>
+          <ShareButton
+            onPress={handleStartDelivery}
+            title={isStartingDelivery ? "Đang xử lý..." : "Bắt đầu giao hàng"}
+            textStyle={{
+              color: APP_COLOR.WHITE,
+              fontFamily: APP_FONT.REGULAR,
+            }}
+            btnStyle={{
+              marginVertical: 5,
+              width: 200,
+              justifyContent: "center",
+            }}
+            loading={isStartingDelivery}
+          />
+        </View>
+      </View>
+    );
+  }
+
   if (loading) {
     return (
       <View style={[styles.cardShadow, { padding: 20, alignItems: "center" }]}>
@@ -259,6 +383,47 @@ const OrderCard = (props: IConfirmOrder) => {
         <Text style={[styles.text, { marginTop: 10 }]}>
           Đang tải đơn hàng...
         </Text>
+      </View>
+    );
+  }
+
+  if (orders.length === 0 && hasStartedDelivery && props.isShipper) {
+    return (
+      <View
+        style={[
+          styles.cardShadow,
+          {
+            flex: 1,
+            padding: 20,
+            alignItems: "center",
+            justifyContent: "center",
+          },
+        ]}
+      >
+        <Text
+          style={[styles.boldText, { marginBottom: 20, textAlign: "center" }]}
+        >
+          Bạn đã giao xong tất cả đơn hàng
+        </Text>
+        <Text style={[styles.text, { marginBottom: 20, textAlign: "center" }]}>
+          Nhấn nút bên dưới để sẵn sàng nhận đơn hàng mới
+        </Text>
+        <View style={{ alignItems: "center" }}>
+          <ShareButton
+            onPress={handleReadyPickup}
+            title={isReadyPickup ? "Đang xử lý..." : "Sẵn sàng nhận đơn"}
+            textStyle={{
+              color: APP_COLOR.WHITE,
+              fontFamily: APP_FONT.REGULAR,
+            }}
+            btnStyle={{
+              marginVertical: 5,
+              width: 200,
+              justifyContent: "center",
+            }}
+            loading={isReadyPickup}
+          />
+        </View>
       </View>
     );
   }
@@ -285,6 +450,7 @@ const OrderCard = (props: IConfirmOrder) => {
           isExpanded={selectedOrderIndex === index}
           onToggle={() => handleViewDetails(index)}
           isShipper={props.isShipper}
+          onRefresh={fetchOrders}
         />
       ))}
     </ScrollView>
