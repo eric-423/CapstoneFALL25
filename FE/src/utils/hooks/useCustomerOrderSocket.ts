@@ -54,12 +54,24 @@ export const useCustomerOrderSocket = ({
 
           unsubs.push(
             websocketService.subscribe<CustomerOrderStatusUpdate>(statusDestination, (message) => {
+              console.log('[useCustomerOrderSocket] 📦 Order Status Update:', {
+                orderId,
+                destination: statusDestination,
+                message,
+                timestamp: new Date().toISOString(),
+              });
               setOrderStatus(message);
             }),
           );
 
           unsubs.push(
             websocketService.subscribe<OrderLocationMessage>(locationDestination, (message) => {
+              console.log('[useCustomerOrderSocket] 📍 Order Location Update:', {
+                orderId,
+                destination: locationDestination,
+                message,
+                timestamp: new Date().toISOString(),
+              });
               setOrderLocation(message);
             }),
           );
@@ -67,6 +79,12 @@ export const useCustomerOrderSocket = ({
           const customerDestination = `/topic/customer/${customerId}/orders`;
           unsubs.push(
             websocketService.subscribe<CustomerOrderStatusUpdate>(customerDestination, (message) => {
+              console.log('[useCustomerOrderSocket] 👤 Customer Orders Update:', {
+                customerId,
+                destination: customerDestination,
+                message,
+                timestamp: new Date().toISOString(),
+              });
               setOrderStatus(message);
             }),
           );
