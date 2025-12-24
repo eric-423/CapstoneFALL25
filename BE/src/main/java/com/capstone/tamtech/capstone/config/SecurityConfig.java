@@ -35,14 +35,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(sockJSCorsFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .authorizeHttpRequests(auth -> auth
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource())).csrf(csrf -> csrf.disable()).sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).addFilterBefore(sockJSCorsFilter, UsernamePasswordAuthenticationFilter.class).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class).authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
@@ -239,6 +232,7 @@ public class SecurityConfig {
                         .requestMatchers("/promotions/all").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers("/promotions/available/order-amout")
                         .hasAnyRole("MANAGER", "ADMIN", "CHEFF", "WAITER", "CUSTOMER", "STAFF")
+                        .requestMatchers(HttpMethod.GET,"/promotions/*").hasAnyRole("MANAGER", "ADMIN", "STAFF")
                         .requestMatchers("/promotions/*").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers("/promotions/*/status").hasAnyRole("MANAGER", "ADMIN")
 
