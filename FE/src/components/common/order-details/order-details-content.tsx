@@ -327,6 +327,7 @@ export function OrderDetailsContent({
             currentStatus={order.orderStatus}
             className="mb-6"
             isPickUp={extendedOrder.pickUp || extendedOrder.isPickUp || false}
+            isTable={extendedOrder.table || extendedOrder.isTable || false}
           />
 
           {normalizedStatus === "SHIPPING" && (

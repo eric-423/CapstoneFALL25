@@ -11,12 +11,14 @@ import {
   Truck,
   UtensilsCrossed,
   XCircle,
+  Clock,
 } from "lucide-react";
 
 interface OrderProgressTrackerProps {
   currentStatus: string;
   className?: string;
   isPickUp?: boolean;
+  isTable?: boolean;
 }
 
 const ORDER_STATUSES = [
@@ -85,6 +87,27 @@ const ORDER_STATUSES = [
   },
 ];
 
+const TABLE_ORDER_STATUSES = [
+  {
+    key: "NOT_COMPLETED",
+    label: "Chưa hoàn tất",
+    icon: Clock,
+    color: "text-yellow-600",
+    bgColor: "bg-yellow-100",
+    borderColor: "border-yellow-300",
+    percent: 0,
+  },
+  {
+    key: "COMPLETED",
+    label: "Hoàn tất",
+    icon: CheckCircle2,
+    color: "text-emerald-600",
+    bgColor: "bg-emerald-100",
+    borderColor: "border-emerald-300",
+    percent: 100,
+  },
+];
+
 const CANCELLED_STATUS = {
   key: "CANCEL",
   label: "Đơn hàng đã hủy",
@@ -124,6 +147,7 @@ export default function OrderProgressTracker({
   currentStatus,
   className,
   isPickUp = false,
+  isTable = false,
 }: OrderProgressTrackerProps) {
   const normalizedStatus = currentStatus?.toUpperCase?.() || "";
   const isCancelled =
@@ -148,6 +172,84 @@ export default function OrderProgressTracker({
     );
   }
 
+  // Xử lý đơn dùng tại bàn: chỉ có 2 status
+  if (isTable) {
+    const isCompleted = normalizedStatus === "COMPLETED" || normalizedStatus === "PAID";
+    const mappedTableStatus = isCompleted ? "COMPLETED" : "NOT_COMPLETED";
+    const currentIndex = TABLE_ORDER_STATUSES.findIndex(
+      (status) => status.key === mappedTableStatus
+    );
+    const safeIndex = currentIndex === -1 ? 0 : currentIndex;
+    const progressValue = TABLE_ORDER_STATUSES[safeIndex]?.percent ?? 0;
+
+    return (
+      <div className={cn("w-full space-y-4 mt-[4rem] flex flex-col items-center", className)}>
+        <div className="relative w-full max-w-xs px-5">
+          <Progress value={progressValue} className="h-2" />
+          <div className="absolute inset-0 flex justify-between items-center px-5">
+            {TABLE_ORDER_STATUSES.map((status, index) => {
+              const Icon = status.icon;
+              const isCompletedStatus = index <= safeIndex;
+              const isCurrent = index === safeIndex;
+
+              return (
+                <div
+                  key={status.key}
+                  className={cn(
+                    "flex items-center justify-center w-8 h-8 rounded-full border-2 bg-card transition-all duration-300 relative",
+                    isCompletedStatus
+                      ? `${status.borderColor} ${status.bgColor}`
+                      : "border-gray-300 bg-gray-100",
+                    isCurrent && "ring-2 ring-offset-2 ring-primary/50"
+                  )}
+                  style={{
+                    transform: "translateX(0)",
+                  }}
+                >
+                  <Icon
+                    className={cn(
+                      "h-4 w-4 transition-colors duration-300",
+                      isCompletedStatus ? status.color : "text-gray-400"
+                    )}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        <div className="flex justify-between text-xs px-5 gap-1 w-full max-w-xs">
+          {TABLE_ORDER_STATUSES.map((status, index) => {
+            const isCompletedStatus = index <= safeIndex;
+            const isCurrent = index === safeIndex;
+
+            return (
+              <div
+                key={status.key}
+                className={cn(
+                  "flex flex-col space-y-1 items-center transition-all duration-300",
+                  isCurrent && "transform scale-105"
+                )}
+              >
+                <span
+                  className={cn(
+                    "font-medium transition-colors duration-300 text-center",
+                    "whitespace-normal sm:whitespace-nowrap",
+                    "text-[10px] sm:text-xs",
+                    isCompletedStatus ? status.color : "text-gray-500",
+                    isCurrent && "font-semibold"
+                  )}
+                >
+                  {status.label}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // Logic cho đơn hàng thông thường và pickup
   let filteredStatuses = isPickUp
     ? ORDER_STATUSES.filter(
       (status) => status.key !== "SHIPPING" && status.key !== "DELIVERED"
