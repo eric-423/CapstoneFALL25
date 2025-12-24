@@ -87,9 +87,9 @@ class WebSocketService {
     this.connectingPromise = new Promise((resolve, reject) => {
       this.client = new Client({
         webSocketFactory: () => this.createSocket(socketUrl),
-        reconnectDelay: 5000,
-        heartbeatIncoming: 4000,
-        heartbeatOutgoing: 4000,
+        reconnectDelay: 500,
+        heartbeatIncoming: 400,
+        heartbeatOutgoing: 400,
         connectHeaders: token
           ? {
             Authorization: `Bearer ${token}`,
@@ -146,6 +146,7 @@ class WebSocketService {
         } catch {
         }
       }
+
 
       callback(payload as T);
     });
