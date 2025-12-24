@@ -64,22 +64,22 @@ export function TrainingCourseCard({
             )}
           </div>
         </div>
-        <div className="flex flex-wrap gap-2 mb-4">
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#78A243]/10 rounded-lg">
+        <div className="flex flex-nowrap gap-2 mb-4">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#78A243]/10 rounded-lg flex-shrink-0">
             <BookOpen size={14} className="text-[#78A243]" />
-            <span className="text-sm font-semibold text-[#2D1E1A]">
+            <span className="text-sm font-semibold text-[#2D1E1A] whitespace-nowrap">
               {course.lessonCount ?? 0} bài học
             </span>
           </div>
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#EBD187]/30 rounded-lg">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#EBD187]/30 rounded-lg flex-shrink-0">
             <GraduationCap size={14} className="text-[#DA7339]" />
-            <span className="text-sm font-semibold text-[#2D1E1A]">
+            <span className="text-sm font-semibold text-[#2D1E1A] whitespace-nowrap">
               Điểm: {course.point ?? 0}
             </span>
           </div>
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#78A243]/10 rounded-lg">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#78A243]/10 rounded-lg flex-shrink-0">
             <CheckCircle size={14} className="text-[#78A243]" />
-            <span className="text-sm font-semibold text-[#2D1E1A]">
+            <span className="text-sm font-semibold text-[#2D1E1A] whitespace-nowrap">
               Tổng: {course.totalLessonPoint ?? course.point ?? 0}
             </span>
           </div>

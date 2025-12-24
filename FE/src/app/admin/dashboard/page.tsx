@@ -44,9 +44,6 @@ import {
   getComboEffectiveness,
   getPromotionEffectiveness,
   getVoucherRevenue,
-  getKitchenPerformance,
-  getStaffPerformance,
-  getOrderFlow,
   DashboardFilterParams,
   DashboardKPIItem,
   RevenueChartItem,
@@ -57,9 +54,6 @@ import {
   ComboEffectivenessItem,
   PromotionEffectivenessItem,
   VoucherRevenueItem,
-  KitchenPerformanceItem,
-  StaffPerformanceItem,
-  OrderFlowItem,
 } from "@/apis/dashboard.api";
 
 // Component Imports
@@ -74,10 +68,6 @@ import ComboEffectivenessChart from "./components/products/ComboEffectivenessCha
 
 import PromotionPerformanceChart from "./components/marketing/PromotionPerformanceChart";
 import VoucherRevenueChart from "./components/marketing/VoucherRevenueChart";
-
-import KitchenPerformanceChart from "./components/operations/KitchenPerformanceChart";
-import StaffPerformanceChart from "./components/operations/StaffPerformanceChart";
-import OrderFlowChart from "./components/operations/OrderFlowChart";
 
 export default function DashboardTabsPage() {
   const { branches } = useAdminContext();
@@ -107,9 +97,6 @@ export default function DashboardTabsPage() {
     comboEffectiveness: false,
     promotions: false,
     vouchers: false,
-    kitchenPerformance: false,
-    staffPerformance: false,
-    orderFlow: false,
   });
 
   // Revenue chart groupBy state
@@ -133,9 +120,6 @@ export default function DashboardTabsPage() {
     PromotionEffectivenessItem[]
   >([]);
   const [voucherData, setVoucherData] = useState<VoucherRevenueItem[]>([]);
-  const [kitchenData, setKitchenData] = useState<KitchenPerformanceItem[]>([]);
-  const [staffData, setStaffData] = useState<StaffPerformanceItem[]>([]);
-  const [orderFlowData, setOrderFlowData] = useState<OrderFlowItem[]>([]);
 
   // Build filter params
   const buildFilterParams = useCallback((): DashboardFilterParams => {
@@ -347,49 +331,6 @@ export default function DashboardTabsPage() {
     }
   }, [buildFilterParams]);
 
-  // Fetch Operations Data
-  const fetchOperationsData = useCallback(async () => {
-    const params = buildFilterParams();
-
-    // Fetch Kitchen Performance
-    setLoading((prev) => ({ ...prev, kitchenPerformance: true }));
-    try {
-      const response = await getKitchenPerformance(params);
-      if (response.data) {
-        setKitchenData(response.data);
-      }
-    } catch (error) {
-      console.error("Error fetching kitchen performance:", error);
-    } finally {
-      setLoading((prev) => ({ ...prev, kitchenPerformance: false }));
-    }
-
-    // Fetch Staff Performance
-    setLoading((prev) => ({ ...prev, staffPerformance: true }));
-    try {
-      const response = await getStaffPerformance(params);
-      if (response.data) {
-        setStaffData(response.data);
-      }
-    } catch (error) {
-      console.error("Error fetching staff performance:", error);
-    } finally {
-      setLoading((prev) => ({ ...prev, staffPerformance: false }));
-    }
-
-    // Fetch Order Flow
-    setLoading((prev) => ({ ...prev, orderFlow: true }));
-    try {
-      const response = await getOrderFlow(params);
-      if (response.data) {
-        setOrderFlowData(response.data);
-      }
-    } catch (error) {
-      console.error("Error fetching order flow:", error);
-    } finally {
-      setLoading((prev) => ({ ...prev, orderFlow: false }));
-    }
-  }, [buildFilterParams]);
 
   // Fetch all data on mount and when filters change
   useEffect(() => {
@@ -413,9 +354,6 @@ export default function DashboardTabsPage() {
       case "marketing":
         fetchMarketingData();
         break;
-      case "operations":
-        fetchOperationsData();
-        break;
     }
 
     setFetchedTabs((prev) => new Set([...prev, activeTab]));
@@ -424,7 +362,6 @@ export default function DashboardTabsPage() {
     fetchedTabs,
     fetchProductsData,
     fetchMarketingData,
-    fetchOperationsData,
   ]);
 
   const handleTabChange = (value: string) => {
@@ -586,7 +523,7 @@ export default function DashboardTabsPage() {
             </Popover>
           </div>
 
-          <TabsList className="grid w-full grid-cols-4 lg:w-[600px] bg-white/60 h-11 p-1 rounded-xl border border-gray-300 dashboard-tabs">
+          <TabsList className="grid w-full grid-cols-3 lg:w-[600px] bg-white/60 h-11 p-1 rounded-xl border border-gray-300 dashboard-tabs">
             <TabsTrigger
               value="overview"
               className="h-full rounded-lg data-[state=active]:shadow-none text-[#2D1E1A]/70 font-medium transition-colors"
@@ -604,12 +541,6 @@ export default function DashboardTabsPage() {
               className="h-full rounded-lg data-[state=active]:shadow-none text-[#2D1E1A]/70 font-medium transition-colors"
             >
               Marketing
-            </TabsTrigger>
-            <TabsTrigger
-              value="operations"
-              className="h-full rounded-lg data-[state=active]:shadow-none text-[#2D1E1A]/70 font-medium transition-colors"
-            >
-              Vận hành
             </TabsTrigger>
           </TabsList>
           <style
@@ -713,24 +644,6 @@ export default function DashboardTabsPage() {
           </div>
         </TabsContent>
 
-        {/* TAB 4: OPERATIONS */}
-        <TabsContent
-          value="operations"
-          className="space-y-6 animate-in fade-in-50 duration-500"
-        >
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <KitchenPerformanceChart
-              data={kitchenData}
-              isLoading={loading.kitchenPerformance}
-            />
-            <StaffPerformanceChart
-              data={staffData}
-              isLoading={loading.staffPerformance}
-            />
-          </div>
-
-          <OrderFlowChart data={orderFlowData} isLoading={loading.orderFlow} />
-        </TabsContent>
       </Tabs>
     </AdminPageLayout>
   );
