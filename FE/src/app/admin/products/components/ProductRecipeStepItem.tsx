@@ -87,6 +87,11 @@ export function ProductRecipeStepItem({
     name: `recipesRequests.${index}.materialId`,
   });
 
+  const orderStep = useWatch({
+    control,
+    name: `recipesRequests.${index}.orderStep`,
+  });
+
   const getUnitName = (unitId: number) => {
     const unit = units.find((u) => u.id === unitId);
     return unit ? unit.symbols : "";
@@ -111,85 +116,94 @@ export function ProductRecipeStepItem({
         <GripVertical className="h-5 w-5" />
       </div>
 
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <Controller
-            control={control}
-            name={`recipesRequests.${index}.materialId`}
-            render={({ field }) => (
-              <Select
-                onValueChange={(val) => field.onChange(parseInt(val))}
-                value={field.value ? field.value.toString() : undefined}
-              >
-                <SelectTrigger className="w-full h-[48px]">
-                  <SelectValue placeholder="Chọn nguyên liệu" />
-                </SelectTrigger>
-                <SelectContent>
-                  {materials.map((m) => (
-                    <SelectItem key={m.id} value={m.id.toString()}>
-                      {m.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+      <div className="flex-1">
+        {orderStep && (
+          <div className="mb-2">
+            <span className="text-sm font-semibold text-[#78A243]">
+              Bước : {orderStep}
+            </span>
+          </div>
+        )}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <Controller
+              control={control}
+              name={`recipesRequests.${index}.materialId`}
+              render={({ field }) => (
+                <Select
+                  onValueChange={(val) => field.onChange(parseInt(val))}
+                  value={field.value ? field.value.toString() : undefined}
+                >
+                  <SelectTrigger className="w-full h-[48px]">
+                    <SelectValue placeholder="Chọn nguyên liệu" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {materials.map((m) => (
+                      <SelectItem key={m.id} value={m.id.toString()}>
+                        {m.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {errors.recipesRequests?.[index]?.materialId && (
+              <p className="text-[10px] text-red-500 mt-1">
+                {errors.recipesRequests[index]?.materialId?.message}
+              </p>
             )}
-          />
-          {errors.recipesRequests?.[index]?.materialId && (
-            <p className="text-[10px] text-red-500 mt-1">
-              {errors.recipesRequests[index]?.materialId?.message}
-            </p>
-          )}
-        </div>
-        <div className="relative">
-          <Input
-            type="number"
-            step="any"
-            placeholder="Số lượng"
-            {...register(`recipesRequests.${index}.quantity`)}
-            className="w-full h-[42px]"
-          />
-          {currentUnit && (
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium">
-              {currentUnit}
-            </div>
-          )}
-          {errors.recipesRequests?.[index]?.quantity && (
-            <p className="text-[10px] text-red-500 mt-1">
-              {errors.recipesRequests[index]?.quantity?.message}
-            </p>
-          )}
-        </div>
+          </div>
+          <div className="relative">
+            <Input
+              type="number"
+              step="any"
+              placeholder="Số lượng"
+              {...register(`recipesRequests.${index}.quantity`)}
+              className="w-full h-[42px]"
+            />
+            {currentUnit && (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium">
+                {currentUnit}
+              </div>
+            )}
+            {errors.recipesRequests?.[index]?.quantity && (
+              <p className="text-[10px] text-red-500 mt-1">
+                {errors.recipesRequests[index]?.quantity?.message}
+              </p>
+            )}
+          </div>
 
-        <div>
-          <Controller
-            control={control}
-            name={`recipesRequests.${index}.cookingMethodId`}
-            render={({ field }) => (
-              <Select
-                onValueChange={(val) => field.onChange(parseInt(val))}
-                value={
-                  field.value !== undefined ? field.value.toString() : undefined
-                }
-              >
-                <SelectTrigger className="w-full h-[48px]">
-                  <SelectValue placeholder="Phương pháp nấu" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="0">Không</SelectItem>
-                  {cookingMethods.map((cm) => (
-                    <SelectItem key={cm.id} value={cm.id.toString()}>
-                      {cm.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          <div>
+            <Controller
+              control={control}
+              name={`recipesRequests.${index}.cookingMethodId`}
+              render={({ field }) => (
+                <Select
+                  onValueChange={(val) => field.onChange(parseInt(val))}
+                  value={
+                    field.value !== undefined ? field.value.toString() : undefined
+                  }
+                >
+                  <SelectTrigger className="w-full h-[48px]">
+                    <SelectValue placeholder="Phương pháp nấu" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">Không</SelectItem>
+                    {cookingMethods.map((cm) => (
+                      <SelectItem key={cm.id} value={cm.id.toString()}>
+                        {cm.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {errors.recipesRequests?.[index]?.cookingMethodId && (
+              <p className="text-[10px] text-red-500 mt-1">
+                {errors.recipesRequests[index]?.cookingMethodId?.message}
+              </p>
             )}
-          />
-          {errors.recipesRequests?.[index]?.cookingMethodId && (
-            <p className="text-[10px] text-red-500 mt-1">
-              {errors.recipesRequests[index]?.cookingMethodId?.message}
-            </p>
-          )}
+          </div>
         </div>
       </div>
       <Button

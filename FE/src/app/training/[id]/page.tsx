@@ -228,15 +228,15 @@ export default function TrainingDetailPage() {
             t.userTrainingId === trainingId
         ) as
           | {
-              trainingId?: number;
-              id?: number;
-              trainingName?: string;
-              name?: string;
-              trainingPoint?: number;
-              point?: number;
-              description?: string;
-              note?: string;
-            }
+            trainingId?: number;
+            id?: number;
+            trainingName?: string;
+            name?: string;
+            trainingPoint?: number;
+            point?: number;
+            description?: string;
+            note?: string;
+          }
           | undefined;
 
         if (!item) return undefined;
@@ -646,11 +646,11 @@ export default function TrainingDetailPage() {
                               });
                             }
                           }}
-                          onWaiting={() => {}}
+                          onWaiting={() => { }}
                           onPlaying={() => {
                             setIsVideoSeeking(false);
                           }}
-                          onPause={() => {}}
+                          onPause={() => { }}
                           key={selectedLessonId}
                         >
                           Trình duyệt của bạn không hỗ trợ video tag.
