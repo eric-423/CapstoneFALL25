@@ -15,4 +15,5 @@ public class UserDTO implements Serializable {
     private Date createdAt;
     private Integer branchId;
     private String role;
+    private Boolean phoneVerified;
 }

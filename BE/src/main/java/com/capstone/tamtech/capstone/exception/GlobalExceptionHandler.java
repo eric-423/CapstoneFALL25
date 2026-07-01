@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.apache.coyote.BadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -83,10 +84,32 @@ public class GlobalExceptionHandler {
                 return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
         }
 
+        @ExceptionHandler(DataIntegrityViolationException.class)
+        public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(
+                        DataIntegrityViolationException ex,
+                        HttpServletRequest request) {
+
+                log.info("event=customer_register status=duplicate_phone");
+
+                ErrorResponse errorResponse = ErrorResponse.builder()
+                                .timestamp(new Date())
+                                .status(HttpStatus.BAD_REQUEST.value())
+                                .error("Bad Request")
+                                .message("Số điện thoại đã tồn tại trong hệ thống")
+                                .path(request.getRequestURI())
+                                .build();
+
+                return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        }
+
         @ExceptionHandler(IllegalArgumentException.class)
         public ResponseEntity<ErrorResponse> handleIllegalArgumentException(
                         IllegalArgumentException ex,
                         HttpServletRequest request) {
+
+                if (ex.getMessage() != null && ex.getMessage().contains("Số điện thoại đã tồn tại")) {
+                        log.info("event=customer_register status=duplicate_phone");
+                }
 
                 ErrorResponse errorResponse = ErrorResponse.builder()
                                 .timestamp(new Date())

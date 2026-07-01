@@ -1,5 +1,6 @@
 package com.capstone.tamtech.capstone.controllers;
 
+import com.capstone.tamtech.capstone.dto.UserDTO;
 import com.capstone.tamtech.capstone.payload.OtpRequest;
 import com.capstone.tamtech.capstone.payload.ResponseData;
 import com.capstone.tamtech.capstone.payload.request.*;
@@ -107,12 +108,13 @@ public class AuthController {
     @Operation(summary = "Đăng ký tài khoản khách hàng", description = "API cho phép khách hàng tạo tài khoản mới với số điện thoại, mật khẩu và thông tin cá nhân", security = {}
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Đăng ký thành công", content = @Content(mediaType = "application/json")),
-            @ApiResponse(responseCode = "400", description = "Số điện thoại đã tồn tại hoặc dữ liệu không hợp lệ")
+            @ApiResponse(responseCode = "201", description = "Đăng ký thành công", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDTO.class))),
+            @ApiResponse(responseCode = "400", description = "Số điện thoại đã tồn tại hoặc dữ liệu không hợp lệ", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Vai trò CUSTOMER không tồn tại", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping("/customer/register")
-    public ResponseEntity<?> customerRegister(
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Thông tin đăng ký khách hàng", required = true, content = @Content(schema = @Schema(implementation = CustomerRegisterRequest.class), examples = @ExampleObject(value = "{\"fullName\": \"Nguyễn Văn A\", \"phoneNumber\": \"0987654321\", \"password\": \"password123\", \"dateOfBirth\": \"2000-01-01\"}"))) @RequestBody CustomerRegisterRequest customerRegisterRequest) {
+    public ResponseEntity<UserDTO> customerRegister(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Thông tin đăng ký khách hàng", required = true, content = @Content(schema = @Schema(implementation = CustomerRegisterRequest.class), examples = @ExampleObject(value = "{\"fullName\": \"Nguyễn Văn A\", \"phoneNumber\": \"0987654321\", \"password\": \"password123\", \"dateOfBirth\": \"2000-01-01\"}"))) @Valid @RequestBody CustomerRegisterRequest customerRegisterRequest) {
 
         return new ResponseEntity<>(authService.customerRegister(customerRegisterRequest), HttpStatus.CREATED);
     }

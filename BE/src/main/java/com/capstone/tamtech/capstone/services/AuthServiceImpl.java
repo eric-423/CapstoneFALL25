@@ -14,17 +14,23 @@ import com.capstone.tamtech.capstone.repositories.UsersRepository;
 import com.capstone.tamtech.capstone.services.impl.AuthService;
 import com.capstone.tamtech.capstone.services.impl.OtpService;
 import com.capstone.tamtech.capstone.untils.JwtTokenHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Service
 public class AuthServiceImpl implements AuthService {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
 
     @Autowired
     private UsersRepository usersRepository;
@@ -85,29 +91,43 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public UserDTO customerRegister(CustomerRegisterRequest customerRegisterRequest) {
+        usersRepository.findByPhoneNumber(customerRegisterRequest.getPhoneNumber()).ifPresent(existing -> {
+            throw new IllegalArgumentException(
+                    "Số điện thoại đã tồn tại: " + customerRegisterRequest.getPhoneNumber());
+        });
+
+        Role customerRole = roleRepository.findByName("CUSTOMER")
+                .orElseThrow(() -> new ResourceNotFoundException("Role CUSTOMER không tồn tại"));
+
+        Date now = new Date();
+
         Users customer = new Users();
-
-        usersRepository.save(customer);
-        RoleHistory roleHistory = new RoleHistory();
-
-        roleHistory.setRole(roleRepository.findByName("CUSTOMER")
-                .orElseThrow(() -> new ResourceNotFoundException("Role CUSTOMER không tồn tại")));
-        roleHistory.setUser(customer);
-        roleHistory.setRoleName("CUSTOMER");
-
-        roleHistoryRepository.save(roleHistory);
-
         customer.setFullName(customerRegisterRequest.getFullName());
         customer.setPhoneNumber(customerRegisterRequest.getPhoneNumber());
         customer.setPassword(passwordEncoder.encode(customerRegisterRequest.getPassword()));
         customer.setDateOfBirth(customerRegisterRequest.getDateOfBirth());
         customer.setNote("");
+        customer.setIsBan(false);
+        customer.setCreatedAt(now);
+        customer.setMemberPoint(0);
         customer.setEmailVerified(false);
         customer.setPhoneVerified(false);
         customer.setMemberAssociation(memberAssociationRepository.findById(1).orElse(null));
 
-        usersRepository.save(customer);
-        return convertToDTO(usersRepository.save(customer));
+        RoleHistory roleHistory = new RoleHistory();
+        roleHistory.setRole(customerRole);
+        roleHistory.setUser(customer);
+        roleHistory.setRoleName("CUSTOMER");
+        roleHistory.setActive(true);
+        roleHistory.setStartDate(now);
+
+        customer.setRoleHistories(new ArrayList<>(List.of(roleHistory)));
+
+        Users saved = usersRepository.save(customer);
+
+        log.info("event=customer_register status=success userId={}", saved.getId());
+
+        return convertToDTO(saved);
     }
 
     @Override
@@ -182,9 +202,18 @@ public class AuthServiceImpl implements AuthService {
         userDTO.setFullName(user.getFullName());
         userDTO.setEmail(user.getEmail());
         userDTO.setPhone(user.getPhoneNumber());
-        userDTO.setDateOfBirth(user.getDateOfBirth().toString());
+        if (user.getDateOfBirth() != null) {
+            userDTO.setDateOfBirth(new SimpleDateFormat("yyyy-MM-dd").format(user.getDateOfBirth()));
+        } else {
+            userDTO.setDateOfBirth(null);
+        }
         userDTO.setCreatedAt(user.getCreatedAt());
-        userDTO.setRole(roleHistoryRepository.findByUser_Id(user.getId()).getRole().getName());
+        userDTO.setPhoneVerified(user.getPhoneVerified());
+
+        RoleHistory activeRole = roleHistoryRepository.findByUserAndIsActiveTrue(user)
+                .orElseThrow(() -> new ResourceNotFoundException("Người dùng chưa được phân quyền"));
+        userDTO.setRole(activeRole.getRole().getName());
+
         return userDTO;
     }
 
